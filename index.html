@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; }
+
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #cc8833;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      pointer-events: none;
+      text-shadow: 0 0 8px #ff6600;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      z-index: 10;
+    }
+
+    #room-prompt {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ffcc66;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      pointer-events: none;
+      text-shadow: 0 0 12px #ff8833;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    #controls-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #554433;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="hud">
+    <span>SS WAYFARER</span>
+    <span>HERITAGE CLASS · DEEP CORE SERIES</span>
+    <span>DECK 01</span>
+  </div>
+
+  <div id="room-prompt"></div>
+  <div id="controls-hint">WASD / DRAG TO LOOK · CLICK DOORS TO ENTER · VR ICON FOR CARDBOARD</div>
+
+  <a-scene
+    fog="type: exponential; color: #020100; density: 0.035"
+    background="color: #020100"
+    vr-mode-ui="enabled: true"
+    renderer="antialias: true; colorManagement: true">
+
+    <!-- ======================================================
+         PLAYER
+    ====================================================== -->
+    <a-entity id="player" position="0 0 0">
+      <a-camera
+        wasd-controls="acceleration: 22; fly: false"
+        look-controls="pointerLockEnabled: true; touchEnabled: true"
+        position="0 1.6 0">
+        <a-cursor
+          color="#ffcc66"
+          opacity="0.6"
+          fuse="true"
+          fuse-timeout="1500"
+          raycaster="objects: .door-face"
+          animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 1.2 1.2 1.2; to: 1 1 1">
+        </a-cursor>
+      </a-camera>
+    </a-entity>
+
+    <!-- ======================================================
+         CORRIDOR SHELL
+         25 units long: z = -12.5 (Library end) to z = +12.5 (Bridge end)
+         5 units wide:  x = -2.5 to x = +2.5
+         3.5 units tall: y = 0 to y = 3.5
+    ====================================================== -->
+
+    <!-- Floor -->
+    <a-plane position="0 0 0" rotation="-90 0 0"
+      width="5" height="26"
+      color="#0e0b07" roughness="0.9" metalness="0.4">
+    </a-plane>
+
+    <!-- Ceiling -->
+    <a-plane position="0 3.5 0" rotation="90 0 0"
+      width="5" height="26"
+      color="#080604" roughness="1" metalness="0">
+    </a-plane>
+
+    <!-- Left Wall -->
+    <a-plane position="-2.5 1.75 0" rotation="0 90 0"
+      width="26" height="3.5"
+      color="#0d0b08">
+    </a-plane>
+
+    <!-- Right Wall -->
+    <a-plane position="2.5 1.75 0" rotation="0 -90 0"
+      width="26" height="3.5"
+      color="#0d0b08">
+    </a-plane>
+
+    <!-- Front cap (Command Bridge side) -->
+    <a-plane position="0 1.75 12.5" rotation="0 180 0"
+      width="5" height="3.5"
+      color="#0a0806">
+    </a-plane>
+
+    <!-- Back cap (Library side) -->
+    <a-plane position="0 1.75 -12.5" rotation="0 0 0"
+      width="5" height="3.5"
+      color="#08090f">
+    </a-plane>
+
+    <!-- ======================================================
+         FLOOR DETAILS — glowing guide strips
+    ====================================================== -->
+
+    <!-- Center spine -->
+    <a-box position="0 0.01 0" width="0.2" height="0.01" depth="26"
+      color="#1a0900" emissive="#ff4400" emissive-intensity="0.15">
+    </a-box>
+
+    <!-- Edge strips -->
+    <a-box position="-1.85 0.01 0" width="0.04" height="0.01" depth="26"
+      color="#1a0600" emissive="#ff5500" emissive-intensity="0.1">
+    </a-box>
+    <a-box position="1.85 0.01 0" width="0.04" height="0.01" depth="26"
+      color="#1a0600" emissive="#ff5500" emissive-intensity="0.1">
+    </a-box>
+
+    <!-- ======================================================
+         WALL TRIM
+    ====================================================== -->
+
+    <!-- Upper trim rails -->
+    <a-box position="-2.49 2.9 0" width="0.02" height="0.05" depth="26"
+      color="#1a0e04" emissive="#ff4400" emissive-intensity="0.12">
+    </a-box>
+    <a-box position="2.49 2.9 0" width="0.02" height="0.05" depth="26"
+      color="#1a0e04" emissive="#ff4400" emissive-intensity="0.12">
+    </a-box>
+
+    <!-- Lower trim rails -->
+    <a-box position="-2.49 0.7 0" width="0.02" height="0.05" depth="26"
+      color="#100800" emissive="#331100" emissive-intensity="0.07">
+    </a-box>
+    <a-box position="2.49 0.7 0" width="0.02" height="0.05" depth="26"
+      color="#100800" emissive="#331100" emissive-intensity="0.07">
+    </a-box>
+
+    <!-- ======================================================
+         LIGHTING
+    ====================================================== -->
+
+    <!-- Very dim warm ambient -->
+    <a-light type="ambient" color="#1a0e06" intensity="0.35"></a-light>
+
+    <!-- Ceiling sconces: amber pairs running corridor length -->
+    <a-light type="point" position="-1.7 3.1  11" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position=" 1.7 3.1  11" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position="-1.7 3.1   5" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position=" 1.7 3.1   5" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position="-1.7 3.1  -1" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position=" 1.7 3.1  -1" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position="-1.7 3.1  -7" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
+    <a-light type="point" position=" 1.7 3.1  -7" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
+
+    <!-- Cool blue pull from the Library end -->
+    <a-light type="point" position="0 1.2 -12" color="#0033dd" intensity="1.8" distance="7" decay="2"></a-light>
+
+    <!-- Cool blue at the Bridge end (space beyond) -->
+    <a-light type="point" position="0 2 12" color="#001166" intensity="1.0" distance="5" decay="2"></a-light>
+
+    <!-- ======================================================
+         CEILING SCONCE FIXTURES (visual boxes)
+    ====================================================== -->
+    <a-box position="-1.7 3.43  11" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position=" 1.7 3.43  11" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position="-1.7 3.43   5" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position=" 1.7 3.43   5" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position="-1.7 3.43  -1" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position=" 1.7 3.43  -1" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position="-1.7 3.43  -7" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+    <a-box position=" 1.7 3.43  -7" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
+
+    <!-- ======================================================
+         DOOR 01 — COMMAND BRIDGE  (+Z, front of ship)
+         Color: cool blue/white — space beyond
+    ====================================================== -->
+    <!-- Outer frame -->
+    <a-box position="0 1.55 12.42" width="2.5" height="3.1" depth="0.1"
+      color="#0e0c08" emissive="#445566" emissive-intensity="0.1">
+    </a-box>
+    <!-- Door face (interactive) -->
+    <a-box id="door-bridge" class="door-face" data-room="Command Bridge"
+      position="0 1.35 12.44" width="2.0" height="2.6" depth="0.06"
+      color="#020309" emissive="#001166" emissive-intensity="0.7">
+    </a-box>
+    <!-- Top glow strip -->
+    <a-box position="0 2.7 12.38" width="2.0" height="0.06" depth="0.1"
+      color="#ff8800" emissive="#ff8800" emissive-intensity="2">
+    </a-box>
+    <!-- Labels -->
+    <a-text value="COMMAND BRIDGE" position="0 2.92 12.38"
+      align="center" color="#ffcc55" width="3.8" letter-spacing="2">
+    </a-text>
+    <a-text value="01 — BRIDGE DECK" position="0 2.68 12.32"
+      align="center" color="#665533" width="2.5">
+    </a-text>
+
+    <!-- ======================================================
+         DOOR 02 — HOLODECK  (LEFT wall, z=+6)
+         Color: teal/cyan — simulation grid
+    ====================================================== -->
+    <!-- Outer frame -->
+    <a-box position="-2.44 1.55 6" width="0.1" height="3.1" depth="2.5"
+      color="#0e0c08" emissive="#00aa88" emissive-intensity="0.05">
+    </a-box>
+    <!-- Door face (interactive) -->
+    <a-box id="door-holodeck" class="door-face" data-room="Holodeck"
+      position="-2.46 1.35 6" width="0.06" height="2.6" depth="2.0"
+      color="#001510" emissive="#00ffcc" emissive-intensity="0.45">
+    </a-box>
+    <!-- Side glow strip (top) -->
+    <a-box position="-2.38 2.7 6" width="0.1" height="0.06" depth="2.0"
+      color="#00ffcc" emissive="#00ffcc" emissive-intensity="2">
+    </a-box>
+    <!-- Labels -->
+    <a-text value="HOLODECK" position="-2.08 2.92 6"
+      align="center" rotation="0 -90 0" color="#00ffcc" width="3.8" letter-spacing="2">
+    </a-text>
+    <a-text value="02 — SIMULATION BAY" position="-2.08 2.68 6"
+      align="center" rotation="0 -90 0" color="#006644" width="2.5">
+    </a-text>
+
+    <!-- ======================================================
+         DOOR 03 — CREW LOUNGE / BREAK ROOM  (RIGHT wall, z=+4)
+         Color: warm amber — cats, couch, browser
+    ====================================================== -->
+    <a-box position="2.44 1.55 4" width="0.1" height="3.1" depth="2.5"
+      color="#0e0c08" emissive="#aa6600" emissive-intensity="0.05">
+    </a-box>
+    <a-box id="door-lounge" class="door-face" data-room="Crew Lounge"
+      position="2.46 1.35 4" width="0.06" height="2.6" depth="2.0"
+      color="#120a03" emissive="#ff8833" emissive-intensity="0.3">
+    </a-box>
+    <a-box position="2.38 2.7 4" width="0.1" height="0.06" depth="2.0"
+      color="#ff8833" emissive="#ff8833" emissive-intensity="2">
+    </a-box>
+    <a-text value="CREW LOUNGE" position="2.08 2.92 4"
+      align="center" rotation="0 90 0" color="#ffcc66" width="3.8" letter-spacing="2">
+    </a-text>
+    <a-text value="03 — BREAK DECK" position="2.08 2.68 4"
+      align="center" rotation="0 90 0" color="#664422" width="2.5">
+    </a-text>
+
+    <!-- ======================================================
+         DOOR 04 — MEDIA NEXUS  (RIGHT wall, z=-4)
+         Color: electric blue — screens everywhere
+    ====================================================== -->
+    <a-box position="2.44 1.55 -4" width="0.1" height="3.1" depth="2.5"
+      color="#0e0c08" emissive="#003388" emissive-intensity="0.06">
+    </a-box>
+    <a-box id="door-media" class="door-face" data-room="Media Nexus"
+      position="2.46 1.35 -4" width="0.06" height="2.6" depth="2.0"
+      color="#020310" emissive="#0044ff" emissive-intensity="0.5">
+    </a-box>
+    <a-box position="2.38 2.7 -4" width="0.1" height="0.06" depth="2.0"
+      color="#0055ff" emissive="#0055ff" emissive-intensity="2">
+    </a-box>
+    <a-text value="MEDIA NEXUS" position="2.08 2.92 -4"
+      align="center" rotation="0 90 0" color="#6699ff" width="3.8" letter-spacing="2">
+    </a-text>
+    <a-text value="04 — BROADCAST" position="2.08 2.68 -4"
+      align="center" rotation="0 90 0" color="#223366" width="2.5">
+    </a-text>
+
+    <!-- ======================================================
+         DOOR 05 — THE LIBRARY  (-Z, back of ship)
+         Color: deep blue / electrogel — the crown jewel
+    ====================================================== -->
+    <!-- Large ornate frame -->
+    <a-box position="0 1.75 -12.42" width="4.0" height="3.6" depth="0.12"
+      color="#080810" emissive="#0022aa" emissive-intensity="0.08">
+    </a-box>
+    <!-- Door face (interactive) -->
+    <a-box id="door-library" class="door-face" data-room="The Library"
+      position="0 1.5 -12.46" width="3.3" height="3.0" depth="0.06"
+      color="#010108" emissive="#0022cc" emissive-intensity="0.7">
+    </a-box>
+    <!-- Electrogel glow bleeding under door -->
+    <a-box position="0 0.04 -12.46" width="3.3" height="0.08" depth="0.18"
+      color="#00aaff" emissive="#00aaff" emissive-intensity="2.5">
+    </a-box>
+    <!-- Top glow strip -->
+    <a-box position="0 3.05 -12.38" width="3.3" height="0.07" depth="0.12"
+      color="#0055ff" emissive="#0055ff" emissive-intensity="2">
+    </a-box>
+    <!-- Side glow strips -->
+    <a-box position="-1.65 1.5 -12.38" width="0.06" height="3.0" depth="0.1"
+      color="#0033bb" emissive="#0033bb" emissive-intensity="1.2">
+    </a-box>
+    <a-box position=" 1.65 1.5 -12.38" width="0.06" height="3.0" depth="0.1"
+      color="#0033bb" emissive="#0033bb" emissive-intensity="1.2">
+    </a-box>
+    <!-- Labels -->
+    <a-text value="THE LIBRARY" position="0 3.28 -12.35"
+      align="center" color="#88aaff" width="5.5" letter-spacing="5">
+    </a-text>
+    <a-text value="SECOND BRAIN  ·  ARCHIVE  ·  DEEP CORE" position="0 2.98 -12.3"
+      align="center" color="#223366" width="4.2" letter-spacing="1">
+    </a-text>
+
+    <!-- ======================================================
+         SPACE VIEWPORT  (near Command Bridge, end of corridor)
+    ====================================================== -->
+    <a-plane position="0 2.0 12.45" rotation="0 180 0"
+      width="2.8" height="1.4"
+      color="#000308" emissive="#000215" emissive-intensity="1">
+    </a-plane>
+    <!-- Viewport frame -->
+    <a-box position="0 2.0 12.43" width="3.0" height="1.6" depth="0.06"
+      color="#1a1206" emissive="#332200" emissive-intensity="0.1">
+    </a-box>
+
+  </a-scene>
+
+  <script>
+    const prompt = document.getElementById('room-prompt');
+
+    function showPrompt(text, color) {
+      prompt.textContent = text;
+      prompt.style.color = color || '#ffcc66';
+      prompt.style.textShadow = `0 0 12px ${color || '#ff8833'}`;
+      prompt.style.opacity = '1';
+    }
+
+    function hidePrompt() {
+      prompt.style.opacity = '0';
+    }
+
+    // Door color map
+    const doorConfig = {
+      'Command Bridge': { hover: '#001166', active: '#0022ff', label: '[ ENTER COMMAND BRIDGE ]', color: '#aabbff' },
+      'Holodeck':       { hover: '#003322', active: '#00ffcc', label: '[ ENTER HOLODECK ]',       color: '#00ffcc' },
+      'Crew Lounge':    { hover: '#1a0a02', active: '#ff8833', label: '[ ENTER CREW LOUNGE ]',    color: '#ffcc66' },
+      'Media Nexus':    { hover: '#020318', active: '#0066ff', label: '[ ENTER MEDIA NEXUS ]',    color: '#6699ff' },
+      'The Library':    { hover: '#010115', active: '#0044ff', label: '[ ENTER THE LIBRARY ]',    color: '#88aaff' },
+    };
+
+    document.querySelectorAll('.door-face').forEach(door => {
+      const room = door.getAttribute('data-room');
+      const cfg = doorConfig[room];
+
+      door.addEventListener('mouseenter', () => {
+        showPrompt(cfg.label, cfg.color);
+        door.setAttribute('material', 'emissiveIntensity', 1.4);
+      });
+
+      door.addEventListener('mouseleave', () => {
+        hidePrompt();
+        door.setAttribute('material', 'emissiveIntensity',
+          room === 'The Library' ? 0.7 :
+          room === 'Holodeck'    ? 0.45 :
+          room === 'Media Nexus' ? 0.5 : 0.3
+        );
+      });
+
+      door.addEventListener('click', () => {
+        showPrompt(`${room.toUpperCase()} — UNDER CONSTRUCTION`, cfg.color);
+        setTimeout(hidePrompt, 2200);
+      });
+    });
+  </script>
+</body>
+</html>
