@@ -394,8 +394,15 @@
       });
 
       door.addEventListener('click', () => {
-        showPrompt(`${room.toUpperCase()} — UNDER CONSTRUCTION`, cfg.color);
-        setTimeout(hidePrompt, 2200);
+        const destinations = {
+          'Command Bridge': 'bridge.html',
+        };
+        if (destinations[room]) {
+          window.location.href = destinations[room];
+        } else {
+          showPrompt(`${room.toUpperCase()} — UNDER CONSTRUCTION`, cfg.color);
+          setTimeout(hidePrompt, 2200);
+        }
       });
     });
   </script>
