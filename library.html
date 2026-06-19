@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer — The Library</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; }
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: #6688cc; font-family: 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      pointer-events: none; text-shadow: 0 0 8px #0044ff;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      z-index: 10;
+    }
+    #room-prompt {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      color: #88aaff; font-family: 'Courier New', monospace;
+      font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
+      pointer-events: none; text-shadow: 0 0 12px #0044ff;
+      opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; z-index: 10;
+    }
+    #controls-hint {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      color: #223355; font-family: 'Courier New', monospace;
+      font-size: 10px; letter-spacing: 2px; pointer-events: none; z-index: 10;
+    }
+
+    /* Scroll reader panel */
+    #scroll-panel {
+      position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%);
+      width: min(600px, 92vw);
+      background: rgba(2, 4, 12, 0.96);
+      border: 1px solid #112244;
+      padding: 28px 32px 24px;
+      font-family: 'Courier New', monospace;
+      color: #88aadd;
+      z-index: 20;
+      transition: bottom 0.4s ease;
+      pointer-events: all;
+    }
+    #scroll-panel.open { bottom: 24px; }
+    #scroll-title {
+      font-size: 13px; letter-spacing: 4px; color: #aabbff;
+      text-shadow: 0 0 10px #0044ff; margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+    #scroll-body {
+      font-size: 12px; line-height: 1.9; color: #5577aa;
+      letter-spacing: 1px; max-height: 180px; overflow-y: auto;
+    }
+    #scroll-close {
+      display: block; margin-top: 18px; text-align: right;
+      font-size: 10px; letter-spacing: 3px; color: #334466;
+      cursor: pointer; text-transform: uppercase;
+    }
+    #scroll-close:hover { color: #88aaff; }
+  </style>
+</head>
+<body>
+
+  <div id="hud">
+    <span>SS WAYFARER</span>
+    <span>THE LIBRARY — DEEP CORE</span>
+    <span>DECK 01</span>
+  </div>
+  <div id="room-prompt"></div>
+  <div id="controls-hint">WASD / DRAG TO LOOK · GAZE OR CLICK SCROLLS TO READ</div>
+
+  <div id="scroll-panel">
+    <div id="scroll-title"></div>
+    <div id="scroll-body"></div>
+    <span id="scroll-close">[ CLOSE SCROLL ]</span>
+  </div>
+
+  <a-scene
+    fog="type: exponential; color: #000208; density: 0.018"
+    vr-mode-ui="enabled: true"
+    renderer="antialias: true; colorManagement: true">
+
+    <!-- ======================================================
+         SPACE ENVIRONMENT (through glass ceiling)
+    ====================================================== -->
+    <a-sky color="#00010a"></a-sky>
+
+    <!-- ======================================================
+         PLAYER — enters from corridor (+Z)
+    ====================================================== -->
+    <a-entity id="player" position="0 0 8">
+      <a-camera
+        wasd-controls="acceleration: 20; fly: false"
+        look-controls="pointerLockEnabled: true; touchEnabled: true"
+        position="0 1.6 0">
+        <a-cursor
+          color="#88aaff" opacity="0.5"
+          fuse="true" fuse-timeout="1500"
+          raycaster="objects: .interactive">
+        </a-cursor>
+      </a-camera>
+    </a-entity>
+
+    <!-- ======================================================
+         ROOM SHELL
+    ====================================================== -->
+
+    <!-- GLASS FLOOR — walk on it, see brain below -->
+    <a-circle position="0 0 0" rotation="-90 0 0" radius="11"
+      material="color: #0a1828; opacity: 0.22; transparent: true; roughness: 0; metalness: 0.95">
+    </a-circle>
+
+    <!-- GLASS CEILING — look up, see space -->
+    <a-circle position="0 5 0" rotation="90 0 0" radius="11"
+      material="color: #060a16; opacity: 0.18; transparent: true; roughness: 0; metalness: 0.9">
+    </a-circle>
+
+    <!-- Outer floor ring (solid edge around glass) -->
+    <a-torus position="0 0.01 0" rotation="-90 0 0" radius="10.8" tube="0.22"
+      color="#080908" emissive="#003322" emissive-intensity="0.3">
+    </a-torus>
+
+    <!-- Ceiling ring -->
+    <a-torus position="0 5 0" rotation="-90 0 0" radius="10.8" tube="0.22"
+      color="#080908" emissive="#0011aa" emissive-intensity="0.2">
+    </a-torus>
+
+    <!-- Curved walls (organic, dark) -->
+    <a-cylinder position="0 2.5 0" radius="11" height="5" open-ended="true"
+      material="side: back; color: #07090a; roughness: 0.96; metalness: 0.05">
+    </a-cylinder>
+
+    <!-- Structural ribs on wall -->
+    <a-torus position="0 0.9 0" rotation="-90 0 0" radius="10.95" tube="0.06"
+      color="#0a0e0a" emissive="#003318" emissive-intensity="0.2">
+    </a-torus>
+    <a-torus position="0 2.5 0" rotation="-90 0 0" radius="10.95" tube="0.06"
+      color="#0a0e0a" emissive="#001133" emissive-intensity="0.15">
+    </a-torus>
+    <a-torus position="0 4.1 0" rotation="-90 0 0" radius="10.95" tube="0.06"
+      color="#0a0e0a" emissive="#001133" emissive-intensity="0.15">
+    </a-torus>
+
+    <!-- ======================================================
+         BRAIN IN ELECTROGEL (below glass floor)
+    ====================================================== -->
+
+    <!-- Electrogel tank walls -->
+    <a-cylinder position="0 -8 0" radius="8" height="16" open-ended="true"
+      material="side: double; color: #001a10; opacity: 0.12; transparent: true">
+    </a-cylinder>
+    <!-- Tank floor -->
+    <a-circle position="0 -16 0" rotation="-90 0 0" radius="8"
+      color="#000d08" roughness="1">
+    </a-circle>
+
+    <!-- LEFT HEMISPHERE -->
+    <a-sphere position="-1.5 -8.5 -0.5" radius="3.4"
+      material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
+      animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
+    </a-sphere>
+    <!-- Left hemisphere surface bumps (gyri) -->
+    <a-sphere position="-3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere position="-2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere position="-1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
+    <a-sphere position="-3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
+
+    <!-- RIGHT HEMISPHERE -->
+    <a-sphere position="1.5 -8.5 -0.5" radius="3.4"
+      material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
+      animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3600; dir: alternate; easing: easeInOutSine">
+    </a-sphere>
+    <!-- Right gyri -->
+    <a-sphere position="3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere position="2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere position="1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
+    <a-sphere position="3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
+
+    <!-- CEREBELLUM (back, lower) -->
+    <a-sphere position="0 -11 -2.5" radius="1.8"
+      material="color: #092015; emissive: #009955; emissiveIntensity: 0.45; roughness: 0.85"
+      animation="property: scale; to: 1.015 1.015 1.015; from: 0.985 0.985 0.985; loop: true; dur: 2800; dir: alternate; easing: easeInOutSine">
+    </a-sphere>
+
+    <!-- BRAINSTEM (connecting down) -->
+    <a-cylinder position="0 -13.5 -1.5" radius="0.65" height="3.5"
+      rotation="10 0 0"
+      material="color: #082012; emissive: #007744; emissiveIntensity: 0.35; roughness: 0.9">
+    </a-cylinder>
+
+    <!-- CORPUS CALLOSUM ridge (between hemispheres) -->
+    <a-sphere position="0 -7.2 0" radius="1.2"
+      material="color: #0e2e1a; emissive: #00dd88; emissiveIntensity: 0.5; roughness: 0.8">
+    </a-sphere>
+
+    <!-- ELECTROGEL GLOW LIGHTS -->
+    <a-light type="point" position="0   -4  0"   color="#00ffaa" intensity="2.0" distance="14" decay="2"></a-light>
+    <a-light type="point" position="-4  -8  2"   color="#00cc88" intensity="1.2" distance="9"  decay="2"></a-light>
+    <a-light type="point" position="4   -8  -2"  color="#00dd99" intensity="1.2" distance="9"  decay="2"></a-light>
+    <a-light type="point" position="0   -12 0"   color="#009955" intensity="1.0" distance="8"  decay="2"></a-light>
+    <a-light type="point" position="0   -6  3"   color="#00ffbb" intensity="0.8" distance="7"  decay="2"></a-light>
+
+    <!-- ======================================================
+         ROOM LIGHTING
+    ====================================================== -->
+
+    <!-- Very dim ambient -->
+    <a-light type="ambient" color="#06100e" intensity="0.4"></a-light>
+
+    <!-- Blue wash from above (starlight through ceiling) -->
+    <a-light type="point" position="0 4.8 0" color="#050a22" intensity="1.5" distance="12" decay="2"></a-light>
+
+    <!-- Electrogel uplighting through glass floor -->
+    <a-light type="point" position="0 0.1 0" color="#00ffaa" intensity="1.8" distance="9" decay="2"></a-light>
+    <a-light type="point" position="-4 0.1 0" color="#00cc88" intensity="0.8" distance="6" decay="2"></a-light>
+    <a-light type="point" position="4  0.1 0" color="#00cc88" intensity="0.8" distance="6" decay="2"></a-light>
+
+    <!-- Warm sconce reading lights by bookshelves -->
+    <a-light type="point" position="0  2.5 -9.5" color="#331a06" intensity="1.0" distance="5" decay="2"></a-light>
+    <a-light type="point" position="-7 2.5 -6.5" color="#2a1606" intensity="0.8" distance="5" decay="2"></a-light>
+    <a-light type="point" position="7  2.5 -6.5" color="#2a1606" intensity="0.8" distance="5" decay="2"></a-light>
+
+    <!-- ======================================================
+         BOOKSHELVES (5 units around back wall arc)
+    ====================================================== -->
+
+    <!-- Shelf 1: Center back (z=-9.8, facing +Z) -->
+    <a-entity position="0 0 -9.5" rotation="0 0 0">
+      <a-box position="0 2.0 0"   width="3.5" height="4.0" depth="0.18" color="#080706"></a-box>
+      <a-box position="0 0.7 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
+      <a-box position="0 2.0 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
+      <a-box position="0 3.3 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
+      <!-- Books row 1 -->
+      <a-box position="-1.3 1.18 0.12" width="0.18" height="0.44" depth="0.3" color="#1a0a04" emissive="#331100" emissive-intensity="0.15"></a-box>
+      <a-box position="-1.0 1.18 0.12" width="0.15" height="0.38" depth="0.3" color="#0a1a0a" emissive="#0a1a0a" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.8 1.18 0.12" width="0.18" height="0.42" depth="0.3" color="#1a1204" emissive="#221a00" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.5 1.18 0.12" width="0.14" height="0.36" depth="0.3" color="#0a0a1a" emissive="#000033" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.3 1.18 0.12" width="0.2"  height="0.45" depth="0.3" color="#1a0808" emissive="#220000" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.0 1.18 0.12" width="0.16" height="0.4"  depth="0.3" color="#1a1a08" emissive="#222200" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.2 1.18 0.12" width="0.19" height="0.43" depth="0.3" color="#081a10" emissive="#001a08" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.5 1.18 0.12" width="0.17" height="0.38" depth="0.3" color="#120a1a" emissive="#110022" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.7 1.18 0.12" width="0.2"  height="0.44" depth="0.3" color="#1a0a04" emissive="#221100" emissive-intensity="0.1"></a-box>
+      <a-box position=" 1.0 1.18 0.12" width="0.15" height="0.4"  depth="0.3" color="#08100a" emissive="#081200" emissive-intensity="0.1"></a-box>
+      <a-box position=" 1.3 1.18 0.12" width="0.18" height="0.42" depth="0.3" color="#1a0a0a" emissive="#220808" emissive-intensity="0.1"></a-box>
+      <!-- Books row 2 -->
+      <a-box position="-1.2 2.48 0.12" width="0.19" height="0.42" depth="0.3" color="#0a1a0a" emissive="#0a2200" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.9 2.48 0.12" width="0.16" height="0.38" depth="0.3" color="#1a0a0a" emissive="#220000" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.6 2.48 0.12" width="0.2"  height="0.44" depth="0.3" color="#1a1208" emissive="#221800" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.3 2.48 0.12" width="0.15" height="0.36" depth="0.3" color="#08081a" emissive="#000022" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.0 2.48 0.12" width="0.18" height="0.42" depth="0.3" color="#1a0804" emissive="#220800" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.3 2.48 0.12" width="0.17" height="0.4"  depth="0.3" color="#061814" emissive="#001a10" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.6 2.48 0.12" width="0.2"  height="0.44" depth="0.3" color="#180a14" emissive="#200010" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.9 2.48 0.12" width="0.16" height="0.38" depth="0.3" color="#1a1006" emissive="#221400" emissive-intensity="0.1"></a-box>
+      <a-box position=" 1.2 2.48 0.12" width="0.19" height="0.43" depth="0.3" color="#0a0a18" emissive="#000018" emissive-intensity="0.1"></a-box>
+      <!-- Books row 3 -->
+      <a-box position="-1.1 3.75 0.12" width="0.2"  height="0.42" depth="0.3" color="#1a1006" emissive="#221400" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.8 3.75 0.12" width="0.16" height="0.36" depth="0.3" color="#0a1a0a" emissive="#0a2200" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.5 3.75 0.12" width="0.19" height="0.44" depth="0.3" color="#1a0606" emissive="#220000" emissive-intensity="0.1"></a-box>
+      <a-box position="-0.2 3.75 0.12" width="0.17" height="0.4"  depth="0.3" color="#08081a" emissive="#000022" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.1 3.75 0.12" width="0.2"  height="0.43" depth="0.3" color="#1a1208" emissive="#221a00" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.5 3.75 0.12" width="0.16" height="0.38" depth="0.3" color="#061814" emissive="#001a10" emissive-intensity="0.1"></a-box>
+      <a-box position=" 0.8 3.75 0.12" width="0.19" height="0.42" depth="0.3" color="#14060a" emissive="#180008" emissive-intensity="0.1"></a-box>
+      <a-box position=" 1.1 3.75 0.12" width="0.18" height="0.4"  depth="0.3" color="#1a0a04" emissive="#221200" emissive-intensity="0.1"></a-box>
+    </a-entity>
+
+    <!-- Shelf 2: Left-back (rotation ~38°) -->
+    <a-entity position="-6 0 -7.5" rotation="0 38 0">
+      <a-box position="0 2.0 0"   width="3.0" height="4.0" depth="0.18" color="#080706"></a-box>
+      <a-box position="0 0.7 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <a-box position="0 2.0 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <a-box position="0 3.3 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <!-- Simplified books -->
+      <a-box position="-0.9 1.18 0.12" width="1.6" height="0.4" depth="0.28" color="#100a06" emissive="#221000" emissive-intensity="0.08"></a-box>
+      <a-box position=" 0.5 1.22 0.12" width="0.9" height="0.44" depth="0.28" color="#0a100a" emissive="#0a1800" emissive-intensity="0.08"></a-box>
+      <a-box position="-0.6 2.48 0.12" width="1.1" height="0.42" depth="0.28" color="#080818" emissive="#000020" emissive-intensity="0.08"></a-box>
+      <a-box position=" 0.6 2.44 0.12" width="1.4" height="0.38" depth="0.28" color="#180808" emissive="#200000" emissive-intensity="0.08"></a-box>
+      <a-box position="0   3.75 0.12" width="2.4" height="0.41" depth="0.28" color="#101006" emissive="#181800" emissive-intensity="0.08"></a-box>
+    </a-entity>
+
+    <!-- Shelf 3: Right-back (rotation ~-38°) -->
+    <a-entity position="6 0 -7.5" rotation="0 -38 0">
+      <a-box position="0 2.0 0"   width="3.0" height="4.0" depth="0.18" color="#080706"></a-box>
+      <a-box position="0 0.7 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <a-box position="0 2.0 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <a-box position="0 3.3 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
+      <a-box position="-0.7 1.18 0.12" width="1.2" height="0.43" depth="0.28" color="#0a1a06" emissive="#0a1800" emissive-intensity="0.08"></a-box>
+      <a-box position=" 0.6 1.22 0.12" width="1.3" height="0.39" depth="0.28" color="#1a0a0a" emissive="#220000" emissive-intensity="0.08"></a-box>
+      <a-box position="-0.4 2.48 0.12" width="1.8" height="0.42" depth="0.28" color="#08081a" emissive="#000022" emissive-intensity="0.08"></a-box>
+      <a-box position=" 0.7 2.44 0.12" width="0.8" height="0.38" depth="0.28" color="#181408" emissive="#201800" emissive-intensity="0.08"></a-box>
+      <a-box position="0   3.75 0.12" width="2.4" height="0.41" depth="0.28" color="#061418" emissive="#001820" emissive-intensity="0.08"></a-box>
+    </a-entity>
+
+    <!-- ======================================================
+         INTERACTIVE SCROLLS — pickup objects on pedestals
+    ====================================================== -->
+
+    <!-- SCROLL 1: Center room — Second Brain index -->
+    <a-entity class="scroll-entity interactive"
+      position="-2.5 0 1.5"
+      data-title="SECOND BRAIN — INDEX"
+      data-body="Your Obsidian vault lives here.\n\nMarkdown files will appear as physical scrolls once loaded.\nDrag your .md files into the repo and they will populate this room.\n\n[ PENDING: OBSIDIAN VAULT IMPORT ]">
+      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
+      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
+      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+    </a-entity>
+
+    <!-- SCROLL 2: Sons of Naphtali -->
+    <a-entity class="scroll-entity interactive"
+      position="2.5 0 1.5"
+      data-title="THE SONS OF NAPHTALI — BOOK I"
+      data-body="Genetics, haplogroups, and the genetic trail of the tribe of Naphtali.\n\nBook 1 scope: comprehensive. Chapter structure in progress.\n\n[ PENDING: MANUSCRIPT FILES ]">
+      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
+      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
+      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+    </a-entity>
+
+    <!-- SCROLL 3: Haplogroups -->
+    <a-entity class="scroll-entity interactive"
+      position="-2.5 0 -2"
+      data-title="JEWISH GENETIC HAPLOGROUPS — BOOK II"
+      data-body="Spun off from Book I when the scope became too large to contain.\n\nFocuses on haplogroup distribution, migration patterns, and genetic markers across Jewish diaspora populations.\n\n[ PENDING: RESEARCH FILES ]">
+      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
+      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
+      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+    </a-entity>
+
+    <!-- SCROLL 4: Daily notes -->
+    <a-entity class="scroll-entity interactive"
+      position="2.5 0 -2"
+      data-title="DAILY NOTES — ACTIVE VAULT"
+      data-body="Neurodivergent idea capture. All the little things.\n\nEvery idea that lands here gets a home. Nothing lost.\n\n[ PENDING: DAILY NOTE FILES ]">
+      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
+      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
+      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
+      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+    </a-entity>
+
+    <!-- ======================================================
+         BOOK WINGS — stub doorways
+    ====================================================== -->
+
+    <!-- LEFT WING: Sons of Naphtali -->
+    <a-box position="-10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
+      color="#0e0c08" emissive="#553300" emissive-intensity="0.05">
+    </a-box>
+    <a-box position="-10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
+      color="#120a03" emissive="#aa6600" emissive-intensity="0.25">
+    </a-box>
+    <a-box position="-10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
+      color="#cc8833" emissive="#cc8833" emissive-intensity="1.5">
+    </a-box>
+    <a-text value="SONS OF NAPHTALI" position="-10.1 2.92 -2"
+      align="center" rotation="0 -90 0" color="#cc8833" width="3.5" letter-spacing="2">
+    </a-text>
+    <a-text value="BOOK I — GENETICS" position="-10.1 2.65 -2"
+      align="center" rotation="0 -90 0" color="#664422" width="2.5">
+    </a-text>
+
+    <!-- RIGHT WING: Haplogroups -->
+    <a-box position="10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
+      color="#0e0c08" emissive="#003355" emissive-intensity="0.05">
+    </a-box>
+    <a-box position="10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
+      color="#020a12" emissive="#0055aa" emissive-intensity="0.3">
+    </a-box>
+    <a-box position="10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
+      color="#0066cc" emissive="#0066cc" emissive-intensity="1.5">
+    </a-box>
+    <a-text value="HAPLOGROUPS" position="10.1 2.92 -2"
+      align="center" rotation="0 90 0" color="#5599cc" width="3.5" letter-spacing="2">
+    </a-text>
+    <a-text value="BOOK II — DIASPORA" position="10.1 2.65 -2"
+      align="center" rotation="0 90 0" color="#224466" width="2.5">
+    </a-text>
+
+    <!-- ======================================================
+         CORRIDOR EXIT (+Z, entrance side)
+    ====================================================== -->
+    <a-box position="0 1.5 9.9" width="2.2" height="3.0" depth="0.12"
+      color="#0a0906" emissive="#002211" emissive-intensity="0.1">
+    </a-box>
+    <a-box id="exit-panel" class="interactive"
+      position="0 1.3 9.92" width="1.8" height="2.5" depth="0.06"
+      color="#060806" emissive="#001a0e" emissive-intensity="0.4">
+    </a-box>
+    <a-box position="0 2.65 9.86" width="1.8" height="0.06" depth="0.1"
+      color="#00aa66" emissive="#00aa66" emissive-intensity="1.5">
+    </a-box>
+    <a-text value="← CORRIDOR" position="0 2.88 9.86"
+      align="center" color="#00ffaa" width="3.2" letter-spacing="2">
+    </a-text>
+
+  </a-scene>
+
+  <script>
+    const promptEl = document.getElementById('room-prompt');
+    const panel    = document.getElementById('scroll-panel');
+    const panTitle = document.getElementById('scroll-title');
+    const panBody  = document.getElementById('scroll-body');
+
+    function showPrompt(text, color) {
+      promptEl.textContent = text;
+      promptEl.style.color = color || '#88aaff';
+      promptEl.style.textShadow = `0 0 12px ${color || '#0044ff'}`;
+      promptEl.style.opacity = '1';
+    }
+    function hidePrompt() { promptEl.style.opacity = '0'; }
+
+    // Scrolls
+    document.querySelectorAll('.scroll-entity').forEach(el => {
+      el.addEventListener('mouseenter', () => showPrompt('[ READ SCROLL ]', '#ffcc66'));
+      el.addEventListener('mouseleave', hidePrompt);
+      el.addEventListener('click', () => {
+        const title = el.getAttribute('data-title');
+        const body  = el.getAttribute('data-body').replace(/\\n/g, '\n');
+        panTitle.textContent = title;
+        panBody.innerHTML = body.split('\n').map(l => l ? `<div>${l}</div>` : '<br>').join('');
+        panel.classList.add('open');
+        hidePrompt();
+      });
+    });
+
+    document.getElementById('scroll-close').addEventListener('click', () => {
+      panel.classList.remove('open');
+    });
+
+    // Exit
+    const exit = document.getElementById('exit-panel');
+    exit.addEventListener('mouseenter', () => {
+      showPrompt('[ RETURN TO CORRIDOR ]', '#00ffaa');
+      exit.setAttribute('material', 'emissiveIntensity', 1.0);
+    });
+    exit.addEventListener('mouseleave', () => {
+      hidePrompt();
+      exit.setAttribute('material', 'emissiveIntensity', 0.4);
+    });
+    exit.addEventListener('click', () => { window.location.href = 'index.html'; });
+
+    // Procedural stars above the glass ceiling
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      const scene = document.querySelector('a-scene');
+      for (let i = 0; i < 180; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const r = 10 + Math.random() * 12;
+        const x = r * Math.cos(theta);
+        const z = r * Math.sin(theta);
+        const y = 6 + Math.random() * 14;
+        const star = document.createElement('a-sphere');
+        star.setAttribute('position', `${x.toFixed(2)} ${y.toFixed(2)} ${z.toFixed(2)}`);
+        star.setAttribute('radius', (0.02 + Math.random() * 0.06).toFixed(3));
+        star.setAttribute('material', `color: #ffffff; emissive: #ffffff; emissiveIntensity: ${(0.4+Math.random()*0.8).toFixed(2)}; shader: flat`);
+        scene.appendChild(star);
+      }
+    });
+  </script>
+
+</body>
+</html>
