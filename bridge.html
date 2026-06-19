@@ -420,8 +420,7 @@
     chair.addEventListener('mouseenter', () => showPrompt('[ ENGAGE FLIGHT MODE ]', '#ffaa33'));
     chair.addEventListener('mouseleave', hidePrompt);
     chair.addEventListener('click', () => {
-      showPrompt('FLIGHT SIMULATION — COMING SOON', '#ffaa33');
-      setTimeout(hidePrompt, 2200);
+      window.location.href = 'minigame.html';
     });
 
     const exit = document.getElementById('exit-panel');
