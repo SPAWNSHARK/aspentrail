@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer — Crew Lounge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; }
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: #cc8833;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      letter-spacing: 3px; text-transform: uppercase;
+      pointer-events: none;
+      text-shadow: 0 0 8px #ff6600;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      z-index: 10;
+    }
+    #tv-panel {
+      position: fixed; inset: 0;
+      background: #000;
+      display: none; flex-direction: column;
+      z-index: 100;
+    }
+    #tv-panel.open { display: flex; }
+    #tv-chrome {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #2a2a2a;
+      flex-shrink: 0;
+    }
+    #tv-chrome button {
+      background: #111; color: #cc8833;
+      border: 1px solid #333; border-radius: 3px;
+      padding: 5px 12px;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      letter-spacing: 1px; cursor: pointer; white-space: nowrap;
+    }
+    #tv-chrome button:hover { background: #222; border-color: #ff6600; }
+    #tv-url {
+      flex: 1; min-width: 0;
+      background: #050505; color: #ffcc66;
+      border: 1px solid #333; border-radius: 3px;
+      padding: 5px 10px;
+      font-family: 'Courier New', monospace; font-size: 12px; outline: none;
+    }
+    #tv-url:focus { border-color: #ff6600; }
+    #tv-note {
+      color: #444; font-family: 'Courier New', monospace; font-size: 10px;
+      letter-spacing: 1px; padding: 4px 12px;
+      background: #050505; border-bottom: 1px solid #1a1a1a; flex-shrink: 0;
+    }
+    #tv-frame { flex: 1; border: none; background: #0a0a0a; }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <span>SS WAYFARER</span>
+  <span>CREW LOUNGE</span>
+  <span>DECK 2 — STARBOARD FWD</span>
+</div>
+
+<div id="tv-panel">
+  <div id="tv-chrome">
+    <button onclick="tvClose()">✕ CLOSE</button>
+    <input id="tv-url" type="text" placeholder="https://" value="https://www.wikipedia.org" />
+    <button onclick="tvGo()">GO</button>
+    <button onclick="tvNewTab()">↗ NEW TAB</button>
+  </div>
+  <div id="tv-note">Some sites block embedding — use ↗ NEW TAB as fallback</div>
+  <iframe id="tv-frame" src="about:blank"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox">
+  </iframe>
+</div>
+
+<a-scene
+  fog="type: exponential; color: #080400; density: 0.038"
+  vr-mode-ui="enabled: true"
+  renderer="antialias: true; colorManagement: true"
+  background="color: #060300">
+
+  <!-- ===================== ROOM SHELL ===================== -->
+  <a-cylinder radius="9" height="5.5" open-ended="true" position="0 2.75 0"
+    material="side: back; color: #130a03; roughness: 0.92; metalness: 0.08">
+  </a-cylinder>
+  <a-cylinder radius="9.1" height="0.1" position="0 0.05 0"
+    material="color: #180d03; roughness: 0.95">
+  </a-cylinder>
+  <a-cylinder radius="5.5" height="0.02" position="0 0.12 -1.5"
+    material="color: #1a0808; roughness: 0.99">
+  </a-cylinder>
+  <a-cylinder radius="9.1" height="0.1" position="0 5.55 0"
+    material="color: #0c0602; roughness: 0.95">
+  </a-cylinder>
+  <a-torus radius="7" radius-tubular="0.07" position="0 5.4 0" rotation="90 0 0"
+    material="color: #ff8822; emissive: #ff5500; emissiveIntensity: 2; roughness: 1">
+  </a-torus>
+
+  <!-- ===================== SPACE WINDOW ===================== -->
+  <a-torus radius="3.2" radius-tubular="0.22" position="0 2.6 -8.55"
+    material="color: #1a1208; emissive: #2a1800; emissiveIntensity: 0.4; roughness: 0.5; metalness: 0.85">
+  </a-torus>
+  <a-torus radius="2.88" radius-tubular="0.055" position="0 2.6 -8.52"
+    material="color: #223355; emissive: #112244; emissiveIntensity: 0.7; roughness: 0.8">
+  </a-torus>
+  <a-circle radius="3.13" position="0 2.6 -8.5" rotation="0 180 0"
+    material="color: #020408; opacity: 0.12; transparent: true; roughness: 0; metalness: 1">
+  </a-circle>
+  <!-- distant planet -->
+  <a-sphere position="4.5 5.5 -70" radius="9"
+    material="color: #1a3550; emissive: #0a1a28; emissiveIntensity: 0.3; roughness: 0.85">
+  </a-sphere>
+  <a-sphere position="4.5 5.5 -70" radius="9.6"
+    material="color: #2a5070; opacity: 0.22; transparent: true; roughness: 1">
+  </a-sphere>
+  <a-sphere position="-5 3 -55" radius="14"
+    material="color: #380a28; opacity: 0.09; transparent: true; roughness: 1; emissive: #550022; emissiveIntensity: 0.07">
+  </a-sphere>
+
+  <!-- ===================== TV ===================== -->
+  <!-- stand -->
+  <a-box position="0 0.75 -7.7" width="5.4" height="1.5" depth="0.55"
+    material="color: #0c0a04; roughness: 0.5; metalness: 0.6">
+  </a-box>
+  <a-box position="0 1.5 -7.7" width="5.8" height="0.12" depth="0.62"
+    material="color: #0e0c06; roughness: 0.5; metalness: 0.7">
+  </a-box>
+  <!-- frame -->
+  <a-box position="0 3.05 -7.62" width="5.6" height="3.5" depth="0.14"
+    material="color: #0e0c06; roughness: 0.4; metalness: 0.8">
+  </a-box>
+  <a-box position="0 3.05 -7.56" width="5.2" height="3.1" depth="0.06"
+    material="color: #030508; emissive: #001133; emissiveIntensity: 0.5">
+  </a-box>
+  <!-- screen (interactive) -->
+  <a-plane id="tv-screen" class="clickable"
+    position="0 3.05 -7.52" width="5.0" height="2.9"
+    material="color: #010208; emissive: #0a1a55; emissiveIntensity: 0.9; roughness: 0">
+  </a-plane>
+  <a-text value="CREW TERMINAL v4.1" align="center"
+    position="0 4.22 -7.48" color="#3355aa" width="5.5" letter-spacing="4">
+  </a-text>
+  <a-box position="0 3.05 -7.49" width="4.2" height="0.04" depth="0.01"
+    material="color: #1122aa; emissive: #2244ff; emissiveIntensity: 1.5">
+  </a-box>
+  <a-text value="[ CLICK TO BROWSE ]" align="center"
+    position="0 2.72 -7.47" color="#2244aa" width="4.2" letter-spacing="5">
+  </a-text>
+  <a-light type="point" position="0 3.0 -7.0" color="#1a2d88" intensity="1.4" distance="9" decay="2"></a-light>
+
+  <!-- ===================== COUCH ===================== -->
+  <a-box position="0 0.4 1.8" width="4.0" height="0.42" depth="1.2"
+    material="color: #1c0808; roughness: 0.97">
+  </a-box>
+  <a-box position="0 0.98 2.42" width="4.0" height="1.0" depth="0.4"
+    material="color: #1c0808; roughness: 0.97">
+  </a-box>
+  <a-box position="-2.22 0.72 1.9" width="0.42" height="0.72" depth="1.3"
+    material="color: #160606; roughness: 0.97">
+  </a-box>
+  <a-box position="2.22 0.72 1.9" width="0.42" height="0.72" depth="1.3"
+    material="color: #160606; roughness: 0.97">
+  </a-box>
+  <a-box position="-1.3 0.65 1.72" width="1.15" height="0.28" depth="1.0"
+    material="color: #240a0a; roughness: 0.99">
+  </a-box>
+  <a-box position="0 0.65 1.72" width="1.15" height="0.28" depth="1.0"
+    material="color: #220808; roughness: 0.99">
+  </a-box>
+  <a-box position="1.3 0.65 1.72" width="1.15" height="0.28" depth="1.0"
+    material="color: #240a0a; roughness: 0.99">
+  </a-box>
+  <a-box position="-1.3 1.06 2.4" width="1.1" height="0.75" depth="0.32"
+    material="color: #240a0a; roughness: 0.99">
+  </a-box>
+  <a-box position="0 1.06 2.4" width="1.1" height="0.75" depth="0.32"
+    material="color: #220808; roughness: 0.99">
+  </a-box>
+  <a-box position="1.3 1.06 2.4" width="1.1" height="0.75" depth="0.32"
+    material="color: #240a0a; roughness: 0.99">
+  </a-box>
+  <!-- coffee table -->
+  <a-box position="0 0.36 0.6" width="2.2" height="0.07" depth="1.0"
+    material="color: #100c04; roughness: 0.55; metalness: 0.35">
+  </a-box>
+  <a-cylinder radius="0.04" height="0.36" position="-0.9 0.18 0.15" color="#0e0a02" roughness="0.4" metalness="0.7"></a-cylinder>
+  <a-cylinder radius="0.04" height="0.36" position="0.9 0.18 0.15" color="#0e0a02" roughness="0.4" metalness="0.7"></a-cylinder>
+  <a-cylinder radius="0.04" height="0.36" position="-0.9 0.18 1.05" color="#0e0a02" roughness="0.4" metalness="0.7"></a-cylinder>
+  <a-cylinder radius="0.04" height="0.36" position="0.9 0.18 1.05" color="#0e0a02" roughness="0.4" metalness="0.7"></a-cylinder>
+
+  <!-- ===================== ALIEN CATS ===================== -->
+
+  <!-- CAT 1: NEBULA — violet/purple, 4 amber eyes -->
+  <a-entity id="cat-nebula" cat-roam="speed: 0.4; offset: 0.0">
+    <a-box width="0.52" height="0.32" depth="0.82" position="0 0.33 0"
+      material="color: #3a1258; emissive: #1a0830; emissiveIntensity: 0.35; roughness: 0.9"></a-box>
+    <a-sphere radius="0.21" position="0 0.55 0.38"
+      material="color: #4a1868; emissive: #200838; emissiveIntensity: 0.3; roughness: 0.85"></a-sphere>
+    <a-sphere radius="0.042" position="-0.09 0.585 0.575" material="color: #ff8800; emissive: #ff5500; emissiveIntensity: 4; roughness: 1"></a-sphere>
+    <a-sphere radius="0.042" position="0.09 0.585 0.575" material="color: #ff8800; emissive: #ff5500; emissiveIntensity: 4; roughness: 1"></a-sphere>
+    <a-sphere radius="0.026" position="-0.048 0.645 0.56" material="color: #ffaa00; emissive: #ff7700; emissiveIntensity: 3.5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.026" position="0.048 0.645 0.56" material="color: #ffaa00; emissive: #ff7700; emissiveIntensity: 3.5; roughness: 1"></a-sphere>
+    <a-cone radius-bottom="0.055" radius-top="0.005" height="0.17" position="-0.11 0.73 0.34" rotation="-12 0 -20"
+      material="color: #4a1868"></a-cone>
+    <a-cone radius-bottom="0.055" radius-top="0.005" height="0.17" position="0.11 0.73 0.34" rotation="-12 0 20"
+      material="color: #4a1868"></a-cone>
+    <a-cylinder radius="0.04" height="0.58" position="0 0.22 -0.5" rotation="34 0 0"
+      material="color: #3a1258"></a-cylinder>
+    <a-cylinder radius="0.043" height="0.27" position="-0.16 0.1 0.27" color="#3a1258"></a-cylinder>
+    <a-cylinder radius="0.043" height="0.27" position="0.16 0.1 0.27" color="#3a1258"></a-cylinder>
+    <a-cylinder radius="0.043" height="0.27" position="-0.16 0.1 -0.22" color="#3a1258"></a-cylinder>
+    <a-cylinder radius="0.043" height="0.27" position="0.16 0.1 -0.22" color="#3a1258"></a-cylinder>
+  </a-entity>
+
+  <!-- CAT 2: VOID — deep teal, 3 green eyes, long tail -->
+  <a-entity id="cat-void" cat-roam="speed: 0.55; offset: 2.1">
+    <a-box width="0.56" height="0.3" depth="0.9" position="0 0.3 0"
+      material="color: #051818; emissive: #022a20; emissiveIntensity: 0.45; roughness: 0.85"></a-box>
+    <a-sphere radius="0.19" position="0 0.5 0.4" scale="1.1 0.88 1.05"
+      material="color: #061e1e; emissive: #02281e; emissiveIntensity: 0.4; roughness: 0.8"></a-sphere>
+    <a-sphere radius="0.05" position="-0.09 0.52 0.57" material="color: #00ff66; emissive: #00ff44; emissiveIntensity: 6; roughness: 1"></a-sphere>
+    <a-sphere radius="0.05" position="0.09 0.52 0.57" material="color: #00ff66; emissive: #00ff44; emissiveIntensity: 6; roughness: 1"></a-sphere>
+    <a-sphere radius="0.032" position="0 0.615 0.555" material="color: #00ffaa; emissive: #00ff88; emissiveIntensity: 5; roughness: 1"></a-sphere>
+    <a-cylinder radius="0.036" height="0.85" position="0 0.22 -0.55" rotation="26 0 0"
+      material="color: #062020"></a-cylinder>
+    <a-cylinder radius="0.028" height="0.5" position="0.04 0.52 -1.02" rotation="52 5 0"
+      material="color: #082828"></a-cylinder>
+    <a-cylinder radius="0.04" height="0.34" position="-0.17 0.08 0.3" color="#062020"></a-cylinder>
+    <a-cylinder radius="0.04" height="0.34" position="0.17 0.08 0.3" color="#062020"></a-cylinder>
+    <a-cylinder radius="0.04" height="0.34" position="-0.17 0.08 -0.28" color="#062020"></a-cylinder>
+    <a-cylinder radius="0.04" height="0.34" position="0.17 0.08 -0.28" color="#062020"></a-cylinder>
+  </a-entity>
+
+  <!-- CAT 3: EMBER — burnt orange, ice-blue eyes, round ears -->
+  <a-entity id="cat-ember" cat-roam="speed: 0.68; offset: 4.2">
+    <a-box width="0.48" height="0.3" depth="0.76" position="0 0.3 0"
+      material="color: #3a1200; emissive: #1a0600; emissiveIntensity: 0.4; roughness: 0.9"></a-box>
+    <a-sphere radius="0.2" position="0 0.54 0.36"
+      material="color: #4a1800; emissive: #180600; emissiveIntensity: 0.3; roughness: 0.85"></a-sphere>
+    <a-sphere radius="0.045" position="-0.085 0.565 0.545" material="color: #44aaff; emissive: #2288ff; emissiveIntensity: 5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.045" position="0.085 0.565 0.545" material="color: #44aaff; emissive: #2288ff; emissiveIntensity: 5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.065" position="-0.13 0.715 0.3" material="color: #3a1200; roughness: 0.9"></a-sphere>
+    <a-sphere radius="0.065" position="0.13 0.715 0.3" material="color: #3a1200; roughness: 0.9"></a-sphere>
+    <a-cylinder radius="0.05" height="0.34" position="0 0.27 -0.43" rotation="40 0 0"
+      material="color: #3a1200"></a-cylinder>
+    <a-cylinder radius="0.042" height="0.26" position="-0.15 0.1 0.26" color="#3a1200"></a-cylinder>
+    <a-cylinder radius="0.042" height="0.26" position="0.15 0.1 0.26" color="#3a1200"></a-cylinder>
+    <a-cylinder radius="0.042" height="0.26" position="-0.15 0.1 -0.2" color="#3a1200"></a-cylinder>
+    <a-cylinder radius="0.042" height="0.26" position="0.15 0.1 -0.2" color="#3a1200"></a-cylinder>
+  </a-entity>
+
+  <!-- CAT 4: MIST — silver-grey, 4 blue eyes, glowing tail tip -->
+  <a-entity id="cat-mist" cat-roam="speed: 0.22; offset: 1.0">
+    <a-sphere radius="0.31" position="0 0.36 0" scale="1.15 0.82 1.35"
+      material="color: #686878; emissive: #141422; emissiveIntensity: 0.2; roughness: 0.98"></a-sphere>
+    <a-sphere radius="0.24" position="0 0.58 0.38"
+      material="color: #787888; emissive: #141422; emissiveIntensity: 0.15; roughness: 0.98"></a-sphere>
+    <a-sphere radius="0.042" position="-0.1 0.61 0.6" material="color: #4488ff; emissive: #2266ff; emissiveIntensity: 4.5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.042" position="0.1 0.61 0.6" material="color: #4488ff; emissive: #2266ff; emissiveIntensity: 4.5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.028" position="-0.042 0.685 0.59" material="color: #66aaff; emissive: #4488ff; emissiveIntensity: 3.5; roughness: 1"></a-sphere>
+    <a-sphere radius="0.028" position="0.042 0.685 0.59" material="color: #66aaff; emissive: #4488ff; emissiveIntensity: 3.5; roughness: 1"></a-sphere>
+    <a-cone radius-bottom="0.07" radius-top="0.01" height="0.19" position="-0.15 0.8 0.33" rotation="-6 0 -16"
+      material="color: #787888"></a-cone>
+    <a-cone radius-bottom="0.07" radius-top="0.01" height="0.19" position="0.15 0.8 0.33" rotation="-6 0 16"
+      material="color: #787888"></a-cone>
+    <a-cylinder radius="0.05" height="0.62" position="0.1 0.26 -0.5" rotation="34 8 0"
+      material="color: #686878"></a-cylinder>
+    <a-sphere radius="0.09" position="0.22 0.52 -0.82"
+      material="color: #aaaacc; emissive: #6666ff; emissiveIntensity: 2.5; roughness: 1"
+      animation="property: material.emissiveIntensity; from: 2.5; to: 0.5; dir: alternate; dur: 1800; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-cylinder radius="0.05" height="0.28" position="-0.18 0.1 0.28" color="#686878"></a-cylinder>
+    <a-cylinder radius="0.05" height="0.28" position="0.18 0.1 0.28" color="#686878"></a-cylinder>
+    <a-cylinder radius="0.05" height="0.28" position="-0.18 0.1 -0.25" color="#686878"></a-cylinder>
+    <a-cylinder radius="0.05" height="0.28" position="0.18 0.1 -0.25" color="#686878"></a-cylinder>
+  </a-entity>
+
+  <!-- ===================== DECOR ===================== -->
+  <!-- alien plant, left wall -->
+  <a-cylinder radius="0.28" height="0.55" position="-6.5 0.28 2.5"
+    material="color: #1a0e06; roughness: 0.9">
+  </a-cylinder>
+  <a-sphere radius="0.38" position="-6.5 0.75 2.5" scale="1 0.8 1"
+    material="color: #0a2010; roughness: 0.9">
+  </a-sphere>
+  <a-box width="0.07" height="0.55" depth="0.04" position="-6.22 1.12 2.5" rotation="0 0 -32"
+    material="color: #082010; emissive: #001a08; emissiveIntensity: 0.3"></a-box>
+  <a-box width="0.07" height="0.6" depth="0.04" position="-6.5 1.18 2.18" rotation="0 0 8"
+    material="color: #0a2210; emissive: #001a08; emissiveIntensity: 0.3"></a-box>
+  <a-box width="0.07" height="0.5" depth="0.04" position="-6.78 1.05 2.5" rotation="0 0 38"
+    material="color: #082010; emissive: #001a08; emissiveIntensity: 0.3"></a-box>
+
+  <!-- side table with glowing orb, right -->
+  <a-cylinder radius="0.22" height="0.6" position="5.5 0.3 3.5"
+    material="color: #0e0a04; roughness: 0.55; metalness: 0.4">
+  </a-cylinder>
+  <a-cylinder radius="0.3" height="0.05" position="5.5 0.62 3.5"
+    material="color: #120c04; roughness: 0.5; metalness: 0.45">
+  </a-cylinder>
+  <a-sphere radius="0.15" position="5.5 0.88 3.5"
+    material="color: #0a1a2a; emissive: #0044aa; emissiveIntensity: 1.5; roughness: 1"
+    animation="property: material.emissiveIntensity; from: 1.5; to: 0.3; dir: alternate; dur: 2400; loop: true; easing: easeInOutSine">
+  </a-sphere>
+
+  <!-- wall sconces -->
+  <a-box position="-8.2 3.4 -2" width="0.12" height="0.9" depth="0.3"
+    material="color: #1a1008; emissive: #ff5500; emissiveIntensity: 0.9; roughness: 0.6">
+  </a-box>
+  <a-light type="point" position="-7.9 3.1 -2" color="#ff8822" intensity="1.1" distance="6" decay="2"></a-light>
+  <a-box position="8.2 3.4 -2" width="0.12" height="0.9" depth="0.3"
+    material="color: #1a1008; emissive: #ff5500; emissiveIntensity: 0.9; roughness: 0.6">
+  </a-box>
+  <a-light type="point" position="7.9 3.1 -2" color="#ff8822" intensity="1.1" distance="6" decay="2"></a-light>
+  <a-box position="-8.2 3.4 3" width="0.12" height="0.9" depth="0.3"
+    material="color: #1a1008; emissive: #ff5500; emissiveIntensity: 0.9; roughness: 0.6">
+  </a-box>
+  <a-light type="point" position="-7.9 3.1 3" color="#ff8822" intensity="1.1" distance="6" decay="2"></a-light>
+  <a-box position="8.2 3.4 3" width="0.12" height="0.9" depth="0.3"
+    material="color: #1a1008; emissive: #ff5500; emissiveIntensity: 0.9; roughness: 0.6">
+  </a-box>
+  <a-light type="point" position="7.9 3.1 3" color="#ff8822" intensity="1.1" distance="6" decay="2"></a-light>
+
+  <!-- ===================== EXIT DOOR ===================== -->
+  <a-box position="0 1.55 8.35" width="1.8" height="2.8" depth="0.14"
+    material="color: #0e0c06; emissive: #331a00; emissiveIntensity: 0.45; roughness: 0.6; metalness: 0.5">
+  </a-box>
+  <a-text value="← CORRIDOR" align="center"
+    position="0 2.75 8.3" color="#cc8833" width="3.2">
+  </a-text>
+  <a-box id="exit-door" class="clickable"
+    position="0 1.55 8.44" width="1.6" height="2.6" depth="0.04"
+    material="color: #120e04; emissive: #442200; emissiveIntensity: 0.6">
+  </a-box>
+  <a-box position="0 0.02 6.2" width="0.18" height="0.04" depth="4.5"
+    material="color: #441a00; emissive: #ff3300; emissiveIntensity: 0.9">
+  </a-box>
+
+  <!-- ===================== LIGHTING ===================== -->
+  <a-light type="ambient" color="#1a0d05" intensity="0.55"></a-light>
+  <a-light type="point" position="0 4.8 0" color="#ff9933" intensity="1.6" distance="14" decay="2"></a-light>
+  <a-light type="point" position="0 3.5 2.0" color="#ff7722" intensity="1.0" distance="8" decay="2"></a-light>
+
+  <!-- ===================== PLAYER ===================== -->
+  <a-entity id="player"
+    position="0 1.6 7"
+    wasd-controls="acceleration: 22"
+    look-controls="pointerLockEnabled: true">
+    <a-camera fov="80" near="0.05">
+      <a-cursor
+        color="#cc8833"
+        fuse="true"
+        fuse-timeout="1500"
+        raycaster="objects: .clickable"
+        animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 1.2 1.2 1.2; to: 1 1 1">
+      </a-cursor>
+    </a-camera>
+  </a-entity>
+
+</a-scene>
+
+<script>
+  // ===================== CAT ROAM COMPONENT =====================
+  AFRAME.registerComponent('cat-roam', {
+    schema: {
+      speed:  { default: 0.5 },
+      offset: { default: 0.0 }
+    },
+    init: function () {
+      this.angle         = this.data.offset;
+      this.r             = 2.5 + Math.abs(Math.sin(this.data.offset)) * 2.5;
+      this.targetAngle   = this.angle + (Math.random() - 0.5) * 2;
+      this.targetR       = this.r;
+      this.changeTimer   = 0;
+      this.changeInterval = 3 + Math.random() * 5;
+      this.prevX = 0;
+      this.prevZ = 0;
+    },
+    tick: function (t, dt) {
+      const s = Math.min(dt / 1000, 0.05);
+      this.changeTimer += s;
+      if (this.changeTimer >= this.changeInterval) {
+        this.changeTimer    = 0;
+        this.changeInterval = 2.5 + Math.random() * 6;
+        this.targetAngle    = this.angle + (Math.random() * 2 - 1) * Math.PI * 1.6;
+        this.targetR        = 1.5 + Math.random() * 5;
+      }
+      this.angle += (this.targetAngle - this.angle) * s * this.data.speed * 2.5;
+      this.r     += (this.targetR     - this.r)     * s * 0.9;
+      const x = Math.cos(this.angle) * this.r;
+      const z = Math.sin(this.angle) * this.r - 1.5;
+      this.el.setAttribute('position', { x, y: 0, z });
+      const dx = x - this.prevX;
+      const dz = z - this.prevZ;
+      if (Math.abs(dx) + Math.abs(dz) > 0.0005) {
+        this.el.setAttribute('rotation', {
+          x: 0,
+          y: THREE.MathUtils.radToDeg(Math.atan2(dx, dz)),
+          z: 0
+        });
+      }
+      this.prevX = x;
+      this.prevZ = z;
+    }
+  });
+
+  // ===================== SCENE LOADED =====================
+  document.querySelector('a-scene').addEventListener('loaded', function () {
+    const scene = document.querySelector('a-scene');
+
+    // click: TV
+    document.querySelector('#tv-screen').addEventListener('click', function () {
+      document.getElementById('tv-panel').classList.add('open');
+      tvGo();
+    });
+    // hover: TV
+    const tvEl = document.querySelector('#tv-screen');
+    tvEl.addEventListener('mouseenter', function () {
+      tvEl.setAttribute('material', 'emissiveIntensity', 1.7);
+    });
+    tvEl.addEventListener('mouseleave', function () {
+      tvEl.setAttribute('material', 'emissiveIntensity', 0.9);
+    });
+    // click: exit
+    document.querySelector('#exit-door').addEventListener('click', function () {
+      window.location.href = 'index.html';
+    });
+
+    // stars behind the window
+    for (let i = 0; i < 280; i++) {
+      const star = document.createElement('a-sphere');
+      const ang  = Math.random() * Math.PI * 2;
+      const dist = Math.random() * Math.random() * 18;
+      const sx   = Math.cos(ang) * dist;
+      const sy   = 2.6 + (Math.random() - 0.5) * 9;
+      const sz   = -(10 + Math.random() * 55);
+      star.setAttribute('radius', 0.04 + Math.random() * 0.1);
+      star.setAttribute('position', sx + ' ' + sy + ' ' + sz);
+      star.setAttribute('material', 'color: #ffffff; emissive: #ffffff; emissiveIntensity: ' + (0.35 + Math.random() * 0.65) + '; roughness: 1');
+      star.setAttribute('segments-height', '3');
+      star.setAttribute('segments-width', '4');
+      scene.appendChild(star);
+    }
+  });
+
+  // ===================== TV BROWSER =====================
+  function tvGo() {
+    let url = document.getElementById('tv-url').value.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    document.getElementById('tv-url').value = url;
+    document.getElementById('tv-frame').src  = url;
+  }
+  function tvNewTab() {
+    const url = document.getElementById('tv-url').value.trim();
+    if (url) window.open(url, '_blank');
+  }
+  function tvClose() {
+    document.getElementById('tv-panel').classList.remove('open');
+    document.getElementById('tv-frame').src = 'about:blank';
+  }
+  document.getElementById('tv-url').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') tvGo();
+  });
+</script>
+</body>
+</html>
