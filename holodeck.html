@@ -223,9 +223,11 @@
   <a-entity position="0 2.5 -1"
     animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 14000; easing: linear"
     animation__bob="property: position; from: 0 2.4 -1; to: 0 2.65 -1; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
+    <!-- House walls wireframe -->
     <a-box width="1.4" height="0.8" depth="1.0" position="0 0 0"
       material="color:#00aaff; opacity:0.12; transparent:true; wireframe:true; emissive:#0088ff; emissiveIntensity:1.5">
     </a-box>
+    <!-- Roof -->
     <a-cone radius-bottom="0.88" radius-top="0.0" height="0.55" position="0 0.67 0" rotation="0 45 0"
       material="color:#00ccff; opacity:0.15; transparent:true; wireframe:true; emissive:#00aaff; emissiveIntensity:1.5">
     </a-cone>
@@ -429,6 +431,7 @@ document.getElementById('fp-plan').addEventListener('click', function(e) {
   var y = Math.max(0, Math.min(e.clientY - r.top  - placing.h/2, r.height - placing.h));
   placeFurniture(placing, x, y);
   if (!e.shiftKey) cancelPlacing();
+  // hold Shift to place multiple of same item
 });
 
 // ======== OPEN / CLOSE ========
