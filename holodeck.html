@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer — Holodeck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script>
+    // Grid texture (amber lines on black) — generated before A-Frame loads
+    var gc = document.createElement('canvas');
+    gc.width = gc.height = 128;
+    var g = gc.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0,0,128,128);
+    g.strokeStyle = '#aa6600'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(0,0); g.lineTo(128,0); g.stroke();
+    g.beginPath(); g.moveTo(0,0); g.lineTo(0,128); g.stroke();
+    window.GRID_TEX = gc.toDataURL();
+  </script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { overflow:hidden; background:#000; }
+    #hud {
+      position:fixed; top:0; left:0; right:0; padding:14px 20px;
+      display:flex; justify-content:space-between; align-items:center;
+      color:#cc8833; font-family:'Courier New',monospace; font-size:11px;
+      letter-spacing:3px; text-transform:uppercase; pointer-events:none;
+      text-shadow:0 0 8px #ff6600;
+      background:linear-gradient(to bottom,rgba(0,0,0,0.65),transparent); z-index:10;
+    }
+
+    /* ======== FLOOR PLAN OVERLAY ======== */
+    #fp-overlay {
+      position:fixed; inset:0; background:#040d1a;
+      display:none; flex-direction:column; z-index:100;
+    }
+    #fp-overlay.open { display:flex; }
+    #fp-header {
+      display:flex; align-items:center; gap:10px; padding:8px 14px;
+      background:#02080f; border-bottom:1px solid #0a2a4a; flex-shrink:0;
+      color:#00aaff; font-family:'Courier New',monospace; font-size:11px;
+      letter-spacing:3px; text-transform:uppercase;
+    }
+    #fp-header span { flex:1; }
+    #fp-header button {
+      background:#021020; color:#00aaff; border:1px solid #0044aa;
+      padding:5px 12px; font-family:'Courier New',monospace; font-size:10px;
+      letter-spacing:2px; cursor:pointer;
+    }
+    #fp-header button:hover { background:#031830; border-color:#00aaff; }
+    #fp-body { display:flex; flex:1; overflow:hidden; }
+
+    /* Floor plan canvas */
+    #fp-plan-wrap {
+      flex:1; overflow:auto; padding:24px;
+      display:flex; align-items:flex-start; justify-content:center;
+    }
+    #fp-plan {
+      position:relative; width:760px; height:530px; flex-shrink:0;
+      background-color:#040d1a;
+      background-image:
+        linear-gradient(rgba(0,100,255,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,100,255,0.12) 1px, transparent 1px);
+      background-size:20px 20px;
+    }
+    .room {
+      position:absolute; border:2px solid #0066cc;
+      background:rgba(0,60,120,0.25);
+      display:flex; align-items:center; justify-content:center;
+      color:#44aaff; font-family:'Courier New',monospace; font-size:10px;
+      letter-spacing:2px; text-transform:uppercase; text-align:center;
+      line-height:1.4; pointer-events:none; user-select:none;
+    }
+    .room-label { pointer-events:none; }
+
+    /* Furniture on plan */
+    .furniture {
+      position:absolute; cursor:grab; user-select:none;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Courier New',monospace; font-size:8px; letter-spacing:1px;
+      text-align:center; line-height:1.2; color:#fff; font-weight:bold;
+      border:1px solid rgba(255,255,255,0.4); border-radius:2px; z-index:5;
+    }
+    .furniture:active { cursor:grabbing; }
+    .furniture .del-btn {
+      position:absolute; top:-7px; right:-7px;
+      width:14px; height:14px; background:#660000; color:#fff;
+      border:1px solid #aa0000; border-radius:50%;
+      font-size:9px; line-height:14px; text-align:center;
+      cursor:pointer; display:none;
+    }
+    .furniture:hover .del-btn { display:block; }
+
+    /* Palette sidebar */
+    #fp-palette {
+      width:200px; flex-shrink:0; background:#020c18;
+      border-left:1px solid #0a2a4a; overflow-y:auto; padding:10px;
+    }
+    #fp-palette h3 {
+      color:#0077cc; font-family:'Courier New',monospace; font-size:10px;
+      letter-spacing:3px; text-transform:uppercase;
+      border-bottom:1px solid #0a2a4a; padding-bottom:6px; margin-bottom:8px;
+    }
+    .palette-section h4 {
+      color:#005599; font-family:'Courier New',monospace; font-size:9px;
+      letter-spacing:2px; text-transform:uppercase;
+      margin:8px 0 4px;
+    }
+    .palette-item {
+      display:flex; align-items:center; gap:6px;
+      padding:4px 6px; margin-bottom:2px; cursor:pointer; border-radius:2px;
+      color:#88bbdd; font-family:'Courier New',monospace; font-size:10px;
+      letter-spacing:1px; border:1px solid transparent;
+    }
+    .palette-item:hover { background:#031828; border-color:#0044aa; }
+    .palette-item .swatch {
+      width:12px; height:12px; border-radius:2px; flex-shrink:0;
+    }
+
+    /* Placing ghost */
+    #ghost {
+      position:fixed; pointer-events:none; z-index:200; opacity:0.8;
+      display:none; align-items:center; justify-content:center;
+      font-family:'Courier New',monospace; font-size:8px; color:#fff;
+      text-align:center; border:1px dashed #00aaff; background:rgba(0,100,200,0.4);
+    }
+
+    /* Shopping list panel */
+    #shopping-panel {
+      position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:300;
+      display:none; flex-direction:column; align-items:center; justify-content:center;
+    }
+    #shopping-panel.open { display:flex; }
+    #shopping-inner {
+      background:#02080f; border:1px solid #0044aa; padding:28px 36px;
+      max-width:520px; width:90%; max-height:80vh; overflow-y:auto;
+      font-family:'Courier New',monospace; color:#88ccff;
+    }
+    #shopping-inner h2 {
+      color:#00aaff; font-size:13px; letter-spacing:4px; text-transform:uppercase;
+      border-bottom:1px solid #0033aa; padding-bottom:10px; margin-bottom:16px;
+    }
+    #shopping-inner pre { font-size:12px; line-height:1.8; white-space:pre-wrap; }
+    #shopping-inner .close-btn {
+      margin-top:18px; background:#02080f; color:#00aaff;
+      border:1px solid #0044aa; padding:7px 20px;
+      font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px;
+      cursor:pointer; width:100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <span>SS WAYFARER</span>
+  <span>HOLODECK</span>
+  <span>DECK 2 — PORT</span>
+</div>
+
+<!-- ======== FLOOR PLAN OVERLAY ======== -->
+<div id="fp-overlay">
+  <div id="fp-header">
+    <span>HOLODECK ARCHITECT — HOUSE BLUEPRINT</span>
+    <button onclick="exportShoppingList()">SHOPPING LIST</button>
+    <button onclick="closeBlueprint()">✕ EXIT BLUEPRINT</button>
+  </div>
+  <div id="fp-body">
+    <div id="fp-plan-wrap">
+      <div id="fp-plan"></div>
+    </div>
+    <div id="fp-palette">
+      <h3>FURNITURE</h3>
+    </div>
+  </div>
+</div>
+
+<div id="ghost"></div>
+
+<div id="shopping-panel">
+  <div id="shopping-inner">
+    <h2>Home Depot Shopping List</h2>
+    <pre id="shopping-text"></pre>
+    <button class="close-btn" onclick="closeShoppingList()">CLOSE</button>
+  </div>
+</div>
+
+<!-- ======== 3D HOLODECK SCENE ======== -->
+<a-scene
+  vr-mode-ui="enabled: true"
+  renderer="antialias: true; colorManagement: true"
+  background="color: #000000">
+
+  <!-- Room planes (grid texture applied via JS) -->
+  <a-plane id="hd-floor"  position="0 0 0"    rotation="-90 0 0"  width="18" height="18"></a-plane>
+  <a-plane id="hd-ceil"   position="0 4 0"    rotation="90 0 0"   width="18" height="18"></a-plane>
+  <a-plane id="hd-wall-n" position="0 2 -9"                       width="18" height="4"></a-plane>
+  <a-plane id="hd-wall-s" position="0 2 9"    rotation="0 180 0"  width="18" height="4"></a-plane>
+  <a-plane id="hd-wall-e" position="9 2 0"    rotation="0 -90 0"  width="18" height="4"></a-plane>
+  <a-plane id="hd-wall-w" position="-9 2 0"   rotation="0 90 0"   width="18" height="4"></a-plane>
+
+  <!-- Emitter columns (4 corners) -->
+  <a-cylinder radius="0.12" height="4" position="-8.4 2 -8.4" material="color:#aa6600; emissive:#cc8800; emissiveIntensity:2; roughness:0.3; metalness:0.7"></a-cylinder>
+  <a-cylinder radius="0.12" height="4" position=" 8.4 2 -8.4" material="color:#aa6600; emissive:#cc8800; emissiveIntensity:2; roughness:0.3; metalness:0.7"></a-cylinder>
+  <a-cylinder radius="0.12" height="4" position="-8.4 2  8.4" material="color:#aa6600; emissive:#cc8800; emissiveIntensity:2; roughness:0.3; metalness:0.7"></a-cylinder>
+  <a-cylinder radius="0.12" height="4" position=" 8.4 2  8.4" material="color:#aa6600; emissive:#cc8800; emissiveIntensity:2; roughness:0.3; metalness:0.7"></a-cylinder>
+  <!-- Emitter top rings -->
+  <a-torus radius="0.22" radius-tubular="0.035" position="-8.4 3.9 -8.4" rotation="90 0 0" material="color:#ff9900; emissive:#ff6600; emissiveIntensity:3"></a-torus>
+  <a-torus radius="0.22" radius-tubular="0.035" position=" 8.4 3.9 -8.4" rotation="90 0 0" material="color:#ff9900; emissive:#ff6600; emissiveIntensity:3"></a-torus>
+  <a-torus radius="0.22" radius-tubular="0.035" position="-8.4 3.9  8.4" rotation="90 0 0" material="color:#ff9900; emissive:#ff6600; emissiveIntensity:3"></a-torus>
+  <a-torus radius="0.22" radius-tubular="0.035" position=" 8.4 3.9  8.4" rotation="90 0 0" material="color:#ff9900; emissive:#ff6600; emissiveIntensity:3"></a-torus>
+  <!-- Emitter lights -->
+  <a-light type="point" position="-8.4 3.5 -8.4" color="#ff8800" intensity="0.8" distance="8" decay="2"></a-light>
+  <a-light type="point" position=" 8.4 3.5 -8.4" color="#ff8800" intensity="0.8" distance="8" decay="2"></a-light>
+  <a-light type="point" position="-8.4 3.5  8.4" color="#ff8800" intensity="0.8" distance="8" decay="2"></a-light>
+  <a-light type="point" position=" 8.4 3.5  8.4" color="#ff8800" intensity="0.8" distance="8" decay="2"></a-light>
+
+  <!-- Central holographic table -->
+  <a-cylinder radius="0.12" height="0.85" position="0 0.42 -1" material="color:#1a1000; roughness:0.3; metalness:0.95"></a-cylinder>
+  <a-cylinder radius="1.3" height="0.08" position="0 0.86 -1" material="color:#1a1000; emissive:#884400; emissiveIntensity:0.4; roughness:0.2; metalness:0.95"></a-cylinder>
+  <a-torus radius="1.1" radius-tubular="0.02" position="0 0.91 -1" rotation="90 0 0" material="color:#ff8800; emissive:#ff6600; emissiveIntensity:2.5"></a-torus>
+  <!-- Hologram beam -->
+  <a-cylinder radius="0.015" height="1.6" position="0 1.7 -1" material="color:#00aaff; opacity:0.35; transparent:true; emissive:#0088ff; emissiveIntensity:2"></a-cylinder>
+  <!-- Holographic house projection -->
+  <a-entity position="0 2.5 -1"
+    animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 14000; easing: linear"
+    animation__bob="property: position; from: 0 2.4 -1; to: 0 2.65 -1; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
+    <a-box width="1.4" height="0.8" depth="1.0" position="0 0 0"
+      material="color:#00aaff; opacity:0.12; transparent:true; wireframe:true; emissive:#0088ff; emissiveIntensity:1.5">
+    </a-box>
+    <a-cone radius-bottom="0.88" radius-top="0.0" height="0.55" position="0 0.67 0" rotation="0 45 0"
+      material="color:#00ccff; opacity:0.15; transparent:true; wireframe:true; emissive:#00aaff; emissiveIntensity:1.5">
+    </a-cone>
+  </a-entity>
+  <a-light type="point" position="0 2.5 -1" color="#0088ff" intensity="0.7" distance="5" decay="2"></a-light>
+
+  <!-- Table label + click prompt -->
+  <a-text value="ACTIVATE\nBLUEPRINT" align="center" position="0 1.08 -1" color="#ff8800" width="2.2" letter-spacing="2"></a-text>
+  <!-- Clickable table top -->
+  <a-cylinder id="table-click" class="clickable" radius="1.3" height="0.1" position="0 0.92 -1"
+    material="color:#000; opacity:0.001; transparent:true">
+  </a-cylinder>
+
+  <!-- Exit door (south wall) -->
+  <a-box position="0 1.6 8.95" width="1.8" height="2.9" depth="0.14"
+    material="color:#100800; emissive:#332200; emissiveIntensity:0.4; roughness:0.5; metalness:0.6">
+  </a-box>
+  <a-text value="← CORRIDOR" align="center" position="0 2.85 8.9" color="#cc8833" width="3"></a-text>
+  <a-box id="exit-door" class="clickable" position="0 1.6 9.02" width="1.6" height="2.7" depth="0.04"
+    material="color:#0c0800; emissive:#442200; emissiveIntensity:0.7">
+  </a-box>
+  <a-box position="0 0.02 6" width="0.15" height="0.04" depth="7"
+    material="color:#441a00; emissive:#ff4400; emissiveIntensity:1.2">
+  </a-box>
+
+  <!-- Lighting -->
+  <a-light type="ambient" color="#1a1000" intensity="0.6"></a-light>
+  <a-light type="point" position="0 3.8 0" color="#ff9933" intensity="0.7" distance="16" decay="2"></a-light>
+
+  <!-- Player -->
+  <a-entity id="player" position="0 1.6 7" wasd-controls="acceleration: 20" look-controls="pointerLockEnabled: true">
+    <a-camera fov="80" near="0.05">
+      <a-cursor color="#cc8833" fuse="true" fuse-timeout="1500" raycaster="objects: .clickable"
+        animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 1.2 1.2 1.2; to: 1 1 1">
+      </a-cursor>
+    </a-camera>
+  </a-entity>
+
+</a-scene>
+
+<script>
+// ======== APPLY GRID TEXTURE ========
+document.querySelector('a-scene').addEventListener('loaded', function () {
+  var MAT = 'src: ' + window.GRID_TEX + '; repeat: 18 18; color: #aa6600; roughness: 0.95';
+  document.querySelector('#hd-floor').setAttribute('material', MAT);
+  document.querySelector('#hd-ceil').setAttribute('material', 'src: ' + window.GRID_TEX + '; repeat: 18 18; color: #884400; opacity: 0.6; transparent: true; roughness: 0.95');
+  ['#hd-wall-n','#hd-wall-s','#hd-wall-e','#hd-wall-w'].forEach(function(id) {
+    document.querySelector(id).setAttribute('material', 'src: ' + window.GRID_TEX + '; repeat: 18 4; color: #aa6600; roughness: 0.95');
+  });
+  document.querySelector('#table-click').addEventListener('click', openBlueprint);
+  document.querySelector('#exit-door').addEventListener('click', function () { window.location.href = 'index.html'; });
+});
+
+// ======== FLOOR PLAN DATA ========
+var ROOMS = [
+  { name: 'Living Room',   x:10,  y:10,  w:340, h:220 },
+  { name: 'Kitchen',       x:360, y:10,  w:220, h:220 },
+  { name: 'Entry',         x:590, y:10,  w:160, h:100 },
+  { name: 'Hall',          x:590, y:120, w:160, h:110 },
+  { name: 'Master Bed',    x:10,  y:240, w:280, h:280 },
+  { name: 'Master Bath',   x:300, y:240, w:160, h:130 },
+  { name: 'Hallway',       x:300, y:380, w:160, h:140 },
+  { name: 'Bedroom 2',     x:470, y:240, w:220, h:190 },
+  { name: 'Bedroom 3',     x:470, y:440, w:220, h:80  },
+  { name: 'Bathroom',      x:700, y:240, w:150, h:280 },
+];
+
+var FURNITURE_TYPES = [
+  { cat:'Living',   name:'Sofa',            w:80, h:36, col:'#5a1a1a' },
+  { cat:'Living',   name:'Armchair',        w:36, h:36, col:'#6a2020' },
+  { cat:'Living',   name:'Coffee Table',    w:50, h:26, col:'#5a3c20' },
+  { cat:'Living',   name:'TV Stand',        w:80, h:18, col:'#333340' },
+  { cat:'Dining',   name:'Dining Table',    w:64, h:40, col:'#6a4a10' },
+  { cat:'Dining',   name:'Dining Chair',    w:20, h:20, col:'#5a3c10' },
+  { cat:'Bedroom',  name:'King Bed',        w:76, h:60, col:'#1a3060' },
+  { cat:'Bedroom',  name:'Queen Bed',       w:60, h:56, col:'#1a3060' },
+  { cat:'Bedroom',  name:'Twin Bed',        w:42, h:78, col:'#1a3060' },
+  { cat:'Bedroom',  name:'Dresser',         w:50, h:20, col:'#4a3a18' },
+  { cat:'Bedroom',  name:'Nightstand',      w:22, h:22, col:'#4a3a18' },
+  { cat:'Office',   name:'Desk',            w:64, h:26, col:'#3a2810' },
+  { cat:'Office',   name:'Bookshelf',       w:36, h:12, col:'#3a2418' },
+  { cat:'Kitchen',  name:'Refrigerator',    w:26, h:28, col:'#6a6a6a' },
+  { cat:'Kitchen',  name:'Stove',           w:26, h:26, col:'#555555' },
+  { cat:'Kitchen',  name:'Kitchen Island',  w:60, h:28, col:'#7a7a7a' },
+  { cat:'Laundry',  name:'Washer',          w:26, h:26, col:'#5a5a6a' },
+  { cat:'Laundry',  name:'Dryer',           w:26, h:26, col:'#5a5a6a' },
+  { cat:'Bathroom', name:'Toilet',          w:18, h:28, col:'#aaaaaa' },
+  { cat:'Bathroom', name:'Bathtub',         w:30, h:60, col:'#8899aa' },
+  { cat:'Bathroom', name:'Vanity Sink',     w:34, h:20, col:'#aaaaaa' },
+];
+
+// ======== BUILD FLOOR PLAN UI ========
+function buildFloorPlan() {
+  var plan = document.getElementById('fp-plan');
+  if (plan.dataset.built) return;
+  plan.dataset.built = '1';
+
+  ROOMS.forEach(function(r) {
+    var d = document.createElement('div');
+    d.className = 'room';
+    d.style.cssText = 'left:'+r.x+'px;top:'+r.y+'px;width:'+r.w+'px;height:'+r.h+'px';
+    d.innerHTML = '<span class="room-label">' + r.name + '</span>';
+    plan.appendChild(d);
+  });
+
+  var palette = document.getElementById('fp-palette');
+  var cats = {};
+  FURNITURE_TYPES.forEach(function(f) { cats[f.cat] = cats[f.cat] || []; cats[f.cat].push(f); });
+  Object.keys(cats).forEach(function(cat) {
+    var sec = document.createElement('div');
+    sec.className = 'palette-section';
+    sec.innerHTML = '<h4>' + cat + '</h4>';
+    cats[cat].forEach(function(f) {
+      var item = document.createElement('div');
+      item.className = 'palette-item';
+      item.innerHTML = '<div class="swatch" style="background:'+f.col+'"></div>' + f.name;
+      item.addEventListener('click', function() { startPlacing(f); });
+      sec.appendChild(item);
+    });
+    palette.appendChild(sec);
+  });
+}
+
+// ======== DRAGGING PLACED FURNITURE ========
+var dragging = null, dragOX = 0, dragOY = 0;
+
+function makeFurnitureDraggable(el) {
+  el.addEventListener('pointerdown', function(e) {
+    if (e.target.classList.contains('del-btn')) return;
+    dragging = el;
+    var rect = el.getBoundingClientRect();
+    dragOX = e.clientX - rect.left;
+    dragOY = e.clientY - rect.top;
+    el.style.zIndex = 50;
+    el.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+}
+
+document.addEventListener('pointermove', function(e) {
+  if (!dragging) return;
+  var plan = document.getElementById('fp-plan');
+  var pr = plan.getBoundingClientRect();
+  var x = Math.max(0, Math.min(e.clientX - pr.left - dragOX, pr.width  - parseInt(dragging.style.width)));
+  var y = Math.max(0, Math.min(e.clientY - pr.top  - dragOY, pr.height - parseInt(dragging.style.height)));
+  dragging.style.left = x + 'px';
+  dragging.style.top  = y + 'px';
+});
+
+document.addEventListener('pointerup', function() {
+  if (dragging) { dragging.style.zIndex = 5; dragging = null; }
+});
+
+function placeFurniture(f, x, y) {
+  var plan = document.getElementById('fp-plan');
+  var el = document.createElement('div');
+  el.className = 'furniture';
+  el.style.cssText = 'left:'+x+'px;top:'+y+'px;width:'+f.w+'px;height:'+f.h+'px;background:'+f.col;
+  el.dataset.name = f.name;
+  el.innerHTML = '<span style="padding:2px">' + f.name + '</span><div class="del-btn" title="Remove">✕</div>';
+  el.querySelector('.del-btn').addEventListener('click', function(e) {
+    e.stopPropagation(); el.remove();
+  });
+  makeFurnitureDraggable(el);
+  plan.appendChild(el);
+}
+
+// ======== PLACING MODE (palette click) ========
+var placing = null;
+var ghost = document.getElementById('ghost');
+
+function startPlacing(f) {
+  placing = f;
+  ghost.style.width  = f.w + 'px';
+  ghost.style.height = f.h + 'px';
+  ghost.textContent = f.name;
+  ghost.style.display = 'flex';
+  document.body.style.cursor = 'crosshair';
+}
+
+document.addEventListener('mousemove', function(e) {
+  if (!placing) return;
+  ghost.style.left = (e.clientX - placing.w/2) + 'px';
+  ghost.style.top  = (e.clientY - placing.h/2) + 'px';
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cancelPlacing();
+});
+
+function cancelPlacing() {
+  placing = null;
+  ghost.style.display = 'none';
+  document.body.style.cursor = '';
+}
+
+document.getElementById('fp-plan').addEventListener('click', function(e) {
+  if (!placing) return;
+  var r = this.getBoundingClientRect();
+  var x = Math.max(0, Math.min(e.clientX - r.left - placing.w/2, r.width  - placing.w));
+  var y = Math.max(0, Math.min(e.clientY - r.top  - placing.h/2, r.height - placing.h));
+  placeFurniture(placing, x, y);
+  if (!e.shiftKey) cancelPlacing();
+});
+
+// ======== OPEN / CLOSE ========
+function openBlueprint() {
+  buildFloorPlan();
+  document.getElementById('fp-overlay').classList.add('open');
+}
+function closeBlueprint() {
+  cancelPlacing();
+  document.getElementById('fp-overlay').classList.remove('open');
+}
+
+// ======== SHOPPING LIST ========
+function exportShoppingList() {
+  var counts = {};
+  document.querySelectorAll('.furniture').forEach(function(el) {
+    var n = el.dataset.name;
+    counts[n] = (counts[n] || 0) + 1;
+  });
+  if (Object.keys(counts).length === 0) {
+    document.getElementById('shopping-text').textContent = 'No furniture placed yet.\nDrag items from the palette onto the floor plan.';
+  } else {
+    var lines = [];
+    Object.entries(counts).sort(function(a,b){ return a[0].localeCompare(b[0]); }).forEach(function(e) {
+      lines.push('  ' + e[1] + 'x   ' + e[0]);
+    });
+    document.getElementById('shopping-text').textContent =
+      'DATE: ' + new Date().toLocaleDateString() + '\n\n' +
+      lines.join('\n') +
+      '\n\n─────────────────────────────\nGENERATED BY SS WAYFARER HOLODECK\n─────────────────────────────';
+  }
+  document.getElementById('shopping-panel').classList.add('open');
+}
+function closeShoppingList() {
+  document.getElementById('shopping-panel').classList.remove('open');
+}
+</script>
+</body>
+</html>
