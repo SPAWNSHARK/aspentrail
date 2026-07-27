@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>SS Wayfarer — Command Bridge</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,7 +51,7 @@
     <!-- ======================================================
          SPACE ENVIRONMENT (visible through glass walls)
     ====================================================== -->
-    <a-sky color="#00000a"></a-sky>
+    <a-sky id="sky" color="#00000a"></a-sky>
 
     <!-- Distant planet -->
     <a-sphere position="18 -4 -25" radius="5.5"
@@ -96,19 +97,35 @@
     ====================================================== -->
 
     <!-- Outer floor -->
-    <a-circle position="0 0 0" rotation="-90 0 0" radius="8.2"
-      color="#0c0a06" roughness="0.9" metalness="0.35">
+    <a-circle id="br-floor" position="0 0 0" rotation="-90 0 0" radius="8.2">
     </a-circle>
 
     <!-- Raised inner platform -->
-    <a-circle position="0 0.18 0" rotation="-90 0 0" radius="5.8"
-      color="#0f0d08" roughness="0.85" metalness="0.4">
+    <a-circle id="br-platform" position="0 0.18 0" rotation="-90 0 0" radius="5.8">
     </a-circle>
 
     <!-- Ceiling -->
     <a-circle position="0 5.2 0" rotation="90 0 0" radius="8.2"
       color="#040303" opacity="0.85" transparent="true">
     </a-circle>
+
+    <!-- Floor edge conduit ring -->
+    <a-torus radius="8.0" radius-tubular="0.04" position="0 0.06 0" rotation="-90 0 0"
+      material="color: #1a1208; roughness: 0.3; metalness: 0.92">
+    </a-torus>
+    <!-- Ceiling perimeter greeble boxes (12 evenly spaced) -->
+    <a-box position="0 5.15 -7.8" width="0.9" height="0.18" depth="0.22"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
+    <a-box position="6.75 5.15 -3.9" width="0.9" height="0.18" depth="0.22" rotation="0 -60 0"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
+    <a-box position="6.75 5.15 3.9" width="0.9" height="0.18" depth="0.22" rotation="0 -120 0"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
+    <a-box position="0 5.15 7.8" width="0.9" height="0.18" depth="0.22" rotation="0 180 0"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
+    <a-box position="-6.75 5.15 3.9" width="0.9" height="0.18" depth="0.22" rotation="0 120 0"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
+    <a-box position="-6.75 5.15 -3.9" width="0.9" height="0.18" depth="0.22" rotation="0 60 0"
+      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
 
     <!-- GLASS WALLS — transparent cylinder, double-sided -->
     <a-cylinder position="0 2.6 0" radius="8.2" height="5.2"
@@ -387,6 +404,15 @@
   </a-scene>
 
   <script>
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      var T = window.TEX;
+      document.querySelector('#sky').setAttribute('src', T.starfield);
+      document.querySelector('#br-floor').setAttribute('material',
+        'src: ' + T.floorGrate + '; repeat: 12 12; roughness: 0.28; metalness: 0.85; color: #888899');
+      document.querySelector('#br-platform').setAttribute('material',
+        'src: ' + T.metalPanel + '; repeat: 4 4; roughness: 0.38; metalness: 0.72; color: #aaaacc');
+    });
+
     // Generate stars procedurally
     document.querySelector('a-scene').addEventListener('loaded', () => {
       const scene = document.querySelector('a-scene');

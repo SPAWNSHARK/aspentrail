@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>SS Wayfarer — Media Nexus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -61,19 +62,20 @@
   background="color: #000205">
 
   <!-- ===================== ROOM SHELL ===================== -->
-  <a-cylinder radius="9.2" height="7" open-ended="true" position="0 3.5 0"
+  <!-- walls: dark blue metal panels (applied via JS) -->
+  <a-cylinder id="media-walls" radius="9.2" height="7" open-ended="true" position="0 3.5 0"
     material="side: back; color: #020410; roughness: 0.88; metalness: 0.15">
   </a-cylinder>
-  <!-- floor -->
-  <a-cylinder radius="9.3" height="0.08" position="0 0.04 0"
+  <!-- floor: reflective grating (applied via JS) -->
+  <a-cylinder id="media-floor" radius="9.3" height="0.08" position="0 0.04 0"
     material="color: #050818; roughness: 0.2; metalness: 0.9">
   </a-cylinder>
   <!-- floor reflection ring -->
   <a-torus radius="7" radius-tubular="0.04" position="0 0.09 0" rotation="90 0 0"
     material="color: #001133; emissive: #0011aa; emissiveIntensity: 0.5; roughness: 1">
   </a-torus>
-  <!-- ceiling -->
-  <a-cylinder radius="9.3" height="0.08" position="0 7.04 0"
+  <!-- ceiling: panels (applied via JS) -->
+  <a-cylinder id="media-ceil" radius="9.3" height="0.08" position="0 7.04 0"
     material="color: #030510; roughness: 0.95">
   </a-cylinder>
   <!-- ceiling light ring -->
@@ -300,8 +302,14 @@
     });
   });
 
-  // exit door
   document.querySelector('a-scene').addEventListener('loaded', function () {
+    var T = window.TEX;
+    document.querySelector('#media-walls').setAttribute('material',
+      'side: back; src: ' + T.metalPanel + '; repeat: 22 4; roughness: 0.45; metalness: 0.72; color: #8899cc');
+    document.querySelector('#media-floor').setAttribute('material',
+      'src: ' + T.floorGrate + '; repeat: 14 14; roughness: 0.22; metalness: 0.92; color: #6688cc');
+    document.querySelector('#media-ceil').setAttribute('material',
+      'src: ' + T.ceilPanel + '; repeat: 14 14; roughness: 0.55; metalness: 0.6; color: #6677bb');
     document.querySelector('#exit-door').addEventListener('click', function () {
       window.location.href = 'index.html';
     });

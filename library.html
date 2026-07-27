@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>SS Wayfarer — The Library</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -86,7 +87,7 @@
     <!-- ======================================================
          SPACE ENVIRONMENT (through glass ceiling)
     ====================================================== -->
-    <a-sky color="#00010a"></a-sky>
+    <a-sky id="sky" color="#00010a"></a-sky>
 
     <!-- ======================================================
          PLAYER — enters from corridor (+Z)
@@ -128,8 +129,8 @@
       color="#080908" emissive="#0011aa" emissive-intensity="0.2">
     </a-torus>
 
-    <!-- Curved walls (organic, dark) -->
-    <a-cylinder position="0 2.5 0" radius="11" height="5" open-ended="true"
+    <!-- Curved walls — metal panels applied via JS -->
+    <a-cylinder id="lib-walls" position="0 2.5 0" radius="11" height="5" open-ended="true"
       material="side: back; color: #07090a; roughness: 0.96; metalness: 0.05">
     </a-cylinder>
 
@@ -445,6 +446,13 @@
       exit.setAttribute('material', 'emissiveIntensity', 0.4);
     });
     exit.addEventListener('click', () => { window.location.href = 'index.html'; });
+
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      var T = window.TEX;
+      document.querySelector('#sky').setAttribute('src', T.starfield);
+      document.querySelector('#lib-walls').setAttribute('material',
+        'side: back; src: ' + T.metalPanel + '; repeat: 22 4; roughness: 0.5; metalness: 0.62; color: #9999bb');
+    });
 
     // Procedural stars above the glass ceiling
     document.querySelector('a-scene').addEventListener('loaded', () => {

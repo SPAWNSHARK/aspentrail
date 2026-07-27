@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>SS Wayfarer — Crew Lounge</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -86,16 +87,18 @@
   background="color: #060300">
 
   <!-- ===================== ROOM SHELL ===================== -->
-  <a-cylinder radius="9" height="5.5" open-ended="true" position="0 2.75 0"
+  <!-- walls: metal panels (amber-tinted) applied via JS -->
+  <a-cylinder id="lounge-walls" radius="9" height="5.5" open-ended="true" position="0 2.75 0"
     material="side: back; color: #130a03; roughness: 0.92; metalness: 0.08">
   </a-cylinder>
-  <a-cylinder radius="9.1" height="0.1" position="0 0.05 0"
+  <!-- floor: grating applied via JS -->
+  <a-cylinder id="lounge-floor" radius="9.1" height="0.1" position="0 0.05 0"
     material="color: #180d03; roughness: 0.95">
   </a-cylinder>
   <a-cylinder radius="5.5" height="0.02" position="0 0.12 -1.5"
     material="color: #1a0808; roughness: 0.99">
   </a-cylinder>
-  <a-cylinder radius="9.1" height="0.1" position="0 5.55 0"
+  <a-cylinder id="lounge-ceil" radius="9.1" height="0.1" position="0 5.55 0"
     material="color: #0c0602; roughness: 0.95">
   </a-cylinder>
   <a-torus radius="7" radius-tubular="0.07" position="0 5.4 0" rotation="90 0 0"
@@ -103,22 +106,25 @@
   </a-torus>
 
   <!-- ===================== SPACE WINDOW ===================== -->
-  <a-torus radius="3.2" radius-tubular="0.22" position="0 2.6 -8.55"
-    material="color: #1a1208; emissive: #2a1800; emissiveIntensity: 0.4; roughness: 0.5; metalness: 0.85">
+  <!-- Deep outer frame -->
+  <a-box position="0 2.6 -8.5" width="6.6" height="5.4" depth="0.5"
+    material="color: #1a1208; roughness: 0.32; metalness: 0.88">
+  </a-box>
+  <!-- Frame bolts -->
+  <a-torus radius="3.2" radius-tubular="0.22" position="0 2.6 -8.28"
+    material="color: #1a1208; emissive: #2a1800; emissiveIntensity: 0.4; roughness: 0.4; metalness: 0.88">
   </a-torus>
-  <a-torus radius="2.88" radius-tubular="0.055" position="0 2.6 -8.52"
-    material="color: #223355; emissive: #112244; emissiveIntensity: 0.7; roughness: 0.8">
+  <a-torus radius="2.88" radius-tubular="0.055" position="0 2.6 -8.24"
+    material="color: #cc8833; emissive: #ff7722; emissiveIntensity: 1.2; roughness: 0.6">
   </a-torus>
-  <a-circle radius="3.13" position="0 2.6 -8.5" rotation="0 180 0"
-    material="color: #020408; opacity: 0.12; transparent: true; roughness: 0; metalness: 1">
+  <!-- Viewport space scene (texture applied via JS) -->
+  <a-circle id="lounge-viewport" radius="3.13" position="0 2.6 -8.22" rotation="0 180 0">
   </a-circle>
-  <!-- distant planet -->
-  <a-sphere position="4.5 5.5 -70" radius="9"
-    material="color: #1a3550; emissive: #0a1a28; emissiveIntensity: 0.3; roughness: 0.85">
-  </a-sphere>
-  <a-sphere position="4.5 5.5 -70" radius="9.6"
-    material="color: #2a5070; opacity: 0.22; transparent: true; roughness: 1">
-  </a-sphere>
+  <!-- Subtle glass sheen overlay -->
+  <a-circle radius="3.08" position="0 2.6 -8.2" rotation="0 180 0"
+    material="color: #102030; opacity: 0.06; transparent: true; roughness: 0; metalness: 1">
+  </a-circle>
+  <!-- Distant nebula wash behind the glass -->
   <a-sphere position="-5 3 -55" radius="14"
     material="color: #380a28; opacity: 0.09; transparent: true; roughness: 1; emissive: #550022; emissiveIntensity: 0.07">
   </a-sphere>
@@ -411,6 +417,16 @@
 
   // ===================== SCENE LOADED =====================
   document.querySelector('a-scene').addEventListener('loaded', function () {
+    var T = window.TEX;
+    document.querySelector('#lounge-walls').setAttribute('material',
+      'side: back; src: ' + T.metalPanel + '; repeat: 20 4; roughness: 0.5; metalness: 0.6; color: #cc9955');
+    document.querySelector('#lounge-floor').setAttribute('material',
+      'src: ' + T.floorGrate + '; repeat: 14 14; roughness: 0.3; metalness: 0.78; color: #aa8855');
+    document.querySelector('#lounge-ceil').setAttribute('material',
+      'src: ' + T.ceilPanel + '; repeat: 14 14; roughness: 0.6; metalness: 0.5; color: #aa8844');
+    document.querySelector('#lounge-viewport').setAttribute('material',
+      'src: ' + T.viewport + '; roughness: 0; metalness: 0; shader: flat; side: front');
+
     const scene = document.querySelector('a-scene');
 
     // click: TV
