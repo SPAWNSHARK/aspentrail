@@ -53,7 +53,15 @@
       this.dir = new AFRAME.THREE.Vector3();
       this.wp = new AFRAME.THREE.Vector3();
       this.mover = null;
-      if (!touch) return;
+      if (!touch) {                                         // desktop: the gaze fuse would auto-click whatever you look at (TV, doors); use it in VR only
+        sc.addEventListener('loaded', function () {
+          var cur = sc.querySelector('a-cursor'); if (!cur) return;
+          cur.setAttribute('cursor', 'fuse', false);
+          sc.addEventListener('enter-vr', function () { cur.setAttribute('cursor', 'fuse', true); });
+          sc.addEventListener('exit-vr', function () { cur.setAttribute('cursor', 'fuse', false); });
+        });
+        return;
+      }
 
       // ── joystick ──
       var joy = document.createElement('div'), thumb = document.createElement('i'), pid = null;
