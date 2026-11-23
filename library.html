@@ -153,7 +153,7 @@
 
     <!-- SOLID DECK RING (glass edge → wall) -->
     <a-ring id="deck-ring" position="0 0.002 0" rotation="-90 0 0" radius-inner="7.6" radius-outer="11" segments-theta="96"
-      material="color: #ffffff; roughness: 0.5; metalness: 0.2">
+      material="color: #e9a56e; roughness: 0.42; metalness: 0.45">
     </a-ring>
 
     <!-- GLASS CEILING (centre) — look up, see space -->
@@ -171,7 +171,7 @@
 
     <!-- CURVED WALLS — plated texture applied in script -->
     <a-cylinder id="lib-walls" position="0 2.5 0" radius="11" height="5" open-ended="true" segments-radial="72"
-      material="side: back; color: #6a6258; roughness: 0.7; metalness: 0.1">
+      material="side: back; color: #9a7a58; roughness: 0.7; metalness: 0.1">
     </a-cylinder>
     <!-- wall top / base trim -->
     <a-torus position="0 4.96 0" rotation="-90 0 0" radius="10.95" radius-tubular="0.07" segments-tubular="128" segments-radial="6"
@@ -211,19 +211,19 @@
     ====================================================== -->
 
     <!-- Cool fill + sky/ground bounce so nothing is ever pure black -->
-    <a-light type="ambient" color="#b3a592" intensity="0.38"></a-light>
-    <a-light type="hemisphere" color="#7d92e0" groundColor="#5a3a1c" intensity="0.5"></a-light>
+    <a-light type="ambient" color="#d9a878" intensity="0.42"></a-light>
+    <a-light type="hemisphere" color="#c89868" groundColor="#6a3a14" intensity="0.55"></a-light>
 
     <!-- Starlight through the skylight -->
-    <a-light type="directional" color="#9db4ff" intensity="0.35" position="2 10 3"></a-light>
+    <a-light type="directional" color="#ffc890" intensity="0.4" position="2 10 3"></a-light>
 
     <!-- Electrogel glow rising through the glass floor, washing the lower walls -->
     <a-light type="point" position="0 -0.6 0" color="#22ffb0" intensity="0.95" distance="15" decay="1.6"></a-light>
 
     <!-- Warm downlights on the ceiling ring (floor + shelf tops) -->
-    <a-light class="hq" type="point" position="0 4.6 8.5" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
-    <a-light class="hq" type="point" position="-7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
-    <a-light class="hq" type="point" position="7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="0 4.6 8.5" color="#ffb06a" intensity="1.1" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="-7.4 4.6 -4.25" color="#ffb06a" intensity="1.1" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="7.4 4.6 -4.25" color="#ffb06a" intensity="1.1" distance="11" decay="2"></a-light>
 
     <!-- Wall sconces + bookcases are generated in the script (see buildSconces / buildBookcases) -->
 
@@ -489,7 +489,7 @@
         // book face
         const face = el('a-plane', { position: '0 2 0.06', width: 3.2, height: 4 }, bay);
         face.setAttribute('material', Object.assign({ src: L.shelf.albedo, roughness: 0.9, metalness: 0, color: '#ffffff' }, L.shelf.normal ? { normalMap: L.shelf.normal } : {}));
-        setEmissiveMap(face, L.shelf.albedo, 0.42);
+        setEmissiveMap(face, L.shelf.albedo, 0.62, undefined, '#ff9a50');
 
         const wood = { src: L.wood, color: '#caa27a', roughness: 0.7, metalness: 0.05 };
         // boards (match compartment floors baked into the texture)
@@ -523,6 +523,40 @@
       });
     }
 
+
+    // BRASS GLOBE LAMPS on the deck, just outside the glass
+    function buildLamps() {
+      const root = el('a-entity', { id: 'lamps' }, scene);
+      [22, 67, 112, 157, 202, 247, 292, 337].forEach(deg => {
+        const [x, z] = polar(deg, 8.6);
+        const g = el('a-entity', { position: `${x.toFixed(3)} 0 ${z.toFixed(3)}` }, root);
+        const brass = 'color: #b8903f; roughness: 0.35; metalness: 0.9; emissive: #2a1a06; emissiveIntensity: 0.6';
+        el('a-cylinder', { position: '0 0.05 0', radius: 0.26, height: 0.1, material: brass }, g);
+        el('a-cylinder', { position: '0 0.3 0', radius: 0.07, 'radius-top': 0.07, height: 0.5, material: brass }, g);
+        el('a-cylinder', { position: '0 0.58 0', radius: 0.2, height: 0.07, material: brass }, g);
+        el('a-sphere', { position: '0 0.86 0', radius: 0.25, material: 'color: #ffe0b0; emissive: #ffa648; emissiveIntensity: 2.2; shader: standard' }, g);
+        el('a-sphere', { position: '0 0.86 0', radius: 0.6, material: 'color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.5; transparent: true; opacity: 0.10; shader: standard; depthWrite: false' }, g);
+      });
+      if (!MOB) [22, 157, 202, 337].forEach(deg => {
+        const [x, z] = polar(deg, 8.6);
+        el('a-light', { type: 'point', position: `${x.toFixed(2)} 1.0 ${z.toFixed(2)}`, color: '#ffb060', intensity: 0.7, distance: 6, decay: 2 }, scene);
+      });
+    }
+
+    // SKYLIGHT DOME RIBS + BRASS CROSSBAR over the glass
+    function buildDome() {
+      const root = el('a-entity', {}, scene);
+      for (let k = 0; k < 6; k++) {
+        el('a-torus', { position: '0 5 0', rotation: `0 ${k * 30} 0`, scale: '1 0.38 1', radius: 7.62, 'radius-tubular': 0.07, arc: 180,
+          'segments-tubular': 48, 'segments-radial': 6, material: 'color: #3a2f22; roughness: 0.4; metalness: 0.8; emissive: #6fa8ff; emissiveIntensity: 0.18' }, root);
+      }
+      el('a-torus', { position: '0 7.65 0', rotation: '-90 0 0', radius: 0.55, 'radius-tubular': 0.07, 'segments-tubular': 32, 'segments-radial': 6,
+        material: 'color: #3a2f22; roughness: 0.4; metalness: 0.8; emissive: #6fa8ff; emissiveIntensity: 0.4' }, root);
+      const bm = 'color: #9a7a38; roughness: 0.4; metalness: 0.9; emissive: #2a1a06; emissiveIntensity: 0.5';
+      el('a-box', { position: '0 0.06 -0.25', width: 15.2, height: 0.14, depth: 0.55, material: bm }, root);
+      [-5.5, -2.0, 2.0, 5.5].forEach(x => el('a-box', { position: `${x} 0.13 -0.25`, width: 0.5, height: 0.08, depth: 0.7, material: bm }, root));
+    }
+
     // STARS — one draw call instead of 180 entities
     function buildStars() {
       const n = 600, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
@@ -535,6 +569,20 @@
         const b = 0.35 + Math.random() * 0.65, t = Math.random();
         col[i*3] = b * (t < 0.15 ? 0.75 : 1); col[i*3+1] = b * (t < 0.15 ? 0.82 : 0.97); col[i*3+2] = b * (t > 0.85 ? 0.8 : 1);
       }
+      // Milky Way: a dense, dusty band along a tilted great circle
+      const nb = MOB ? 500 : 1400, bp = new Float32Array(nb * 3), bc = new Float32Array(nb * 3), tilt = 0.9;
+      for (let i = 0; i < nb; i++) {
+        const a = Math.random() * Math.PI * 2, w = (Math.random() + Math.random() + Math.random() - 1.5) * 0.22;
+        let x = Math.cos(w) * Math.cos(a), y = Math.sin(w), z = Math.cos(w) * Math.sin(a);
+        const y2 = y * Math.cos(tilt) - z * Math.sin(tilt), z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
+        if (y2 < -0.05) { i--; continue; }
+        bp[i*3] = 58 * x; bp[i*3+1] = 58 * y2 + 2; bp[i*3+2] = 58 * z2;
+        const f = (0.25 + Math.random() * 0.5) * (1 - Math.abs(w) * 2.2), t = Math.random();
+        bc[i*3] = f * (0.85 + 0.15 * t); bc[i*3+1] = f * (0.78 + 0.1 * t); bc[i*3+2] = f * (0.95 - 0.2 * t);
+      }
+      const bg = new THREE.BufferGeometry();
+      bg.setAttribute('position', new THREE.BufferAttribute(bp, 3)); bg.setAttribute('color', new THREE.BufferAttribute(bc, 3));
+      scene.object3D.add(new THREE.Points(bg, new THREE.PointsMaterial({ size: 3.2, sizeAttenuation: false, vertexColors: true, fog: false, transparent: true, opacity: 0.7, depthWrite: false })));
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -545,7 +593,7 @@
     // WING FRAMES — brass jambs + lintel around the two book-wing doors
     function buildWings() {
       [-1, 1].forEach(sd => {
-        const x = sd * 10.3, acc = sd < 0 ? '#ffb455' : '#6fb4ff';
+        const x = sd * 10.3, acc = '#ffa04a';
         const g = el('a-entity', { position: `${x} 0 -2`, rotation: `0 ${sd < 0 ? 0 : 0} 0` });
         scene.appendChild(g);
         [-1.34, 1.34].forEach(dz => el('a-box', { position: `0 1.6 ${dz}`, width: 0.4, height: 3.2, depth: 0.2, color: '#3a2f22', roughness: 0.5, metalness: 0.35 }, g));
@@ -590,6 +638,8 @@
       buildBookcases(L);
       buildSconces();
       buildWings();
+      buildLamps();
+      buildDome();
       buildStars();
 
       requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('boot').classList.add('done')));

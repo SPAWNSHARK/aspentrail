@@ -50,12 +50,11 @@
     }
   }
 
-  // Colour ramp: sulci (grooves) dark teal, gyri (ridges) pale gel-tinted tissue
-  var C_SULCUS = new THREE.Color(0.03, 0.14, 0.10), C_GYRUS = new THREE.Color(0.27, 0.66, 0.46), C_TMP = new THREE.Color(), C_R = new THREE.Color(), C_FR = new THREE.Color(0.16,0.72,0.52), C_PA = new THREE.Color(0.14,0.52,0.86), C_OC = new THREE.Color(0.52,0.30,0.84), C_TP = new THREE.Color(0.86,0.66,0.30);
-  // front = teal-green, crown = blue, back = violet, temporal = warm gold
+  // Colour ramp: sulci dark vein-red/purple, gyri pearly grey-sage with pink drift
+  var C_SULCUS = new THREE.Color(0.11, 0.015, 0.05), C_TMP = new THREE.Color(), C_R = new THREE.Color(),
+      C_PEARL = new THREE.Color(0.30, 0.40, 0.33), C_ROSE = new THREE.Color(0.46, 0.31, 0.34);
   function region(dx, dy, dz) {
-    C_R.copy(C_PA).lerp(C_FR, smooth(-0.1, 0.8, dz)).lerp(C_OC, smooth(-0.1, -0.85, dz));
-    return C_R.lerp(C_TP, 0.75 * smooth(0.1, -0.5, dy) * smooth(0.0, 0.5, dx));
+    return C_R.copy(C_PEARL).lerp(C_ROSE, 0.55 * smooth(-0.1, -0.7, dy) + 0.25 * smooth(0.2, -0.9, dz));
   }
 
   // ── One cerebral hemisphere. side = +1 (right) / -1 (left) ────────────────
@@ -85,12 +84,12 @@
       var f1 = noise((px + wx) * 1.05 + ox, (py + wy) * 1.05, (pz + wz) * 1.05);
       var f2 = noise(px * 2.3 + ox + 11, py * 2.3 + 7, pz * 2.3 + 3);
       var f3 = noise(px * 4.6 + ox + 19, py * 4.6, pz * 4.6 + 13);
-      var g1 = 1 - smooth(0, 0.115, Math.abs(f1));
-      var g2 = (1 - smooth(0, 0.085, Math.abs(f2))) * 0.55;
-      var g3 = (1 - smooth(0, 0.07, Math.abs(f3))) * 0.25;
+      var g1 = 1 - smooth(0, 0.135, Math.abs(f1));
+      var g2 = (1 - smooth(0, 0.085, Math.abs(f2))) * 0.30;
+      var g3 = (1 - smooth(0, 0.07, Math.abs(f3))) * 0.10;
       var groove = 1 - (1 - g1) * (1 - g2) * (1 - g3);
       var depth = 0.46 * g1 + 0.20 * g2 + 0.08 * g3;
-      var bulge = 0.13 * Math.min(1, Math.abs(f1) / 0.35);
+      var bulge = 0.20 * Math.min(1, Math.abs(f1) / 0.35);
       var lateral = smooth(-0.55, -0.05, dx);        // medial wall stays smooth
       var disp = (bulge - depth) * lateral;
       var len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
@@ -101,8 +100,8 @@
       // baked ambient occlusion in vertex colour
       var ao = 1 - 0.92 * Math.pow(groove, 0.8) * lateral;
       ao *= 0.80 + 0.20 * smooth(-1, 0.6, dy);        // underside a touch darker
-      C_TMP.copy(C_SULCUS).lerp(region(dx, dy, dz), Math.pow(Math.max(0, ao), 1.3));
-      C_TMP.r *= 0.93 + 0.12 * f3; C_TMP.g *= 0.97 + 0.06 * f3;
+      C_TMP.copy(C_SULCUS).lerp(region(dx, dy, dz), Math.pow(Math.max(0, ao), 1.9));
+      C_TMP.r *= 0.94 + 0.12 * f3; C_TMP.g *= 0.96 + 0.08 * f2;
       col[i * 3] = C_TMP.r; col[i * 3 + 1] = C_TMP.g; col[i * 3 + 2] = C_TMP.b;
     }
     if (side < 0) {                                  // mirrored => flip winding
@@ -130,8 +129,7 @@
       var len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
       px += dx / len * disp; py += dy / len * disp; pz += dz / len * disp;
       pos.setXYZ(i, px, py - 1.95, pz - 3.9);
-      C_TMP.copy(C_SULCUS).lerp(C_GYRUS, 0.78 * (1 - 0.9 * groove));
-      C_TMP.r *= 1.05; C_TMP.g *= 0.92;
+      C_TMP.copy(C_SULCUS).lerp(C_ROSE, 0.85 * (1 - 0.9 * groove));
       col[i * 3] = C_TMP.r; col[i * 3 + 1] = C_TMP.g; col[i * 3 + 2] = C_TMP.b;
     }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -153,7 +151,7 @@
       var x = pos.getX(i) - c.x, y = pos.getY(i) - c.y, z = pos.getZ(i) - c.z;
       var wob = 1 + 0.07 * noise(c.x * 3 + 70, c.y * 2.4, c.z * 3 + ring * 0.07);
       pos.setXYZ(i, c.x + x * rad * wob, c.y + y * rad * wob, c.z + z * rad * wob);
-      C_TMP.copy(C_SULCUS).lerp(C_GYRUS, 0.55); col[i * 3] = C_TMP.r; col[i * 3 + 1] = C_TMP.g; col[i * 3 + 2] = C_TMP.b;
+      C_TMP.copy(C_SULCUS).lerp(C_ROSE, 0.6); col[i * 3] = C_TMP.r; col[i * 3 + 1] = C_TMP.g; col[i * 3 + 2] = C_TMP.b;
     }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     g.computeVertexNormals();
@@ -169,16 +167,33 @@
 
       // wet tissue: glossy clearcoat under the brain lights
       var tissue = low
-        ? new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.4, metalness: 0,
-            emissive: new THREE.Color(0x0c3038), emissiveIntensity: 0.22 })        // phones: no clearcoat pass
+        ? new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.42, metalness: 0,
+            emissive: new THREE.Color(0x2a1012), emissiveIntensity: 0.22 })        // phones: no clearcoat pass
         : new THREE.MeshPhysicalMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.52, metalness: 0,
-            clearcoat: 0.75, clearcoatRoughness: 0.28,
-            emissive: new THREE.Color(0x0c3038), emissiveIntensity: 0.20 });
+            clearcoat: 1.0, clearcoatRoughness: 0.18,
+            emissive: new THREE.Color(0x2a1012), emissiveIntensity: 0.20 });
       this.mat = tissue;
       [hemisphere(1, low), hemisphere(-1, low), cerebellum(low), stem(low)].forEach(function (g) { grp.add(new THREE.Mesh(g, tissue)); });
 
+      // glowing neural paths hugging the cortex (surface points found by raycasting)
+      var pathMat = this.pathMat = new THREE.MeshBasicMaterial({ color: 0xffa23c, fog: false });
+      grp.updateMatrixWorld(true);
+      var rc = new THREE.Raycaster(), hits = [grp.children[0], grp.children[1]], nP = low ? 5 : 12, ORG = new THREE.Vector3(), DIR = new THREE.Vector3();
+      for (var pi = 0; pi < nP; pi++) {
+        var side = pi % 2 ? 1 : -1, kind = pi % 3, pts = [], ph = pi * 3.7;
+        for (var k = 0; k <= 26; k++) {
+          var u = k / 26, z = (0.5 - u) * 8.4 + noise(u * 3.5, ph, 1) * 1.1;
+          if (kind < 2) { var x = side * (1.1 + 1.7 * (0.5 + 0.5 * noise(u * 4.2, ph, 4))); ORG.set(x, 9, z); DIR.set(0, -1, 0); }
+          else { var yy = 0.4 + noise(u * 2.2, ph, 8) * 1.2; ORG.set(side * 9, yy, z); DIR.set(-side, 0, 0); }
+          rc.set(ORG, DIR);
+          var h = rc.intersectObjects(hits, false)[0];
+          if (h) pts.push(h.point.clone().addScaledVector(h.face.normal.clone().transformDirection(h.object.matrixWorld), 0.045));
+        }
+        if (pts.length > 6) grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.026 + (pi % 3) * 0.01, 5, false), pathMat));
+      }
+
       // glowing filaments from the underside down to the tank floor / ring
-      var fm = new THREE.MeshStandardMaterial({ color: 0x0a2a22, emissive: new THREE.Color(0x35ffc4), emissiveIntensity: 1.0, transparent: true, opacity: 0.8, roughness: 0.4 });
+      var fm = new THREE.MeshStandardMaterial({ color: 0x2a1204, emissive: new THREE.Color(0xff9a3a), emissiveIntensity: 1.0, transparent: true, opacity: 0.8, roughness: 0.4 });
       this.filMat = fm;
       for (i = 0; i < nFil; i++) {
         var a = (i / nFil) * Math.PI * 2 + noise(i * 1.7, 3, 9) * 0.6;
@@ -202,7 +217,7 @@
       }
       var mg = new THREE.BufferGeometry();
       mg.setAttribute('position', new THREE.BufferAttribute(mp, 3));
-      this.motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xbfffe8, size: 2.4, sizeAttenuation: false, transparent: true, opacity: 0.5, depthWrite: false }));
+      this.motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xffd9a8, size: 2.4, sizeAttenuation: false, transparent: true, opacity: 0.5, depthWrite: false }));
       this.motes.frustumCulled = false;
       grp.add(this.motes);
 
@@ -221,7 +236,8 @@
       this.filMat.emissiveIntensity = 0.85 + 0.45 * Math.sin(t / 700);
       var g = this.el.getObject3D('brain');
       if (g) g.rotation.y += s * 0.16;               // slow turn (~40 s a revolution)
-      if (this.mat) this.mat.emissiveIntensity = 0.20 + 0.14 * Math.sin(t / 1200);
+      if (this.pathMat) this.pathMat.color.setRGB(1, 0.64, 0.24).multiplyScalar(0.95 + 0.4 * Math.sin(t / 520));
+      if (this.mat) this.mat.emissiveIntensity = 0.16 + 0.10 * Math.sin(t / 1200);
     },
 
     remove: function () { this.el.removeObject3D('brain'); }
@@ -255,36 +271,85 @@
       var vol = new THREE.Mesh(new THREE.CylinderGeometry(7.9, 7.9, 16, low ? 40 : 72, 1, true),
         new THREE.MeshBasicMaterial({ map: gradTex(), side: THREE.BackSide, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending }));
       vol.position.set(0, -8, 0); grp.add(vol);
-      // brass-dark ribs + glowing rings
-      var rib = new THREE.MeshStandardMaterial({ color: 0x14221f, roughness: 0.5, metalness: 0.7, emissive: 0x0a3a34, emissiveIntensity: 0.6 });
-      var nR = low ? 10 : 18;
-      for (i = 0; i < nR; i++) {
-        var a = i / nR * Math.PI * 2, m = new THREE.Mesh(new THREE.BoxGeometry(0.28, 16, 0.22), rib);
-        m.position.set(Math.cos(a) * 8.05, -8, Math.sin(a) * 8.05); m.rotation.y = -a + Math.PI / 2; grp.add(m);
+      // ── paneled machinery wall with lit teal vents ──
+      var wc = document.createElement('canvas'), we = document.createElement('canvas'); wc.width = we.width = 1024; wc.height = we.height = 512;
+      var x = wc.getContext('2d'), xe = we.getContext('2d'), px, py, rr = 11;
+      x.fillStyle = '#1b2523'; x.fillRect(0, 0, 1024, 512); xe.fillStyle = '#000'; xe.fillRect(0, 0, 1024, 512);
+      for (px = 0; px < 8; px++) for (py = 0; py < 4; py++) {
+        var X = px * 128 + 6, Y = py * 128 + 6, shade = 24 + ((px * 7 + py * 13) % 5) * 5;
+        x.fillStyle = 'rgb(' + shade + ',' + (shade + 10) + ',' + (shade + 8) + ')'; x.fillRect(X, Y, 116, 116);
+        x.strokeStyle = '#0a1110'; x.lineWidth = 3; x.strokeRect(X, Y, 116, 116);
+        x.fillStyle = '#6b5a35'; [[X + 8, Y + 8], [X + 108, Y + 8], [X + 8, Y + 108], [X + 108, Y + 108]].forEach(function (p) { x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill(); });
+        x.fillStyle = 'rgba(0,0,0,0.35)'; for (var gy = 0; gy < 5; gy++) x.fillRect(X + 24, Y + 30 + gy * 14, 68, 6);   // slat grilles
+        if ((px * 3 + py * 5) % 4 === 0) { xe.fillStyle = '#3affd0'; xe.fillRect(X + 22, Y + 24, 72, 16); x.fillStyle = '#146a5c'; x.fillRect(X + 22, Y + 24, 72, 16); }
+        if ((px + py * 2) % 5 === 1) { xe.fillStyle = '#ffa23c'; xe.fillRect(X + 90, Y + 94, 14, 10); }
       }
-      var ringM = new THREE.MeshBasicMaterial({ color: 0x3affd0, fog: false });
-      [-1.2, -4.5, -8, -11.5, -14.8].forEach(function (y, k) {
-        var r = new THREE.Mesh(new THREE.TorusGeometry(8.0, 0.07, 6, low ? 64 : 128), ringM);
-        r.rotation.x = Math.PI / 2; r.position.y = y; grp.add(r);
+      var wt = new THREE.CanvasTexture(wc), wet = new THREE.CanvasTexture(we);
+      wt.wrapS = wt.wrapT = wet.wrapS = wet.wrapT = THREE.RepeatWrapping; wt.repeat.set(3, 2); wet.repeat.set(3, 2);
+      var wallM = new THREE.Mesh(new THREE.CylinderGeometry(8.12, 8.12, 16, low ? 48 : 96, 1, true),
+        new THREE.MeshStandardMaterial({ map: wt, emissiveMap: wet, emissive: 0xffffff, emissiveIntensity: 0.85, roughness: 0.55, metalness: 0.7, side: THREE.BackSide }));
+      wallM.position.y = -8; grp.add(wallM);
+
+      var brass = new THREE.MeshStandardMaterial({ color: 0xa8843e, roughness: 0.38, metalness: 0.95, emissive: 0x2a1a06, emissiveIntensity: 0.6 });
+      var tealM = new THREE.MeshBasicMaterial({ color: 0x3affd0, fog: false });
+      [-3.5, -9.5, -14.5].forEach(function (y) {                          // brass hoops on the wall
+        var r = new THREE.Mesh(new THREE.TorusGeometry(8.0, 0.14, 8, low ? 64 : 128), brass); r.rotation.x = Math.PI / 2; r.position.y = y; grp.add(r);
       });
-      // machinery floor: glowing concentric plates + pump pillars
-      var fl = new THREE.MeshStandardMaterial({ color: 0x0a1514, roughness: 0.6, metalness: 0.8, emissive: 0x06302a, emissiveIntensity: 0.8 });
-      [[7.8, 0.4], [5.6, 0.7], [3.4, 1.0]].forEach(function (d) {
-        var m = new THREE.Mesh(new THREE.CylinderGeometry(d[0], d[0] + 0.3, d[1], 48), fl); m.position.y = -16 + d[1] / 2; grp.add(m);
-        var ring = new THREE.Mesh(new THREE.TorusGeometry(d[0], 0.05, 6, 64), ringM); ring.rotation.x = Math.PI / 2; ring.position.y = -16 + d[1]; grp.add(ring);
-      });
-      for (i = 0; i < (low ? 5 : 8); i++) {
-        var pa = i / (low ? 5 : 8) * Math.PI * 2 + 0.2, pm = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 4.5, 12), rib);
-        pm.position.set(Math.cos(pa) * 6.2, -13.6, Math.sin(pa) * 6.2); grp.add(pm);
-        var cap = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), new THREE.MeshBasicMaterial({ color: 0x7dffe0, fog: false }));
-        cap.position.set(pm.position.x, -11.3, pm.position.z); grp.add(cap);
+
+      // ── floor: grated plate + concentric ring + brass clamp ring around the brain's base ──
+      var gc = document.createElement('canvas'), gce = document.createElement('canvas'); gc.width = gc.height = gce.width = gce.height = 256;
+      var g2 = gc.getContext('2d'), g2e = gce.getContext('2d'); g2.fillStyle = '#0b1514'; g2.fillRect(0, 0, 256, 256); g2e.fillStyle = '#000'; g2e.fillRect(0, 0, 256, 256);
+      g2.strokeStyle = '#2b4a45'; g2.lineWidth = 3; g2e.strokeStyle = '#1fbfa0'; g2e.lineWidth = 2;
+      for (i = 0; i <= 256; i += 32) { g2.beginPath(); g2.moveTo(i, 0); g2.lineTo(i, 256); g2.moveTo(0, i); g2.lineTo(256, i); g2.stroke(); g2e.beginPath(); g2e.moveTo(i, 0); g2e.lineTo(i, 256); g2e.moveTo(0, i); g2e.lineTo(256, i); g2e.stroke(); }
+      var gt = new THREE.CanvasTexture(gc), get = new THREE.CanvasTexture(gce); gt.wrapS = gt.wrapT = get.wrapS = get.wrapT = THREE.RepeatWrapping; gt.repeat.set(8, 8); get.repeat.set(8, 8);
+      var floor = new THREE.Mesh(new THREE.CircleGeometry(8, 64), new THREE.MeshStandardMaterial({ map: gt, emissiveMap: get, emissive: 0xffffff, emissiveIntensity: 1.0, roughness: 0.6, metalness: 0.8 }));
+      floor.rotation.x = -Math.PI / 2; floor.position.y = -15.9; grp.add(floor);
+      var fr = new THREE.Mesh(new THREE.TorusGeometry(7.8, 0.08, 6, 96), tealM); fr.rotation.x = Math.PI / 2; fr.position.y = -15.85; grp.add(fr);
+      var base = new THREE.Mesh(new THREE.TorusGeometry(3.7, 0.3, 10, 64), brass); base.rotation.x = Math.PI / 2; base.position.y = -13.2; grp.add(base);
+      var base2 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.2, 1.5, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x1a2a26, roughness: 0.5, metalness: 0.8, side: THREE.DoubleSide, emissive: 0x0a2a24, emissiveIntensity: 0.6 }));
+      base2.position.y = -14.5; grp.add(base2);
+      for (i = 0; i < 6; i++) {                                           // clamp blocks
+        var ca = i / 6 * Math.PI * 2 + 0.3, cb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), brass);
+        cb.position.set(Math.cos(ca) * 3.7, -13.1, Math.sin(ca) * 3.7); cb.rotation.y = -ca; grp.add(cb);
       }
-      // light shafts rising from the floor
-      var shaft = new THREE.MeshBasicMaterial({ color: 0x2fe8c0, transparent: true, opacity: 0.07, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
-      for (i = 0; i < (low ? 4 : 7); i++) {
-        var sa = i / (low ? 4 : 7) * Math.PI * 2 + 0.7, sm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1.3, 15, 16, 1, true), shaft);
+
+      // ── vessel cables: wall ports → brain ──
+      var vessel = new THREE.MeshStandardMaterial({ color: 0x5a2432, roughness: 0.45, metalness: 0.1, emissive: 0x2a0a14, emissiveIntensity: 0.5 });
+      var strand = new THREE.MeshStandardMaterial({ color: 0xc58a92, roughness: 0.4, metalness: 0.1, emissive: 0x401820, emissiveIntensity: 0.5 });
+      var strand2 = new THREE.MeshStandardMaterial({ color: 0x5e6fb0, roughness: 0.4, metalness: 0.1, emissive: 0x101840, emissiveIntensity: 0.5 });
+      var nC = low ? 6 : 10, FR = new THREE.Vector3();
+      for (i = 0; i < nC; i++) {
+        var ang = i / nC * Math.PI * 2 + 0.15, py0 = -5.6 - (i % 3) * 1.7, dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
+        var P0 = dir.clone().multiplyScalar(7.7).setY(py0), P3 = dir.clone().multiplyScalar(2.3).setY(-7.3 + ((i % 3) - 1) * 0.8 - 0.4);
+        var P1 = dir.clone().multiplyScalar(6.0).setY(py0 - 1.4 - (i % 2) * 0.6), P2 = dir.clone().multiplyScalar(3.9).setY(P3.y - 1.0 - (i % 2) * 0.5);
+        var cv = new THREE.CatmullRomCurve3([P0, P1, P2, P3]);
+        grp.add(new THREE.Mesh(new THREE.TubeGeometry(cv, low ? 24 : 48, 0.27, low ? 8 : 12, false), vessel));
+        if (!low) {
+          var fr2 = cv.computeFrenetFrames(60, false);
+          [[0, strand], [Math.PI, strand2]].forEach(function (hh) {
+            var hp = [], q, pt;
+            for (q = 0; q <= 60; q++) {
+              pt = cv.getPointAt(q / 60); var ang2 = q * 0.45 + hh[0];
+              hp.push(pt.clone().addScaledVector(fr2.normals[q], Math.cos(ang2) * 0.3).addScaledVector(fr2.binormals[q], Math.sin(ang2) * 0.3));
+            }
+            grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(hp), 120, 0.075, 6, false), hh[1]));
+          });
+        }
+        var flange = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.14, 8, 24), brass), collar = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.5, 20), brass);
+        var inward = dir.clone().multiplyScalar(-1);
+        flange.position.copy(P0).addScaledVector(dir, 0.25); flange.lookAt(flange.position.clone().add(dir));
+        collar.position.copy(P0).addScaledVector(dir, 0.05); collar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), inward);
+        grp.add(flange); grp.add(collar);
+        var lamp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb04a, fog: false })); lamp.position.copy(P0).addScaledVector(dir, 0.55).setY(py0 + 0.75); grp.add(lamp);
+      }
+
+      // soft light shafts from the floor vents
+      var shaft = new THREE.MeshBasicMaterial({ color: 0x2fe8c0, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+      for (i = 0; i < (low ? 3 : 5); i++) {
+        var sa = i / (low ? 3 : 5) * Math.PI * 2 + 0.7, sm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1.3, 15, 16, 1, true), shaft);
         sm.position.set(Math.cos(sa) * 5.8, -8.5, Math.sin(sa) * 5.8); grp.add(sm);
       }
+
       // rising bubbles / plankton
       var n = low ? 140 : 380, p = new Float32Array(n * 3); this.sp = new Float32Array(n); this.ph = new Float32Array(n);
       for (i = 0; i < n; i++) {
