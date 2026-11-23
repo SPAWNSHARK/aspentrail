@@ -3,10 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title>SS Wayfarer — The Library</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#000208">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="brain.js"></script>
+  <script src="mobile.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -62,9 +66,28 @@
       cursor: pointer; text-transform: uppercase;
     }
     #scroll-close:hover { color: #88aaff; }
+    /* ── boot overlay + mobile layout ── */
+    #boot {
+      position: fixed; inset: 0; background: #000208; color: #6688cc;
+      font: 11px 'Courier New', monospace; letter-spacing: 4px; text-align: center;
+      display: flex; align-items: center; justify-content: center; padding: 0 24px;
+      z-index: 50; transition: opacity 0.6s ease;
+    }
+    #boot.done { opacity: 0; pointer-events: none; }
+    html.touch #room-prompt { bottom: 170px; font-size: 12px; letter-spacing: 2px; }
+    @media (max-width: 640px) {
+      #hud { padding: 10px 14px; font-size: 9px; letter-spacing: 1.5px; }
+      #hud span:nth-child(2) { display: none; }
+      #scroll-panel { width: 94vw; padding: 20px 20px calc(18px + env(safe-area-inset-bottom, 0px)); }
+      #scroll-title { font-size: 12px; letter-spacing: 2px; }
+      #scroll-body { font-size: 14px; line-height: 1.7; max-height: 38vh; letter-spacing: 0.5px; }
+      #scroll-close { font-size: 12px; padding: 16px 0 4px; }
+    }
   </style>
 </head>
 <body>
+
+  <div id="boot">SS WAYFARER<br><br>LOADING THE LIBRARY…</div>
 
   <div id="hud">
     <span>SS WAYFARER</span>
@@ -80,7 +103,7 @@
     <span id="scroll-close">[ CLOSE SCROLL ]</span>
   </div>
 
-  <a-scene
+  <a-scene wayfarer-mobile="radius: 10.2"
     fog="type: exponential; color: #04060f; density: 0.011"
     vr-mode-ui="enabled: true"
     renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
@@ -101,7 +124,7 @@
         <a-cursor
           color="#88aaff" opacity="0.5"
           fuse="true" fuse-timeout="1500"
-          raycaster="objects: .interactive">
+          raycaster="objects: .interactive, .interactive *">
         </a-cursor>
       </a-camera>
     </a-entity>
@@ -170,13 +193,13 @@
     </a-circle>
 
     <!-- THE BRAIN — real 3D folds, built in brain.js -->
-    <a-entity brain-mesh position="0 -7.3 0"
-      animation="property: scale; from: 0.992 0.992 0.992; to: 1.012 1.012 1.012; dir: alternate; loop: true; dur: 3400; easing: easeInOutSine">
+    <a-entity id="brain" position="0 -7.3 0"
+      animation="property: scale; from: 0.965 0.965 0.965; to: 1.04 1.04 1.04; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine">
     </a-entity>
 
     <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
     <a-light type="point" position="0 -3.0 1.5"  color="#7dffd0" intensity="0.8" distance="13" decay="2"></a-light>
-    <a-light type="point" position="-5 -8 3"     color="#00cc88" intensity="0.7" distance="10" decay="2"></a-light>
+    <a-light class="hq" type="point" position="-5 -8 3"     color="#00cc88" intensity="0.7" distance="10" decay="2"></a-light>
     <a-light type="point" position="3 -8.5 -7.5" color="#3fd0ff" intensity="1.0" distance="11" decay="2"></a-light>
 
     <!-- ======================================================
@@ -196,9 +219,9 @@
     <a-light type="point" position="0 -0.6 0" color="#22ffb0" intensity="0.95" distance="15" decay="1.6"></a-light>
 
     <!-- Warm downlights on the ceiling ring (floor + shelf tops) -->
-    <a-light type="point" position="0 4.6 8.5" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
-    <a-light type="point" position="-7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
-    <a-light type="point" position="7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="0 4.6 8.5" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="-7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light class="hq" type="point" position="7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
 
     <!-- Wall sconces + bookcases are generated in the script (see buildSconces / buildBookcases) -->
 
@@ -215,6 +238,7 @@
       position="-2.5 0 1.5"
       data-title="SECOND BRAIN — INDEX"
       data-body="Your Obsidian vault lives here.\n\nMarkdown files will appear as physical scrolls once loaded.\nDrag your .md files into the repo and they will populate this room.\n\n[ PENDING: OBSIDIAN VAULT IMPORT ]">
+      <a-sphere class="hit" radius="0.75" position="0 1.0 0" material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-sphere>
       <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
@@ -229,7 +253,7 @@
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
         <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
-        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+        <a-sphere radius="0.46" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
       </a-entity>
     </a-entity>
 
@@ -238,6 +262,7 @@
       position="2.5 0 1.5"
       data-title="THE SONS OF NAPHTALI — BOOK I"
       data-body="Genetics, haplogroups, and the genetic trail of the tribe of Naphtali.\n\nBook 1 scope: comprehensive. Chapter structure in progress.\n\n[ PENDING: MANUSCRIPT FILES ]">
+      <a-sphere class="hit" radius="0.75" position="0 1.0 0" material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-sphere>
       <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
@@ -252,7 +277,7 @@
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
         <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
-        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+        <a-sphere radius="0.46" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
       </a-entity>
     </a-entity>
 
@@ -261,6 +286,7 @@
       position="-2.5 0 -2"
       data-title="JEWISH GENETIC HAPLOGROUPS — BOOK II"
       data-body="Spun off from Book I when the scope became too large to contain.\n\nFocuses on haplogroup distribution, migration patterns, and genetic markers across Jewish diaspora populations.\n\n[ PENDING: RESEARCH FILES ]">
+      <a-sphere class="hit" radius="0.75" position="0 1.0 0" material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-sphere>
       <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
@@ -275,7 +301,7 @@
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
         <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
-        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+        <a-sphere radius="0.46" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
       </a-entity>
     </a-entity>
 
@@ -284,6 +310,7 @@
       position="2.5 0 -2"
       data-title="DAILY NOTES — ACTIVE VAULT"
       data-body="Neurodivergent idea capture. All the little things.\n\nEvery idea that lands here gets a home. Nothing lost.\n\n[ PENDING: DAILY NOTE FILES ]">
+      <a-sphere class="hit" radius="0.75" position="0 1.0 0" material="shader: flat; transparent: true; opacity: 0; depthWrite: false"></a-sphere>
       <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
       <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
@@ -298,7 +325,7 @@
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
         <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
           material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
-        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+        <a-sphere radius="0.46" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
       </a-entity>
     </a-entity>
 
@@ -382,13 +409,13 @@
         const body  = el.getAttribute('data-body').replace(/\\n/g, '\n');
         panTitle.textContent = title;
         panBody.innerHTML = body.split('\n').map(l => l ? `<div>${l}</div>` : '<br>').join('');
-        panel.classList.add('open');
+        panel.classList.add('open'); document.body.classList.add('reading');
         hidePrompt();
       });
     });
 
     document.getElementById('scroll-close').addEventListener('click', () => {
-      panel.classList.remove('open');
+      panel.classList.remove('open'); document.body.classList.remove('reading');
     });
 
     // Exit
@@ -408,6 +435,7 @@
     // ─────────────────────────────────────────────────────────────────────
     const scene = document.querySelector('a-scene');
     const THREE = AFRAME.THREE;
+    const MOB = window.WAYFARER.mobile;   // phone / small tablet quality profile
 
     // Put an emissive map on an entity's existing material (A-Frame's material
     // component has no emissiveMap property, so we set it on the three.js material).
@@ -458,7 +486,7 @@
 
         // book face
         const face = el('a-plane', { position: '0 2 0.06', width: 3.2, height: 4 }, bay);
-        face.setAttribute('material', { src: L.shelf.albedo, normalMap: L.shelf.normal, roughness: 0.9, metalness: 0, color: '#ffffff' });
+        face.setAttribute('material', Object.assign({ src: L.shelf.albedo, roughness: 0.9, metalness: 0, color: '#ffffff' }, L.shelf.normal ? { normalMap: L.shelf.normal } : {}));
         setEmissiveMap(face, L.shelf.albedo, 0.42);
 
         const wood = { src: L.wood, color: '#caa27a', roughness: 0.7, metalness: 0.05 };
@@ -480,7 +508,7 @@
     // SCONCES — amber wall lamps. Back arc sits between bookcases.
     function buildSconces() {
       const root = document.getElementById('sconces');
-      [230, 270, 310, 30, 60, 120, 150].forEach(deg => {
+      (MOB ? [230, 310, 60, 120] : [230, 270, 310, 30, 60, 120, 150]).forEach(deg => {
         const [x, z] = polar(deg, 10.85);
         const s = el('a-entity', { position: `${x.toFixed(3)} 2.35 ${z.toFixed(3)}`, rotation: `0 ${faceCentre(deg).toFixed(2)} 0` }, root);
         el('a-box', { position: '0 0 0', width: 0.26, height: 0.8, depth: 0.08, color: '#2a2218', roughness: 0.5, metalness: 0.4 }, s);
@@ -526,7 +554,15 @@
     }
 
     scene.addEventListener('loaded', () => {
-      const T = window.TEX, L = T.library();
+      const T = window.TEX, L = T.library({ lite: MOB });
+
+      // quality profile: cap pixel ratio, drop the extra lights on phones, lighter brain
+      scene.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MOB ? 1.5 : 2));
+      if (MOB) {
+        document.querySelectorAll('.hq').forEach(e => e.remove());
+        document.querySelector('a-light[type="ambient"]').setAttribute('intensity', 0.5);
+      }
+      document.getElementById('brain').setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
       document.querySelector('#sky').setAttribute('src', T.starfield);
 
       // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
@@ -540,11 +576,10 @@
 
       // Deck ring: ring UVs span the whole 22 m disc -> 8 repeats = 2.75 m tiles
       const deck = document.getElementById('deck-ring');
-      deck.setAttribute('material', {
-        src: L.floor.albedo, normalMap: L.floor.normal,
-        repeat: '8 8', normalTextureRepeat: '8 8',
+      deck.setAttribute('material', Object.assign({
+        src: L.floor.albedo, repeat: '8 8',
         color: '#ffffff', roughness: 0.5, metalness: 0.2
-      });
+      }, L.floor.normal ? { normalMap: L.floor.normal, normalTextureRepeat: '8 8' } : {}));
       setEmissiveMap(deck, L.floor.glow, 0.9, [8, 8]);
 
       const ceil = document.getElementById('ceil-ring');
@@ -554,6 +589,8 @@
       buildSconces();
       buildWings();
       buildStars();
+
+      requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('boot').classList.add('done')));
     });
   </script>
 

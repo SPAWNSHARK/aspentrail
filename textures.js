@@ -414,7 +414,7 @@
   }
 
   // ── Library floor tile: 1024² ≈ 2.75 m. 2×2 plates, amber inlay frames. ──
-  function libFloor() {
+  function libFloor(lite) {
     var S = 1024, P = 512, R = rng(21);
     var A = mkc(S, S), a = A.getContext('2d');
     var Hc = mkc(S, S), h = Hc.getContext('2d');
@@ -475,11 +475,11 @@
         a.fillStyle = rg; a.fillRect(bx + ox - br, by + oy - br, br * 2, br * 2);
       }); });
     }
-    return { albedo: A.toDataURL(), normal: normalFromHeight(Hc, 2.2), glow: Gc.toDataURL() };
+    return { albedo: A.toDataURL(), normal: lite ? null : normalFromHeight(Hc, 2.2), glow: Gc.toDataURL() };
   }
 
   // ── Bookshelf bay face: 640×800 = 3.2 m × 4 m, 5 compartments of books ──
-  function libBookshelf() {
+  function libBookshelf(lite) {
     var W = 640, H = 800, R = rng(99);
     var A = mkc(W, H), a = A.getContext('2d');
     var Hc = mkc(W, H), h = Hc.getContext('2d');
@@ -540,7 +540,7 @@
     for (k = 0; k < 2500; k++) {
       a.fillStyle = 'rgba(0,0,0,' + (R() * 0.10) + ')'; a.fillRect(R() * W, R() * H, 1 + R() * 2, 1);
     }
-    return { albedo: A.toDataURL(), normal: normalFromHeight(Hc, 2.0) };
+    return { albedo: A.toDataURL(), normal: lite ? null : normalFromHeight(Hc, 2.0) };
   }
 
   // ── Dark walnut board grain (512×64, runs along u) ──
@@ -560,9 +560,10 @@
   }
 
   var _lib = null;
-  function library() {
+  function library(opts) {
     if (_lib) return _lib;
-    _lib = { wall: libWall(), floor: libFloor(), shelf: libBookshelf(), wood: libWood() };
+    var lite = !!(opts && opts.lite);   // phones: skip floor/shelf normal maps (saves ~1 s of canvas work)
+    _lib = { wall: libWall(), floor: libFloor(lite), shelf: libBookshelf(lite), wood: libWood() };
     return _lib;
   }
 
