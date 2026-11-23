@@ -29,6 +29,7 @@
   <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js"></script>
+  <script src="stargarden.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { overflow:hidden; background:#000; }
@@ -197,7 +198,7 @@
 </div>
 
 <!-- ======== 3D HOLODECK SCENE ======== -->
-<a-scene wayfarer-mobile
+<a-scene star-garden wayfarer-mobile
   vr-mode-ui="enabled: true"
   renderer="antialias: true; colorManagement: true"
   background="color: #000000">
@@ -230,10 +231,20 @@
   <a-cylinder radius="0.12" height="0.85" position="0 0.42 -1" material="color:#1a1000; roughness:0.3; metalness:0.95"></a-cylinder>
   <a-cylinder radius="1.3" height="0.08" position="0 0.86 -1" material="color:#1a1000; emissive:#884400; emissiveIntensity:0.4; roughness:0.2; metalness:0.95"></a-cylinder>
   <a-torus radius="1.1" radius-tubular="0.02" position="0 0.91 -1" rotation="90 0 0" material="color:#ff8800; emissive:#ff6600; emissiveIntensity:2.5"></a-torus>
+  <!-- Star Garden launcher: invisible fat hit ring over the amber ring (sits above the table-click disc) -->
+  <a-torus id="sg-ring" class="clickable" radius="1.1" radius-tubular="0.15" position="0 1.0 -1" rotation="90 0 0" segments-tubular="32" segments-radial="8"
+    material="color:#000; opacity:0.001; transparent:true; depthWrite:false"></a-torus>
+  <a-text value="STAR GARDEN" align="center" position="0 1.0 -2.45" rotation="-55 0 0" color="#ffb060" width="1.6" letter-spacing="3"></a-text>
+  <!-- soft floor + doorway guide lights (always on) -->
+  <a-box position="0 0.03 5.4" width="2.2" height="0.02" depth="7.4" material="color:#2a1a08; emissive:#ffb060; emissiveIntensity:0.55; transparent:true; opacity:0.55; shader:flat"></a-box>
+  <a-box position="-1.05 0.04 5.4" width="0.06" height="0.03" depth="7.4" material="color:#ffcf8a; emissive:#ffcf8a; emissiveIntensity:1.1; shader:flat"></a-box>
+  <a-box position="1.05 0.04 5.4" width="0.06" height="0.03" depth="7.4" material="color:#ffcf8a; emissive:#ffcf8a; emissiveIntensity:1.1; shader:flat"></a-box>
+  <a-box position="0 1.6 8.88" width="2.0" height="3.1" depth="0.04" material="color:#ffb060; emissive:#ffb060; emissiveIntensity:0.5; opacity:0.35; transparent:true; shader:flat"></a-box>
+  <a-light type="point" position="0 1.2 8.0" color="#ffb060" intensity="0.9" distance="6" decay="2"></a-light>
   <!-- Hologram beam -->
   <a-cylinder radius="0.015" height="1.6" position="0 1.7 -1" material="color:#00aaff; opacity:0.35; transparent:true; emissive:#0088ff; emissiveIntensity:2"></a-cylinder>
   <!-- Holographic house projection -->
-  <a-entity position="0 2.5 -1"
+  <a-entity id="hd-house" position="0 2.5 -1"
     animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 14000; easing: linear"
     animation__bob="property: position; from: 0 2.4 -1; to: 0 2.65 -1; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
     <!-- House walls wireframe -->
@@ -292,6 +303,7 @@ document.querySelector('a-scene').addEventListener('loaded', function () {
     document.querySelector(id).setAttribute('material', 'src: url(' + window.GRID_TEX + '); repeat: 18 4; color: #aa6600; roughness: 0.95');
   });
   document.querySelector('#table-click').addEventListener('click', openBlueprint);
+  document.querySelector('#sg-ring').addEventListener('click', function () { window.WAYFARER_GARDEN && window.WAYFARER_GARDEN.launch(); });
   document.querySelector('#exit-door').addEventListener('click', function () { window.location.href = 'index.html'; });
 });
 
