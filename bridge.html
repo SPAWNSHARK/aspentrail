@@ -409,9 +409,9 @@
       var T = window.TEX;
       document.querySelector('#sky').setAttribute('src', T.starfield);
       document.querySelector('#br-floor').setAttribute('material',
-        'src: ' + T.floorGrate + '; repeat: 12 12; roughness: 0.28; metalness: 0.85; color: #888899');
+        'src: url(' + T.floorGrate + '); repeat: 12 12; roughness: 0.28; metalness: 0.85; color: #888899');
       document.querySelector('#br-platform').setAttribute('material',
-        'src: ' + T.metalPanel + '; repeat: 4 4; roughness: 0.38; metalness: 0.72; color: #aaaacc');
+        'src: url(' + T.metalPanel + '); repeat: 4 4; roughness: 0.38; metalness: 0.72; color: #aaaacc');
     });
 
     // Generate stars procedurally

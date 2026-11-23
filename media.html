@@ -306,11 +306,11 @@
   document.querySelector('a-scene').addEventListener('loaded', function () {
     var T = window.TEX;
     document.querySelector('#media-walls').setAttribute('material',
-      'side: back; src: ' + T.metalPanel + '; repeat: 22 4; roughness: 0.45; metalness: 0.72; color: #8899cc');
+      'side: back; src: url(' + T.metalPanel + '); repeat: 22 4; roughness: 0.45; metalness: 0.72; color: #8899cc');
     document.querySelector('#media-floor').setAttribute('material',
-      'src: ' + T.floorGrate + '; repeat: 14 14; roughness: 0.22; metalness: 0.92; color: #6688cc');
+      'src: url(' + T.floorGrate + '); repeat: 14 14; roughness: 0.22; metalness: 0.92; color: #6688cc');
     document.querySelector('#media-ceil').setAttribute('material',
-      'src: ' + T.ceilPanel + '; repeat: 14 14; roughness: 0.55; metalness: 0.6; color: #6677bb');
+      'src: url(' + T.ceilPanel + '); repeat: 14 14; roughness: 0.55; metalness: 0.6; color: #6677bb');
     document.querySelector('#exit-door').addEventListener('click', function () {
       window.location.href = 'index.html';
     });

@@ -420,13 +420,13 @@
   document.querySelector('a-scene').addEventListener('loaded', function () {
     var T = window.TEX;
     document.querySelector('#lounge-walls').setAttribute('material',
-      'side: back; src: ' + T.metalPanel + '; repeat: 20 4; roughness: 0.5; metalness: 0.6; color: #cc9955');
+      'side: back; src: url(' + T.metalPanel + '); repeat: 20 4; roughness: 0.5; metalness: 0.6; color: #cc9955');
     document.querySelector('#lounge-floor').setAttribute('material',
-      'src: ' + T.floorGrate + '; repeat: 14 14; roughness: 0.3; metalness: 0.78; color: #aa8855');
+      'src: url(' + T.floorGrate + '); repeat: 14 14; roughness: 0.3; metalness: 0.78; color: #aa8855');
     document.querySelector('#lounge-ceil').setAttribute('material',
-      'src: ' + T.ceilPanel + '; repeat: 14 14; roughness: 0.6; metalness: 0.5; color: #aa8844');
+      'src: url(' + T.ceilPanel + '); repeat: 14 14; roughness: 0.6; metalness: 0.5; color: #aa8844');
     document.querySelector('#lounge-viewport').setAttribute('material',
-      'src: ' + T.viewport + '; roughness: 0; metalness: 0; shader: flat; side: front');
+      'src: url(' + T.viewport + '); roughness: 0; metalness: 0; shader: flat; side: front');
 
     const scene = document.querySelector('a-scene');
 

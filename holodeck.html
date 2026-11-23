@@ -274,11 +274,11 @@
 // ======== APPLY TEXTURES ========
 document.querySelector('a-scene').addEventListener('loaded', function () {
   var T = window.TEX;
-  var MAT = 'src: ' + window.GRID_TEX + '; repeat: 18 18; color: #aa6600; roughness: 0.95';
+  var MAT = 'src: url(' + window.GRID_TEX + '); repeat: 18 18; color: #aa6600; roughness: 0.95';
   document.querySelector('#hd-floor').setAttribute('material', MAT);
-  document.querySelector('#hd-ceil').setAttribute('material', 'src: ' + (T ? T.starfield : window.GRID_TEX) + '; repeat: 1 1; color: #884400; opacity: 0.55; transparent: true; roughness: 0.95; shader: flat');
+  document.querySelector('#hd-ceil').setAttribute('material', 'src: url(' + (T ? T.starfield : window.GRID_TEX) + '); repeat: 1 1; color: #884400; opacity: 0.55; transparent: true; roughness: 0.95; shader: flat');
   ['#hd-wall-n','#hd-wall-s','#hd-wall-e','#hd-wall-w'].forEach(function(id) {
-    document.querySelector(id).setAttribute('material', 'src: ' + window.GRID_TEX + '; repeat: 18 4; color: #aa6600; roughness: 0.95');
+    document.querySelector(id).setAttribute('material', 'src: url(' + window.GRID_TEX + '); repeat: 18 4; color: #aa6600; roughness: 0.95');
   });
   document.querySelector('#table-click').addEventListener('click', openBlueprint);
   document.querySelector('#exit-door').addEventListener('click', function () { window.location.href = 'index.html'; });

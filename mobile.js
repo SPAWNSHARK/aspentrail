@@ -18,25 +18,30 @@
 
   var css = document.createElement('style');
   css.textContent =
-    '#wf-joy,#wf-look{position:fixed;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
+    '#wf-joy{position:fixed;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
     'width:128px;height:128px;border-radius:50%;border:1px solid rgba(136,170,255,.38);' +
     'background:radial-gradient(circle,rgba(20,30,60,.30),rgba(2,4,12,.50));z-index:15;touch-action:none;' +
     '-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;display:none;transition:opacity .25s}' +
-    'html.touch #wf-joy,html.touch #wf-look{display:block}' +
-    '#wf-joy i,#wf-look i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;' +
+    'html.touch #wf-joy{display:block}' +
+    '#wf-joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;' +
     'background:rgba(136,170,255,.26);border:1px solid rgba(170,200,255,.65);box-shadow:0 0 14px rgba(60,120,255,.35);pointer-events:none}' +
-    'body.reading #wf-joy,body.wf-vr #wf-joy,body.reading #wf-look,body.wf-vr #wf-look{opacity:0;pointer-events:none}' +
+    'body.reading #wf-joy,body.wf-vr #wf-joy{opacity:0;pointer-events:none}' +
     'html.touch #controls-hint{bottom:auto!important;top:48px;width:92vw;text-align:center;white-space:normal!important;' +
     'color:#5878b8!important;font-size:10px!important;letter-spacing:1.5px!important;transition:opacity 1.2s}' +
     'html.touch #controls-hint.wf-gone{opacity:0}' +
-    '#wf-look{left:auto!important;right:calc(20px + env(safe-area-inset-right,0px))}' +
-    'html.touch #wf-look{display:block}' +
+    '#wf-pad{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
+    'width:132px;height:132px;z-index:15;display:none;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .25s}' +
+    'html.touch #wf-pad{display:block}' +
+    '#wf-pad b{position:absolute;width:44px;height:44px;border-radius:50%;border:1px solid rgba(136,170,255,.38);' +
+    'background:rgba(8,14,34,.55);color:#9ab8ff;font:600 16px/42px system-ui,sans-serif;text-align:center;touch-action:none}' +
+    '#wf-pad b.on{background:rgba(136,170,255,.35)}' +
+    '#wf-pad .u{left:44px;top:0}#wf-pad .d{left:44px;bottom:0}#wf-pad .l{left:0;top:44px}#wf-pad .r{right:0;top:44px}' +
+    '#wf-pad .c{left:44px;top:44px;font-size:11px}' +
     '#wf-gyro{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(164px + env(safe-area-inset-bottom,0px));z-index:15;' +
     'display:none;padding:6px 10px;border-radius:14px;border:1px solid rgba(136,170,255,.38);background:rgba(8,14,34,.55);' +
     'color:#9ab8ff;font:600 10px system-ui,sans-serif;letter-spacing:1.5px;touch-action:none}' +
-    '#wf-lvl{position:fixed;right:calc(112px + env(safe-area-inset-right,0px));bottom:calc(164px + env(safe-area-inset-bottom,0px));z-index:15;display:none;padding:6px 10px;border-radius:14px;border:1px solid rgba(136,170,255,.38);background:rgba(8,14,34,.55);color:#9ab8ff;font:600 10px system-ui,sans-serif;letter-spacing:1.5px;touch-action:none}' +
-    'html.touch #wf-gyro,html.touch #wf-lvl{display:block}' +
-    'body.reading #wf-lvl,body.wf-vr #wf-lvl,body.reading #wf-gyro,body.wf-vr #wf-gyro{opacity:0;pointer-events:none}';
+    'html.touch #wf-gyro{display:block}' +
+    'body.reading #wf-pad,body.wf-vr #wf-pad,body.reading #wf-gyro,body.wf-vr #wf-gyro{opacity:0;pointer-events:none}';
   document.head.appendChild(css);
 
   AFRAME.registerComponent('wayfarer-mobile', {
@@ -77,29 +82,20 @@
       joy.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
       // ── look pad (right thumb): look without tilting your neck or the phone ──
-      var lookEl = document.createElement('div'), lthumb = document.createElement('i'), lpid = null, look = this.look = { x: 0, y: 0, level: false };
-      lookEl.id = 'wf-look'; lookEl.appendChild(lthumb); document.body.appendChild(lookEl);
-      function lupdate(e) {
-        var r = lookEl.getBoundingClientRect(), R = r.width / 2 - 10;
-        var dx = (e.clientX - (r.left + r.width / 2)) / R, dy = (e.clientY - (r.top + r.height / 2)) / R;
-        var len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 1) { dx /= len; dy /= len; len = 1; }
-        lthumb.style.transform = 'translate(' + (dx * 38) + 'px,' + (dy * 38) + 'px)';
-        if (len < 0.14) { look.x = 0; look.y = 0; return; }
-        var mag = Math.pow(len, 1.4) / len;
-        look.x = -dx * mag; look.y = -dy * mag; look.level = false;
-      }
-      function lend(e) { if (e.pointerId !== lpid) return; lpid = null; look.x = 0; look.y = 0; lthumb.style.transform = ''; }
-      lookEl.addEventListener('pointerdown', function (e) {
-        if (lpid !== null) return; lpid = e.pointerId;
-        try { lookEl.setPointerCapture(lpid); } catch (err) {}
-        e.preventDefault(); lupdate(e);
+      var pad = document.createElement('div'), look = this.look = { x: 0, y: 0, level: false };
+      pad.id = 'wf-pad';
+      [['u', '\u25B2', 0, 1], ['d', '\u25BC', 0, -1], ['l', '\u25C0', 1, 0], ['r', '\u25B6', -1, 0], ['c', 'LEVEL', 0, 0]].forEach(function (d) {
+        var b = document.createElement('b'); b.className = d[0]; b.textContent = d[1]; pad.appendChild(b);
+        var held = null;
+        b.addEventListener('pointerdown', function (e) {
+          held = e.pointerId; try { b.setPointerCapture(held); } catch (err) {}
+          e.preventDefault(); b.classList.add('on');
+          if (d[0] === 'c') look.level = true; else { look.x = d[2]; look.y = d[3]; look.level = false; }
+        });
+        function up(e) { if (e.pointerId !== held) return; held = null; b.classList.remove('on'); if (d[0] !== 'c') { look.x = 0; look.y = 0; } }
+        b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
       });
-      lookEl.addEventListener('pointermove', function (e) { if (e.pointerId === lpid) lupdate(e); });
-      lookEl.addEventListener('pointerup', lend); lookEl.addEventListener('pointercancel', lend);
-      lookEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-      var lv = document.createElement('div'); lv.id = 'wf-lvl'; lv.textContent = 'LEVEL'; document.body.appendChild(lv);
-      lv.addEventListener('pointerdown', function (e) { e.preventDefault(); look.level = true; });
+      document.body.appendChild(pad);
       var gy = document.createElement('div'); gy.id = 'wf-gyro'; gy.textContent = 'GYRO OFF'; document.body.appendChild(gy);
       this.gyro = false;
       gy.addEventListener('pointerdown', function (e) {
@@ -110,27 +106,63 @@
       // ── hint text ──
       var hint = document.getElementById('controls-hint');
       if (hint) {
-        hint.textContent = 'LEFT STICK MOVE · RIGHT STICK LOOK · DRAG ANYWHERE TO LOOK · TAP TO INTERACT';
+        hint.textContent = 'LEFT STICK MOVE · RIGHT ARROWS LOOK · DRAG ANYWHERE TO LOOK · TAP TO INTERACT';
         setTimeout(function () { hint.classList.add('wf-gone'); }, 9000);
       }
 
       // ── tap-to-interact + VR-only gaze reticle ──
+
+      // ── doors: on touch devices a door only opens from its on-door OPEN button (tap it from anywhere) ──
+      function doorButtons() {
+        var V = AFRAME.THREE.Vector3, CLS = 'door-face interactive clickable';
+        sc.querySelectorAll('.door-face, #exit-panel, #exit-door').forEach(function (d) {
+          if (d.getAttribute('data-wf-btn')) return; d.setAttribute('data-wf-btn', '1');
+          var w = +d.getAttribute('width') || 1.6, dp = +d.getAttribute('depth') || 0.05, wp = new V();
+          d.classList.remove('door-face', 'interactive', 'clickable');       // the door body itself is no longer tappable
+          d.object3D.updateMatrixWorld(true); d.object3D.getWorldPosition(wp);
+          var inside = d.object3D.worldToLocal(new V(0, wp.y, 0)), sgn = inside.z >= 0 ? 1 : -1, R = Math.min(0.24, w * 0.14);
+          var btn = document.createElement('a-entity');
+          btn.setAttribute('class', CLS);
+          btn.setAttribute('position', { x: 0, y: 0, z: sgn * (dp / 2 + 0.05) });
+          btn.setAttribute('rotation', { x: 0, y: sgn > 0 ? 0 : 180, z: 0 });
+          btn.setAttribute('geometry', { primitive: 'circle', radius: R, segments: 28 });
+          btn.setAttribute('material', { shader: 'flat', color: '#ffb35c' });
+          btn.setAttribute('animation', { property: 'scale', from: '1 1 1', to: '1.12 1.12 1.12', dir: 'alternate', loop: true, dur: 900, easing: 'easeInOutSine' });
+          var ring = document.createElement('a-entity');
+          ring.setAttribute('geometry', { primitive: 'ring', radiusInner: R * 1.04, radiusOuter: R * 1.22, segmentsTheta: 28 });
+          ring.setAttribute('material', { shader: 'flat', color: '#6b4a1e' }); ring.setAttribute('position', '0 0 -0.002');
+          var label = document.createElement('a-text');
+          label.setAttribute('value', 'OPEN'); label.setAttribute('align', 'center'); label.setAttribute('color', '#1a0f05');
+          label.setAttribute('width', R * 4.4); label.setAttribute('position', '0 0 0.01');
+          var hit = document.createElement('a-entity');                      // generous finger target
+          hit.setAttribute('class', CLS); hit.setAttribute('geometry', { primitive: 'circle', radius: R * 2.2 });
+          hit.setAttribute('material', { shader: 'flat', transparent: true, opacity: 0, depthWrite: false }); hit.setAttribute('position', '0 0 0.004');
+          btn.appendChild(ring); btn.appendChild(label); btn.appendChild(hit);
+          d.appendChild(btn);
+        });
+        var rc = sc.components.raycaster; if (rc) setTimeout(function () { rc.refreshObjects(); }, 50);
+      }
       function wire() {
         var cur = sc.querySelector('a-cursor');
         var objs = cur && cur.getAttribute('raycaster') && cur.getAttribute('raycaster').objects;
         sc.setAttribute('raycaster', { objects: objs || '.clickable, .interactive', far: 60 });
         sc.setAttribute('cursor', { rayOrigin: 'mouse', fuse: false });
-        if (cur) { cur.setAttribute('visible', false); cur.setAttribute('cursor', 'fuse', false); }
+        // the page's centre-of-screen gaze cursor would also 'click' whatever sits mid-screen on every tap: off outside VR
+        if (cur) { cur.setAttribute('visible', false); cur.setAttribute('cursor', 'fuse', false); cur.setAttribute('raycaster', 'enabled', false); }
+        // refresh what's under the finger at touch-down, so a slow frame can never click a stale target
+        function onTouch() { var cv = sc.canvas; if (!cv) return; cv.addEventListener('touchstart', function () { var rc = sc.components.raycaster; if (rc) rc.checkIntersections(); }, { passive: true }); }
+        if (sc.canvas) onTouch(); else sc.addEventListener('render-target-loaded', onTouch);
         sc.addEventListener('enter-vr', function () {
           document.body.classList.add('wf-vr');
-          if (cur) { cur.setAttribute('visible', true); cur.setAttribute('cursor', 'fuse', true); }
+          if (cur) { cur.setAttribute('visible', true); cur.setAttribute('raycaster', 'enabled', true); cur.setAttribute('cursor', 'fuse', true); }
         });
         sc.addEventListener('exit-vr', function () {
           document.body.classList.remove('wf-vr');
-          if (cur) { cur.setAttribute('visible', false); cur.setAttribute('cursor', 'fuse', false); }
+          if (cur) { cur.setAttribute('visible', false); cur.setAttribute('cursor', 'fuse', false); cur.setAttribute('raycaster', 'enabled', false); }
         });
       }
-      if (sc.hasLoaded) wire(); else sc.addEventListener('loaded', wire);
+      function ready() { wire(); doorButtons(); }
+      if (sc.hasLoaded) ready(); else sc.addEventListener('loaded', ready);
     },
 
     applyGyro: function () {
@@ -150,7 +182,7 @@
         var c = this.el.querySelector('[camera]'), lc = c && c.components['look-controls'];
         if (lc && lc.pitchObject) {
           var P = lc.pitchObject.rotation, Y = lc.yawObject.rotation;
-          if (lk.x || lk.y) { Y.y += lk.x * 2.0 * s; P.x = Math.max(-1.3, Math.min(1.3, P.x + lk.y * 1.4 * s)); }
+          if (lk.x || lk.y) { Y.y += lk.x * 1.3 * s; P.x = Math.max(-1.3, Math.min(1.3, P.x + lk.y * 1.0 * s)); }
           else if (lk.level) { P.x *= Math.max(0, 1 - 6 * s); if (Math.abs(P.x) < 0.004) { P.x = 0; lk.level = false; } }
         }
       }

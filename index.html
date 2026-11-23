@@ -461,15 +461,15 @@
     // Apply procedural textures once scene is ready
     document.querySelector('a-scene').addEventListener('loaded', function () {
       var T = window.TEX;
-      var WM = 'src: ' + T.metalPanel + '; repeat: 12 2; roughness: 0.45; metalness: 0.68; color: #aaaacc';
-      var FM = 'src: ' + T.floorGrate + '; repeat: 8 20; roughness: 0.32; metalness: 0.75; color: #888899';
-      var CM = 'src: ' + T.ceilPanel  + '; repeat: 5 13; roughness: 0.6;  metalness: 0.5;  color: #aaaacc';
+      var WM = 'src: url(' + T.metalPanel + '); repeat: 12 2; roughness: 0.45; metalness: 0.68; color: #aaaacc';
+      var FM = 'src: url(' + T.floorGrate + '); repeat: 8 20; roughness: 0.32; metalness: 0.75; color: #888899';
+      var CM = 'src: url(' + T.ceilPanel  + '); repeat: 5 13; roughness: 0.6;  metalness: 0.5;  color: #aaaacc';
       document.querySelector('#corr-floor').setAttribute('material', FM);
       document.querySelector('#corr-ceil').setAttribute('material', CM);
       document.querySelector('#corr-wall-l').setAttribute('material', WM);
       document.querySelector('#corr-wall-r').setAttribute('material', WM);
-      document.querySelector('#corr-wall-f').setAttribute('material', 'src: ' + T.metalPanel + '; repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
-      document.querySelector('#corr-wall-b').setAttribute('material', 'src: ' + T.metalPanel + '; repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
+      document.querySelector('#corr-wall-f').setAttribute('material', 'src: url(' + T.metalPanel + '); repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
+      document.querySelector('#corr-wall-b').setAttribute('material', 'src: url(' + T.metalPanel + '); repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
       // Tech panel screens — apply subtle circuit glow
       ['#tech-r0','#tech-l0'].forEach(function(id) {
         var el = document.querySelector(id);
@@ -477,11 +477,11 @@
       });
       // Viewport space scene
       var vp = document.querySelector('#viewport-plane');
-      if (vp) vp.setAttribute('material', 'src: ' + T.viewport + '; roughness: 0; metalness: 0; shader: flat; side: front');
+      if (vp) vp.setAttribute('material', 'src: url(' + T.viewport + '); roughness: 0; metalness: 0; shader: flat; side: front');
       // Warning stripes at doors
       ['#warn-holodeck','#warn-lounge','#warn-media'].forEach(function(id) {
         var el = document.querySelector(id);
-        if (el) el.setAttribute('material', 'src: ' + T.warnStripe + '; repeat: 1 1; roughness: 0.9; metalness: 0');
+        if (el) el.setAttribute('material', 'src: url(' + T.warnStripe + '); repeat: 1 1; roughness: 0.9; metalness: 0');
       });
     });
 
