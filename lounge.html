@@ -97,14 +97,14 @@
   <a-cylinder id="lounge-floor" radius="9.1" height="0.1" position="0 0.05 0"
     material="color: #180d03; roughness: 0.95">
   </a-cylinder>
-  <a-cylinder radius="5.5" height="0.02" position="0 0.12 -1.5"
-    material="color: #1a0808; roughness: 0.99">
+  <a-cylinder radius="4.6" height="0.02" position="0 0.12 -2.7"
+    material="color: #2a1409; roughness: 0.99">
   </a-cylinder>
   <a-cylinder id="lounge-ceil" radius="9.1" height="0.1" position="0 5.55 0"
     material="color: #0c0602; roughness: 0.95">
   </a-cylinder>
-  <a-torus radius="7.4" radius-tubular="0.16" position="0 5.38 0" rotation="90 0 0" segments-tubular="96"
-    material="color: #c8741a; emissive: #ff8a20; emissiveIntensity: 1.5; shader: standard">
+  <a-torus radius="7.4" radius-tubular="0.09" position="0 5.38 0" rotation="90 0 0" segments-tubular="96"
+    material="color: #b8681a; emissive: #ff8a20; emissiveIntensity: 0.85; shader: standard">
   </a-torus>
 
   <!-- ===================== SPACE WINDOW ===================== -->
@@ -132,32 +132,34 @@
   </a-sphere>
 
   <!-- ===================== TV (brass ring, screen = browser) ===================== -->
-  <a-box position="0 0.55 -7.6" width="4.8" height="1.1" depth="0.6"
+  <a-box position="0 0.55 -7.6" width="5.6" height="1.1" depth="0.6"
     material="color: #2a1a0e; roughness: 0.45; metalness: 0.7">
   </a-box>
-  <a-torus position="0 2.75 -7.72" radius="2.72" radius-tubular="0.11" segments-tubular="72" segments-radial="8"
-    material="color: #b88a46; roughness: 0.32; metalness: 0.95; emissive: #3a2208; emissiveIntensity: 0.5">
-  </a-torus>
-  <a-torus position="0 2.75 -7.62" radius="2.52" radius-tubular="0.03" segments-tubular="72" segments-radial="6"
-    material="color: #ffb455; emissive: #ff9a30; emissiveIntensity: 2; shader: standard">
-  </a-torus>
-  <a-box position="0 2.75 -7.6" width="4.7" height="2.7" depth="0.12"
+  <!-- soft amber back-glow, slim bronze frame, bezel, screen -->
+  <a-box position="0 2.7 -7.7" width="5.75" height="3.3" depth="0.02"
+    material="color: #ff9a30; emissive: #ff9a30; emissiveIntensity: 0.7; shader: flat; opacity: 0.55; transparent: true">
+  </a-box>
+  <a-box position="0 2.7 -7.6" width="5.3" height="3.03" depth="0.1"
     material="color: #0a0a0c; roughness: 0.35; metalness: 0.6">
   </a-box>
+  <a-box position="0 4.245 -7.56" width="5.44" height="0.06" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="0 1.155 -7.56" width="5.44" height="0.06" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="-2.68 2.7 -7.56" width="0.06" height="3.15" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="2.68 2.7 -7.56" width="0.06" height="3.15" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
   <a-plane id="tv-screen" class="clickable"
-    position="0 2.75 -7.53" width="4.5" height="2.5"
+    position="0 2.7 -7.53" width="5.2" height="2.93"
     material="color: #0b1c33; emissive: #1d4d86; emissiveIntensity: 0.9; roughness: 0">
   </a-plane>
-  <a-text value="CREW TERMINAL" align="center" position="0 3.35 -7.51" color="#7fb4ff" width="5.0" letter-spacing="4"></a-text>
-  <a-box position="0 2.75 -7.52" width="3.6" height="0.03" depth="0.01"
+  <a-text value="CREW TERMINAL" align="center" position="0 3.75 -7.51" color="#7fb4ff" width="6" letter-spacing="4"></a-text>
+  <a-box position="0 2.7 -7.52" width="4.2" height="0.03" depth="0.01"
     material="color: #2a6ad0; emissive: #4a8aff; emissiveIntensity: 1.6">
   </a-box>
-  <a-text value="[ TAP SCREEN TO BROWSE ]" align="center" position="0 2.3 -7.51" color="#9fc4ff" width="4.2" letter-spacing="4"></a-text>
+  <a-text value="[ TAP SCREEN TO BROWSE ]" align="center" position="0 1.95 -7.51" color="#9fc4ff" width="5" letter-spacing="4"></a-text>
   <a-light type="point" position="0 2.9 -6.4" color="#8ab4ff" intensity="1.0" distance="9" decay="2"></a-light>
   <!-- soft warm fill over seating + rug (independent of the TV, so a dark frame still reads) -->
-  <a-light id="fill-seat" type="point" position="0 3.4 3.2" color="#ffc890" intensity="1.1" distance="11" decay="1.2"></a-light>
-  <a-light id="fill-rug" type="point" position="0.5 3.2 -2.6" color="#ffc080" intensity="1.0" distance="10" decay="1.2"></a-light>
-  <a-light id="fill-cats" type="point" position="-0.5 1.6 -4.8" color="#ffd8b0" intensity="0.6" distance="6" decay="1.5"></a-light>
+  <a-light id="fill-seat" type="point" position="0 3.4 1.2" color="#ffc890" intensity="1.1" distance="11" decay="1.2"></a-light>
+  <a-light id="fill-rug" type="point" position="0.5 3.2 -3.8" color="#ffc080" intensity="1.0" distance="10" decay="1.2"></a-light>
+  <a-light id="fill-cats" type="point" position="-0.5 1.8 -5.2" color="#ffd8b0" intensity="0.6" distance="6" decay="1.5"></a-light>
 
   <!-- everything else is built in script (sofa, rug, shelves, cats, lamps, plaques) -->
   <a-entity id="lounge-set"></a-entity>
@@ -214,22 +216,33 @@
     }
     function rnd(a, b) { return a + Math.random() * (b - a); }
     var BRASS = 'color: #b88a46; roughness: 0.3; metalness: 0.95; emissive: #3a2208; emissiveIntensity: 0.45';
-    var LEATHER = 'color: #4a2812; roughness: 0.5; metalness: 0.05';
-    var LEATHER2 = 'color: #583018; roughness: 0.45; metalness: 0.05';
+    // procedural leather grain (grey, tinted by material colour)
+    var gc = document.createElement('canvas'); gc.width = gc.height = 256; var gx = gc.getContext('2d'), gi;
+    gx.fillStyle = '#d4d4d4'; gx.fillRect(0, 0, 256, 256);
+    for (gi = 0; gi < 9000; gi++) { var gv = 120 + Math.random() * 110 | 0; gx.fillStyle = 'rgba(' + gv + ',' + gv + ',' + gv + ',0.55)'; gx.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+    gx.lineWidth = 1;
+    for (gi = 0; gi < 140; gi++) { var wx = Math.random() * 256, wy = Math.random() * 256, wl = 10 + Math.random() * 28, wa = Math.random() * 6.28;
+      gx.strokeStyle = 'rgba(40,40,40,' + (0.12 + Math.random() * 0.2) + ')'; gx.beginPath(); gx.moveTo(wx, wy); gx.quadraticCurveTo(wx + Math.cos(wa) * wl * 0.5 + 4, wy + Math.sin(wa) * wl * 0.5 - 4, wx + Math.cos(wa) * wl, wy + Math.sin(wa) * wl); gx.stroke(); }
+    var GRAIN = gc.toDataURL();
+    var LEATHER = 'src: url(' + GRAIN + '); repeat: 2 2; color: #2c1608; roughness: 0.55; metalness: 0.05';
+    var LEATHER2 = 'src: url(' + GRAIN + '); repeat: 2 2; color: #6a3a1a; roughness: 0.42; metalness: 0.05';
     var WOOD = 'color: #3a2214; roughness: 0.5; metalness: 0.25';
     function wallAt(deg, r, y, extra) {                         // place on the curved wall, facing the room centre
       var x = r * Math.sin(deg * Math.PI / 180), z = -r * Math.cos(deg * Math.PI / 180);
       return Object.assign({ position: x.toFixed(3) + ' ' + y + ' ' + z.toFixed(3), rotation: '0 ' + (-deg) + ' 0' }, extra || {});
     }
 
+    // seating group sits 2 m closer to the TV so the screen reads comfortably from the sofa
+    var seating = E('a-entity', { position: '0 0 -2' }), wallRoot = root; root = seating;
     // ---- curved leather sofa around the coffee table ----
     var C = { x: 0, z: 0.9 }, step = 20, th;
     for (th = -80; th <= 80; th += step) {
       var rad = th * Math.PI / 180, g = E('a-entity', { position: (C.x + 2.3 * Math.sin(rad)).toFixed(3) + ' 0 ' + (C.z + 2.3 * Math.cos(rad)).toFixed(3), rotation: '0 ' + (th + 180) + ' 0' });
       E('a-box', { position: '0 0.28 0', width: 0.97, height: 0.45, depth: 0.9, material: LEATHER }, g);
-      E('a-box', { position: '0 0.6 0.02', width: 0.9, height: 0.13, depth: 0.76, material: LEATHER2 }, g);
-      E('a-box', { position: '0 0.72 -0.5', width: 0.97, height: 0.95, depth: 0.34, material: LEATHER }, g);
-      E('a-cylinder', { position: '0 1.2 -0.5', rotation: '0 0 90', radius: 0.17, height: 0.97, material: LEATHER2, 'segments-radial': 10 }, g);
+      E('a-box', { position: '0 0.6 0.02', width: 0.75, height: 0.16, depth: 0.74, material: LEATHER2 }, g);
+      E('a-cylinder', { position: '0 0.58 0.4', rotation: '0 0 90', radius: 0.09, height: 0.75, material: LEATHER2, 'segments-radial': 8 }, g);
+      E('a-box', { position: '0 0.72 -0.5', width: 0.79, height: 0.95, depth: 0.34, material: LEATHER2 }, g);
+      E('a-cylinder', { position: '0 1.2 -0.5', rotation: '0 0 90', radius: 0.17, height: 0.79, material: LEATHER2, 'segments-radial': 10 }, g);
     }
     [-1, 1].forEach(function (sd) {                              // rolled arms
       var rad = sd * 91 * Math.PI / 180, g = E('a-entity', { position: (C.x + 2.3 * Math.sin(rad)).toFixed(3) + ' 0 ' + (C.z + 2.3 * Math.cos(rad)).toFixed(3), rotation: '0 ' + (sd * 91 + 180) + ' 0' });
@@ -258,14 +271,21 @@
     E('a-box', { position: '0.17 0.56 ' + (C.z - 0.25), width: 0.36, height: 0.05, depth: 0.26, rotation: '0 8 0', material: 'color: #3a4a5a; roughness: 0.8' });
 
     // ---- woven rug ----
-    var cv = document.createElement('canvas'); cv.width = 512; cv.height = 360; var x = cv.getContext('2d');
-    x.fillStyle = '#93472a'; x.fillRect(0, 0, 512, 360);
-    for (var i = 0; i < 360; i += 3) { x.fillStyle = 'rgba(' + (120 + (i * 7) % 60) + ',' + (60 + (i * 5) % 40) + ',40,0.35)'; x.fillRect(0, i, 512, 2); }
-    [[28, '#2e4a50'], [52, '#c9a46a'], [70, '#8a3a20']].forEach(function (b) { x.strokeStyle = b[1]; x.lineWidth = 8; x.strokeRect(b[0], b[0] * 0.7, 512 - b[0] * 2, 360 - b[0] * 1.4); });
-    for (i = 0; i < 6000; i++) { x.fillStyle = 'rgba(' + (Math.random() * 120 | 0) + ',' + (Math.random() * 80 | 0) + ',50,' + (Math.random() * 0.25) + ')'; x.fillRect(Math.random() * 512, Math.random() * 360, 3, 2); }
+    var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 720; var x = cv.getContext('2d'), i;
+    x.fillStyle = '#6e3320'; x.fillRect(0, 0, 1024, 720);
+    var pal = ['#6e3320', '#8a4a2a', '#a8723e', '#3a4c52', '#5a2a1c'];
+    for (i = 0; i < 720; i += 6) { x.fillStyle = pal[(i / 6 * 7 | 0) % pal.length]; x.globalAlpha = 0.5; x.fillRect(0, i, 1024, 6); }
+    x.globalAlpha = 1;
+    [[56, '#2e4a50', 14], [104, '#c9a46a', 8], [140, '#8a3a20', 14]].forEach(function (b) { x.strokeStyle = b[1]; x.lineWidth = b[2]; x.strokeRect(b[0], b[0] * 0.7, 1024 - b[0] * 2, 720 - b[0] * 1.4); });
+    x.strokeStyle = 'rgba(201,164,106,0.55)'; x.lineWidth = 6;
+    for (i = 0; i < 5; i++) { var dx = 512 - 280 + i * 140; x.beginPath(); x.moveTo(dx, 360 - 110); x.lineTo(dx + 70, 360); x.lineTo(dx, 360 + 110); x.lineTo(dx - 70, 360); x.closePath(); x.stroke(); }
+    for (i = 0; i < 1024; i += 3) { x.fillStyle = 'rgba(0,0,0,' + (0.10 + Math.random() * 0.2) + ')'; x.fillRect(i, 0, 1, 720); }      // warp threads
+    for (i = 0; i < 720; i += 3) { x.fillStyle = 'rgba(255,214,160,' + (0.04 + Math.random() * 0.09) + ')'; x.fillRect(0, i + 1, 1024, 1); } // weft ridges
+    for (i = 0; i < 14000; i++) { x.fillStyle = 'rgba(' + (Math.random() * 120 | 0) + ',' + (Math.random() * 80 | 0) + ',50,' + (Math.random() * 0.3) + ')'; x.fillRect(Math.random() * 1024, Math.random() * 720, 3, 2); }
     var rug = E('a-box', { position: '0.5 0.12 -1.2', width: 6.4, height: 0.025, depth: 4.5 });
     rug.setAttribute('material', { src: cv.toDataURL(), roughness: 1, metalness: 0 });
 
+    root = wallRoot;
     // ---- bookshelf unit (left of TV) ----
     var bs = E('a-entity', { position: '-5.7 0 -6.7', rotation: '0 39.5 0' });
     E('a-box', { position: '0 0.5 0', width: 2.2, height: 1.0, depth: 0.6, material: WOOD }, bs);
@@ -320,8 +340,8 @@
       var gr = nx.createRadialGradient(b[0], b[1], 4, b[0], b[1], b[2]); gr.addColorStop(0, b[3]); gr.addColorStop(1, 'rgba(0,0,0,0)'); nx.fillStyle = gr; nx.fillRect(0, 0, 320, 360);
     });
     for (i = 0; i < 260; i++) { nx.fillStyle = 'rgba(255,255,255,' + Math.random() + ')'; nx.fillRect(Math.random() * 320, Math.random() * 360, 1.6, 1.6); }
-    E('a-box', { position: '0.3 2.55 -0.22', width: 1.3, height: 1.45, depth: 0.07, material: BRASS }, sb);
-    var art = E('a-plane', { position: '0.3 2.55 -0.18', width: 1.08, height: 1.22 }, sb);
+    E('a-box', { position: '0.3 2.55 -0.08', width: 1.3, height: 1.45, depth: 0.07, material: BRASS }, sb);   // frame stands clear of the curved wall
+    var art = E('a-plane', { position: '0.3 2.55 -0.04', width: 1.08, height: 1.22 }, sb);
     art.setAttribute('material', { shader: 'flat', src: nc.toDataURL() });
 
     // ---- potted plants (front-left) ----
@@ -341,13 +361,23 @@
 
     // ---- plaques, slot lamps ----
     function plaque(deg, y, text, w) {
-      var g = E('a-entity', wallAt(deg, 8.8, y));
+      var g = E('a-entity', wallAt(deg, 8.8, y)), PAD = 0.45;
       E('a-box', { width: w, height: 0.5, depth: 0.06, material: 'color: #2a1a0e; roughness: 0.5; metalness: 0.6' }, g);
       E('a-box', { position: '0 0 0.035', width: w - 0.1, height: 0.4, depth: 0.01, material: 'color: #3a2414; roughness: 0.5; metalness: 0.6' }, g);
-      E('a-text', { value: text, align: 'center', position: '0 0 0.05', color: '#f0c07a', width: w * 1.9, 'letter-spacing': 3 }, g);
+      var t = E('a-text', { value: text, align: 'center', position: '0 0 0.05', color: '#f0c07a', width: w * 1.9, 'letter-spacing': 3 }, g);
+      // fit the lettering to the plaque: measure once the font loads, then scale so PAD stays clear at both ends
+      t.addEventListener('textfontset', function () {
+        setTimeout(function () {
+          var m = t.getObject3D('text'); if (!m) return;
+          t.object3D.scale.set(1, 1, 1); g.object3D.updateMatrixWorld(true);
+          var inv = new THREE.Matrix4().copy(g.object3D.matrixWorld).invert();       // measure in the plaque's own frame
+          var bb = new THREE.Box3().setFromObject(m).applyMatrix4(inv), sz = new THREE.Vector3(); bb.getSize(sz);
+          if (sz.x > 0.05) { var k = Math.min(1.4, (w - 2 * PAD) / sz.x); t.object3D.scale.set(k, k, 1); }
+        }, 50);
+      });
     }
-    plaque(-26, 4.2, 'CREW LOUNGE', 3.0); plaque(-62, 3.0, 'SS WAYFARER', 3.2); plaque(62, 3.0, 'DECK 2 — STARBOARD FWD', 4.4);
-    [-70, -94, 70, 94].forEach(function (deg, k) {
+    plaque(-26, 4.2, 'CREW LOUNGE', 3.0); plaque(-62, 3.0, 'SS WAYFARER', 3.2); plaque(48, 4.15, 'DECK 2 — STARBOARD FWD', 5.6);
+    [-79, -94, 79, 94].forEach(function (deg, k) {
       var g = E('a-entity', wallAt(deg, 8.85, 3.5));
       E('a-box', { width: 0.42, height: 1.08, depth: 0.05, rotation: '0 0 ' + (deg < 0 ? -6 : 6), material: BRASS }, g);
       E('a-box', { position: '0 0 0.03', width: 0.32, height: 0.96, depth: 0.02, rotation: '0 0 ' + (deg < 0 ? -6 : 6), material: 'color: #ffd9a0; emissive: #ffa648; emissiveIntensity: 2.4; shader: standard' }, g);
@@ -355,16 +385,16 @@
     });
 
     // ---- alien cats ----
-    var rc = function (e, sx, sz) { e.setAttribute('position', sx + ' 0 ' + sz); };
-    E('a-entity', { 'alien-cat': 'pose: loaf; fur: #6e4a96; glow: #e0b4ff; eyes: #ffb040; dots: 26; phase: 0.5', position: '1.25 1.38 3.35', rotation: '0 -10 0' });
-    E('a-entity', { 'alien-cat': 'pose: sleep; fur: #8c8794; glow: #bfc8ff; eyes: #8ac8ff; dots: 14; phase: 1.8', position: '-1.58 0.66 2.5', rotation: '0 95 0', scale: '0.9 0.9 0.9' });
-    E('a-entity', { 'alien-cat': 'pose: sit; fur: #efe6dc; glow: #b98aff; eyes: #8ac8ff; dots: 8; phase: 3', position: '-2.1 0.13 -6.3', rotation: '0 14 0' });
-    E('a-entity', { 'alien-cat': 'pose: stretch; fur: #2c5058; glow: #7dffe8; eyes: #7dffb8; dots: 20; phase: 4.2', position: '2.9 0.13 -1.1', rotation: '0 200 0' });
-    E('a-entity', { 'alien-cat': 'pose: walk; fur: #b8602a; glow: #ffd27a; eyes: #44aaff; dots: 16; phase: 2.4', 'cat-roam': 'speed: 0.4; x0: -2.4; x1: 3.4; z0: -4.4; z1: -0.2', position: '-1 0.13 -3' });
+    E('a-entity', { 'alien-cat': 'pose: loaf; fur: #6e4a96; glow: #e0b4ff; eyes: #ffb040; dots: 26; phase: 0.5; stretchAt: 10', position: '1.25 1.38 3.35', rotation: '0 -10 0' }, seating);
+    E('a-entity', { 'alien-cat': 'pose: sleep; fur: #8c8794; glow: #bfc8ff; eyes: #8ac8ff; dots: 14; phase: 1.8; stretchAt: 22', position: '-1.58 0.66 2.5', rotation: '0 95 0', scale: '0.9 0.9 0.9' }, seating);
+    E('a-entity', { 'alien-cat': 'pose: sit; fur: #efe6dc; glow: #b98aff; eyes: #8ac8ff; dots: 8; phase: 3; stretchAt: 34', position: '-2.1 0.13 -4.3', rotation: '0 14 0' }, seating);
+    E('a-entity', { 'alien-cat': 'pose: rest; fur: #2c5058; glow: #7dffe8; eyes: #7dffb8; dots: 20; phase: 4.2; stretchAt: 46', position: '2.9 0.13 -1.1', rotation: '0 200 0' }, seating);
+    E('a-entity', { 'alien-cat': 'pose: walk; fur: #b8602a; glow: #ffd27a; eyes: #44aaff; dots: 16; phase: 2.4; stretchAt: 55', 'cat-roam': 'speed: 0.4; x0: -2.4; x1: 3.4; z0: -4.4; z1: -0.2', position: '-1 0.13 -3' }, seating);
   }
 
   // ===================== SCENE LOADED =====================
   document.querySelector('a-scene').addEventListener('loaded', function () {
+    (function () { var cam = document.querySelector('[camera]'); function fv() { cam.setAttribute('camera', 'fov', innerWidth > innerHeight ? 62 : 80); } fv(); addEventListener('resize', fv); addEventListener('orientationchange', fv); })();
     var T = window.TEX;
     document.querySelector('#lounge-walls').setAttribute('material',
       'side: back; src: url(' + T.metalPanel + '); repeat: 20 4; roughness: 0.65; metalness: 0.15; color: #d8a068; emissive: #4a2a10; emissiveIntensity: 0.55');
