@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="brain.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -82,7 +83,7 @@
   <a-scene
     fog="type: exponential; color: #04060f; density: 0.011"
     vr-mode-ui="enabled: true"
-    renderer="antialias: true">
+    renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
 
     <!-- ======================================================
          SPACE ENVIRONMENT (through glass ceiling)
@@ -168,48 +169,15 @@
       color="#000d08" roughness="1">
     </a-circle>
 
-    <!-- LEFT HEMISPHERE -->
-    <a-sphere class="brain-part" position="-1.5 -8.5 -0.5" radius="3.4"
-      material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
-      animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
-    </a-sphere>
-    <!-- Left hemisphere surface bumps (gyri) -->
-    <a-sphere class="brain-part" position="-3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="-2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="-1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="-3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
-
-    <!-- RIGHT HEMISPHERE -->
-    <a-sphere class="brain-part" position="1.5 -8.5 -0.5" radius="3.4"
-      material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
-      animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3600; dir: alternate; easing: easeInOutSine">
-    </a-sphere>
-    <!-- Right gyri -->
-    <a-sphere class="brain-part" position="3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
-    <a-sphere class="brain-part" position="3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
-
-    <!-- CEREBELLUM (back, lower) -->
-    <a-sphere class="brain-part" position="0 -11 -2.5" radius="1.8"
-      material="color: #092015; emissive: #009955; emissiveIntensity: 0.45; roughness: 0.85"
-      animation="property: scale; to: 1.015 1.015 1.015; from: 0.985 0.985 0.985; loop: true; dur: 2800; dir: alternate; easing: easeInOutSine">
-    </a-sphere>
-
-    <!-- BRAINSTEM (connecting down) -->
-    <a-cylinder class="brain-part" position="0 -13.5 -1.5" radius="0.65" height="3.5"
-      rotation="10 0 0"
-      material="color: #082012; emissive: #007744; emissiveIntensity: 0.35; roughness: 0.9">
-    </a-cylinder>
-
-    <!-- CORPUS CALLOSUM ridge (between hemispheres) -->
-    <a-sphere class="brain-part" position="0 -7.2 0" radius="1.2"
-      material="color: #0e2e1a; emissive: #00dd88; emissiveIntensity: 0.5; roughness: 0.8">
-    </a-sphere>
+    <!-- THE BRAIN — real 3D folds, built in brain.js -->
+    <a-entity brain-mesh position="0 -7.3 0"
+      animation="property: scale; from: 0.992 0.992 0.992; to: 1.012 1.012 1.012; dir: alternate; loop: true; dur: 3400; easing: easeInOutSine">
+    </a-entity>
 
     <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
-    <a-light type="point" position="0  -4  0"  color="#00ffaa" intensity="1.6" distance="14" decay="2"></a-light>
-    <a-light type="point" position="-4 -8  2"  color="#00cc88" intensity="1.0" distance="9"  decay="2"></a-light>
+    <a-light type="point" position="0 -3.0 1.5"  color="#7dffd0" intensity="0.8" distance="13" decay="2"></a-light>
+    <a-light type="point" position="-5 -8 3"     color="#00cc88" intensity="0.7" distance="10" decay="2"></a-light>
+    <a-light type="point" position="3 -8.5 -7.5" color="#3fd0ff" intensity="1.0" distance="11" decay="2"></a-light>
 
     <!-- ======================================================
          ROOM LIGHTING
@@ -581,16 +549,6 @@
 
       const ceil = document.getElementById('ceil-ring');
       ceil.setAttribute('material', { src: T.ceilPanel, repeat: '10 10', color: '#a8a8c0', roughness: 0.7, metalness: 0.15, side: 'double' });
-
-      // Brain: wrinkled tissue (normal map + glowing ridges) on every brain part
-      document.querySelectorAll('.brain-part').forEach(p => {
-        p.setAttribute('material', {
-          src: L.brain.albedo, normalMap: L.brain.normal, repeat: '4 2', normalTextureRepeat: '4 2',
-          normalScale: '1.4 1.4', color: '#ffffff', roughness: 0.55, metalness: 0.05
-        });
-        if (p.tagName === 'A-SPHERE') p.setAttribute('rotation', '0 0 90');
-        setEmissiveMap(p, L.brain.albedo, 0.75, [4, 2]);
-      });
 
       buildBookcases(L);
       buildSconces();

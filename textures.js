@@ -559,41 +559,10 @@
     return c.toDataURL();
   }
 
-  // ── Brain tissue: ridged-noise folds. Valleys dark, ridges glow. 512² tile ──
-  function libBrain() {
-    var S = 512, R = rng(33);
-    function lattice(n) {
-      var arr = []; for (var i = 0; i < n * n; i++) arr.push(R());
-      return function (x, y) {
-        var fx = x * n, fy = y * n, ix = Math.floor(fx), iy = Math.floor(fy);
-        var tx = fx - ix, ty = fy - iy; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
-        function v(a, b) { return arr[(((b % n) + n) % n) * n + (((a % n) + n) % n)]; }
-        var top = v(ix, iy) * (1 - tx) + v(ix + 1, iy) * tx, bot = v(ix, iy + 1) * (1 - tx) + v(ix + 1, iy + 1) * tx;
-        return top * (1 - ty) + bot * ty;
-      };
-    }
-    var o = [[lattice(5), 0.50], [lattice(10), 0.28], [lattice(20), 0.15], [lattice(40), 0.07]];
-    var warp = lattice(6);
-    var A = mkc(S, S), a = A.getContext('2d'), Hc = mkc(S, S), h = Hc.getContext('2d');
-    var ia = a.createImageData(S, S), ih = h.createImageData(S, S), x, y, k;
-    for (y = 0; y < S; y++) for (x = 0; x < S; x++) {
-      var u = x / S, v = y / S;
-      var wu = (u + (warp(u, v) - 0.5) * 0.12 + 1) % 1, wv = (v + (warp(v + 0.37, u + 0.11) - 0.5) * 0.12 + 1) % 1;
-      var val = 0;
-      for (k = 0; k < o.length; k++) val += (1 - Math.abs(2 * o[k][0](wu, wv) - 1)) * o[k][1];
-      val = Math.pow(Math.min(1, val), 2.2);
-      var i = (y * S + x) * 4, g = val * 255;
-      ih.data[i] = ih.data[i+1] = ih.data[i+2] = g; ih.data[i+3] = 255;
-      ia.data[i] = 6 + val * 40; ia.data[i+1] = 28 + val * 215; ia.data[i+2] = 18 + val * 120; ia.data[i+3] = 255;
-    }
-    a.putImageData(ia, 0, 0); h.putImageData(ih, 0, 0);
-    return { albedo: A.toDataURL(), normal: normalFromHeight(Hc, 4.5) };
-  }
-
   var _lib = null;
   function library() {
     if (_lib) return _lib;
-    _lib = { wall: libWall(), floor: libFloor(), shelf: libBookshelf(), wood: libWood(), brain: libBrain() };
+    _lib = { wall: libWall(), floor: libFloor(), shelf: libBookshelf(), wood: libWood() };
     return _lib;
   }
 
