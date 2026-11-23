@@ -28,7 +28,20 @@
     'body.reading #wf-joy,body.wf-vr #wf-joy{opacity:0;pointer-events:none}' +
     'html.touch #controls-hint{bottom:auto!important;top:48px;width:92vw;text-align:center;white-space:normal!important;' +
     'color:#5878b8!important;font-size:10px!important;letter-spacing:1.5px!important;transition:opacity 1.2s}' +
-    'html.touch #controls-hint.wf-gone{opacity:0}';
+    'html.touch #controls-hint.wf-gone{opacity:0}' +
+    '#wf-pad{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
+    'width:132px;height:132px;z-index:15;display:none;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .25s}' +
+    'html.touch #wf-pad{display:block}' +
+    '#wf-pad b{position:absolute;width:44px;height:44px;border-radius:50%;border:1px solid rgba(136,170,255,.38);' +
+    'background:rgba(8,14,34,.55);color:#9ab8ff;font:600 16px/42px system-ui,sans-serif;text-align:center;touch-action:none}' +
+    '#wf-pad b.on{background:rgba(136,170,255,.35)}' +
+    '#wf-pad .u{left:44px;top:0}#wf-pad .d{left:44px;bottom:0}#wf-pad .l{left:0;top:44px}#wf-pad .r{right:0;top:44px}' +
+    '#wf-pad .c{left:44px;top:44px;font-size:13px}' +
+    '#wf-gyro{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(166px + env(safe-area-inset-bottom,0px));z-index:15;' +
+    'display:none;padding:6px 10px;border-radius:14px;border:1px solid rgba(136,170,255,.38);background:rgba(8,14,34,.55);' +
+    'color:#9ab8ff;font:600 10px system-ui,sans-serif;letter-spacing:1.5px;touch-action:none}' +
+    'html.touch #wf-gyro{display:block}' +
+    'body.reading #wf-pad,body.wf-vr #wf-pad,body.reading #wf-gyro,body.wf-vr #wf-gyro{opacity:0;pointer-events:none}';
   document.head.appendChild(css);
 
   AFRAME.registerComponent('wayfarer-mobile', {
@@ -68,10 +81,32 @@
       joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end);
       joy.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
+      // ── look pad (right thumb): look without tilting your neck or the phone ──
+      var pad = document.createElement('div'), look = this.look = { x: 0, y: 0, level: false };
+      pad.id = 'wf-pad';
+      [['u', '\u25B2', 0, 1], ['d', '\u25BC', 0, -1], ['l', '\u25C0', 1, 0], ['r', '\u25B6', -1, 0], ['c', 'LEVEL', 0, 0]].forEach(function (d) {
+        var b = document.createElement('b'); b.className = d[0]; b.textContent = d[1]; pad.appendChild(b);
+        var held = null;
+        b.addEventListener('pointerdown', function (e) {
+          held = e.pointerId; try { b.setPointerCapture(held); } catch (err) {}
+          e.preventDefault(); b.classList.add('on');
+          if (d[0] === 'c') look.level = true; else { look.x = d[2]; look.y = d[3]; look.level = false; }
+        });
+        function up(e) { if (e.pointerId !== held) return; held = null; b.classList.remove('on'); if (d[0] !== 'c') { look.x = 0; look.y = 0; } }
+        b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+      });
+      document.body.appendChild(pad);
+      var gy = document.createElement('div'); gy.id = 'wf-gyro'; gy.textContent = 'GYRO OFF'; document.body.appendChild(gy);
+      this.gyro = false;
+      gy.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); self.gyro = !self.gyro; gy.textContent = self.gyro ? 'GYRO ON' : 'GYRO OFF'; self.applyGyro();
+      });
+      sc.addEventListener('loaded', function () { self.applyGyro(); });
+
       // ── hint text ──
       var hint = document.getElementById('controls-hint');
       if (hint) {
-        hint.textContent = 'DRAG TO LOOK · LEFT STICK TO MOVE · TAP TO INTERACT';
+        hint.textContent = 'LEFT STICK MOVE · RIGHT PAD LOOK · DRAG ANYWHERE TO LOOK · TAP TO INTERACT';
         setTimeout(function () { hint.classList.add('wf-gone'); }, 9000);
       }
 
@@ -94,6 +129,11 @@
       if (sc.hasLoaded) wire(); else sc.addEventListener('loaded', wire);
     },
 
+    applyGyro: function () {
+      var c = this.el.querySelector('[camera]');
+      if (c && c.components['look-controls']) c.setAttribute('look-controls', 'magicWindowTrackingEnabled', this.gyro);
+    },
+
     tick: function (t, dt) {
       if (this.el.is('vr-mode')) return;
       if (!this.mover) {
@@ -101,6 +141,15 @@
         if (!this.mover) return;
       }
       var m = this.mover.object3D, s = Math.min(dt, 50) / 1000, v = this.vec;
+      var lk = this.look;
+      if (lk) {
+        var c = this.el.querySelector('[camera]'), lc = c && c.components['look-controls'];
+        if (lc && lc.pitchObject) {
+          var P = lc.pitchObject.rotation, Y = lc.yawObject.rotation;
+          if (lk.x || lk.y) { Y.y += lk.x * 1.1 * s; P.x = Math.max(-1.3, Math.min(1.3, P.x + lk.y * 0.9 * s)); }
+          else if (lk.level) { P.x *= Math.max(0, 1 - 6 * s); if (Math.abs(P.x) < 0.004) { P.x = 0; lk.level = false; } }
+        }
+      }
       if (v.x || v.y) {
         var cam = this.el.camera;
         if (cam) {
