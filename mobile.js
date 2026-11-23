@@ -3,7 +3,7 @@
 // (optionally  wayfarer-mobile="radius: 10.2"  to keep the player inside a round room).
 //
 //  • window.WAYFARER = { touch, mobile }  — quality profile for pages to read
-//  • on-screen joystick (bottom-left) that walks the player; drag anywhere else to look
+//  • four arrow buttons (bottom-left) walk the player; a thumbstick (bottom-right) looks; Gyro + Level sit top-right under the deck label
 //  • tap-to-interact: reuses the page's gaze-cursor selector as a mouse/touch ray
 //  • gaze reticle + fuse are switched on only in VR (Cardboard) mode
 //  • optional round-room bounds so you can't walk through the walls
@@ -18,30 +18,31 @@
 
   var css = document.createElement('style');
   css.textContent =
-    '#wf-joy{position:fixed;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
-    'width:128px;height:128px;border-radius:50%;border:1px solid rgba(136,170,255,.38);' +
-    'background:radial-gradient(circle,rgba(20,30,60,.30),rgba(2,4,12,.50));z-index:15;touch-action:none;' +
-    '-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;display:none;transition:opacity .25s}' +
-    'html.touch #wf-joy{display:block}' +
-    '#wf-joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;' +
-    'background:rgba(136,170,255,.26);border:1px solid rgba(170,200,255,.65);box-shadow:0 0 14px rgba(60,120,255,.35);pointer-events:none}' +
-    'body.reading #wf-joy,body.wf-vr #wf-joy{opacity:0;pointer-events:none}' +
-    'html.touch #controls-hint{bottom:auto!important;top:48px;width:92vw;text-align:center;white-space:normal!important;' +
+    // every control shares .wf-ctl: no text selection, no long-press callout, no tap flash — scoped to the controls only
+    '.wf-ctl,.wf-ctl *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none}' +
+    '#wf-dpad,#wf-stick,#wf-top{position:fixed;z-index:15;display:none;transition:opacity .25s}' +
+    'html.touch #wf-dpad,html.touch #wf-stick,html.touch #wf-top{display:block}' +
+    // left thumb: four arrows in a cross
+    '#wf-dpad{left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:140px;height:140px}' +
+    '#wf-dpad b{position:absolute;width:56px;height:56px;border-radius:16px;border:1px solid rgba(136,170,255,.42);' +
+    'background:rgba(8,14,34,.58);color:#9ab8ff;font:600 22px/54px system-ui,sans-serif;text-align:center}' +
+    '#wf-dpad b.on{background:rgba(136,170,255,.42);color:#fff;border-color:rgba(190,215,255,.9)}' +
+    '#wf-dpad .u{left:42px;top:0}#wf-dpad .d{left:42px;bottom:0}#wf-dpad .l{left:0;top:42px}#wf-dpad .r{right:0;top:42px}' +
+    // right thumb: look stick
+    '#wf-stick{right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:128px;height:128px;border-radius:50%;' +
+    'border:1px solid rgba(136,170,255,.42);background:radial-gradient(circle,rgba(20,30,60,.30),rgba(2,4,12,.52))}' +
+    '#wf-stick i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;' +
+    'background:rgba(136,170,255,.28);border:1px solid rgba(170,200,255,.7);box-shadow:0 0 14px rgba(60,120,255,.35);pointer-events:none}' +
+    '#wf-stick.on i{background:rgba(136,170,255,.45)}' +
+    // top right, just under the deck label, clear of the notch / rounded corners
+    '#wf-top{right:calc(14px + env(safe-area-inset-right,0px));top:calc(46px + env(safe-area-inset-top,0px));display:none;text-align:right}' +
+    '#wf-top b{display:block;margin:0 0 6px auto;padding:7px 12px;border-radius:14px;border:1px solid rgba(136,170,255,.42);background:rgba(8,14,34,.58);' +
+    'color:#9ab8ff;font:600 10px system-ui,sans-serif;letter-spacing:1.5px;white-space:nowrap}' +
+    '#wf-top b.on{background:rgba(136,170,255,.35);color:#fff}' +
+    'body.reading .wf-ctl,body.wf-vr .wf-ctl{opacity:0;pointer-events:none}' +
+    'html.touch #controls-hint{bottom:auto!important;top:48px;width:min(92vw,calc(100vw - 230px));text-align:center;white-space:normal!important;left:50%!important;' +
     'color:#5878b8!important;font-size:10px!important;letter-spacing:1.5px!important;transition:opacity 1.2s}' +
-    'html.touch #controls-hint.wf-gone{opacity:0}' +
-    '#wf-pad{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(24px + env(safe-area-inset-bottom,0px));' +
-    'width:132px;height:132px;z-index:15;display:none;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .25s}' +
-    'html.touch #wf-pad{display:block}' +
-    '#wf-pad b{position:absolute;width:44px;height:44px;border-radius:50%;border:1px solid rgba(136,170,255,.38);' +
-    'background:rgba(8,14,34,.55);color:#9ab8ff;font:600 16px/42px system-ui,sans-serif;text-align:center;touch-action:none}' +
-    '#wf-pad b.on{background:rgba(136,170,255,.35)}' +
-    '#wf-pad .u{left:44px;top:0}#wf-pad .d{left:44px;bottom:0}#wf-pad .l{left:0;top:44px}#wf-pad .r{right:0;top:44px}' +
-    '#wf-pad .c{left:44px;top:44px;font-size:11px}' +
-    '#wf-gyro{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(164px + env(safe-area-inset-bottom,0px));z-index:15;' +
-    'display:none;padding:6px 10px;border-radius:14px;border:1px solid rgba(136,170,255,.38);background:rgba(8,14,34,.55);' +
-    'color:#9ab8ff;font:600 10px system-ui,sans-serif;letter-spacing:1.5px;touch-action:none}' +
-    'html.touch #wf-gyro{display:block}' +
-    'body.reading #wf-pad,body.wf-vr #wf-pad,body.reading #wf-gyro,body.wf-vr #wf-gyro{opacity:0;pointer-events:none}';
+    'html.touch #controls-hint.wf-gone{opacity:0}';
   document.head.appendChild(css);
 
   AFRAME.registerComponent('wayfarer-mobile', {
@@ -63,58 +64,75 @@
         return;
       }
 
-      // ── joystick ──
-      var joy = document.createElement('div'), thumb = document.createElement('i'), pid = null;
-      joy.id = 'wf-joy'; joy.appendChild(thumb); document.body.appendChild(joy);
-      function update(e) {
-        var r = joy.getBoundingClientRect(), R = r.width / 2 - 10;
-        var dx = (e.clientX - (r.left + r.width / 2)) / R, dy = (e.clientY - (r.top + r.height / 2)) / R;
-        var len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 1) { dx /= len; dy /= len; len = 1; }
-        thumb.style.transform = 'translate(' + (dx * 38) + 'px,' + (dy * 38) + 'px)';
-        if (len < 0.14) { self.vec.x = 0; self.vec.y = 0; return; }
-        var mag = Math.pow(len, 1.4) / len;               // finer control near the centre
-        self.vec.x = dx * mag; self.vec.y = -dy * mag;
+      // ── shared helpers: every control element is .wf-ctl (no selection / callout) and swallows the context menu ──
+      function ctl(el) {
+        el.classList.add('wf-ctl');
+        ['contextmenu', 'selectstart', 'dragstart'].forEach(function (n) { el.addEventListener(n, function (e) { e.preventDefault(); }); });
+        el.addEventListener('touchstart', function (e) { e.preventDefault(); }, { passive: false });
+        return el;
       }
-      function end(e) {
-        if (e.pointerId !== pid) return;
-        pid = null; self.vec.x = 0; self.vec.y = 0; thumb.style.transform = '';
-      }
-      joy.addEventListener('pointerdown', function (e) {
-        if (pid !== null) return; pid = e.pointerId;
-        try { joy.setPointerCapture(pid); } catch (err) {}
-        e.preventDefault(); update(e);
-      });
-      joy.addEventListener('pointermove', function (e) { if (e.pointerId === pid) update(e); });
-      joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end);
-      joy.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-      // ── look pad (right thumb): look without tilting your neck or the phone ──
-      var pad = document.createElement('div'), look = this.look = { x: 0, y: 0, level: false };
-      pad.id = 'wf-pad';
-      [['u', '\u25B2', 0, 1], ['d', '\u25BC', 0, -1], ['l', '\u25C0', 1, 0], ['r', '\u25B6', -1, 0], ['c', 'LEVEL', 0, 0]].forEach(function (d) {
-        var b = document.createElement('b'); b.className = d[0]; b.textContent = d[1]; pad.appendChild(b);
-        var held = null;
+      // ── left thumb: four arrow buttons. Hold = move; release, cancel or losing the pointer = stop at once ──
+      var dpad = ctl(document.createElement('div')); dpad.id = 'wf-dpad';
+      var dirs = { u: [0, 1], d: [0, -1], l: [-1, 0], r: [1, 0] }, heldDir = { u: 0, d: 0, l: 0, r: 0 };
+      function applyDir() { self.vec.x = heldDir.r - heldDir.l; self.vec.y = heldDir.u - heldDir.d; }
+      [['u', '↑'], ['d', '↓'], ['l', '←'], ['r', '→']].forEach(function (d) {
+        var b = document.createElement('b'), pidB = null; b.className = d[0]; b.textContent = d[1]; ctl(b); dpad.appendChild(b);
+        function stop(e) { if (e && pidB !== null && e.pointerId !== undefined && e.pointerId !== pidB) return; pidB = null; heldDir[d[0]] = 0; b.classList.remove('on'); applyDir(); }
         b.addEventListener('pointerdown', function (e) {
-          held = e.pointerId; try { b.setPointerCapture(held); } catch (err) {}
-          e.preventDefault(); b.classList.add('on');
-          if (d[0] === 'c') look.level = true; else { look.x = d[2]; look.y = d[3]; look.level = false; }
+          e.preventDefault(); if (pidB !== null) return; pidB = e.pointerId; try { b.setPointerCapture(pidB); } catch (err) {}
+          heldDir[d[0]] = 1; b.classList.add('on'); applyDir();
         });
-        function up(e) { if (e.pointerId !== held) return; held = null; b.classList.remove('on'); if (d[0] !== 'c') { look.x = 0; look.y = 0; } }
-        b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { b.addEventListener(n, stop); });
+        b.addEventListener('touchend', function () { stop(); }); b.addEventListener('touchcancel', function () { stop(); });
+        b._stop = stop;
       });
-      document.body.appendChild(pad);
-      var gy = document.createElement('div'); gy.id = 'wf-gyro'; gy.textContent = 'GYRO OFF'; document.body.appendChild(gy);
+      document.body.appendChild(dpad);
+
+      // ── right thumb: look stick. Push left/right to turn, up/down to look; release stops turning and keeps the view ──
+      var stick = ctl(document.createElement('div')), knob = document.createElement('i'), look = this.look = { x: 0, y: 0, level: false }, lpid = null;
+      stick.id = 'wf-stick'; stick.appendChild(knob); document.body.appendChild(stick);
+      function lookUpdate(e) {
+        var r = stick.getBoundingClientRect(), R = r.width / 2 - 10;
+        var dx = (e.clientX - (r.left + r.width / 2)) / R, dy = (e.clientY - (r.top + r.height / 2)) / R, len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 1) { dx /= len; dy /= len; len = 1; }
+        knob.style.transform = 'translate(' + (dx * 38) + 'px,' + (dy * 38) + 'px)';
+        if (len < 0.14) { look.x = 0; look.y = 0; return; }
+        var mag = Math.pow(len, 1.5) / len;                  // finer control near the centre
+        look.x = -dx * mag; look.y = -dy * mag;              // push right → turn right; push up → look up
+        look.level = false;
+      }
+      function lookEnd(e) { if (e && e.pointerId !== undefined && lpid !== null && e.pointerId !== lpid) return; lpid = null; look.x = 0; look.y = 0; knob.style.transform = ''; stick.classList.remove('on'); }
+      stick.addEventListener('pointerdown', function (e) { e.preventDefault(); if (lpid !== null) return; lpid = e.pointerId; try { stick.setPointerCapture(lpid); } catch (err) {} stick.classList.add('on'); lookUpdate(e); });
+      stick.addEventListener('pointermove', function (e) { if (e.pointerId === lpid) lookUpdate(e); });
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { stick.addEventListener(n, lookEnd); });
+      stick.addEventListener('touchend', function () { lookEnd(); }); stick.addEventListener('touchcancel', function () { lookEnd(); });
+
+      // ── top right, under the deck label: Gyro and Level. They fire only on a deliberate tap (press and release on the same button) ──
+      var top = ctl(document.createElement('div')); top.id = 'wf-top';
+      var gy = document.createElement('b'), lv = document.createElement('b'); gy.textContent = 'GYRO OFF'; lv.textContent = 'LEVEL'; ctl(gy); ctl(lv); top.appendChild(gy); top.appendChild(lv); document.body.appendChild(top);
       this.gyro = false;
-      gy.addEventListener('pointerdown', function (e) {
-        e.preventDefault(); self.gyro = !self.gyro; gy.textContent = self.gyro ? 'GYRO ON' : 'GYRO OFF'; self.applyGyro();
-      });
+      function tap(btn, fn) {
+        var pid2 = null, x0 = 0, y0 = 0, t0 = 0;
+        btn.addEventListener('pointerdown', function (e) { e.preventDefault(); pid2 = e.pointerId; x0 = e.clientX; y0 = e.clientY; t0 = performance.now(); btn.classList.add('on'); try { btn.setPointerCapture(pid2); } catch (err) {} });
+        btn.addEventListener('pointerup', function (e) {
+          if (e.pointerId !== pid2) return; pid2 = null; btn.classList.remove('on');
+          var r = btn.getBoundingClientRect(), inside = e.clientX >= r.left - 4 && e.clientX <= r.right + 4 && e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4;
+          if (inside && Math.hypot(e.clientX - x0, e.clientY - y0) < 12 && performance.now() - t0 < 700) fn();
+        });
+        ['pointercancel', 'lostpointercapture'].forEach(function (n) { btn.addEventListener(n, function () { pid2 = null; btn.classList.remove('on'); }); });
+      }
+      tap(gy, function () { self.gyro = !self.gyro; gy.textContent = self.gyro ? 'GYRO ON' : 'GYRO OFF'; self.applyGyro(); });
+      tap(lv, function () { look.level = true; });
       sc.addEventListener('loaded', function () { self.applyGyro(); });
+      // never keep moving or turning if the page loses focus mid-press
+      function releaseAll() { Array.prototype.forEach.call(dpad.children, function (b) { b._stop(); }); lookEnd(); }
+      window.addEventListener('blur', releaseAll); document.addEventListener('visibilitychange', function () { if (document.hidden) releaseAll(); });
 
       // ── hint text ──
       var hint = document.getElementById('controls-hint');
       if (hint) {
-        hint.textContent = 'LEFT STICK MOVE · RIGHT ARROWS LOOK · DRAG ANYWHERE TO LOOK · TAP TO INTERACT';
+        hint.textContent = 'LEFT ARROWS WALK · RIGHT THUMBSTICK LOOK · TOP RIGHT GYRO / LEVEL · DRAG THE VIEW TO LOOK · TAP GLOWING BUTTONS';
         setTimeout(function () { hint.classList.add('wf-gone'); }, 9000);
       }
 

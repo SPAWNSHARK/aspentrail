@@ -70,6 +70,7 @@
       pointer-events: none;
       z-index: 10;
     }
+    #wf-fade { position: fixed; inset: 0; background: #000; opacity: 1; z-index: 30; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -81,477 +82,498 @@
   </div>
 
   <div id="room-prompt"></div>
-  <div id="controls-hint">WASD / DRAG TO LOOK · CLICK DOORS TO ENTER · VR ICON FOR CARDBOARD</div>
+  <div id="controls-hint">WASD / DRAG TO LOOK · CLICK OR TAP THE OPEN BUTTON BESIDE A DOOR · VR ICON FOR CARDBOARD</div>
+  <div id="wf-fade"></div>
 
   <a-scene wayfarer-mobile
-    fog="type: exponential; color: #020100; density: 0.035"
-    background="color: #020100"
+    fog="type: exponential; color: #0c0a08; density: 0.010"
+    background="color: #02030a"
     vr-mode-ui="enabled: true"
-    renderer="antialias: true; colorManagement: true">
+    renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.05">
 
-    <!-- ======================================================
-         PLAYER
-    ====================================================== -->
     <a-entity id="player" position="0 0 0">
-      <a-camera
+      <a-camera id="cam"
         wasd-controls="acceleration: 22; fly: false"
         look-controls="pointerLockEnabled: true; touchEnabled: true"
-        position="0 1.6 0">
-        <a-cursor
-          color="#ffcc66"
-          opacity="0.6"
-          fuse="true"
-          fuse-timeout="1500"
-          raycaster="objects: .door-face"
-          animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 1.2 1.2 1.2; to: 1 1 1">
-        </a-cursor>
+        position="0 1.6 9">
+        <a-cursor color="#ffcc66" opacity="0.6" fuse="true" fuse-timeout="1500"
+          raycaster="objects: .interactive"></a-cursor>
       </a-camera>
     </a-entity>
 
-    <!-- ======================================================
-         CORRIDOR SHELL
-         25 units long: z = -12.5 (Library end) to z = +12.5 (Bridge end)
-         5 units wide:  x = -2.5 to x = +2.5
-         3.5 units tall: y = 0 to y = 3.5
-    ====================================================== -->
-
-    <!-- Floor -->
-    <a-plane id="corr-floor" position="0 0 0" rotation="-90 0 0"
-      width="5" height="26">
-    </a-plane>
-
-    <!-- Ceiling -->
-    <a-plane id="corr-ceil" position="0 3.5 0" rotation="90 0 0"
-      width="5" height="26">
-    </a-plane>
-
-    <!-- Left Wall -->
-    <a-plane id="corr-wall-l" position="-2.5 1.75 0" rotation="0 90 0"
-      width="26" height="3.5">
-    </a-plane>
-
-    <!-- Right Wall -->
-    <a-plane id="corr-wall-r" position="2.5 1.75 0" rotation="0 -90 0"
-      width="26" height="3.5">
-    </a-plane>
-
-    <!-- Front cap (Command Bridge side) -->
-    <a-plane id="corr-wall-f" position="0 1.75 12.5" rotation="0 180 0"
-      width="5" height="3.5">
-    </a-plane>
-
-    <!-- Back cap (Library side) -->
-    <a-plane id="corr-wall-b" position="0 1.75 -12.5" rotation="0 0 0"
-      width="5" height="3.5">
-    </a-plane>
-
-    <!-- ===================== CEILING CONDUIT PIPES ===================== -->
-    <!-- Two main conduits running full corridor length -->
-    <a-cylinder radius="0.065" height="26" position="-1.2 3.32 0" rotation="-90 0 0"
-      material="color: #1c1510; roughness: 0.28; metalness: 0.9">
-    </a-cylinder>
-    <a-cylinder radius="0.065" height="26" position="1.2 3.32 0" rotation="-90 0 0"
-      material="color: #1c1510; roughness: 0.28; metalness: 0.9">
-    </a-cylinder>
-    <!-- Center data conduit with orange glow -->
-    <a-cylinder radius="0.038" height="26" position="0 3.44 0" rotation="-90 0 0"
-      material="color: #1a1008; emissive: #ff4400; emissiveIntensity: 0.12; roughness: 0.4; metalness: 0.85">
-    </a-cylinder>
-
-    <!-- Support brackets + indicator lights every 5 units -->
-    <!-- bracket at z=10 -->
-    <a-box position="-1.2 3.3 10" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.3 10" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="-1.2 3.31 10" width="0.02" height="0.02" depth="0.24"
-      material="color: #ff4400; emissive: #ff4400; emissiveIntensity: 2.5"></a-box>
-    <!-- bracket at z=5 -->
-    <a-box position="-1.2 3.3 5" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.3 5" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.31 5" width="0.02" height="0.02" depth="0.24"
-      material="color: #ff4400; emissive: #ff4400; emissiveIntensity: 2.5"></a-box>
-    <!-- bracket at z=0 -->
-    <a-box position="-1.2 3.3 0" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.3 0" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="-1.2 3.31 0" width="0.02" height="0.02" depth="0.24"
-      material="color: #00ff44; emissive: #00ff44; emissiveIntensity: 2.5"></a-box>
-    <!-- bracket at z=-5 -->
-    <a-box position="-1.2 3.3 -5" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.3 -5" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.31 -5" width="0.02" height="0.02" depth="0.24"
-      material="color: #ff4400; emissive: #ff4400; emissiveIntensity: 2.5"></a-box>
-    <!-- bracket at z=-10 -->
-    <a-box position="-1.2 3.3 -10" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="1.2 3.3 -10" width="0.14" height="0.12" depth="0.22"
-      material="color: #141208; roughness: 0.4; metalness: 0.85"></a-box>
-    <a-box position="-1.2 3.31 -10" width="0.02" height="0.02" depth="0.24"
-      material="color: #ff4400; emissive: #ff4400; emissiveIntensity: 2.5"></a-box>
-
-    <!-- ===================== WALL TECH PANELS ===================== -->
-    <!-- Right wall, center (between lounge at z=4 and media at z=-4) -->
-    <a-box position="2.47 1.5 0" width="0.06" height="1.15" depth="0.9"
-      material="color: #121218; roughness: 0.38; metalness: 0.82"></a-box>
-    <a-plane id="tech-r0" position="2.44 1.5 0" rotation="0 -90 0" width="0.82" height="1.0"
-      material="color: #000a1a"></a-plane>
-    <a-box position="2.44 2.12 -0.32" width="0.03" height="0.03" depth="0.03"
-      material="color: #00ff44; emissive: #00ff44; emissiveIntensity: 3.5"></a-box>
-    <a-box position="2.44 2.12 -0.2" width="0.03" height="0.03" depth="0.03"
-      material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 3.5"></a-box>
-    <a-box position="2.44 2.12 -0.08" width="0.03" height="0.03" depth="0.03"
-      material="color: #ff2200; emissive: #ff2200; emissiveIntensity: 3.5"></a-box>
-    <a-light type="point" position="2.1 1.5 0" color="#0033aa" intensity="0.5" distance="3" decay="2"></a-light>
-
-    <!-- Left wall, center -->
-    <a-box position="-2.47 1.5 0" width="0.06" height="1.15" depth="0.9"
-      material="color: #121218; roughness: 0.38; metalness: 0.82"></a-box>
-    <a-plane id="tech-l0" position="-2.44 1.5 0" rotation="0 90 0" width="0.82" height="1.0"
-      material="color: #000a1a"></a-plane>
-    <a-box position="-2.44 2.12 0.32" width="0.03" height="0.03" depth="0.03"
-      material="color: #00ff44; emissive: #00ff44; emissiveIntensity: 3.5"></a-box>
-    <a-box position="-2.44 2.12 0.2" width="0.03" height="0.03" depth="0.03"
-      material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 3.5"></a-box>
-    <a-box position="-2.44 2.12 0.08" width="0.03" height="0.03" depth="0.03"
-      material="color: #ff2200; emissive: #ff2200; emissiveIntensity: 3.5"></a-box>
-    <a-light type="point" position="-2.1 1.5 0" color="#0033aa" intensity="0.5" distance="3" decay="2"></a-light>
-
-    <!-- Right wall, bridge-side (z=8.5, between lounge door z=4 and bridge end) -->
-    <a-box position="2.47 1.5 8.5" width="0.06" height="0.95" depth="0.75"
-      material="color: #121218; roughness: 0.38; metalness: 0.82"></a-box>
-    <a-plane position="2.44 1.5 8.5" rotation="0 -90 0" width="0.68" height="0.82"
-      material="color: #00030a; emissive: #001166; emissiveIntensity: 0.5"></a-plane>
-
-    <!-- Left wall, bridge-side (z=8.5) -->
-    <a-box position="-2.47 1.5 8.5" width="0.06" height="0.95" depth="0.75"
-      material="color: #121218; roughness: 0.38; metalness: 0.82"></a-box>
-    <a-plane position="-2.44 1.5 8.5" rotation="0 90 0" width="0.68" height="0.82"
-      material="color: #00030a; emissive: #001166; emissiveIntensity: 0.5"></a-plane>
-
-    <!-- Right wall, library-side (z=-8.5, between media door and library) -->
-    <a-box position="2.47 1.5 -8.5" width="0.06" height="0.95" depth="0.75"
-      material="color: #121218; roughness: 0.38; metalness: 0.82"></a-box>
-    <a-plane position="2.44 1.5 -8.5" rotation="0 -90 0" width="0.68" height="0.82"
-      material="color: #000510; emissive: #001a55; emissiveIntensity: 0.4"></a-plane>
-
-    <!-- ===================== FLOOR EDGE WARNING STRIPS ===================== -->
-    <!-- At door openings -->
-    <a-box id="warn-holodeck" position="-2.44 0.12 6" width="0.08" height="0.22" depth="2.1"
-      material="color: #e8b800"></a-box>
-    <a-box id="warn-lounge" position="2.44 0.12 4" width="0.08" height="0.22" depth="2.1"
-      material="color: #e8b800"></a-box>
-    <a-box id="warn-media" position="2.44 0.12 -4" width="0.08" height="0.22" depth="2.1"
-      material="color: #e8b800"></a-box>
-
-    <!-- ======================================================
-         FLOOR DETAILS — glowing guide strips
-    ====================================================== -->
-
-    <!-- Center spine -->
-    <a-box position="0 0.01 0" width="0.2" height="0.01" depth="26"
-      color="#1a0900" emissive="#ff4400" emissive-intensity="0.15">
-    </a-box>
-
-    <!-- Edge strips -->
-    <a-box position="-1.85 0.01 0" width="0.04" height="0.01" depth="26"
-      color="#1a0600" emissive="#ff5500" emissive-intensity="0.1">
-    </a-box>
-    <a-box position="1.85 0.01 0" width="0.04" height="0.01" depth="26"
-      color="#1a0600" emissive="#ff5500" emissive-intensity="0.1">
-    </a-box>
-
-    <!-- ======================================================
-         WALL TRIM
-    ====================================================== -->
-
-    <!-- Upper trim rails -->
-    <a-box position="-2.49 2.9 0" width="0.02" height="0.05" depth="26"
-      color="#1a0e04" emissive="#ff4400" emissive-intensity="0.12">
-    </a-box>
-    <a-box position="2.49 2.9 0" width="0.02" height="0.05" depth="26"
-      color="#1a0e04" emissive="#ff4400" emissive-intensity="0.12">
-    </a-box>
-
-    <!-- Lower trim rails -->
-    <a-box position="-2.49 0.7 0" width="0.02" height="0.05" depth="26"
-      color="#100800" emissive="#331100" emissive-intensity="0.07">
-    </a-box>
-    <a-box position="2.49 0.7 0" width="0.02" height="0.05" depth="26"
-      color="#100800" emissive="#331100" emissive-intensity="0.07">
-    </a-box>
-
-    <!-- ======================================================
-         LIGHTING
-    ====================================================== -->
-
-    <!-- Very dim warm ambient -->
-    <a-light type="ambient" color="#1a0e06" intensity="0.35"></a-light>
-
-    <!-- Ceiling sconces: amber pairs running corridor length -->
-    <a-light type="point" position="-1.7 3.1  11" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position=" 1.7 3.1  11" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position="-1.7 3.1   5" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position=" 1.7 3.1   5" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position="-1.7 3.1  -1" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position=" 1.7 3.1  -1" color="#ff7722" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position="-1.7 3.1  -7" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
-    <a-light type="point" position=" 1.7 3.1  -7" color="#ff8833" intensity="1.1" distance="7" decay="2"></a-light>
-
-    <!-- Cool blue pull from the Library end -->
-    <a-light type="point" position="0 1.2 -12" color="#0033dd" intensity="1.8" distance="7" decay="2"></a-light>
-
-    <!-- Cool blue at the Bridge end (space beyond) -->
-    <a-light type="point" position="0 2 12" color="#001166" intensity="1.0" distance="5" decay="2"></a-light>
-
-    <!-- ======================================================
-         CEILING SCONCE FIXTURES (visual boxes)
-    ====================================================== -->
-    <a-box position="-1.7 3.43  11" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position=" 1.7 3.43  11" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position="-1.7 3.43   5" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position=" 1.7 3.43   5" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position="-1.7 3.43  -1" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position=" 1.7 3.43  -1" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position="-1.7 3.43  -7" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-    <a-box position=" 1.7 3.43  -7" width="0.22" height="0.07" depth="0.38" color="#1a0e04" emissive="#ff4400" emissive-intensity="0.6"></a-box>
-
-    <!-- ======================================================
-         DOOR 01 — COMMAND BRIDGE  (+Z, front of ship)
-         Color: cool blue/white — space beyond
-    ====================================================== -->
-    <!-- Outer frame -->
-    <a-box position="0 1.55 12.42" width="2.5" height="3.1" depth="0.1"
-      color="#0e0c08" emissive="#445566" emissive-intensity="0.1">
-    </a-box>
-    <!-- Door face (interactive) -->
-    <a-box id="door-bridge" class="door-face" data-room="Command Bridge"
-      position="0 1.35 12.44" width="2.0" height="2.6" depth="0.06"
-      color="#020309" emissive="#001166" emissive-intensity="0.7">
-    </a-box>
-    <!-- Top glow strip -->
-    <a-box position="0 2.7 12.38" width="2.0" height="0.06" depth="0.1"
-      color="#ff8800" emissive="#ff8800" emissive-intensity="2">
-    </a-box>
-    <!-- Labels -->
-    <a-text value="COMMAND BRIDGE" position="0 2.92 12.38"
-      align="center" color="#ffcc55" width="3.8" letter-spacing="2">
-    </a-text>
-    <a-text value="01 — BRIDGE DECK" position="0 2.68 12.32"
-      align="center" color="#665533" width="2.5">
-    </a-text>
-
-    <!-- ======================================================
-         DOOR 02 — HOLODECK  (LEFT wall, z=+6)
-         Color: teal/cyan — simulation grid
-    ====================================================== -->
-    <!-- Outer frame -->
-    <a-box position="-2.44 1.55 6" width="0.1" height="3.1" depth="2.5"
-      color="#0e0c08" emissive="#00aa88" emissive-intensity="0.05">
-    </a-box>
-    <!-- Door face (interactive) -->
-    <a-box id="door-holodeck" class="door-face" data-room="Holodeck"
-      position="-2.46 1.35 6" width="0.06" height="2.6" depth="2.0"
-      color="#001510" emissive="#00ffcc" emissive-intensity="0.45">
-    </a-box>
-    <!-- Side glow strip (top) -->
-    <a-box position="-2.38 2.7 6" width="0.1" height="0.06" depth="2.0"
-      color="#00ffcc" emissive="#00ffcc" emissive-intensity="2">
-    </a-box>
-    <!-- Labels -->
-    <a-text value="HOLODECK" position="-2.08 2.92 6"
-      align="center" rotation="0 -90 0" color="#00ffcc" width="3.8" letter-spacing="2">
-    </a-text>
-    <a-text value="02 — SIMULATION BAY" position="-2.08 2.68 6"
-      align="center" rotation="0 -90 0" color="#006644" width="2.5">
-    </a-text>
-
-    <!-- ======================================================
-         DOOR 03 — CREW LOUNGE / BREAK ROOM  (RIGHT wall, z=+4)
-         Color: warm amber — cats, couch, browser
-    ====================================================== -->
-    <a-box position="2.44 1.55 4" width="0.1" height="3.1" depth="2.5"
-      color="#0e0c08" emissive="#aa6600" emissive-intensity="0.05">
-    </a-box>
-    <a-box id="door-lounge" class="door-face" data-room="Crew Lounge"
-      position="2.46 1.35 4" width="0.06" height="2.6" depth="2.0"
-      color="#120a03" emissive="#ff8833" emissive-intensity="0.3">
-    </a-box>
-    <a-box position="2.38 2.7 4" width="0.1" height="0.06" depth="2.0"
-      color="#ff8833" emissive="#ff8833" emissive-intensity="2">
-    </a-box>
-    <a-text value="CREW LOUNGE" position="2.08 2.92 4"
-      align="center" rotation="0 90 0" color="#ffcc66" width="3.8" letter-spacing="2">
-    </a-text>
-    <a-text value="03 — BREAK DECK" position="2.08 2.68 4"
-      align="center" rotation="0 90 0" color="#664422" width="2.5">
-    </a-text>
-
-    <!-- ======================================================
-         DOOR 04 — MEDIA NEXUS  (RIGHT wall, z=-4)
-         Color: electric blue — screens everywhere
-    ====================================================== -->
-    <a-box position="2.44 1.55 -4" width="0.1" height="3.1" depth="2.5"
-      color="#0e0c08" emissive="#003388" emissive-intensity="0.06">
-    </a-box>
-    <a-box id="door-media" class="door-face" data-room="Media Nexus"
-      position="2.46 1.35 -4" width="0.06" height="2.6" depth="2.0"
-      color="#020310" emissive="#0044ff" emissive-intensity="0.5">
-    </a-box>
-    <a-box position="2.38 2.7 -4" width="0.1" height="0.06" depth="2.0"
-      color="#0055ff" emissive="#0055ff" emissive-intensity="2">
-    </a-box>
-    <a-text value="MEDIA NEXUS" position="2.08 2.92 -4"
-      align="center" rotation="0 90 0" color="#6699ff" width="3.8" letter-spacing="2">
-    </a-text>
-    <a-text value="04 — BROADCAST" position="2.08 2.68 -4"
-      align="center" rotation="0 90 0" color="#223366" width="2.5">
-    </a-text>
-
-    <!-- ======================================================
-         DOOR 05 — THE LIBRARY  (-Z, back of ship)
-         Color: deep blue / electrogel — the crown jewel
-    ====================================================== -->
-    <!-- Large ornate frame -->
-    <a-box position="0 1.75 -12.42" width="4.0" height="3.6" depth="0.12"
-      color="#080810" emissive="#0022aa" emissive-intensity="0.08">
-    </a-box>
-    <!-- Door face (interactive) -->
-    <a-box id="door-library" class="door-face" data-room="The Library"
-      position="0 1.5 -12.46" width="3.3" height="3.0" depth="0.06"
-      color="#010108" emissive="#0022cc" emissive-intensity="0.7">
-    </a-box>
-    <!-- Electrogel glow bleeding under door -->
-    <a-box position="0 0.04 -12.46" width="3.3" height="0.08" depth="0.18"
-      color="#00aaff" emissive="#00aaff" emissive-intensity="2.5">
-    </a-box>
-    <!-- Top glow strip -->
-    <a-box position="0 3.05 -12.38" width="3.3" height="0.07" depth="0.12"
-      color="#0055ff" emissive="#0055ff" emissive-intensity="2">
-    </a-box>
-    <!-- Side glow strips -->
-    <a-box position="-1.65 1.5 -12.38" width="0.06" height="3.0" depth="0.1"
-      color="#0033bb" emissive="#0033bb" emissive-intensity="1.2">
-    </a-box>
-    <a-box position=" 1.65 1.5 -12.38" width="0.06" height="3.0" depth="0.1"
-      color="#0033bb" emissive="#0033bb" emissive-intensity="1.2">
-    </a-box>
-    <!-- Labels -->
-    <a-text value="THE LIBRARY" position="0 3.28 -12.35"
-      align="center" color="#88aaff" width="5.5" letter-spacing="5">
-    </a-text>
-    <a-text value="SECOND BRAIN  ·  ARCHIVE  ·  DEEP CORE" position="0 2.98 -12.3"
-      align="center" color="#223366" width="4.2" letter-spacing="1">
-    </a-text>
-
-    <!-- ======================================================
-         SPACE VIEWPORT  (near Command Bridge, end of corridor)
-    ====================================================== -->
-    <!-- Viewport frame (recessed box) -->
-    <a-box position="0 2.0 12.44" width="3.1" height="1.7" depth="0.18"
-      material="color: #1a1206; roughness: 0.35; metalness: 0.82">
-    </a-box>
-    <!-- Viewport glass — space scene applied via JS -->
-    <a-plane id="viewport-plane" position="0 2.0 12.46" rotation="0 180 0"
-      width="2.8" height="1.4">
-    </a-plane>
-    <!-- Frame glow strips -->
-    <a-box position="0 2.85 12.42" width="2.84" height="0.04" depth="0.05"
-      material="color: #ff8800; emissive: #ff8800; emissiveIntensity: 1.5"></a-box>
-    <a-box position="0 1.15 12.42" width="2.84" height="0.04" depth="0.05"
-      material="color: #ff8800; emissive: #ff8800; emissiveIntensity: 1.5"></a-box>
-
+    <a-entity id="corridor" wf-corr></a-entity>
   </a-scene>
 
   <script>
-    // Apply procedural textures once scene is ready
-    document.querySelector('a-scene').addEventListener('loaded', function () {
-      var T = window.TEX;
-      var WM = 'src: url(' + T.metalPanel + '); repeat: 12 2; roughness: 0.45; metalness: 0.68; color: #aaaacc';
-      var FM = 'src: url(' + T.floorGrate + '); repeat: 8 20; roughness: 0.32; metalness: 0.75; color: #888899';
-      var CM = 'src: url(' + T.ceilPanel  + '); repeat: 5 13; roughness: 0.6;  metalness: 0.5;  color: #aaaacc';
-      document.querySelector('#corr-floor').setAttribute('material', FM);
-      document.querySelector('#corr-ceil').setAttribute('material', CM);
-      document.querySelector('#corr-wall-l').setAttribute('material', WM);
-      document.querySelector('#corr-wall-r').setAttribute('material', WM);
-      document.querySelector('#corr-wall-f').setAttribute('material', 'src: url(' + T.metalPanel + '); repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
-      document.querySelector('#corr-wall-b').setAttribute('material', 'src: url(' + T.metalPanel + '); repeat: 3 2; roughness: 0.45; metalness: 0.68; color: #aaaacc');
-      // Tech panel screens — apply subtle circuit glow
-      ['#tech-r0','#tech-l0'].forEach(function(id) {
-        var el = document.querySelector(id);
-        if (el) el.setAttribute('material', 'color: #000a18; emissive: #0033aa; emissiveIntensity: 0.5; roughness: 0.05; metalness: 0');
-      });
-      // Viewport space scene
-      var vp = document.querySelector('#viewport-plane');
-      if (vp) vp.setAttribute('material', 'src: url(' + T.viewport + '); roughness: 0; metalness: 0; shader: flat; side: front');
-      // Warning stripes at doors
-      ['#warn-holodeck','#warn-lounge','#warn-media'].forEach(function(id) {
-        var el = document.querySelector(id);
-        if (el) el.setAttribute('material', 'src: url(' + T.warnStripe + '); repeat: 1 1; roughness: 0.9; metalness: 0');
-      });
-    });
+  (function () {
+    var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
+    var MOB = window.WAYFARER && window.WAYFARER.mobile;
 
-    const prompt = document.getElementById('room-prompt');
-
-    function showPrompt(text, color) {
-      prompt.textContent = text;
-      prompt.style.color = color || '#ffcc66';
-      prompt.style.textShadow = `0 0 12px ${color || '#ff8833'}`;
-      prompt.style.opacity = '1';
-    }
-
-    function hidePrompt() {
-      prompt.style.opacity = '0';
-    }
-
-    // Door color map
-    const doorConfig = {
-      'Command Bridge': { hover: '#001166', active: '#0022ff', label: '[ ENTER COMMAND BRIDGE ]', color: '#aabbff' },
-      'Holodeck':       { hover: '#003322', active: '#00ffcc', label: '[ ENTER HOLODECK ]',       color: '#00ffcc' },
-      'Crew Lounge':    { hover: '#1a0a02', active: '#ff8833', label: '[ ENTER CREW LOUNGE ]',    color: '#ffcc66' },
-      'Media Nexus':    { hover: '#020318', active: '#0066ff', label: '[ ENTER MEDIA NEXUS ]',    color: '#6699ff' },
-      'The Library':    { hover: '#010115', active: '#0044ff', label: '[ ENTER THE LIBRARY ]',    color: '#88aaff' },
+    // ───────────────────────────── layout (metres) ─────────────────────────────
+    // corridor: x ±2.5, z ±12.5, height 3.5.  Walls are 0.5 thick.  Library at -Z end, Bridge at +Z end.
+    var T = 0.5, H = 3.5, DOOR_W = 1.7, DOOR_H = 2.7, WIN_W = 2.0, WIN_SILL = 0.95, WIN_TOP = 2.55;
+    var WALLS = {
+      L: { axis: 'x', s: -1, base: 2.5, rot: 90 },
+      R: { axis: 'x', s: 1, base: 2.5, rot: -90 },
+      F: { axis: 'z', s: 1, base: 12.5, rot: 180 },     // Bridge end
+      B: { axis: 'z', s: -1, base: 12.5, rot: 0 }       // Library end
     };
+    var DOORS = [
+      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true },
+      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, sub: 'SECOND BRAIN · DEEP CORE' },
+      { id: 'holodeck', name: ['HOLO', 'DECK'],      one: 'HOLODECK',       page: 'holodeck.html', W: 'L', c: 6 },
+      { id: 'lounge',   name: ['CREW', 'LOUNGE'],    one: 'CREW LOUNGE',    page: 'lounge.html',   W: 'R', c: 4 },
+      { id: 'media',    name: ['MEDIA', 'NEXUS'],    one: 'MEDIA NEXUS',    page: 'media.html',    W: 'R', c: -4 }
+    ];
+    var WINDOWS = [ { W: 'L', c: 11 }, { W: 'L', c: 1.5 }, { W: 'L', c: -4.5 }, { W: 'L', c: -10 },
+                    { W: 'R', c: 9.5 }, { W: 'R', c: 0 }, { W: 'R', c: -9.5 } ];
 
-    document.querySelectorAll('.door-face').forEach(door => {
-      const room = door.getAttribute('data-room');
-      const cfg = doorConfig[room];
+    // where you stand when you come back out of a room: one step outside its doorway, facing down the hall
+    // (heading = yaw about +Y, 0 faces −Z i.e. toward the Library, 180 faces +Z toward the Bridge)
+    var SPAWN = {
+      library:  { x: 0,    z: -11.6, yaw: 180 },
+      bridge:   { x: 0,    z: 11.6,  yaw: 0 },
+      holodeck: { x: -1.6, z: 6,     yaw: 0 },
+      lounge:   { x: 1.6,  z: 4,     yaw: 0 },
+      media:    { x: 1.6,  z: -4,    yaw: 0 }
+    };
+    var ALONG = { L: -1, R: 1, F: -1, B: 1 };               // door-group local +x expressed along world z (side walls) / x (end walls)
+    var DEFAULT_SPAWN = { x: 0, z: 9, yaw: 0 };         // Home Screen launch: the usual view down the hall
 
-      door.addEventListener('mouseenter', () => {
-        showPrompt(cfg.label, cfg.color);
-        door.setAttribute('material', 'emissiveIntensity', 1.4);
+    // ───────────────────────────── helpers ─────────────────────────────
+    function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+    function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function mkTex(c, rep) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; }
+
+    // ───────────────────────────── textures ─────────────────────────────
+    function wallTexture() {            // 1.2 m wide × 3.5 m tall tile; v maps world height
+      var W = 512, Hh = 1024, c = cv(W, Hh), x = c.getContext('2d'), r = rng(11);
+      function Y(m) { return (1 - m / 3.5) * Hh; }
+      x.fillStyle = '#9b9388'; x.fillRect(0, 0, W, Hh);
+      // wainscot
+      x.fillStyle = '#6f6a63'; x.fillRect(0, Y(0.95), W, Y(0) - Y(0.95));
+      // panel insets
+      function inset(x0, y0, x1, y1, base) {
+        x.fillStyle = base; x.fillRect(x0, y0, x1 - x0, y1 - y0);
+        x.fillStyle = 'rgba(255,255,255,0.10)'; x.fillRect(x0, y0, x1 - x0, 3); x.fillRect(x0, y0, 3, y1 - y0);
+        x.fillStyle = 'rgba(0,0,0,0.22)'; x.fillRect(x0, y1 - 3, x1 - x0, 3); x.fillRect(x1 - 3, y0, 3, y1 - y0);
+      }
+      inset(22, Y(3.22), W - 22, Y(1.08), '#a39b90');
+      inset(22, Y(0.86), W - 22, Y(0.08), '#7a746c');
+      // seams + rivets
+      x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(0, 0, 3, Hh); x.fillRect(W - 3, 0, 3, Hh);
+      [[34, Y(3.14)], [W - 34, Y(3.14)], [34, Y(1.16)], [W - 34, Y(1.16)], [34, Y(0.78)], [W - 34, Y(0.78)], [34, Y(0.16)], [W - 34, Y(0.16)]].forEach(function (p) {
+        x.fillStyle = '#5a4a32'; x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill();
+        x.fillStyle = 'rgba(255,220,160,0.25)'; x.beginPath(); x.arc(p[0] - 1, p[1] - 1, 1.6, 0, 6.3); x.fill();
       });
-
-      door.addEventListener('mouseleave', () => {
-        hidePrompt();
-        door.setAttribute('material', 'emissiveIntensity',
-          room === 'The Library' ? 0.7 :
-          room === 'Holodeck'    ? 0.45 :
-          room === 'Media Nexus' ? 0.5 : 0.3
-        );
+      // bronze rail at 0.95 m and cornice line at 3.3 m
+      function rail(m, hgt) { var g = x.createLinearGradient(0, Y(m + hgt), 0, Y(m)); g.addColorStop(0, '#c49a5c'); g.addColorStop(0.5, '#8a6a3c'); g.addColorStop(1, '#5a4326'); x.fillStyle = g; x.fillRect(0, Y(m + hgt), W, Y(m) - Y(m + hgt)); }
+      rail(0.95, 0.045); rail(3.26, 0.035);
+      // grain
+      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.035)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 2, 1 + r() * 8); }
+      return mkTex(c);
+    }
+    function trimTexture() {             // brushed bronze, 1 m tile
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(5);
+      x.fillStyle = '#85693f'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 1400; i++) { var y = r() * 256, a = r() * 0.16; x.fillStyle = r() < 0.5 ? 'rgba(255,225,170,' + a * 0.5 + ')' : 'rgba(40,24,8,' + a * 0.5 + ')'; x.fillRect(0, y, 256, 1); }
+      return mkTex(c);
+    }
+    function deckTexture() {             // matte graphite, 1 m tiles with seams
+      var c = cv(512, 512), x = c.getContext('2d'), r = rng(23);
+      x.fillStyle = '#2b2c2f'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 20000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.045)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 2, 1 + r() * 2); }
+      x.fillStyle = 'rgba(0,0,0,0.5)'; x.fillRect(0, 0, 512, 4); x.fillRect(0, 0, 4, 512); x.fillRect(255, 0, 2, 512); x.fillRect(0, 255, 512, 2);
+      x.fillStyle = 'rgba(255,255,255,0.05)'; x.fillRect(0, 4, 512, 2); x.fillRect(4, 0, 2, 512);
+      [[18, 18], [494, 18], [18, 494], [494, 494]].forEach(function (p) { x.fillStyle = '#16171a'; x.beginPath(); x.arc(p[0], p[1], 5, 0, 6.3); x.fill(); });
+      return mkTex(c);
+    }
+    function ceilTexture() {
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(3);
+      x.fillStyle = '#a39c90'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 3000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'; x.fillRect(r() * 256, r() * 256, 1 + r() * 3, 1 + r() * 3); }
+      x.fillStyle = 'rgba(0,0,0,0.3)'; x.fillRect(0, 0, 256, 2); x.fillRect(0, 0, 2, 256);
+      return mkTex(c);
+    }
+    function ventTexture() {              // cabinet fronts under the windows
+      var c = cv(256, 256), x = c.getContext('2d');
+      x.fillStyle = '#8f877c'; x.fillRect(0, 0, 256, 256);
+      x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(0, 0, 256, 3); x.fillRect(0, 253, 256, 3);
+      for (var i = 0; i < 9; i++) { x.fillStyle = '#2a2622'; x.fillRect(48, 40 + i * 20, 160, 8); x.fillStyle = 'rgba(255,255,255,0.12)'; x.fillRect(48, 48 + i * 20, 160, 1); }
+      return mkTex(c);
+    }
+    function hullTexture() {
+      var c = cv(512, 512), x = c.getContext('2d'), r = rng(41);
+      x.fillStyle = '#7b756d'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 40; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,240,210') + ',' + (0.03 + r() * 0.05) + ')'; x.fillRect(r() * 512, r() * 512, 20 + r() * 120, 12 + r() * 70); }
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 512, 5); x.fillRect(0, 0, 5, 512); x.fillRect(254, 0, 3, 512); x.fillRect(0, 254, 512, 3);
+      x.fillStyle = '#8a6a3c'; x.fillRect(0, 6, 512, 3);
+      for (var u = 0; u < 4; u++) for (var v = 0; v < 4; v++) { x.fillStyle = '#4a4137'; x.beginPath(); x.arc(20 + u * 128, 20 + v * 128, 3, 0, 6.3); x.fill(); }
+      for (i = 0; i < 6000; i++) { x.fillStyle = 'rgba(0,0,0,0.06)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 3, 1); }
+      return mkTex(c);
+    }
+    function doorTexture() {
+      var c = cv(256, 512), x = c.getContext('2d'), r = rng(9);
+      var g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, '#8e867b'); g.addColorStop(0.5, '#a09888'); g.addColorStop(1, '#857d72');
+      x.fillStyle = g; x.fillRect(0, 0, 256, 512);
+      for (var i = 0; i < 700; i++) { x.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'; x.fillRect(r() * 256, 0, 1, 512); }
+      x.strokeStyle = 'rgba(0,0,0,0.35)'; x.lineWidth = 3; x.strokeRect(16, 20, 224, 472);
+      x.strokeStyle = 'rgba(255,255,255,0.14)'; x.lineWidth = 2; x.strokeRect(19, 23, 218, 466);
+      x.fillStyle = '#4b3a22'; x.fillRect(0, 0, 256, 6); x.fillRect(0, 506, 256, 6);
+      return mkTex(c);
+    }
+    function plate(lines, w, h, sub) {     // bronze name plate, engraved lettering
+      var c = cv(w, h), x = c.getContext('2d');
+      var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#b38a50'); g.addColorStop(1, '#7e5e32');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#3d2b14'; x.lineWidth = 6; x.strokeRect(5, 5, w - 10, h - 10);
+      x.strokeStyle = 'rgba(255,230,180,0.45)'; x.lineWidth = 2; x.strokeRect(12, 12, w - 24, h - 24);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      var n = lines.length, fs = Math.min(h * (n === 1 ? 0.46 : 0.30), (w - 60) / Math.max.apply(null, lines.map(function (l) { return l.length; })) / 0.72);
+      x.font = '700 ' + fs + 'px "Helvetica Neue", Arial, sans-serif'; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.08) + 'px';
+      lines.forEach(function (l, i) {
+        var yy = h / 2 + (i - (n - 1) / 2) * fs * 1.18 - (sub ? h * 0.06 : 0);
+        x.fillStyle = 'rgba(255,235,190,0.55)'; x.fillText(l, w / 2 + 1, yy + 1.5);
+        x.fillStyle = '#2b1d0c'; x.fillText(l, w / 2, yy);
       });
+      if (sub) { x.font = '600 ' + h * 0.095 + 'px "Helvetica Neue", Arial, sans-serif'; x.fillStyle = '#3b2a12'; x.fillText(sub, w / 2, h * 0.84); }
+      return mkTex(c);
+    }
+    function buttonFace(state) {           // state: open | close | press
+      var S = 256, c = cv(S, S), x = c.getContext('2d');
+      x.fillStyle = '#1b1208'; x.beginPath(); x.arc(128, 128, 126, 0, 6.3); x.fill();
+      var hot = state === 'press';
+      var g = x.createRadialGradient(128, 118, 8, 128, 128, 112);
+      g.addColorStop(0, hot ? '#fff6d8' : '#ffd37a'); g.addColorStop(0.6, hot ? '#ffcf70' : '#f59a2a'); g.addColorStop(1, hot ? '#f0a040' : '#b4600e');
+      x.fillStyle = g; x.beginPath(); x.arc(128, 128, 108, 0, 6.3); x.fill();
+      x.strokeStyle = 'rgba(70,30,0,0.7)'; x.lineWidth = 5; x.beginPath(); x.arc(128, 128, 108, 0, 6.3); x.stroke();
+      x.fillStyle = '#2a1500'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.font = '800 58px "Helvetica Neue", Arial, sans-serif'; if (x.letterSpacing !== undefined) x.letterSpacing = '3px';
+      x.fillText(state === 'close' ? 'CLOSE' : 'OPEN', 128, 112);
+      x.fillStyle = '#2a1500';                               // chevrons: point outward to open, inward to close
+      var dir = state === 'close' ? -1 : 1;
+      [-1, 1].forEach(function (sd) { var cx = 128 + sd * 46, tip = cx + sd * 14 * dir; x.beginPath(); x.moveTo(cx - sd * 14 * dir, 150); x.lineTo(tip, 170); x.lineTo(cx - sd * 14 * dir, 190); x.closePath(); x.fill(); });
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function planetTexture() {
+      var w = 512, h = 256, c = cv(w, h), x = c.getContext('2d'), im = x.createImageData(w, h);
+      function hash(i, j) { var n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); }
+      function vn(u, v) { var i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, a = hash(i, j), b = hash(i + 1, j), c2 = hash(i, j + 1), d = hash(i + 1, j + 1), su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv); return a + (b - a) * su + (c2 - a) * sv + (a - b - c2 + d) * su * sv; }
+      function fbm(u, v) { var s = 0, a = 0.5; for (var k = 0; k < 5; k++) { s += a * vn(u, v); u *= 2.03; v *= 2.03; a *= 0.5; } return s; }
+      for (var py = 0; py < h; py++) for (var px = 0; px < w; px++) {
+        var u = px / w, v = py / h, land = fbm(u * 6, v * 6), cl = fbm(u * 9 + 31, v * 9 + 7), i4 = (py * w + px) * 4, R, G, B;
+        if (land > 0.56) { var e = Math.min(1, (land - 0.56) * 4); R = 70 + e * 90; G = 100 + e * 40 - e * 20; B = 55 + e * 20; }
+        else { var d = land / 0.56; R = 14 + d * 22; G = 50 + d * 70; B = 110 + d * 80; }
+        var polar = Math.abs(v - 0.5) > 0.4 ? (Math.abs(v - 0.5) - 0.4) * 10 : 0; R += (235 - R) * Math.min(1, polar); G += (240 - G) * Math.min(1, polar); B += (250 - B) * Math.min(1, polar);
+        var ca = Math.max(0, Math.min(1, (cl - 0.5) * 3.2)) * 0.85; R += (245 - R) * ca; G += (248 - G) * ca; B += (255 - B) * ca;
+        im.data[i4] = R; im.data[i4 + 1] = G; im.data[i4 + 2] = B; im.data[i4 + 3] = 255;
+      }
+      x.putImageData(im, 0, 0); var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function dotTexture() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
+    function poolTexture() { var c = cv(128, 128), x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(170,200,255,0.55)'); g.addColorStop(0.6, 'rgba(120,160,230,0.2)'); g.addColorStop(1, 'rgba(100,140,220,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); }
 
-      door.addEventListener('click', () => {
-        const destinations = {
-          'Command Bridge': 'bridge.html',
-          'The Library':    'library.html',
-          'Crew Lounge':    'lounge.html',
-          'Media Nexus':    'media.html',
-          'Holodeck':       'holodeck.html',
-        };
-        if (destinations[room]) {
-          window.location.href = destinations[room];
+    // ───────────────────────────── geometry collector (world-aligned boxes, world-space UVs) ─────────────────────────────
+    var TILE = { wall: [1.2, 3.5], trim: [1, 1], vent: [1.2, 1.2], dark: [1, 1], amber: [1, 1], lamp: [1, 1] };
+    var buckets = {};
+    function bx(key, cx, cy, cz, w, h, d) {
+      var g = new THREE.BoxGeometry(w, h, d); g.translate(cx, cy, cz);
+      var p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv, t = TILE[key] || [1, 1];
+      for (var i = 0; i < p.count; i++) {
+        var u, v;
+        if (Math.abs(n.getX(i)) > 0.5) { u = p.getZ(i) / t[0]; v = p.getY(i) / t[1]; }
+        else if (Math.abs(n.getZ(i)) > 0.5) { u = p.getX(i) / t[0]; v = p.getY(i) / t[1]; }
+        else { u = p.getX(i) / t[0]; v = p.getZ(i) / t[0]; }
+        uv.setXY(i, u, v);
+      }
+      (buckets[key] = buckets[key] || []).push(g);
+    }
+    function wb(key, W, depth0, size, y0, y1, a0, a1) {       // box in wall-local coords (depth outward from the corridor face)
+      var dc = W.base + depth0 + size / 2, al = (a0 + a1) / 2, cy = (y0 + y1) / 2, wd = a1 - a0, h = y1 - y0;
+      if (W.axis === 'x') bx(key, W.s * dc, cy, al, size, h, wd); else bx(key, al, cy, W.s * dc, wd, h, size);
+    }
+    function merge(gs) {
+      var vc = 0, ic = 0, i; gs.forEach(function (g) { vc += g.attributes.position.count; ic += g.index.count; });
+      var P = new Float32Array(vc * 3), N = new Float32Array(vc * 3), U = new Float32Array(vc * 2), I = new Uint32Array(ic), vo = 0, io = 0;
+      gs.forEach(function (g) { P.set(g.attributes.position.array, vo * 3); N.set(g.attributes.normal.array, vo * 3); U.set(g.attributes.uv.array, vo * 2);
+        for (i = 0; i < g.index.count; i++) I[io + i] = g.index.array[i] + vo; vo += g.attributes.position.count; io += g.index.count; });
+      var m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('uv', new THREE.BufferAttribute(U, 2)); m.setIndex(new THREE.BufferAttribute(I, 1)); return m;
+    }
+
+    function buildWall(W, ops, lo, hi) {
+      ops = ops.slice().sort(function (a, b) { return a.c - b.c; }); var cur = lo;
+      ops.forEach(function (o) {
+        var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
+        if (a0 > cur) wb('wall', W, 0, T, 0, H, cur, a0);
+        if (o.type === 'door') wb('wall', W, 0, T, DOOR_H, H, a0, a1);
+        else { wb('wall', W, 0, T, 0, WIN_SILL, a0, a1); wb('wall', W, 0, T, WIN_TOP, H, a0, a1); }
+        cur = a1;
+      });
+      if (hi > cur) wb('wall', W, 0, T, 0, H, cur, hi);
+      wb('trim', W, -0.04, 0.08, 3.38, H, lo, hi);                    // cornice
+    }
+    function doorFrame(W, o) {
+      var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
+      wb('trim', W, -0.06, 0.2, 0, DOOR_H + 0.14, a0 - 0.14, a0); wb('trim', W, -0.06, 0.2, 0, DOOR_H + 0.14, a1, a1 + 0.14);
+      wb('trim', W, -0.06, 0.2, DOOR_H, DOOR_H + 0.14, a0 - 0.14, a1 + 0.14);
+      wb('trim', W, 0.14, 0.36, 0, DOOR_H, a0, a0 + 0.03); wb('trim', W, 0.14, 0.36, 0, DOOR_H, a1 - 0.03, a1);
+      wb('trim', W, 0.14, 0.36, DOOR_H - 0.03, DOOR_H, a0, a1);
+      wb('trim', W, -0.04, 0.5, 0, 0.025, a0, a1);                      // threshold plate
+      wb('amber', W, 0.1, 0.02, DOOR_H - 0.08, DOOR_H - 0.05, a0 + 0.03, a1 - 0.03);   // narrow guide strip under the header
+      // niche behind the panels: dark back wall so there is never a gap
+      wb('dark', W, T, 0.05, 0, DOOR_H, a0, a1);
+      wb('dark', W, 0, T + 0.05, -0.05, 0, a0, a1);                    // niche floor: no gap under the door
+    }
+    function windowFrame(W, o) {
+      var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
+      wb('trim', W, 0, T, WIN_SILL, WIN_SILL + 0.04, a0, a1); wb('trim', W, 0, T, WIN_TOP - 0.04, WIN_TOP, a0, a1);                 // deep liners
+      wb('trim', W, 0, T, WIN_SILL, WIN_TOP, a0, a0 + 0.04); wb('trim', W, 0, T, WIN_SILL, WIN_TOP, a1 - 0.04, a1);
+      wb('trim', W, -0.08, 0.14, 0.9, 2.9, a0 - 0.16, a0); wb('trim', W, -0.08, 0.14, 0.9, 2.9, a1, a1 + 0.16);                     // pilasters
+      wb('trim', W, -0.08, 0.14, WIN_TOP, 2.9, a0, a1);                                                                               // head
+      wb('trim', W, -0.3, 0.3, 0.86, WIN_SILL, a0 - 0.1, a1 + 0.1);                                                                    // sill shelf
+      wb('vent', W, -0.12, 0.12, 0.08, 0.86, a0 - 0.1, a1 + 0.1);                                                                      // cabinet
+      wb('amber', W, -0.085, 0.02, 1.05, 2.45, a0 - 0.03, a0 - 0.01); wb('amber', W, -0.085, 0.02, 1.05, 2.45, a1 + 0.01, a1 + 0.03); // narrow guide strips
+    }
+
+    // ───────────────────────────── build ─────────────────────────────
+    var state = { doors: [], hullLights: [] };
+    function build() {
+      var root = new THREE.Group(); sc.object3D.add(root);
+      var aniso = Math.min(4, sc.renderer.capabilities.getMaxAnisotropy());
+      var M = {
+        wall:  new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.88, metalness: 0.05 }),
+        trim:  new THREE.MeshStandardMaterial({ map: trimTexture(), color: 0xb9ab95, roughness: 0.5, metalness: 0.5, emissive: 0x140c04, emissiveIntensity: 0.4 }),
+        vent:  new THREE.MeshStandardMaterial({ map: ventTexture(), roughness: 0.85, metalness: 0.1 }),
+        dark:  new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 0.9, metalness: 0.1, emissive: 0x1a140c, emissiveIntensity: 0.6 }),
+        amber: new THREE.MeshBasicMaterial({ color: 0xff9a2e, fog: false }),
+        lamp:  new THREE.MeshBasicMaterial({ color: 0xfff1de, fog: false })
+      };
+      var maps = [M.wall.map, M.trim.map, M.vent.map]; maps.forEach(function (t) { t.anisotropy = aniso; });
+
+      // walls, frames
+      var ops = { L: [], R: [], F: [], B: [] };
+      DOORS.forEach(function (d) { ops[d.W].push({ c: d.c, w: DOOR_W, type: 'door' }); });
+      WINDOWS.forEach(function (w) { ops[w.W].push({ c: w.c, w: WIN_W, type: 'window' }); });
+      buildWall(WALLS.L, ops.L, -13, 13); buildWall(WALLS.R, ops.R, -13, 13);
+      buildWall(WALLS.F, ops.F, -3, 3);   buildWall(WALLS.B, ops.B, -3, 3);
+      DOORS.forEach(function (d) { doorFrame(WALLS[d.W], { c: d.c, w: DOOR_W }); });
+      WINDOWS.forEach(function (w) { windowFrame(WALLS[w.W], { c: w.c, w: WIN_W }); });
+
+      // button housings (static) beside each frame
+      DOORS.forEach(function (d) {
+        var W = WALLS[d.W], a = d.end ? 1.55 : d.c + 1.4;
+        wb('trim', W, -0.05, 0.1, 0.88, 1.24, a - 0.15, a + 0.15);
+        if (!d.end) wb('trim', W, -0.03, 0.06, 1.38, 1.9, a - 0.46, a + 0.46);       // plaque backing plate
+      });
+      // ceiling beams + corner posts
+      for (var z = -12; z <= 12; z += 3) bx('trim', 0, 3.43, z, 5, 0.14, 0.12);
+
+      Object.keys(buckets).forEach(function (k) { var m = new THREE.Mesh(merge(buckets[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
+
+      // floor, ceiling, light panels, floor strips
+      var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.88, metalness: 0.12 }));
+      fl.material.map.repeat.set(5, 25); fl.material.map.anisotropy = aniso; fl.rotation.x = -Math.PI / 2; root.add(fl);
+      var ce = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), new THREE.MeshStandardMaterial({ map: ceilTexture(), roughness: 0.9, metalness: 0.05, side: THREE.FrontSide }));
+      ce.material.map.repeat.set(5, 25); ce.rotation.x = Math.PI / 2; ce.position.y = H; root.add(ce);
+      var panels = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.2, 2.1), M.lamp, 16), dm = new THREE.Object3D(), pi = 0;
+      for (var zz = -10.5; zz <= 10.5; zz += 3) [-1.05, 1.05].forEach(function (xx) { dm.position.set(xx, H - 0.012, zz); dm.rotation.set(Math.PI / 2, 0, 0); dm.updateMatrix(); panels.setMatrixAt(pi++, dm.matrix); });
+      panels.count = pi; root.add(panels);
+      var strip = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 24.8), M.amber); strip.rotation.x = -Math.PI / 2; strip.position.y = 0.004; root.add(strip);
+      var brz = new THREE.MeshBasicMaterial({ color: 0x6f5126, fog: false });
+      [-1.75, 1.75].forEach(function (xx) { var s = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 24.8), brz); s.rotation.x = -Math.PI / 2; s.position.set(xx, 0.004, 0); root.add(s); });
+
+      // cool light pools on the deck under each window (additive, soft)
+      var pool = poolTexture(), pm = new THREE.MeshBasicMaterial({ map: pool, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.5, fog: false });
+      WINDOWS.forEach(function (w) { var s = WALLS[w.W].s, m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), pm); m.rotation.x = -Math.PI / 2; m.position.set(s * 1.5, 0.008, w.c); root.add(m); });
+
+      // ── lights ──
+      root.add(new THREE.HemisphereLight(0xfff0dc, 0x3a3128, 0.55));
+      [10.5, 5, 0, -5, -10.5].forEach(function (zl) { var l = new THREE.PointLight(0xfff0dc, 0.85, 9, 1.4); l.position.set(0, 3.0, zl); root.add(l); });
+      var lib = new THREE.PointLight(0xa9c2ff, 0.5, 5, 2); lib.position.set(0, 2.0, -11.6); root.add(lib);
+
+      buildDoors(root); buildHull(root); buildSky(root);
+    }
+
+    // ───────────────────────────── doors ─────────────────────────────
+    var AC; function beep(f, d, type) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine'; o.frequency.value = f; g.gain.value = 0.05; o.connect(g); g.connect(AC.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + d); o.stop(AC.currentTime + d); } catch (e) {} }
+    var promptEl = document.getElementById('room-prompt'), promptT = 0;
+    function say(msg, col) { promptEl.textContent = msg; promptEl.style.color = col || '#ffcc66'; promptEl.style.opacity = '1'; clearTimeout(promptT); promptT = setTimeout(function () { promptEl.style.opacity = '0'; }, 1800); }
+
+    function buildDoors(root) {
+      var dt = doorTexture(), panelMats = null;
+      var trimM = new THREE.MeshStandardMaterial({ color: 0x8a6b3c, roughness: 0.45, metalness: 0.5 });
+      var pMat = new THREE.MeshStandardMaterial({ map: dt, roughness: 0.6, metalness: 0.35 });
+      var faces = [trimM, trimM, trimM, trimM, pMat, pMat];
+      DOORS.forEach(function (d) {
+        var W = WALLS[d.W], g = new THREE.Group(), s = W.s;
+        if (W.axis === 'x') g.position.set(s * 2.5, 0, d.c); else g.position.set(d.c, 0, s * 12.5);
+        g.rotation.y = W.rot * Math.PI / 180; root.add(g);
+        // two sliding panels, sitting 0.3 m back in the recess; they slide sideways into the wall
+        var pL = new THREE.Mesh(new THREE.BoxGeometry(0.86, 2.58, 0.06), faces), pR = pL.clone();
+        pL.position.set(-0.43, 1.3, -0.3); pR.position.set(0.43, 1.3, -0.3); g.add(pL); g.add(pR);
+        // blade sign: readable from far down the hall, both directions
+        var sign = plate(d.name.length === 2 ? [d.name.join(' ')] : d.name, 512, 128, null);
+        var sm = new THREE.MeshBasicMaterial({ map: sign, fog: false, toneMapped: false, color: 0xe8e0d0 });
+        if (!d.end) {
+          [90, -90].forEach(function (ry) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.23), sm); m.rotation.y = ry * Math.PI / 180; m.position.set(ry > 0 ? 0.012 : -0.012, 3.12, 0.5); g.add(m); });
+          var bar = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.9), trimM); bar.position.set(0, 3.3, 0.45); g.add(bar);
+          [-0.4, 0.4].forEach(function (zz) { var cord = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.1, 0.012), trimM); cord.position.set(0, 3.25, 0.5 + zz * 0.0); }); // (kept simple: plate hangs on the bar)
+          // flat plaque beside the frame
+          var pq = new THREE.Mesh(new THREE.PlaneGeometry(0.84, 0.46), new THREE.MeshBasicMaterial({ map: plate(d.name, 400, 220, null), fog: false, toneMapped: false, color: 0xdcd2c0 }));
+          pq.position.set(ALONG[d.W] * 1.4, 1.64, 0.04); g.add(pq);
         } else {
-          showPrompt(`${room.toUpperCase()} — UNDER CONSTRUCTION`, cfg.color);
-          setTimeout(hidePrompt, 2200);
+          var hs = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.4), new THREE.MeshBasicMaterial({ map: plate([d.one], 680, 160, d.sub || null), fog: false, toneMapped: false, color: 0xe8e0d0 }));
+          hs.position.set(0, 3.1, 0.045); g.add(hs);
         }
+        // OPEN button: illuminated face + soft glow, with a generous invisible finger target (the entity's own mesh, so taps resolve to it)
+        var ent = document.createElement('a-entity');
+        var bxp = ALONG[d.W] * (d.end ? 1.55 : 1.4), byp = 1.06;
+        var faceTex = { open: buttonFace('open'), close: buttonFace('close'), press: buttonFace('press') };
+        var holder = new THREE.Mesh(new THREE.CircleGeometry(0.3, 20), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+        holder.position.set(bxp, byp, 0.07);
+        var face = new THREE.Mesh(new THREE.CircleGeometry(0.1, 32), new THREE.MeshBasicMaterial({ map: faceTex.open, toneMapped: false, fog: false })); face.position.z = -0.006;
+        var glow = new THREE.Mesh(new THREE.CircleGeometry(0.24, 32), new THREE.MeshBasicMaterial({ map: dotTexture(), color: 0xff9a2e, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); glow.position.z = -0.012;
+        holder.add(glow); holder.add(face);
+        ent.setObject3D('mesh', holder);
+        ent.setAttribute('class', 'interactive clickable'); sc.appendChild(ent);
+        ent.addEventListener('loaded', function () { g.add(ent.object3D); });          // ride along with the door group's orientation
+        var door = { d: d, W: W, g: g, pL: pL, pR: pR, p: 0, target: 0, openAt: 0, face: face, faceTex: faceTex, holder: holder, flash: 0, c: d.c, s: s, ent: ent, glow: glow };
+        function press() {
+          door.flash = 0.22; face.material.map = faceTex.press;
+          if (door.target === 0) { door.target = 1; door.openAt = performance.now(); beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); say('OPENING — ' + d.one); }
+          else { door.target = 0; beep(520, 0.12, 'triangle'); say('CLOSING — ' + d.one); }
+        }
+        ent.addEventListener('click', press);
+        state.doors.push(door);
       });
+      setTimeout(function () { var rc = sc.components.raycaster; if (rc) rc.refreshObjects(); }, 300);
+    }
+
+    // ───────────────────────────── exterior: hull, planet, stars ─────────────────────────────
+    function buildHull(root) {
+      var tex = hullTexture(); tex.anisotropy = 4;
+      [-1, 1].forEach(function (s) {
+        var segs = 10, pos = [], uvs = [], col = [], idx = [], z0 = -15, z1 = 15, i;
+        for (i = 0; i <= segs; i++) {
+          var dx = i / segs * 7, x = 3.0 + dx, y = 0.9 - 0.09 * Math.pow(dx, 1.5), shade = 1 - 0.65 * (i / segs);
+          [z0, z1].forEach(function (z) { pos.push(s * x, y, z); uvs.push(z / 3, dx / 3); col.push(shade, shade, shade * 1.04); });
+        }
+        for (i = 0; i < segs; i++) { var a = i * 2, b = a + 1, c = a + 2, d = a + 3; if (s > 0) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
+        var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, side: THREE.DoubleSide, fog: false })); root.add(m);
+        // a few fins / antennae so the hull reads as hull, not a ramp
+        var fm = new THREE.MeshBasicMaterial({ color: 0x5f574d, fog: false });
+        [[-9, 4.2], [-2.5, 5.5], [5, 4.0], [11, 5.2]].forEach(function (p) { var dxx = p[1] - 3, yy = 0.9 - 0.09 * Math.pow(dxx, 1.5); var b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 1.4), fm); b.position.set(s * p[1], yy + 0.35, p[0]); root.add(b);
+          var a = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 1.8, 6), fm); a.position.set(s * p[1], yy + 1.4, p[0] + 0.3); root.add(a); });
+        var nav = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshBasicMaterial({ color: s > 0 ? 0x33ff77 : 0xff3a3a, fog: false })); nav.position.set(s * 9.2, -0.5, 14); root.add(nav); state.hullLights.push(nav);
+      });
+    }
+    function buildSky(root) {
+      var PR = Math.min(2, window.devicePixelRatio || 1), R = 900, r = rng(77), dot = dotTexture();
+      function starSet(n, size, colFn, op) {
+        var pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+        for (var i = 0; i < n; i++) { var y = r() * 2 - 1, ph = r() * 6.2832, rr = Math.sqrt(1 - y * y), c = colFn(); pos[i * 3] = R * rr * Math.cos(ph); pos[i * 3 + 1] = R * y; pos[i * 3 + 2] = R * rr * Math.sin(ph); col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2]; }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        var p = new THREE.Points(g, new THREE.PointsMaterial({ map: dot, alphaTest: 0.01, size: size * PR * 1.8, sizeAttenuation: false, vertexColors: true, fog: false, toneMapped: false, transparent: true, opacity: op, depthWrite: false }));
+        p.frustumCulled = false; p.renderOrder = -10; root.add(p);
+      }
+      starSet(MOB ? 2200 : 4200, 1.0, function () { var b = 0.25 + r() * 0.4; return [b, b * 0.92, b * 1.05]; }, 0.95);
+      starSet(MOB ? 260 : 500, 1.5, function () { var b = 0.55 + r() * 0.3; return [b * 0.9, b * 0.94, b]; }, 0.95);
+      starSet(MOB ? 14 : 24, 3.2, function () { return [0.72, 0.84, 1]; }, 1); starSet(MOB ? 9 : 16, 3.0, function () { return [1, 0.8, 0.55]; }, 1);
+      // the planet — far away, so every near window frame passes in front of the same disc
+      var sun = new THREE.Vector3(-0.35, 0.45, 0.82).normalize(), tex = planetTexture();
+      var pm = new THREE.Mesh(new THREE.SphereGeometry(190, 64, 40), new THREE.ShaderMaterial({
+        uniforms: { map: { value: tex }, sun: { value: sun } },
+        vertexShader: 'varying vec3 vN, vW; varying vec2 vUv; void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: 'uniform sampler2D map; uniform vec3 sun; varying vec3 vN, vW; varying vec2 vUv; void main(){ vec3 N = normalize(vN), V = normalize(cameraPosition - vW); float d = dot(N, sun); float lit = smoothstep(-0.12, 0.4, d);' +
+          ' vec3 col = texture2D(map, vUv).rgb * mix(0.035, 1.12, lit); float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0); col += vec3(0.28, 0.55, 1.0) * rim * (0.25 + 1.3 * smoothstep(-0.35, 0.6, d)); gl_FragColor = vec4(col, 1.0); }',
+        fog: false }));
+      pm.position.set(420, -110, -120); root.add(pm);
+      var halo = new THREE.Mesh(new THREE.SphereGeometry(190 * 1.045, 48, 32), new THREE.ShaderMaterial({
+        transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
+        vertexShader: 'varying vec3 vNv; void main(){ vNv = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: 'varying vec3 vNv; void main(){ float i = pow(max(0.62 - dot(vNv, vec3(0.0, 0.0, 1.0)), 0.0), 3.0); gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * i * 1.6; }', fog: false }));
+      halo.position.copy(pm.position); root.add(halo);
+      // a small cool-white sun off the port side
+      var sn = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0xe8f0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false })); sn.scale.set(90, 90, 1); sn.position.set(-640, 160, -260); sn.renderOrder = -9; root.add(sn);
+    }
+
+    // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
+    var navigating = false, fade = document.getElementById('wf-fade');
+    function goto(d) { if (navigating) return; navigating = true; fade.style.transition = 'opacity .25s'; fade.style.opacity = '1'; setTimeout(function () { window.location.href = d.page; }, 260); }
+    AFRAME.registerComponent('wf-corr', {
+      init: function () { this.cam = document.getElementById('cam'); this.t0 = 0; var self = this; if (sc.hasLoaded) this.start(); else sc.addEventListener('loaded', function () { self.start(); }); },
+      start: function () { build(); applySpawn(); },
+      tick: function (t, dt) {
+        if (!state.doors.length) return;
+        var s = Math.min(dt, 50) / 1000, p = this.cam.object3D.position, now = performance.now();
+        // blink nav lights
+        state.hullLights.forEach(function (l, i) { l.visible = ((t / 1000 + i * 0.7) % 2) < 0.2; });
+        // door animation + auto-close
+        var lim = { xm: 2.15, xp: 2.15, zm: 12.15, zp: 12.15 };
+        state.doors.forEach(function (D) {
+          var W = D.W, along = W.axis === 'x' ? p.z : p.x, depthPos = W.axis === 'x' ? W.s * p.x : W.s * p.z;     // depthPos: how far into the wall plane (2.5 = at the face)
+          var inLane = Math.abs(along - D.c) < 0.6;
+          if (D.target === 1 && now - D.openAt > 8000 && !(inLane && depthPos > 1.9)) { D.target = 0; D.openAt = 0; }
+          D.p += (D.target - D.p) * Math.min(1, s * 5.5); if (Math.abs(D.target - D.p) < 0.002) D.p = D.target;
+          var off = D.p * 0.86; D.pL.position.x = -0.43 - off; D.pR.position.x = 0.43 + off;
+          var open = D.p > 0.92, base = W.axis === 'x' ? 2.15 : 12.15;
+          if (open && (inLane || depthPos > base)) {                    // an open doorway: let the player into the niche, kept inside the opening's width
+            if (W.axis === 'x') { if (W.s > 0) lim.xp = 2.95; else lim.xm = 2.95; } else { if (W.s > 0) lim.zp = 12.95; else lim.zm = 12.95; }
+          }
+          // face: flash on press, then settle on OPEN / CLOSE
+          if (D.flash > 0) { D.flash -= s; if (D.flash <= 0) D.face.material.map = D.target ? D.faceTex.close : D.faceTex.open; }
+          else { var want = D.target ? D.faceTex.close : D.faceTex.open; if (D.face.material.map !== want) D.face.material.map = want; }
+          D.glow.material.opacity = 0.42 + 0.14 * Math.sin(t / 420) + (D.flash > 0 ? 0.4 : 0);
+          D.face.scale.setScalar(D.flash > 0 ? 0.86 : 1);
+        });
+        // walls: clamp, then keep the player inside an open doorway's width
+        p.x = Math.max(-lim.xm, Math.min(lim.xp, p.x)); p.z = Math.max(-lim.zm, Math.min(lim.zp, p.z));
+        state.doors.forEach(function (D) {
+          var W = D.W; if (D.p <= 0.92) return;
+          var depthPos = W.axis === 'x' ? W.s * p.x : W.s * p.z, base = W.axis === 'x' ? 2.15 : 12.15;
+          if (depthPos > base + 0.01) {
+            if (W.axis === 'x') p.z = Math.max(D.c - 0.6, Math.min(D.c + 0.6, p.z)); else p.x = Math.max(D.c - 0.6, Math.min(D.c + 0.6, p.x));
+            if (depthPos > base + 0.7) goto(D.d);                       // stepped through
+          }
+        });
+      }
     });
+
+    // ───────────────────────────── spawn: one step outside the doorway you came out of ─────────────────────────────
+    var wrap = function (a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+    function fromRoom() {
+      try {
+        var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        if (nav && nav.type !== 'navigate') return null;                // reload / back-forward: don't re-place the player
+        var ref = document.referrer || ''; if (!ref || ref.indexOf(location.host) < 0) return null;
+        var m = ref.split('?')[0].split('#')[0].split('/').pop();
+        var hit = DOORS.filter(function (d) { return d.page === m; })[0]; return hit ? hit.id : null;
+      } catch (e) { return null; }
+    }
+    function applySpawn() {
+      var from = fromRoom(), sp = (from && SPAWN[from]) || DEFAULT_SPAWN, cam = document.getElementById('cam'), want = sp.yaw * Math.PI / 180;
+      var player = document.getElementById('player'); player.object3D.rotation.set(0, 0, 0);          // rig heading (kept at 0: the camera carries the heading, so movement stays aligned)
+      cam.setAttribute('position', { x: sp.x, y: 1.6, z: sp.z }); cam.object3D.position.set(sp.x, 1.6, sp.z);
+      var lc = cam.components['look-controls'], dir = new THREE.Vector3(), frames = 0, settled = 0, t0 = performance.now(), done = false;
+      function align() {
+        if (!lc || !lc.yawObject) return 1;
+        lc.pitchObject.rotation.x = 0;
+        cam.object3D.updateMatrixWorld(true); cam.object3D.getWorldDirection(dir);
+        var cur = Math.atan2(-dir.x, -dir.z), diff = wrap(want - cur);          // actual heading of the view (gyro included) vs wanted
+        if (Math.abs(diff) > 0.005) lc.yawObject.rotation.y += diff;
+        return Math.abs(diff);
+      }
+      function step() {
+        var e = 0; if (frames % 3 === 0) { e = align(); settled = e < 0.02 ? settled + 1 : 0; } frames++;
+        var late = performance.now() - t0;
+        if (!done && (settled >= 3 && late > 250 || late > 1500)) { done = true; fade.style.transition = 'opacity .35s'; fade.style.opacity = '0'; }
+        if (late < 2500) requestAnimationFrame(step);
+      }
+      window.addEventListener('deviceorientation', function once() { window.removeEventListener('deviceorientation', once); var n = 0; (function k() { if (n % 3 === 0) align(); if (++n < 30) requestAnimationFrame(k); })(); });
+      step();
+    }
+  }());
   </script>
 </body>
 </html>
