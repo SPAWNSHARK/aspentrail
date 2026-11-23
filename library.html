@@ -80,9 +80,9 @@
   </div>
 
   <a-scene
-    fog="type: exponential; color: #000208; density: 0.018"
+    fog="type: exponential; color: #04060f; density: 0.011"
     vr-mode-ui="enabled: true"
-    renderer="antialias: true; colorManagement: true">
+    renderer="antialias: true">
 
     <!-- ======================================================
          SPACE ENVIRONMENT (through glass ceiling)
@@ -107,43 +107,53 @@
 
     <!-- ======================================================
          ROOM SHELL
+         Wall / floor / shelf textures are generated in textures.js and
+         applied in the script at the bottom (data URLs can't live in
+         A-Frame's semicolon-separated attribute strings).
     ====================================================== -->
 
-    <!-- GLASS FLOOR — walk on it, see brain below -->
-    <a-circle position="0 0 0" rotation="-90 0 0" radius="11"
-      material="color: #0a1828; opacity: 0.22; transparent: true; roughness: 0; metalness: 0.95">
+    <!-- GLASS FLOOR (centre) — walk on it, see the brain below -->
+    <a-circle id="glass-floor" position="0 0 0" rotation="-90 0 0" radius="7.6" segments="64"
+      material="color: #1c3d38; opacity: 0.16; transparent: true; roughness: 0.05; metalness: 0.3">
     </a-circle>
+    <!-- engraved rings in the glass -->
+    <a-torus position="0 0.006" rotation="-90 0 0" radius="2.4" radius-tubular="0.012" segments-tubular="64" segments-radial="6"
+      material="color: #0a2a22; emissive: #19e3a4; emissiveIntensity: 0.9; shader: standard"></a-torus>
+    <a-torus position="0 0.006" rotation="-90 0 0" radius="4.6" radius-tubular="0.012" segments-tubular="96" segments-radial="6"
+      material="color: #0a2a22; emissive: #19e3a4; emissiveIntensity: 0.7"></a-torus>
+    <a-torus position="0 0.006" rotation="-90 0 0" radius="6.6" radius-tubular="0.012" segments-tubular="128" segments-radial="6"
+      material="color: #0a2a22; emissive: #19e3a4; emissiveIntensity: 0.5"></a-torus>
+    <!-- bezel around the glass -->
+    <a-torus position="0 0.03 0" rotation="-90 0 0" radius="7.62" radius-tubular="0.05" segments-tubular="128" segments-radial="8"
+      material="color: #3a3228; emissive: #1affb4; emissiveIntensity: 0.3; roughness: 0.4; metalness: 0.3"></a-torus>
 
-    <!-- GLASS CEILING — look up, see space -->
-    <a-circle position="0 5 0" rotation="90 0 0" radius="11"
-      material="color: #060a16; opacity: 0.18; transparent: true; roughness: 0; metalness: 0.9">
+    <!-- SOLID DECK RING (glass edge → wall) -->
+    <a-ring id="deck-ring" position="0 0.002 0" rotation="-90 0 0" radius-inner="7.6" radius-outer="11" segments-theta="96"
+      material="color: #ffffff; roughness: 0.5; metalness: 0.2">
+    </a-ring>
+
+    <!-- GLASS CEILING (centre) — look up, see space -->
+    <a-circle position="0 5 0" rotation="90 0 0" radius="7.6" segments="64"
+      material="color: #0b1530; opacity: 0.10; transparent: true; roughness: 0.05; metalness: 0.5">
     </a-circle>
+    <!-- CEILING RING (structure around the skylight) -->
+    <a-ring id="ceil-ring" position="0 5 0" rotation="90 0 0" radius-inner="7.6" radius-outer="11" segments-theta="96"
+      material="color: #8a8aa0; roughness: 0.7; metalness: 0.2; side: double">
+    </a-ring>
+    <a-torus position="0 4.97 0" rotation="-90 0 0" radius="7.62" radius-tubular="0.045" segments-tubular="128" segments-radial="8"
+      material="color: #2c2a33; emissive: #6fa8ff; emissiveIntensity: 0.85; roughness: 0.4"></a-torus>
+    <a-torus position="0 4.9 0" rotation="-90 0 0" radius="9.4" radius-tubular="0.03" segments-tubular="128" segments-radial="6"
+      material="color: #2c2a33; emissive: #6fa8ff; emissiveIntensity: 0.9"></a-torus>
 
-    <!-- Outer floor ring (solid edge around glass) -->
-    <a-torus position="0 0.01 0" rotation="-90 0 0" radius="10.8" tube="0.22"
-      color="#080908" emissive="#003322" emissive-intensity="0.3">
-    </a-torus>
-
-    <!-- Ceiling ring -->
-    <a-torus position="0 5 0" rotation="-90 0 0" radius="10.8" tube="0.22"
-      color="#080908" emissive="#0011aa" emissive-intensity="0.2">
-    </a-torus>
-
-    <!-- Curved walls — metal panels applied via JS -->
-    <a-cylinder id="lib-walls" position="0 2.5 0" radius="11" height="5" open-ended="true"
-      material="side: back; color: #07090a; roughness: 0.96; metalness: 0.05">
+    <!-- CURVED WALLS — plated texture applied in script -->
+    <a-cylinder id="lib-walls" position="0 2.5 0" radius="11" height="5" open-ended="true" segments-radial="72"
+      material="side: back; color: #6a6258; roughness: 0.7; metalness: 0.1">
     </a-cylinder>
-
-    <!-- Structural ribs on wall -->
-    <a-torus position="0 0.9 0" rotation="-90 0 0" radius="10.95" tube="0.06"
-      color="#0a0e0a" emissive="#003318" emissive-intensity="0.2">
-    </a-torus>
-    <a-torus position="0 2.5 0" rotation="-90 0 0" radius="10.95" tube="0.06"
-      color="#0a0e0a" emissive="#001133" emissive-intensity="0.15">
-    </a-torus>
-    <a-torus position="0 4.1 0" rotation="-90 0 0" radius="10.95" tube="0.06"
-      color="#0a0e0a" emissive="#001133" emissive-intensity="0.15">
-    </a-torus>
+    <!-- wall top / base trim -->
+    <a-torus position="0 4.96 0" rotation="-90 0 0" radius="10.95" radius-tubular="0.07" segments-tubular="128" segments-radial="6"
+      material="color: #1a1712; roughness: 0.6"></a-torus>
+    <a-torus position="0 0.05 0" rotation="-90 0 0" radius="10.9" radius-tubular="0.08" segments-tubular="128" segments-radial="6"
+      material="color: #1a1712; roughness: 0.6"></a-torus>
 
     <!-- ======================================================
          BRAIN IN ELECTROGEL (below glass floor)
@@ -159,140 +169,74 @@
     </a-circle>
 
     <!-- LEFT HEMISPHERE -->
-    <a-sphere position="-1.5 -8.5 -0.5" radius="3.4"
+    <a-sphere class="brain-part" position="-1.5 -8.5 -0.5" radius="3.4"
       material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
       animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine">
     </a-sphere>
     <!-- Left hemisphere surface bumps (gyri) -->
-    <a-sphere position="-3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere position="-2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere position="-1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
-    <a-sphere position="-3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="-3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="-2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="-1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="-3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
 
     <!-- RIGHT HEMISPHERE -->
-    <a-sphere position="1.5 -8.5 -0.5" radius="3.4"
+    <a-sphere class="brain-part" position="1.5 -8.5 -0.5" radius="3.4"
       material="color: #0a2215; emissive: #00aa66; emissiveIntensity: 0.4; roughness: 0.85"
       animation="property: scale; to: 1.018 1.018 1.018; from: 0.982 0.982 0.982; loop: true; dur: 3600; dir: alternate; easing: easeInOutSine">
     </a-sphere>
     <!-- Right gyri -->
-    <a-sphere position="3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere position="2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
-    <a-sphere position="1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
-    <a-sphere position="3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="3.2 -6.5 0.5"  radius="1.1" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="2.8 -8.0 2.0"  radius="0.9" material="color: #0c2818; emissive: #00bb77; emissiveIntensity: 0.35; roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="1.8 -6.0 -1.5" radius="0.8" material="color: #0d2a1a; emissive: #00cc88; emissiveIntensity: 0.3;  roughness: 0.9"></a-sphere>
+    <a-sphere class="brain-part" position="3.5 -9.5 -1.0" radius="1.0" material="color: #0b2418; emissive: #00aa66; emissiveIntensity: 0.4;  roughness: 0.9"></a-sphere>
 
     <!-- CEREBELLUM (back, lower) -->
-    <a-sphere position="0 -11 -2.5" radius="1.8"
+    <a-sphere class="brain-part" position="0 -11 -2.5" radius="1.8"
       material="color: #092015; emissive: #009955; emissiveIntensity: 0.45; roughness: 0.85"
       animation="property: scale; to: 1.015 1.015 1.015; from: 0.985 0.985 0.985; loop: true; dur: 2800; dir: alternate; easing: easeInOutSine">
     </a-sphere>
 
     <!-- BRAINSTEM (connecting down) -->
-    <a-cylinder position="0 -13.5 -1.5" radius="0.65" height="3.5"
+    <a-cylinder class="brain-part" position="0 -13.5 -1.5" radius="0.65" height="3.5"
       rotation="10 0 0"
       material="color: #082012; emissive: #007744; emissiveIntensity: 0.35; roughness: 0.9">
     </a-cylinder>
 
     <!-- CORPUS CALLOSUM ridge (between hemispheres) -->
-    <a-sphere position="0 -7.2 0" radius="1.2"
+    <a-sphere class="brain-part" position="0 -7.2 0" radius="1.2"
       material="color: #0e2e1a; emissive: #00dd88; emissiveIntensity: 0.5; roughness: 0.8">
     </a-sphere>
 
-    <!-- ELECTROGEL GLOW LIGHTS -->
-    <a-light type="point" position="0   -4  0"   color="#00ffaa" intensity="2.0" distance="14" decay="2"></a-light>
-    <a-light type="point" position="-4  -8  2"   color="#00cc88" intensity="1.2" distance="9"  decay="2"></a-light>
-    <a-light type="point" position="4   -8  -2"  color="#00dd99" intensity="1.2" distance="9"  decay="2"></a-light>
-    <a-light type="point" position="0   -12 0"   color="#009955" intensity="1.0" distance="8"  decay="2"></a-light>
-    <a-light type="point" position="0   -6  3"   color="#00ffbb" intensity="0.8" distance="7"  decay="2"></a-light>
+    <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
+    <a-light type="point" position="0  -4  0"  color="#00ffaa" intensity="1.6" distance="14" decay="2"></a-light>
+    <a-light type="point" position="-4 -8  2"  color="#00cc88" intensity="1.0" distance="9"  decay="2"></a-light>
 
     <!-- ======================================================
          ROOM LIGHTING
+         (A-Frame 1.5 uses legacy light units: intensity is multiplied by PI
+          internally and point lights fall off to zero at `distance`.)
     ====================================================== -->
 
-    <!-- Very dim ambient -->
-    <a-light type="ambient" color="#06100e" intensity="0.4"></a-light>
+    <!-- Cool fill + sky/ground bounce so nothing is ever pure black -->
+    <a-light type="ambient" color="#b3a592" intensity="0.38"></a-light>
+    <a-light type="hemisphere" color="#7d92e0" groundColor="#5a3a1c" intensity="0.5"></a-light>
 
-    <!-- Blue wash from above (starlight through ceiling) -->
-    <a-light type="point" position="0 4.8 0" color="#050a22" intensity="1.5" distance="12" decay="2"></a-light>
+    <!-- Starlight through the skylight -->
+    <a-light type="directional" color="#9db4ff" intensity="0.35" position="2 10 3"></a-light>
 
-    <!-- Electrogel uplighting through glass floor -->
-    <a-light type="point" position="0 0.1 0" color="#00ffaa" intensity="1.8" distance="9" decay="2"></a-light>
-    <a-light type="point" position="-4 0.1 0" color="#00cc88" intensity="0.8" distance="6" decay="2"></a-light>
-    <a-light type="point" position="4  0.1 0" color="#00cc88" intensity="0.8" distance="6" decay="2"></a-light>
+    <!-- Electrogel glow rising through the glass floor, washing the lower walls -->
+    <a-light type="point" position="0 -0.6 0" color="#22ffb0" intensity="0.95" distance="15" decay="1.6"></a-light>
 
-    <!-- Warm sconce reading lights by bookshelves -->
-    <a-light type="point" position="0  2.5 -9.5" color="#331a06" intensity="1.0" distance="5" decay="2"></a-light>
-    <a-light type="point" position="-7 2.5 -6.5" color="#2a1606" intensity="0.8" distance="5" decay="2"></a-light>
-    <a-light type="point" position="7  2.5 -6.5" color="#2a1606" intensity="0.8" distance="5" decay="2"></a-light>
+    <!-- Warm downlights on the ceiling ring (floor + shelf tops) -->
+    <a-light type="point" position="0 4.6 8.5" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light type="point" position="-7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
+    <a-light type="point" position="7.4 4.6 -4.25" color="#ffe0b8" intensity="1.0" distance="11" decay="2"></a-light>
 
-    <!-- ======================================================
-         BOOKSHELVES (5 units around back wall arc)
-    ====================================================== -->
+    <!-- Wall sconces + bookcases are generated in the script (see buildSconces / buildBookcases) -->
 
-    <!-- Shelf 1: Center back (z=-9.8, facing +Z) -->
-    <a-entity position="0 0 -9.5" rotation="0 0 0">
-      <a-box position="0 2.0 0"   width="3.5" height="4.0" depth="0.18" color="#080706"></a-box>
-      <a-box position="0 0.7 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
-      <a-box position="0 2.0 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
-      <a-box position="0 3.3 0.1" width="3.3" height="0.06" depth="0.38" color="#0e0c07"></a-box>
-      <!-- Books row 1 -->
-      <a-box position="-1.3 1.18 0.12" width="0.18" height="0.44" depth="0.3" color="#1a0a04" emissive="#331100" emissive-intensity="0.15"></a-box>
-      <a-box position="-1.0 1.18 0.12" width="0.15" height="0.38" depth="0.3" color="#0a1a0a" emissive="#0a1a0a" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.8 1.18 0.12" width="0.18" height="0.42" depth="0.3" color="#1a1204" emissive="#221a00" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.5 1.18 0.12" width="0.14" height="0.36" depth="0.3" color="#0a0a1a" emissive="#000033" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.3 1.18 0.12" width="0.2"  height="0.45" depth="0.3" color="#1a0808" emissive="#220000" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.0 1.18 0.12" width="0.16" height="0.4"  depth="0.3" color="#1a1a08" emissive="#222200" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.2 1.18 0.12" width="0.19" height="0.43" depth="0.3" color="#081a10" emissive="#001a08" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.5 1.18 0.12" width="0.17" height="0.38" depth="0.3" color="#120a1a" emissive="#110022" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.7 1.18 0.12" width="0.2"  height="0.44" depth="0.3" color="#1a0a04" emissive="#221100" emissive-intensity="0.1"></a-box>
-      <a-box position=" 1.0 1.18 0.12" width="0.15" height="0.4"  depth="0.3" color="#08100a" emissive="#081200" emissive-intensity="0.1"></a-box>
-      <a-box position=" 1.3 1.18 0.12" width="0.18" height="0.42" depth="0.3" color="#1a0a0a" emissive="#220808" emissive-intensity="0.1"></a-box>
-      <!-- Books row 2 -->
-      <a-box position="-1.2 2.48 0.12" width="0.19" height="0.42" depth="0.3" color="#0a1a0a" emissive="#0a2200" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.9 2.48 0.12" width="0.16" height="0.38" depth="0.3" color="#1a0a0a" emissive="#220000" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.6 2.48 0.12" width="0.2"  height="0.44" depth="0.3" color="#1a1208" emissive="#221800" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.3 2.48 0.12" width="0.15" height="0.36" depth="0.3" color="#08081a" emissive="#000022" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.0 2.48 0.12" width="0.18" height="0.42" depth="0.3" color="#1a0804" emissive="#220800" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.3 2.48 0.12" width="0.17" height="0.4"  depth="0.3" color="#061814" emissive="#001a10" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.6 2.48 0.12" width="0.2"  height="0.44" depth="0.3" color="#180a14" emissive="#200010" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.9 2.48 0.12" width="0.16" height="0.38" depth="0.3" color="#1a1006" emissive="#221400" emissive-intensity="0.1"></a-box>
-      <a-box position=" 1.2 2.48 0.12" width="0.19" height="0.43" depth="0.3" color="#0a0a18" emissive="#000018" emissive-intensity="0.1"></a-box>
-      <!-- Books row 3 -->
-      <a-box position="-1.1 3.75 0.12" width="0.2"  height="0.42" depth="0.3" color="#1a1006" emissive="#221400" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.8 3.75 0.12" width="0.16" height="0.36" depth="0.3" color="#0a1a0a" emissive="#0a2200" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.5 3.75 0.12" width="0.19" height="0.44" depth="0.3" color="#1a0606" emissive="#220000" emissive-intensity="0.1"></a-box>
-      <a-box position="-0.2 3.75 0.12" width="0.17" height="0.4"  depth="0.3" color="#08081a" emissive="#000022" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.1 3.75 0.12" width="0.2"  height="0.43" depth="0.3" color="#1a1208" emissive="#221a00" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.5 3.75 0.12" width="0.16" height="0.38" depth="0.3" color="#061814" emissive="#001a10" emissive-intensity="0.1"></a-box>
-      <a-box position=" 0.8 3.75 0.12" width="0.19" height="0.42" depth="0.3" color="#14060a" emissive="#180008" emissive-intensity="0.1"></a-box>
-      <a-box position=" 1.1 3.75 0.12" width="0.18" height="0.4"  depth="0.3" color="#1a0a04" emissive="#221200" emissive-intensity="0.1"></a-box>
-    </a-entity>
-
-    <!-- Shelf 2: Left-back (rotation ~38°) -->
-    <a-entity position="-6 0 -7.5" rotation="0 38 0">
-      <a-box position="0 2.0 0"   width="3.0" height="4.0" depth="0.18" color="#080706"></a-box>
-      <a-box position="0 0.7 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <a-box position="0 2.0 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <a-box position="0 3.3 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <!-- Simplified books -->
-      <a-box position="-0.9 1.18 0.12" width="1.6" height="0.4" depth="0.28" color="#100a06" emissive="#221000" emissive-intensity="0.08"></a-box>
-      <a-box position=" 0.5 1.22 0.12" width="0.9" height="0.44" depth="0.28" color="#0a100a" emissive="#0a1800" emissive-intensity="0.08"></a-box>
-      <a-box position="-0.6 2.48 0.12" width="1.1" height="0.42" depth="0.28" color="#080818" emissive="#000020" emissive-intensity="0.08"></a-box>
-      <a-box position=" 0.6 2.44 0.12" width="1.4" height="0.38" depth="0.28" color="#180808" emissive="#200000" emissive-intensity="0.08"></a-box>
-      <a-box position="0   3.75 0.12" width="2.4" height="0.41" depth="0.28" color="#101006" emissive="#181800" emissive-intensity="0.08"></a-box>
-    </a-entity>
-
-    <!-- Shelf 3: Right-back (rotation ~-38°) -->
-    <a-entity position="6 0 -7.5" rotation="0 -38 0">
-      <a-box position="0 2.0 0"   width="3.0" height="4.0" depth="0.18" color="#080706"></a-box>
-      <a-box position="0 0.7 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <a-box position="0 2.0 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <a-box position="0 3.3 0.1" width="2.8" height="0.06" depth="0.35" color="#0e0c07"></a-box>
-      <a-box position="-0.7 1.18 0.12" width="1.2" height="0.43" depth="0.28" color="#0a1a06" emissive="#0a1800" emissive-intensity="0.08"></a-box>
-      <a-box position=" 0.6 1.22 0.12" width="1.3" height="0.39" depth="0.28" color="#1a0a0a" emissive="#220000" emissive-intensity="0.08"></a-box>
-      <a-box position="-0.4 2.48 0.12" width="1.8" height="0.42" depth="0.28" color="#08081a" emissive="#000022" emissive-intensity="0.08"></a-box>
-      <a-box position=" 0.7 2.44 0.12" width="0.8" height="0.38" depth="0.28" color="#181408" emissive="#201800" emissive-intensity="0.08"></a-box>
-      <a-box position="0   3.75 0.12" width="2.4" height="0.41" depth="0.28" color="#061418" emissive="#001820" emissive-intensity="0.08"></a-box>
-    </a-entity>
+    <!-- BOOKCASES: generated by buildBookcases() in the script -->
+    <a-entity id="bookcases"></a-entity>
+    <a-entity id="sconces"></a-entity>
 
     <!-- ======================================================
          INTERACTIVE SCROLLS — pickup objects on pedestals
@@ -303,11 +247,22 @@
       position="-2.5 0 1.5"
       data-title="SECOND BRAIN — INDEX"
       data-body="Your Obsidian vault lives here.\n\nMarkdown files will appear as physical scrolls once loaded.\nDrag your .md files into the repo and they will populate this room.\n\n[ PENDING: OBSIDIAN VAULT IMPORT ]">
-      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
-      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
-      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+      <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-torus position="0 0.21 0" rotation="-90 0 0" radius="0.3" radius-tubular="0.012" segments-tubular="32" segments-radial="6"
+        material="color: #3a1d06; emissive: #ffa43c; emissiveIntensity: 1.4"></a-torus>
+      <a-entity position="0 1.12 0"
+        animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"
+        animation__spin="property: rotation; to: 0 360 0; loop: true; dur: 16000; easing: linear">
+        <a-cylinder rotation="0 0 90" radius="0.1" height="0.46" color="#dcc08a" roughness="0.85"
+          material="emissive: #7a4a14; emissiveIntensity: 0.55"></a-cylinder>
+        <a-cylinder position="-0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+      </a-entity>
     </a-entity>
 
     <!-- SCROLL 2: Sons of Naphtali -->
@@ -315,11 +270,22 @@
       position="2.5 0 1.5"
       data-title="THE SONS OF NAPHTALI — BOOK I"
       data-body="Genetics, haplogroups, and the genetic trail of the tribe of Naphtali.\n\nBook 1 scope: comprehensive. Chapter structure in progress.\n\n[ PENDING: MANUSCRIPT FILES ]">
-      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
-      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
-      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+      <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-torus position="0 0.21 0" rotation="-90 0 0" radius="0.3" radius-tubular="0.012" segments-tubular="32" segments-radial="6"
+        material="color: #3a1d06; emissive: #ffa43c; emissiveIntensity: 1.4"></a-torus>
+      <a-entity position="0 1.12 0"
+        animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"
+        animation__spin="property: rotation; to: 0 360 0; loop: true; dur: 16000; easing: linear">
+        <a-cylinder rotation="0 0 90" radius="0.1" height="0.46" color="#dcc08a" roughness="0.85"
+          material="emissive: #7a4a14; emissiveIntensity: 0.55"></a-cylinder>
+        <a-cylinder position="-0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+      </a-entity>
     </a-entity>
 
     <!-- SCROLL 3: Haplogroups -->
@@ -327,11 +293,22 @@
       position="-2.5 0 -2"
       data-title="JEWISH GENETIC HAPLOGROUPS — BOOK II"
       data-body="Spun off from Book I when the scope became too large to contain.\n\nFocuses on haplogroup distribution, migration patterns, and genetic markers across Jewish diaspora populations.\n\n[ PENDING: RESEARCH FILES ]">
-      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
-      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
-      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+      <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-torus position="0 0.21 0" rotation="-90 0 0" radius="0.3" radius-tubular="0.012" segments-tubular="32" segments-radial="6"
+        material="color: #3a1d06; emissive: #ffa43c; emissiveIntensity: 1.4"></a-torus>
+      <a-entity position="0 1.12 0"
+        animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"
+        animation__spin="property: rotation; to: 0 360 0; loop: true; dur: 16000; easing: linear">
+        <a-cylinder rotation="0 0 90" radius="0.1" height="0.46" color="#dcc08a" roughness="0.85"
+          material="emissive: #7a4a14; emissiveIntensity: 0.55"></a-cylinder>
+        <a-cylinder position="-0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+      </a-entity>
     </a-entity>
 
     <!-- SCROLL 4: Daily notes -->
@@ -339,11 +316,22 @@
       position="2.5 0 -2"
       data-title="DAILY NOTES — ACTIVE VAULT"
       data-body="Neurodivergent idea capture. All the little things.\n\nEvery idea that lands here gets a home. Nothing lost.\n\n[ PENDING: DAILY NOTE FILES ]">
-      <a-box position="0 0.55 0" width="0.12" height="0.55" depth="0.12" color="#1a1006" roughness="0.9"></a-box>
-      <a-cylinder position="0 0.92 0" radius="0.11" height="0.32" color="#2a1a08" emissive="#331500" emissive-intensity="0.3" roughness="0.85"></a-cylinder>
-      <a-cylinder position="0 1.10 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-cylinder position="0 0.74 0" radius="0.14" height="0.04" color="#221208" emissive="#441800" emissive-intensity="0.4"></a-cylinder>
-      <a-sphere position="0 0.92 0" radius="0.18" material="color: #ff8800; emissive: #ff6600; emissiveIntensity: 0.2; transparent: true; opacity: 0.12"></a-sphere>
+      <a-cylinder position="0 0.1 0" radius="0.34" height="0.2" color="#3a2c1c" roughness="0.55" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.55 0" radius="0.07" height="0.7" color="#5a4630" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-cylinder position="0 0.92 0" radius="0.2" height="0.04" color="#6a5438" roughness="0.5" metalness="0.3"></a-cylinder>
+      <a-torus position="0 0.21 0" rotation="-90 0 0" radius="0.3" radius-tubular="0.012" segments-tubular="32" segments-radial="6"
+        material="color: #3a1d06; emissive: #ffa43c; emissiveIntensity: 1.4"></a-torus>
+      <a-entity position="0 1.12 0"
+        animation="property: position; to: 0 1.2 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"
+        animation__spin="property: rotation; to: 0 360 0; loop: true; dur: 16000; easing: linear">
+        <a-cylinder rotation="0 0 90" radius="0.1" height="0.46" color="#dcc08a" roughness="0.85"
+          material="emissive: #7a4a14; emissiveIntensity: 0.55"></a-cylinder>
+        <a-cylinder position="-0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-cylinder position="0.25 0 0" rotation="0 0 90" radius="0.135" height="0.035" color="#b08840" roughness="0.4" metalness="0.5"
+          material="emissive: #6a4410; emissiveIntensity: 0.5"></a-cylinder>
+        <a-sphere radius="0.34" material="color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.4; transparent: true; opacity: 0.10; shader: standard"></a-sphere>
+      </a-entity>
     </a-entity>
 
     <!-- ======================================================
@@ -352,10 +340,10 @@
 
     <!-- LEFT WING: Sons of Naphtali -->
     <a-box position="-10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
-      color="#0e0c08" emissive="#553300" emissive-intensity="0.05">
+      color="#4a3a28" emissive="#553300" emissive-intensity="0.2" roughness="0.6" metalness="0.3">
     </a-box>
     <a-box position="-10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
-      color="#120a03" emissive="#aa6600" emissive-intensity="0.25">
+      color="#2a1608" emissive="#aa6600" emissive-intensity="0.55">
     </a-box>
     <a-box position="-10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
       color="#cc8833" emissive="#cc8833" emissive-intensity="1.5">
@@ -369,10 +357,10 @@
 
     <!-- RIGHT WING: Haplogroups -->
     <a-box position="10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
-      color="#0e0c08" emissive="#003355" emissive-intensity="0.05">
+      color="#2e3a44" emissive="#003355" emissive-intensity="0.2" roughness="0.6" metalness="0.3">
     </a-box>
     <a-box position="10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
-      color="#020a12" emissive="#0055aa" emissive-intensity="0.3">
+      color="#08202e" emissive="#0055aa" emissive-intensity="0.6">
     </a-box>
     <a-box position="10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
       color="#0066cc" emissive="#0066cc" emissive-intensity="1.5">
@@ -447,28 +435,167 @@
     });
     exit.addEventListener('click', () => { window.location.href = 'index.html'; });
 
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      var T = window.TEX;
-      document.querySelector('#sky').setAttribute('src', T.starfield);
-      document.querySelector('#lib-walls').setAttribute('material',
-        'side: back; src: ' + T.metalPanel + '; repeat: 22 4; roughness: 0.5; metalness: 0.62; color: #9999bb');
-    });
+    // ─────────────────────────────────────────────────────────────────────
+    // WORLD BUILD — textures, bookcases, sconces, stars
+    // ─────────────────────────────────────────────────────────────────────
+    const scene = document.querySelector('a-scene');
+    const THREE = AFRAME.THREE;
 
-    // Procedural stars above the glass ceiling
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      const scene = document.querySelector('a-scene');
-      for (let i = 0; i < 180; i++) {
-        const theta = Math.random() * Math.PI * 2;
-        const r = 10 + Math.random() * 12;
-        const x = r * Math.cos(theta);
-        const z = r * Math.sin(theta);
-        const y = 6 + Math.random() * 14;
-        const star = document.createElement('a-sphere');
-        star.setAttribute('position', `${x.toFixed(2)} ${y.toFixed(2)} ${z.toFixed(2)}`);
-        star.setAttribute('radius', (0.02 + Math.random() * 0.06).toFixed(3));
-        star.setAttribute('material', `color: #ffffff; emissive: #ffffff; emissiveIntensity: ${(0.4+Math.random()*0.8).toFixed(2)}; shader: flat`);
-        scene.appendChild(star);
+    // Put an emissive map on an entity's existing material (A-Frame's material
+    // component has no emissiveMap property, so we set it on the three.js material).
+    function setEmissiveMap(el, url, intensity, repeat, color) {
+      const apply = () => {
+        const mesh = el.getObject3D('mesh');
+        if (!mesh || !mesh.material) return false;
+        new THREE.TextureLoader().load(url, tex => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          if (repeat) tex.repeat.set(repeat[0], repeat[1]);
+          tex.anisotropy = 4;
+          const m = mesh.material;
+          m.emissiveMap = tex;
+          m.emissive.set(color || '#ffffff');
+          m.emissiveIntensity = intensity;
+          m.needsUpdate = true;
+        });
+        return true;
+      };
+      if (!apply()) el.addEventListener('object3dset', apply, { once: true });
+    }
+
+    // Face an entity at the room centre. +Z (local) points inward.
+    function faceCentre(deg) {
+      const t = deg * Math.PI / 180;
+      return Math.atan2(-Math.cos(t), -Math.sin(t)) * 180 / Math.PI;
+    }
+    function polar(deg, r) {
+      const t = deg * Math.PI / 180;
+      return [r * Math.cos(t), r * Math.sin(t)];
+    }
+
+    function el(tag, attrs, parent) {
+      const e = document.createElement(tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      if (parent) parent.appendChild(e);
+      return e;
+    }
+
+    // BOOKCASES — a row of lit bays around the back arc, between the two wings
+    function buildBookcases(L) {
+      const root = document.getElementById('bookcases');
+      const centres = [220, 240, 260, 280, 300, 320];
+      centres.forEach(deg => {
+        const [x, z] = polar(deg, 10.55);
+        const bay = el('a-entity', { position: `${x.toFixed(3)} 0 ${z.toFixed(3)}`, rotation: `0 ${faceCentre(deg).toFixed(2)} 0` }, root);
+
+        // book face
+        const face = el('a-plane', { position: '0 2 0.06', width: 3.2, height: 4 }, bay);
+        face.setAttribute('material', { src: L.shelf.albedo, normalMap: L.shelf.normal, roughness: 0.9, metalness: 0, color: '#ffffff' });
+        setEmissiveMap(face, L.shelf.albedo, 0.42);
+
+        const wood = { src: L.wood, color: '#caa27a', roughness: 0.7, metalness: 0.05 };
+        // boards (match compartment floors baked into the texture)
+        [3.35, 2.6, 1.85, 1.1, 0.37].forEach(y => {
+          const b = el('a-box', { position: `0 ${y} 0.22`, width: 3.2, height: 0.07, depth: 0.44 }, bay);
+          b.setAttribute('material', wood);
+        });
+        // uprights, kick plate, cornice
+        [-1.6, 1.6].forEach(x2 => el('a-box', { position: `${x2} 2 0.22`, width: 0.1, height: 4.0, depth: 0.46, color: '#3a2412', roughness: 0.7 }, bay));
+        el('a-box', { position: '0 0.17 0.22', width: 3.2, height: 0.34, depth: 0.46, color: '#2e1c0e', roughness: 0.8 }, bay);
+        el('a-box', { position: '0 4.07 0.22', width: 3.4, height: 0.14, depth: 0.56, color: '#3a2412', roughness: 0.6 }, bay);
+        // warm light strip under the cornice
+        el('a-box', { position: '0 3.97 0.4', width: 3.0, height: 0.03, depth: 0.05,
+          material: 'color: #ffd9a0; emissive: #ffb455; emissiveIntensity: 2.2; shader: standard' }, bay);
+      });
+    }
+
+    // SCONCES — amber wall lamps. Back arc sits between bookcases.
+    function buildSconces() {
+      const root = document.getElementById('sconces');
+      [230, 270, 310, 30, 60, 120, 150].forEach(deg => {
+        const [x, z] = polar(deg, 10.85);
+        const s = el('a-entity', { position: `${x.toFixed(3)} 2.35 ${z.toFixed(3)}`, rotation: `0 ${faceCentre(deg).toFixed(2)} 0` }, root);
+        el('a-box', { position: '0 0 0', width: 0.26, height: 0.8, depth: 0.08, color: '#2a2218', roughness: 0.5, metalness: 0.4 }, s);
+        el('a-cylinder', { position: '0 0.05 0.12', radius: 0.07, height: 0.46,
+          material: 'color: #ffd9a0; emissive: #ffb050; emissiveIntensity: 2.0; shader: standard' }, s);
+        el('a-cone', { position: '0 -0.3 0.12', 'radius-bottom': 0.1, 'radius-top': 0.03, height: 0.16, color: '#3a2c1a', roughness: 0.5, metalness: 0.4 }, s);
+        el('a-sphere', { position: '0 0.05 0.12', radius: 0.26,
+          material: 'color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.5; transparent: true; opacity: 0.12; shader: standard' }, s);
+        el('a-light', { type: 'point', position: '0 0.1 0.7', color: '#ffb866', intensity: 1.5, distance: 9, decay: 2 }, s);
+      });
+    }
+
+    // STARS — one draw call instead of 180 entities
+    function buildStars() {
+      const n = 600, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 0.9 + 0.1);
+        const r = 60;
+        pos[i*3]   = r * Math.sin(ph) * Math.cos(th);
+        pos[i*3+1] = r * Math.cos(ph) + 2;
+        pos[i*3+2] = r * Math.sin(ph) * Math.sin(th);
+        const b = 0.35 + Math.random() * 0.65, t = Math.random();
+        col[i*3] = b * (t < 0.15 ? 0.75 : 1); col[i*3+1] = b * (t < 0.15 ? 0.82 : 0.97); col[i*3+2] = b * (t > 0.85 ? 0.8 : 1);
       }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 2.2, sizeAttenuation: false, vertexColors: true, fog: false }));
+      scene.object3D.add(pts);
+    }
+
+    // WING FRAMES — brass jambs + lintel around the two book-wing doors
+    function buildWings() {
+      [-1, 1].forEach(sd => {
+        const x = sd * 10.3, acc = sd < 0 ? '#ffb455' : '#6fb4ff';
+        const g = el('a-entity', { position: `${x} 0 -2`, rotation: `0 ${sd < 0 ? 0 : 0} 0` });
+        scene.appendChild(g);
+        [-1.34, 1.34].forEach(dz => el('a-box', { position: `0 1.6 ${dz}`, width: 0.4, height: 3.2, depth: 0.2, color: '#3a2f22', roughness: 0.5, metalness: 0.35 }, g));
+        el('a-box', { position: '0 3.12 0', width: 0.4, height: 0.24, depth: 2.9, color: '#3a2f22', roughness: 0.5, metalness: 0.35 }, g);
+        [-1.34, 1.34].forEach(dz => el('a-box', { position: `${-sd * 0.21} 1.6 ${dz}`, width: 0.03, height: 3.0, depth: 0.04,
+          material: `color: ${acc}; emissive: ${acc}; emissiveIntensity: 1.6; shader: standard` }, g));
+      });
+    }
+
+    scene.addEventListener('loaded', () => {
+      const T = window.TEX, L = T.library();
+      document.querySelector('#sky').setAttribute('src', T.starfield);
+
+      // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
+      const walls = document.getElementById('lib-walls');
+      walls.setAttribute('material', {
+        side: 'back', src: L.wall.albedo, normalMap: L.wall.normal,
+        repeat: '18 1', normalTextureRepeat: '18 1',
+        color: '#ffffff', roughness: 0.62, metalness: 0.12
+      });
+      setEmissiveMap(walls, L.wall.glow, 1.0, [18, 1]);
+
+      // Deck ring: ring UVs span the whole 22 m disc -> 8 repeats = 2.75 m tiles
+      const deck = document.getElementById('deck-ring');
+      deck.setAttribute('material', {
+        src: L.floor.albedo, normalMap: L.floor.normal,
+        repeat: '8 8', normalTextureRepeat: '8 8',
+        color: '#ffffff', roughness: 0.5, metalness: 0.2
+      });
+      setEmissiveMap(deck, L.floor.glow, 0.9, [8, 8]);
+
+      const ceil = document.getElementById('ceil-ring');
+      ceil.setAttribute('material', { src: T.ceilPanel, repeat: '10 10', color: '#a8a8c0', roughness: 0.7, metalness: 0.15, side: 'double' });
+
+      // Brain: wrinkled tissue (normal map + glowing ridges) on every brain part
+      document.querySelectorAll('.brain-part').forEach(p => {
+        p.setAttribute('material', {
+          src: L.brain.albedo, normalMap: L.brain.normal, repeat: '4 2', normalTextureRepeat: '4 2',
+          normalScale: '1.4 1.4', color: '#ffffff', roughness: 0.55, metalness: 0.05
+        });
+        if (p.tagName === 'A-SPHERE') p.setAttribute('rotation', '0 0 90');
+        setEmissiveMap(p, L.brain.albedo, 0.75, [4, 2]);
+      });
+
+      buildBookcases(L);
+      buildSconces();
+      buildWings();
+      buildStars();
     });
   </script>
 
