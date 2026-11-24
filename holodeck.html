@@ -200,7 +200,6 @@
 <div id="sim-menu">
   <div class="sm-in">
     <div class="sm-t">SIM LIBRARY</div>
-    <b onclick="simRun('blueprint')">HOUSE BLUEPRINT<small>plan the flip: rooms, furniture, shopping list</small></b>
     <b onclick="simRun('garden')">STAR GARDEN<small>plant and bend drifting stars</small></b>
     <b class="x" onclick="simClose()">CLOSE</b>
   </div>
@@ -229,6 +228,8 @@
   <a-entity id="btn-fit" class="clickable"></a-entity>
   <a-entity id="btn-reset" class="clickable"></a-entity>
   <a-entity id="btn-sim" class="clickable"></a-entity>
+  <!-- house blueprint terminal on the port (left) wall; tap target built in the script -->
+  <a-entity id="bp-terminal" class="clickable"></a-entity>
 
   <!-- Player -->
   <a-entity id="player" position="0 1.6 7" wasd-controls="acceleration: 20" look-controls="pointerLockEnabled: true">
@@ -273,7 +274,7 @@ function simRun(k) { simClose(); if (k === 'blueprint') openBlueprint(); else if
     var c = cv(256, 96), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 96);
     g.addColorStop(0, '#ffd27a'); g.addColorStop(1, '#e08a24'); x.fillStyle = g; x.fillRect(0, 0, 256, 96);
     x.strokeStyle = 'rgba(80,36,0,0.8)'; x.lineWidth = 6; x.strokeRect(3, 3, 250, 90);
-    x.fillStyle = '#2a1500'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '800 34px "Helvetica Neue", Arial, sans-serif';
+    x.fillStyle = '#2a1500'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '800 ' + Math.min(34, Math.floor(232 / (text.length * 0.66))) + 'px "Helvetica Neue", Arial, sans-serif';
     x.fillText(text, 128, 50); var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
   }
 
@@ -322,7 +323,7 @@ function simRun(k) { simClose(); if (k === 'blueprint') openBlueprint(); else if
     // walkway from the door
     [-1, 1].forEach(function (sd) { var s2 = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 6.2), M.amber); s2.rotation.x = -Math.PI / 2; s2.position.set(sd * 1.0, 0.004, 5.4); root.add(s2); });
 
-    buildConsole(dot); buildGalaxy(dot);
+    buildConsole(dot); buildGalaxy(dot); buildBlueprintTerminal(dot);
 
     // lights
     root.add(new THREE.HemisphereLight(0xffd8b0, 0x2a1c12, 0.7));
@@ -354,6 +355,46 @@ function simRun(k) { simClose(); if (k === 'blueprint') openBlueprint(); else if
       ent.setObject3D('mesh', hit); ent.object3D.position.set(CON.x + b[1], 0.95, CON.z + 1.15);
       ent.addEventListener('click', function () { bt.scale.setScalar(0.9); setTimeout(function () { bt.scale.setScalar(1); }, 160); });
     });
+  }
+
+  // HOUSE BLUEPRINT terminal — its own module on the port wall (user, Nov 24). The screen shows the live plan
+  // (rooms + any furniture placed); tapping it opens the full 2D planner.
+  var bpCanvas, bpTex;
+  function drawBlueprint() {
+    if (!bpCanvas) return;
+    var x = bpCanvas.getContext('2d'), W = bpCanvas.width, H2 = bpCanvas.height, k = Math.min((W - 80) / 860, (H2 - 130) / 530), ox = 40, oy = 90;
+    x.fillStyle = '#0b2550'; x.fillRect(0, 0, W, H2);
+    x.strokeStyle = 'rgba(140,190,255,0.12)'; x.lineWidth = 1; for (var i = 0; i < W; i += 24) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, H2); x.stroke(); } for (i = 0; i < H2; i += 24) { x.beginPath(); x.moveTo(0, i); x.lineTo(W, i); x.stroke(); }
+    x.fillStyle = '#ffcf8a'; x.font = '700 30px "Courier New", monospace'; x.fillText('HOUSE BLUEPRINT', 40, 52);
+    x.fillStyle = 'rgba(200,225,255,0.7)'; x.font = '18px "Courier New", monospace'; x.fillText('TAP TO PLAN  ·  ' + document.querySelectorAll('#fp-plan .furniture').length + ' ITEMS PLACED', 360, 50);
+    (window.ROOMS || ROOMS).forEach(function (r) {
+      x.strokeStyle = '#dcebff'; x.lineWidth = 3; x.strokeRect(ox + r.x * k, oy + r.y * k, r.w * k, r.h * k);
+      x.fillStyle = 'rgba(220,235,255,0.85)'; x.font = '16px "Courier New", monospace'; x.fillText(r.name.toUpperCase(), ox + r.x * k + 8, oy + r.y * k + 22);
+    });
+    document.querySelectorAll('#fp-plan .furniture').forEach(function (el) {
+      x.fillStyle = el.style.background || '#888'; x.globalAlpha = 0.85;
+      x.fillRect(ox + parseFloat(el.style.left) * k, oy + parseFloat(el.style.top) * k, parseFloat(el.style.width) * k, parseFloat(el.style.height) * k); x.globalAlpha = 1;
+    });
+    if (bpTex) bpTex.needsUpdate = true;
+  }
+  window.wfDrawBlueprint = drawBlueprint;
+  function buildBlueprintTerminal(dot) {
+    var g = new THREE.Group(); g.position.set(-HALF + 0.02, 0, 0); g.rotation.y = Math.PI / 2; root.add(g);    // local +z faces into the room
+    var SW = 3.0, SH = 1.75, CY = 1.75;
+    g.add(Object.assign(new THREE.Mesh(soft(rr(SW + 0.36, SH + 0.36, 0.14), 0.12, 0.03), M.bronze), {}));
+    g.children[0].position.set(0, CY, 0.08);
+    bpCanvas = cv(1024, 600); bpTex = new THREE.CanvasTexture(bpCanvas); bpTex.colorSpace = THREE.SRGBColorSpace; bpTex.anisotropy = 4;
+    var scr = new THREE.Mesh(new THREE.PlaneGeometry(SW, SH), new THREE.MeshBasicMaterial({ map: bpTex, toneMapped: false })); scr.position.set(0, CY, 0.22); g.add(scr);
+    var glow = new THREE.Mesh(new THREE.PlaneGeometry(SW + 1.6, SH + 1.4), add(dot, 0x4a8cff, 0.35)); glow.position.set(0, CY, 0.03); g.add(glow);
+    var plate = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.22), new THREE.MeshBasicMaterial({ map: labelTex('HOUSE PLANNER'), toneMapped: false })); plate.position.set(0, CY + SH / 2 + 0.34, 0.2); g.add(plate);
+    // a small bronze desk ledge under the screen, with an amber edge light
+    var ledge = new THREE.Mesh(soft(rr(SW, 0.06, 0.02), 0.4, 0.015), M.bronze); ledge.position.set(0, 0.82, 0.3); g.add(ledge);
+    var ll = new THREE.Mesh(new THREE.BoxGeometry(SW - 0.1, 0.012, 0.012), M.amber); ll.position.set(0, 0.79, 0.51); g.add(ll);
+    var l = new THREE.PointLight(0x6a9cff, 0.7, 4.5, 2); l.position.set(0, CY, 1.0); g.add(l);
+    drawBlueprint();
+    var ent = document.getElementById('bp-terminal'), hit = new THREE.Mesh(new THREE.PlaneGeometry(SW + 0.3, SH + 0.3), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+    ent.setObject3D('mesh', hit); ent.object3D.position.set(-HALF + 0.22, CY, 0); ent.object3D.rotation.y = Math.PI / 2;
+    ent.addEventListener('click', openBlueprint);
   }
 
   // galaxy hologram: a spiral of violet-blue stars over the console, slowly turning
@@ -555,6 +596,7 @@ function openBlueprint() {
 function closeBlueprint() {
   cancelPlacing();
   document.getElementById('fp-overlay').classList.remove('open');
+  if (window.wfDrawBlueprint) window.wfDrawBlueprint();      // refresh the wall terminal's preview
 }
 
 // ======== SHOPPING LIST ========
