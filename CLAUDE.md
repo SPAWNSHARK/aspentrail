@@ -105,7 +105,10 @@ Rules drawn from them:
   walnut panels + bronze rails (procedural `wallTexture`), bevelled bronze ribs with lamps, polished dark deck ring,
   14 bookcase bays all round (not over the entrance or wings). Wing doorways = shared door.js doors with `locked`
   (button buzzes 'SEALED (COMING SOON)') and `noPockets`. The glass floor/brain/scroll pedestals are unchanged.
-- **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
+- **Flight Mode** (`minigame.html`, plain three.js r128) — 3rd-person fly/fight. RESTYLED Nov 24: player ship is the
+  Wayfarer (copper lathe hull, bow window band, teal Library dome aft, two stern engines on pylons with teal plumes);
+  navy sky, layered stars, teal/violet nebula, cool sun, sunlit blue planet; far objects follow the camera (group `far`);
+  drifting dust sells speed. Enemies/gameplay unchanged. No touch controls yet (keyboard/click only).
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.
 - **Crew Lounge** (`lounge.html`) — curved leather sofa, brass table, woven rug, rigged alien cats on a shared
@@ -128,7 +131,7 @@ Rules drawn from them:
    restrict it to the Pages domain in Google Cloud)
 2. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
 3. Lounge: YouTube on the TV (needs the API key, same as Media Nexus)
-4. Flight Mode (`minigame.html`) restyle to match
+4. Flight Mode: touch controls for iPhone
 5. Collision / room boundaries everywhere
 
 ## Known issues
