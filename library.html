@@ -183,7 +183,7 @@
     <a-torus position="0 4.96 0" rotation="-90 0 0" radius="10.95" radius-tubular="0.07" segments-tubular="128" segments-radial="6"
       material="color: #8c6234; roughness: 0.42; metalness: 0.8"></a-torus>
     <a-torus position="0 0.05 0" rotation="-90 0 0" radius="10.9" radius-tubular="0.08" segments-tubular="128" segments-radial="6"
-      material="color: #1a1712; roughness: 0.6"></a-torus>
+      material="color: #8c6234; roughness: 0.42; metalness: 0.8"></a-torus>
 
     <!-- ======================================================
          BRAIN IN ELECTROGEL (below glass floor)
@@ -341,39 +341,7 @@
          BOOK WINGS — stub doorways
     ====================================================== -->
 
-    <!-- LEFT WING: Sons of Naphtali -->
-    <a-box position="-10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
-      color="#4a3a28" emissive="#553300" emissive-intensity="0.2" roughness="0.6" metalness="0.3">
-    </a-box>
-    <a-box position="-10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
-      color="#2a1608" emissive="#aa6600" emissive-intensity="0.55">
-    </a-box>
-    <a-box position="-10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
-      color="#cc8833" emissive="#cc8833" emissive-intensity="1.5">
-    </a-box>
-    <a-text value="SONS OF NAPHTALI" position="-10.1 2.92 -2"
-      align="center" rotation="0 -90 0" color="#cc8833" width="3.5" letter-spacing="2">
-    </a-text>
-    <a-text value="BOOK I — GENETICS" position="-10.1 2.65 -2"
-      align="center" rotation="0 -90 0" color="#664422" width="2.5">
-    </a-text>
-
-    <!-- RIGHT WING: Haplogroups -->
-    <a-box position="10.42 1.5 -2" width="0.1" height="3.0" depth="2.5"
-      color="#2e3a44" emissive="#003355" emissive-intensity="0.2" roughness="0.6" metalness="0.3">
-    </a-box>
-    <a-box position="10.44 1.3 -2" width="0.06" height="2.6" depth="2.0"
-      color="#08202e" emissive="#0055aa" emissive-intensity="0.6">
-    </a-box>
-    <a-box position="10.35 2.7 -2" width="0.1" height="0.06" depth="2.0"
-      color="#0066cc" emissive="#0066cc" emissive-intensity="1.5">
-    </a-box>
-    <a-text value="HAPLOGROUPS" position="10.1 2.92 -2"
-      align="center" rotation="0 90 0" color="#5599cc" width="3.5" letter-spacing="2">
-    </a-text>
-    <a-text value="BOOK II — DIASPORA" position="10.1 2.65 -2"
-      align="center" rotation="0 90 0" color="#224466" width="2.5">
-    </a-text>
+    <!-- the two wing doorways are shared ship doors (door.js), built in buildWings(); locked until the wings exist -->
 
     <!-- ======================================================
          CORRIDOR EXIT (+Z, entrance side)
@@ -464,7 +432,8 @@
     // BOOKCASES — a row of lit bays around the back arc, between the two wings
     function buildBookcases(L) {
       const root = document.getElementById('bookcases');
-      const centres = [220, 240, 260, 280, 300, 320];
+      // bays all round the room (user, Nov 24), except the entrance (90°) and the two book wings (~191° and ~349°)
+      const centres = [10, 30, 50, 70, 110, 130, 150, 170, 220, 240, 260, 280, 300, 320];
       centres.forEach(deg => {
         const [x, z] = polar(deg, 10.55);
         const bay = el('a-entity', { position: `${x.toFixed(3)} 0 ${z.toFixed(3)}`, rotation: `0 ${faceCentre(deg).toFixed(2)} 0` }, root);
@@ -490,20 +459,48 @@
       });
     }
 
-    // SCONCES — amber wall lamps. Back arc sits between bookcases.
+    // WALL ARCHITECTURE — walnut panels, bevelled bronze ribs between the bays, square amber lamps on the ribs above the
+    // bookcases (same language as the corridor and Bridge). Lights stay where the old sconces were.
     function buildSconces() {
-      const root = document.getElementById('sconces');
-      (MOB ? [230, 310, 60, 120] : [230, 270, 310, 30, 60, 120, 150]).forEach(deg => {
-        const [x, z] = polar(deg, 10.85);
-        const s = el('a-entity', { position: `${x.toFixed(3)} 2.35 ${z.toFixed(3)}`, rotation: `0 ${faceCentre(deg).toFixed(2)} 0` }, root);
-        el('a-box', { position: '0 0 0', width: 0.26, height: 0.8, depth: 0.08, color: '#2a2218', roughness: 0.5, metalness: 0.4 }, s);
-        el('a-cylinder', { position: '0 0.05 0.12', radius: 0.07, height: 0.46,
-          material: 'color: #ffd9a0; emissive: #ffb050; emissiveIntensity: 2.0; shader: standard' }, s);
-        el('a-cone', { position: '0 -0.3 0.12', 'radius-bottom': 0.1, 'radius-top': 0.03, height: 0.16, color: '#3a2c1a', roughness: 0.5, metalness: 0.4 }, s);
-        el('a-sphere', { position: '0 0.05 0.12', radius: 0.26,
-          material: 'color: #ffa43c; emissive: #ff8a20; emissiveIntensity: 0.5; transparent: true; opacity: 0.12; shader: standard' }, s);
-        el('a-light', { type: 'point', position: '0 0.1 0.7', color: '#ffb866', intensity: 1.5, distance: 9, decay: 2 }, s);
+      const root = new THREE.Group(); scene.object3D.add(root);
+      const bz = (function () { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256);
+        for (let i = 0; i < 1400; i++) { const a = Math.random() * 0.18; x.fillStyle = Math.random() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, Math.random() * 256, 256, 1); }
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }());
+      const bronze = new THREE.MeshStandardMaterial({ map: bz, color: 0xd8b58a, roughness: 0.42, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.6 });
+      const lampM = new THREE.MeshBasicMaterial({ color: 0xffb468, toneMapped: false }), amber = new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false });
+      function rr(w, h, r) { const x = -w / 2, y = -h / 2, sh = new THREE.Shape(); sh.moveTo(x + r, y); sh.lineTo(x + w - r, y); sh.quadraticCurveTo(x + w, y, x + w, y + r); sh.lineTo(x + w, y + h - r); sh.quadraticCurveTo(x + w, y + h, x + w - r, y + h); sh.lineTo(x + r, y + h); sh.quadraticCurveTo(x, y + h, x, y + h - r); sh.lineTo(x, y + r); sh.quadraticCurveTo(x, y, x + r, y); return sh; }
+      function soft(sh, d, b) { const g = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelSegments: 2, curveSegments: 6 }); g.translate(0, 0, -d / 2); return g; }
+      const leg = soft(rr(0.3, 4.86, 0.06), 0.12, 0.035), back = soft(rr(0.22, 0.3, 0.04), 0.02, 0.01), lamp = soft(rr(0.14, 0.2, 0.03), 0.035, 0.01);
+      const dot = (function () { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }());
+      const glowM = new THREE.MeshBasicMaterial({ map: dot, color: 0xff9a3c, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+      function onWall(deg, r, y, g, m) { const [x, z] = polar(deg, r), o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.y = faceCentre(deg) * Math.PI / 180; root.add(o); return o; }
+      [0, 20, 40, 60, 120, 140, 160, 180, 210, 230, 250, 270, 290, 310, 330].forEach(deg => {
+        onWall(deg, 10.9, 2.45, leg, bronze);
+        const a = onWall(deg, 10.86, 2.45, new THREE.BoxGeometry(0.012, 4.5, 0.01), amber);
+        onWall(deg, 10.8, 4.45, back, bronze); onWall(deg, 10.76, 4.44, lamp, lampM); onWall(deg, 10.88, 4.45, new THREE.PlaneGeometry(1.0, 1.0), glowM);
       });
+      (MOB ? [230, 310, 60, 120] : [230, 270, 310, 30, 60, 120, 150]).forEach(deg => {
+        const [x, z] = polar(deg, 9.8); const l = new THREE.PointLight(0xffb866, 1.5 * Math.PI, 9, 2); l.position.set(x, 3.2, z); root.add(l);
+      });
+    }
+
+    function wallTexture() {             // walnut panels, bronze rails — the corridor/Bridge wall, 5 m tall
+      const W = 512, H = 1024, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), Y = m => (1 - m / 5) * H;
+      x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, H);
+      const inset = (y0, y1, col) => { x.fillStyle = col; x.fillRect(26, Y(y1), W - 52, Y(y0) - Y(y1)); x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(26, Y(y1), W - 52, 3); x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(26, Y(y0) - 3, W - 52, 3); };
+      inset(1.06, 4.3, '#372b23'); inset(0.14, 0.86, '#2f251e');
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, H);
+      const rail = (m, h) => { const g = x.createLinearGradient(0, Y(m + h), 0, Y(m)); g.addColorStop(0, '#d9a866'); g.addColorStop(0.5, '#9a6c36'); g.addColorStop(1, '#5a3d1e'); x.fillStyle = g; x.fillRect(0, Y(m + h), W, Y(m) - Y(m + h)); };
+      rail(0.95, 0.05); rail(4.42, 0.04);
+      for (let i = 0; i < 9000; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(Math.random() * W, Math.random() * H, 1 + Math.random() * 2, 1 + Math.random() * 8); }
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(53, 1); t.anisotropy = 4; return t;
+    }
+    function deckTexture() {             // polished dark deck plates
+      const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
+      x.fillStyle = '#1e1a17'; x.fillRect(0, 0, 512, 512);
+      for (let i = 0; i < 70; i++) { x.fillStyle = 'rgba(' + (Math.random() < 0.5 ? '0,0,0' : '255,230,200') + ',' + (0.015 + Math.random() * 0.025) + ')'; x.fillRect(Math.random() * 512, Math.random() * 512, 40 + Math.random() * 160, 20 + Math.random() * 90); }
+      x.fillStyle = 'rgba(0,0,0,0.65)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512);
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 10); return t;
     }
 
 
@@ -607,17 +604,16 @@
       scene.object3D.add(pts);
     }
 
-    // WING FRAMES — brass jambs + lintel around the two book-wing doors
+    // BOOK WINGS — the shared ship door, sealed until the wings are built (Book I left, Book II right)
     function buildWings() {
-      [-1, 1].forEach(sd => {
-        const x = sd * 10.3, acc = '#ffa04a';
-        const g = el('a-entity', { position: `${x} 0 -2`, rotation: `0 ${sd < 0 ? 0 : 0} 0` });
-        scene.appendChild(g);
-        [-1.34, 1.34].forEach(dz => el('a-box', { position: `0 1.6 ${dz}`, width: 0.4, height: 3.2, depth: 0.2, color: '#3a2f22', roughness: 0.5, metalness: 0.35 }, g));
-        el('a-box', { position: '0 3.12 0', width: 0.4, height: 0.24, depth: 2.9, color: '#3a2f22', roughness: 0.5, metalness: 0.35 }, g);
-        [-1.34, 1.34].forEach(dz => el('a-box', { position: `${-sd * 0.21} 1.6 ${dz}`, width: 0.03, height: 3.0, depth: 0.04,
-          material: `color: ${acc}; emissive: ${acc}; emissiveIntensity: 1.6; shader: standard` }, g));
-      });
+      const say = msg => { if (typeof showPrompt === 'function') { showPrompt(msg, '#ffcc66'); setTimeout(hidePrompt, 1800); } };
+      const wings = [
+        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 90 }, name: 'SONS OF NAPHTALI', tint: 0xffb040, depth: 0.45, noPockets: true, locked: 'BOOK I WING — SEALED (COMING SOON)', say: say }),
+        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -90 }, name: 'HAPLOGROUPS', tint: 0x4f8cff, depth: 0.45, noPockets: true, locked: 'BOOK II WING — SEALED (COMING SOON)', say: say })
+      ];
+      const wp = new THREE.Vector3();
+      AFRAME.registerComponent('wf-lib-wings', { tick: function (t, dt) { if (!scene.camera) return; scene.camera.getWorldPosition(wp); wings.forEach(D => D.update(dt, wp)); } });
+      scene.setAttribute('wf-lib-wings', '');
     }
 
     scene.addEventListener('loaded', () => {
@@ -633,20 +629,12 @@
 
       // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
       const walls = document.getElementById('lib-walls');
-      walls.setAttribute('material', {
-        side: 'back', src: L.wall.albedo, normalMap: L.wall.normal,
-        repeat: '18 1', normalTextureRepeat: '18 1',
-        color: '#ffffff', roughness: 0.62, metalness: 0.12
-      });
-      setEmissiveMap(walls, L.wall.glow, 1.0, [18, 1]);
+      walls.getObject3D('mesh').material = new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.62, metalness: 0.15, side: THREE.BackSide });
 
       // Deck ring: ring UVs span the whole 22 m disc -> 8 repeats = 2.75 m tiles
       const deck = document.getElementById('deck-ring');
-      deck.setAttribute('material', Object.assign({
-        src: L.floor.albedo, repeat: '8 8',
-        color: '#ffffff', roughness: 0.5, metalness: 0.2
-      }, L.floor.normal ? { normalMap: L.floor.normal, normalTextureRepeat: '8 8' } : {}));
-      setEmissiveMap(deck, L.floor.glow, 0.9, [8, 8]);
+      deck.getObject3D('mesh').material = new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.3, metalness: 0.5, color: 0xa89e92 });
+      [[8.2, 0.025], [10.3, 0.03]].forEach(q => { const t = new THREE.Mesh(new THREE.RingGeometry(q[0] - q[1], q[0] + q[1], 160), new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false })); t.rotation.x = -Math.PI / 2; t.position.y = 0.006; scene.object3D.add(t); });
 
       const ceil = document.getElementById('ceil-ring');
       ceil.setAttribute('material', { src: T.ceilPanel, repeat: '10 10', color: '#5a4434', roughness: 0.8, metalness: 0.15, side: 'double' });

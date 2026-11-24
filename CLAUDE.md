@@ -101,8 +101,10 @@ Rules drawn from them:
   Library dome: fwd +1 (its door faces the bow), arc ±75°, same settings as the corridor. Streaks are DoubleSide
   billboards (seen from below they face away — that once hid them entirely in the corridor).
 - **Library ceiling** restyled Nov 24 to match: glass dome under 12 bevelled bronze ribs + mid ring + glowing crown,
-  big amber light ring at the dome base, amber cove at the wall top, dark ceiling panels. Library WALLS are still the
-  older grey plated industrial look with hazard stripes — not yet matched to the style guide.
+  big amber light ring at the dome base, amber cove at the wall top, dark ceiling panels. Library WALLS restyled Nov 24 too:
+  walnut panels + bronze rails (procedural `wallTexture`), bevelled bronze ribs with lamps, polished dark deck ring,
+  14 bookcase bays all round (not over the entrance or wings). Wing doorways = shared door.js doors with `locked`
+  (button buzzes 'SEALED (COMING SOON)') and `noPockets`. The glass floor/brain/scroll pedestals are unchanged.
 - **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.

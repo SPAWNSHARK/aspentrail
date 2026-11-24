@@ -200,7 +200,7 @@
   // ───────── create one door ─────────
   // opts: sc (a-scene element), parent (Object3D), frame {x,z,rot}, name, tint, depth (frame block depth), other (frame of the
   // other side, in the other page's world), space (proxy of the other side), img (portal photo URL), autoPass, onPass,
-  // startOpen, say(msg), holdMs
+  // startOpen, say(msg), holdMs, locked (message: the button refuses to open)
   function create(o) {
     var renderer = o.sc.renderer; res(renderer);
     var g = new THREE.Group(); g.position.set(o.frame.x, 0, o.frame.z); g.rotation.y = o.frame.rot * Math.PI / 180; (o.parent || o.sc.object3D).add(g);
@@ -208,7 +208,7 @@
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
     var nm = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.25), new THREE.MeshBasicMaterial({ map: plate(o.name, 600, 152), fog: false, toneMapped: false, color: 0xe8dcc8 }));
     nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);
-    if (depth > 0.2) {                  // free-standing (room) door: threshold, plus pocket housings the leaves slide into
+    if (depth > 0.2 && !o.noPockets) {  // free-standing (room) door: threshold, plus pocket housings the leaves slide into
       var th = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W, 0.02, depth), R.side); th.position.set(0, 0.01, 0.12 - depth / 2); g.add(th);
       [[-1.1, -1.9], [1.1, 2.2]].forEach(function (q) {
         var w = Math.abs(q[1] - q[0]), pk = new THREE.Mesh(soft(rrectShape(w, 2.62, 0.06), 0.16, 0.02), [R.frame, R.side]);
@@ -252,7 +252,10 @@
     D.open = function (silent) { if (D.target === 1) return; D.target = 1; D.openAt = performance.now(); loadImg(); if (!silent) { beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); o.say && o.say('OPENING — ' + o.name); } };
     D.close = function () { if (D.target === 0) return; D.target = 0; beep(520, 0.12, 'triangle'); };
     D.pass = function () { if (D.passed || !o.onPass) return; D.passed = true; o.onPass(); };
-    ent.addEventListener('click', function () { if (D.p > 0.25) return; D.flash = 0.22; face.material.map = R.faces.press; if (D.target === 0) D.open(); else { D.close(); o.say && o.say('CLOSING — ' + o.name); } });
+    ent.addEventListener('click', function () {
+      if (D.p > 0.25) return; D.flash = 0.22; face.material.map = R.faces.press;
+      if (o.locked) { beep(220, 0.25, 'square'); o.say && o.say(o.locked); return; }       // a doorway that doesn't lead anywhere yet
+      if (D.target === 0) D.open(); else { D.close(); o.say && o.say('CLOSING — ' + o.name); } });
     tap.addEventListener('click', function () { if (D.p > 0.85) D.pass(); });
     if (o.startOpen) { D.p = 1; D.target = 1; D.openAt = performance.now(); loadImg(); }
 
