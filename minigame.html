@@ -40,6 +40,15 @@
       color: #ff5555; font-size: 12px; letter-spacing: 3px;
       text-shadow: 0 0 8px #ff0000;
     }
+    #reticle { position:absolute; left:50%; top:50%; width:min(62vmin,420px); height:min(62vmin,420px); transform:translate(-50%,-50%); overflow:visible; pointer-events:none; }
+    #reticle * { fill:none; stroke-linecap:round; }
+    #reticle .r-faint { stroke:rgba(150,230,220,.18); stroke-width:1; }
+    #reticle .r-arc { stroke:rgba(230,240,220,.85); stroke-width:2.4; } #reticle .r-arc.dim { stroke:rgba(120,220,210,.6); }
+    #reticle .r-tick { stroke:rgba(120,230,215,.75); stroke-width:1.6; }
+    #reticle .r-in { stroke:rgba(255,200,120,.9); stroke-width:1.6; } #reticle .r-dot { fill:#ffb060; stroke:none; }
+    #reticle.hot .r-in { stroke:#ff6a4a; } #reticle.hot .r-dot { fill:#ff6a4a; }
+    #lock { position:absolute; left:0; top:0; width:64px; height:64px; overflow:visible; pointer-events:none; display:none; transition:opacity .15s; }
+    #lock path { fill:none; stroke:#ff6a4a; stroke-width:4; stroke-linecap:round; } #lock circle { fill:#ff6a4a; }
     #crosshair {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -89,20 +98,28 @@
     .overlay .btn:hover { border-color: #ff6600; color: #ffcc66; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
       /* touch: one frosted-glass bar at the bottom (same as the ship's rooms): steer stick left, FIRE right */
-    #fm-bar{position:fixed;z-index:25;display:none;left:calc(10px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));
-      bottom:calc(8px + env(safe-area-inset-bottom,0px));border-radius:36px;padding:14px 16px;align-items:center;justify-content:space-between;
+    #fm-bar{position:fixed;z-index:25;display:none;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),400px);box-sizing:border-box;
+      bottom:calc(8px + env(safe-area-inset-bottom,0px));border-radius:30px;padding:10px 12px;align-items:center;justify-content:space-between;
       background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
       border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);touch-action:none;-webkit-user-select:none;user-select:none}
     html.touch #fm-bar{display:flex}
     html.touch:not(.standalone) #fm-bar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
     #fm-auto.on{background:rgba(255,255,255,.22)}
     html.touch #hint-shoot{display:none}
-    #fm-stick,#fm-fire{position:relative;width:min(28vh,36vw,170px);height:min(28vh,36vw,170px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+    #fm-stick,#fm-fire{position:relative;width:min(22vh,26vw,108px);height:min(22vh,26vw,108px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
     #fm-stick i{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;pointer-events:none}
     #fm-fire{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#fff;font:600 12px -apple-system,system-ui,sans-serif}
     #fm-fire.on{background:rgba(255,255,255,.32)}
     #fm-mid{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
     #fm-bar svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    /* landscape phones: no slab — each pad in its own glass in a bottom corner, small buttons between, centre left clear */
+    @media (orientation:landscape) and (max-height:520px){
+      #fm-bar{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;align-items:flex-end;pointer-events:none}
+      html.touch:not(.standalone) #fm-bar{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+      #fm-stick,#fm-fire{pointer-events:auto;width:min(30vh,112px);height:min(30vh,112px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+      #fm-midcol{flex-direction:row!important;gap:8px!important;pointer-events:auto;padding:6px 10px;border-radius:22px;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:10px}
+      #fm-midcol svg{width:22px!important;height:22px!important}
+    }
     @media (max-width:520px){ #hud #ship-name{display:none} #score-display,#lives-display{font-size:10px!important;letter-spacing:2px!important} }
   </style>
 </head>
@@ -111,7 +128,16 @@
   <div id="hud">
     <div id="score-display">SCORE &nbsp;<span id="score">0</span></div>
     <div id="lives-display">HULL &nbsp;<span id="lives">■ ■ ■</span></div>
-    <div id="crosshair"><div class="ch-ring"></div></div>
+    <svg id="reticle" viewBox="-100 -100 200 200">
+      <circle r="96" class="r-faint"/>
+      <path class="r-arc" d="M -67.9 -67.9 A 96 96 0 0 1 67.9 -67.9"/>
+      <path class="r-arc dim" d="M -94.5 16.7 A 96 96 0 0 1 -94.5 -16.7"/><path class="r-arc dim" d="M 94.5 -16.7 A 96 96 0 0 1 94.5 16.7"/>
+      <path class="r-tick" d="M -78 0 l 8 -6 M -78 0 l 8 6 M -66 0 l 8 -6 M -66 0 l 8 6 M 78 0 l -8 -6 M 78 0 l -8 6 M 66 0 l -8 -6 M 66 0 l -8 6"/>
+      <circle r="13" class="r-in"/><path class="r-in" d="M -30 0 h 12 M 18 0 h 12 M 0 -30 v 12"/>
+      <circle r="3.2" class="r-dot"/>
+    </svg>
+    <svg id="lock" viewBox="-50 -50 100 100"><path d="M-46 -26 V-46 H-26 M26 -46 H46 V-26 M46 26 V46 H26 M-26 46 H-46 V26"/><circle r="5"/></svg>
+    <div id="crosshair" style="display:none"></div>
     <div id="wave-announce"></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
   </div>
@@ -151,7 +177,7 @@
 const scene    = new THREE.Scene();
 scene.fog      = new THREE.FogExp2(0x00000a, 0.006);
 
-const camera   = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.1, 600);
+const camera   = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 900);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -439,7 +465,7 @@ const shipPos = new THREE.Vector3();
 
 // camera follow
 const camPos    = new THREE.Vector3(0, 2.5, 10);
-const CAM_OFFSET = new THREE.Vector3(0, 1.9, 7.2);
+const CAM_OFFSET = new THREE.Vector3(0, 3.4, 15.5);   // pulled back: the ship sits small, low in the reticle (Starfield-style)
 
 const enemies    = [];
 const bullets    = [];
@@ -473,9 +499,9 @@ if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: sta
   document.getElementById('fm-mid').addEventListener('pointerup', () => { location.href = 'bridge.html'; });
   // keep the ship and crosshair in the clear space above the bar: render the scene shifted up by the bar's height
   function frameAboveBar() {
-    const r = bar.getBoundingClientRect(), d = TOUCH && r.height ? Math.round(innerHeight - r.top) : 0, ch = document.getElementById('crosshair');
+    const land = innerWidth > innerHeight && innerHeight <= 520, r = bar.getBoundingClientRect(), d = TOUCH && r.height && !land ? Math.round(innerHeight - r.top) : 0, ch = document.getElementById('crosshair');
     if (d > 0) camera.setViewOffset(innerWidth, innerHeight + d, 0, d, innerWidth, innerHeight); else camera.clearViewOffset();
-    ch.style.top = 'calc(50% - ' + d / 2 + 'px)'; document.getElementById('wave-announce').style.top = 'calc(50% - ' + d / 2 + 'px)';
+    document.getElementById('wave-announce').style.top = 'calc(50% - ' + d / 2 + 'px)';
   }
   addEventListener('resize', () => setTimeout(frameAboveBar, 50)); setTimeout(frameAboveBar, 0);
   const af = document.getElementById('fm-auto'); af.addEventListener('pointerup', () => { autoFire = !autoFire; af.classList.toggle('on', autoFire); });
@@ -542,21 +568,38 @@ function launchWave() {
   announce(`WAVE  ${wave}`);
 }
 
+const _v = new THREE.Vector3();
+function toScreen(p) { _v.copy(p).project(camera); const r = renderer.domElement.getBoundingClientRect(); return { x: (_v.x + 1) / 2 * r.width, y: (1 - _v.y) / 2 * r.height, z: _v.z }; }
+function updateReticle() {
+  const ret = document.getElementById('reticle'), lk = document.getElementById('lock');
+  const aim = shipPos.clone().add(new THREE.Vector3(0, 0, -60).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'))), a = toScreen(aim);
+  ret.style.left = a.x + 'px'; ret.style.top = a.y + 'px'; ret.style.display = state === 'playing' ? '' : 'none';
+  ret.classList.toggle('hot', !!aimTarget);
+  if (aimTarget && state === 'playing') { const t = toScreen(aimTarget.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 32) + 'px,' + (t.y - 32) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
+  else lk.style.display = 'none';
+}
+// laser bolts: long glowing beams (white core, teal glow) from the two engine pods in turn
+const BOLT = { core: new THREE.CylinderGeometry(0.09, 0.09, 1, 6, 1, true), glow: new THREE.CylinderGeometry(0.4, 0.4, 1, 8, 1, true),
+  coreM: new THREE.MeshBasicMaterial({ color: 0xffffff }), glowM: new THREE.MeshBasicMaterial({ color: 0x3fffd0, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }) };
+BOLT.core.rotateX(Math.PI / 2); BOLT.glow.rotateX(Math.PI / 2);
+let gunSide = 1;
 function tryShoot() {
   if (shootCD > 0 || state !== 'playing') return;
   shootCD = SHOOT_DELAY;
   const dir = new THREE.Vector3(0, 0, -1)
     .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.13, 4, 4),
-    new THREE.MeshBasicMaterial({ color: 0xff8800 })
-  );
-  mesh.position.copy(shipPos);
-  const pt = new THREE.PointLight(0xff6600, 2.5, 6);
-  mesh.add(pt);
+  const mesh = new THREE.Group(), len = 11;
+  const core = new THREE.Mesh(BOLT.core, BOLT.coreM), glow = new THREE.Mesh(BOLT.glow, BOLT.glowM); core.scale.z = glow.scale.z = len; mesh.add(core); mesh.add(glow);
+  const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x9ffff0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); head.position.z = -len / 2; head.scale.set(2.2, 2.2, 1); mesh.add(head);
+  gunSide = -gunSide;
+  const gun = new THREE.Vector3(gunSide * 1.25, 0.12, 0.2).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')).add(shipPos);
+  mesh.position.copy(gun);
+  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x6fffe0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.position.copy(gun); flash.scale.set(2.2, 2.2, 1); scene.add(flash);
+  setTimeout(() => scene.remove(flash), 70);
   scene.add(mesh);
   if (aimTarget) dir.copy(aimTarget.mesh.position.clone().sub(shipPos).normalize());   // aim assist
-  bullets.push({ mesh, vel: dir.multiplyScalar(BULLET_SPD), life: 3.5 });
+  mesh.lookAt(gun.clone().add(dir)); mesh.position.addScaledVector(dir, len / 2 + 0.5);
+  bullets.push({ mesh, vel: dir.multiplyScalar(BULLET_SPD * 1.4), life: 2.6 });
 }
 
 function spawnEnemy() {
@@ -710,9 +753,10 @@ function lerp(a, b, t) { return a + (b - a) * t; }
   camPos.lerp(shipPos.clone().add(worldOff), dt * 6);
   camera.position.copy(camPos);
   const lookTarget = shipPos.clone().add(
-    new THREE.Vector3(0,0,-10).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'))
+    new THREE.Vector3(0,0,-40).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'))
   );
   camera.lookAt(lookTarget);
+  updateReticle();
 
   if (window.__camOverride) window.__camOverride();       // test hook: lets a screenshot script park the camera
   far.position.copy(camera.position); updateDust(camera.position);

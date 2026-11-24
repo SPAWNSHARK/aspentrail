@@ -118,7 +118,10 @@ Rules drawn from them:
   Enemies: dark ridged alien seed-craft, glowing veins, three swept blades, hot eye. Explosions: flash + ring + sparks.
   GOTCHA: loftHull winding must face outward (it was inside-out once: windows painted on top were never visible).
   Touch: the same glass bottom bar (steer stick, Auto-fire toggle (on by default on touch), Bridge, Fire); aim assist
-  bends shots toward the enemy nearest the crosshair; the scene is rendered shifted up above the bar (setViewOffset). r128 GOTCHA: hex colours are linear there — run
+  bends shots toward the enemy nearest the crosshair; the scene is rendered shifted up above the bar (setViewOffset).
+  Nov 24 (user): camera pulled back (ship small, low in a Starfield-style HUD reticle that is projected to where shots
+  land; a rotating lock bracket marks the aim-assist target); lasers = long teal beam bolts alternating from the pods.
+  Control bars everywhere are compact & centred (max ~420 px); in LANDSCAPE phones they split into corner pads. r128 GOTCHA: hex colours are linear there — run
   `fixColors()` on new objects or they render washed out (dark copper came out cream).
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.
