@@ -422,9 +422,9 @@ const ENEMY_COLORS = [0x4cff7a, 0xb04cff, 0xff4a3a, 0x3aa8ff];
 const ENEMY_SKIN = (() => { const c = cvs(256, 256), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256);
   x.strokeStyle = '#fff'; for (let i = 0; i < 40; i++) { x.lineWidth = 1 + Math.random() * 2.5; x.globalAlpha = 0.3 + Math.random() * 0.7; x.beginPath(); let px = Math.random() * 256, py = Math.random() * 256; x.moveTo(px, py); for (let k = 0; k < 6; k++) { px += (Math.random() - 0.5) * 60; py += (Math.random() - 0.5) * 60; x.lineTo(px, py); } x.stroke(); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
-function buildEnemyShip() {
+function buildEnemyShip(kind) {
   const g = new THREE.Group();
-  const c = ENEMY_COLORS[Math.floor(Math.random() * ENEMY_COLORS.length)];
+  const c = kind === 'striker' ? 0xff4a3a : kind === 'brute' ? 0xb04cff : [0x4cff7a, 0x3aa8ff][Math.floor(Math.random() * 2)];
   const shell = new THREE.MeshStandardMaterial({ color: 0x1a1820, roughness: 0.35, metalness: 0.6, emissive: c, emissiveMap: ENEMY_SKIN, emissiveIntensity: 1.3 });
   // body: a ridged seed shape, pointed at the front (+Z faces the player via lookAt)
   const bg = new THREE.SphereGeometry(0.7, 28, 18), p = bg.attributes.position;
@@ -443,6 +443,9 @@ function buildEnemyShip() {
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: c, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.z = 0.95; glow.scale.set(1.4, 1.4, 1); g.add(glow);
   const aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: c, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); aura.scale.set(4, 4, 1); g.add(aura);
   g.userData.color = c;
+  if (kind === 'brute') { g.scale.setScalar(1.9); const crown = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.08, 8, 24), shell); crown.position.z = -0.2; g.add(crown); }
+  if (kind === 'striker') g.scale.set(1.05, 0.8, 1.25);
+  g.userData.shell = shell;
   return fixColors(g);
 }
 
@@ -579,6 +582,7 @@ function restartGame() {
   document.getElementById('gameover-screen').style.display = 'none';
   enemies.forEach(e => scene.remove(e.mesh));    enemies.length = 0;
   bullets.forEach(b => scene.remove(b.mesh));    bullets.length = 0;
+  enemyBolts.forEach(b => scene.remove(b.mesh));  enemyBolts.length = 0;
   explosions.forEach(e => { scene.remove(e.mesh); scene.remove(e.light); });
   explosions.length = 0;
   waveClearing = false;
@@ -629,7 +633,8 @@ function tryShoot() {
 function spawnEnemy() {
   if (waveLeft <= 0) return;
   waveLeft--;
-  const mesh = buildEnemyShip();
+  const roll = Math.random(), kind = wave >= 3 && roll < 0.12 ? 'brute' : roll < Math.min(0.5, 0.2 + wave * 0.08) + (wave >= 3 ? 0.18 : 0) ? 'striker' : 'drone';
+  const mesh = buildEnemyShip(kind);
   const angle = Math.random() * Math.PI * 2;
   const r = 35 + Math.random() * 20;
   const offset = new THREE.Vector3(
@@ -639,8 +644,25 @@ function spawnEnemy() {
   ).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
   mesh.position.copy(shipPos).add(offset);
   scene.add(mesh);
-  enemies.push({ mesh, hp: 1 });
+  enemies.push({ mesh, kind, hp: kind === 'brute' ? 4 : kind === 'striker' ? 2 : 1, t: Math.random() * 10, fire: 1.5 + Math.random() * 1.5, orbit: Math.random() * Math.PI * 2, shots: 0, flash: 0 });
 }
+
+// ── enemy fire: red-magenta plasma bolts, aimed ahead of where you're flying ──
+const enemyBolts = [];
+let shake = 0, shieldFlash = null;
+function enemyShoot(from, spread) {
+  const lead = shipPos.clone().add(new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')).multiplyScalar(SHIP_SPEED * from.distanceTo(shipPos) / 38));
+  const base = lead.sub(from).normalize();
+  (spread ? [-0.09, 0, 0.09] : [0]).forEach(a => {
+    const dir = base.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), a + (Math.random() - 0.5) * 0.08).applyAxisAngle(new THREE.Vector3(1, 0, 0), (Math.random() - 0.5) * 0.06);
+    const m = new THREE.Group();
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xffd0e0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(0.7, 0.7, 1); m.add(core);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xff3a6a, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(2.2, 2.2, 1); m.add(glow);
+    m.position.copy(from); scene.add(m);
+    enemyBolts.push({ mesh: m, vel: dir.multiplyScalar(30), life: 4 });
+  });
+}
+function hitFlash(e) { e.flash = 0.12; e.mesh.userData.shell.emissiveIntensity = 6; }
 
 function explode(pos, color) {
   const mesh = new THREE.Group(); mesh.position.copy(pos); scene.add(mesh);
@@ -656,10 +678,14 @@ function explode(pos, color) {
   explosions.push({ mesh, light, life: 0.7, max: 0.7 });
 }
 
+function showShield() {
+  if (!shieldFlash) { shieldFlash = new THREE.Mesh(new THREE.SphereGeometry(4.2, 24, 16), new THREE.MeshBasicMaterial({ color: 0x4fc8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); shieldFlash.scale.set(0.8, 0.45, 1.4); playerShip.add(shieldFlash); }
+  shieldFlash.material.opacity = 0.55;
+}
 function takeDamage() {
   if (invincible > 0) return;
   lives--;
-  invincible = 2.5;
+  invincible = 3;
   hud_lives();
   if (lives <= 0) {
     state = 'gameover';
@@ -717,13 +743,16 @@ function lerp(a, b, t) { return a + (b - a) * t; }
       let dead = b.life <= 0;
       if (!dead) {
         for (let j = enemies.length - 1; j >= 0; j--) {
-          if (b.mesh.position.distanceTo(enemies[j].mesh.position) < 1.9) {
-            explode(enemies[j].mesh.position.clone(), enemies[j].mesh.userData.color || 0xff6600);
-            scene.remove(enemies[j].mesh);
+          const ej = enemies[j];
+          if (b.mesh.position.distanceTo(ej.mesh.position) < (ej.kind === 'brute' ? 3.2 : 1.9)) {
+            dead = true; ej.hp--;
+            if (ej.hp > 0) { hitFlash(ej); break; }
+            explode(ej.mesh.position.clone(), ej.mesh.userData.color || 0xff6600);
+            if (ej.kind === 'brute') { explode(ej.mesh.position.clone().add(new THREE.Vector3(1, 0.5, 0)), 0xffa040); }
+            scene.remove(ej.mesh);
             enemies.splice(j, 1);
-            score += 100 * wave;
+            score += (ej.kind === 'brute' ? 400 : ej.kind === 'striker' ? 200 : 100) * wave;
             hud_score();
-            dead = true;
             break;
           }
         }
@@ -733,17 +762,38 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 
     // --- ENEMIES ---
     for (let i = enemies.length - 1; i >= 0; i--) {
-      const e = enemies[i];
-      const toPlayer = shipPos.clone().sub(e.mesh.position);
-      e.mesh.position.addScaledVector(toPlayer.normalize(), (ENEMY_SPD + wave * 0.6) * dt);
+      const e = enemies[i]; e.t += dt;
+      const toPlayer = shipPos.clone().sub(e.mesh.position), dist = toPlayer.length(); toPlayer.normalize();
+      const side = new THREE.Vector3().crossVectors(toPlayer, new THREE.Vector3(0, 1, 0)).normalize();
+      if (e.kind === 'drone' || (e.kind === 'striker' && e.shots >= 3)) {            // weave in and ram
+        const sp = (ENEMY_SPD + wave * 0.6) * (e.kind === 'striker' ? 1.5 : 1);
+        e.mesh.position.addScaledVector(toPlayer, sp * dt).addScaledVector(side, Math.sin(e.t * 2.6) * 5 * dt).y += Math.cos(e.t * 1.9) * 2 * dt;
+      } else {                                                                          // hold at range, circle, shoot
+        const range = e.kind === 'brute' ? 30 : 22;
+        e.orbit += dt * (e.kind === 'brute' ? 0.15 : 0.55);
+        const want = shipPos.clone().add(new THREE.Vector3(Math.cos(e.orbit) * range * 0.5, Math.sin(e.orbit * 0.7) * 5, Math.sin(e.orbit) * range * 0.35 - range).applyEuler(new THREE.Euler(0, shipYaw, 0)));
+        e.mesh.position.lerp(want, Math.min(1, dt * (e.kind === 'brute' ? 0.5 : 1.1)));
+        e.fire -= dt;
+        if (e.fire <= 0 && dist < 60) { enemyShoot(e.mesh.position.clone(), e.kind === 'brute'); e.shots++; e.fire = (e.kind === 'brute' ? 3.6 : 2.9) - Math.min(0.8, wave * 0.08); }
+      }
       e.mesh.lookAt(shipPos);
-      e.mesh.rotation.z += dt * 1.3;
-      if (e.mesh.position.distanceTo(shipPos) < 2.4) {
+      e.mesh.rotation.z += dt * (e.kind === 'brute' ? 0.4 : 1.3);
+      if (e.flash > 0) { e.flash -= dt; if (e.flash <= 0) e.mesh.userData.shell.emissiveIntensity = 1.3; }
+      if (e.mesh.position.distanceTo(shipPos) < (e.kind === 'brute' ? 4 : 2.4)) {
         explode(e.mesh.position.clone(), 0xff2200);
         scene.remove(e.mesh);
         enemies.splice(i, 1);
+        if (invincible <= 0) { shake = 0.6; showShield(); }
         takeDamage();
       }
+    }
+
+    // --- ENEMY BOLTS ---
+    for (let i = enemyBolts.length - 1; i >= 0; i--) {
+      const b = enemyBolts[i]; b.mesh.position.addScaledVector(b.vel, dt); b.life -= dt;
+      let dead = b.life <= 0;
+      if (!dead && b.mesh.position.distanceTo(shipPos) < 1.4) { dead = true; if (invincible <= 0) { takeDamage(); shake = 0.45; showShield(); } }
+      if (dead) { scene.remove(b.mesh); enemyBolts.splice(i, 1); }
     }
 
     // --- EXPLOSIONS ---
@@ -776,6 +826,8 @@ function lerp(a, b, t) { return a + (b - a) * t; }
     .applyEuler(new THREE.Euler(shipPitch * 0.5, shipYaw, 0, 'YXZ'));
   camPos.lerp(shipPos.clone().add(worldOff), dt * 6);
   camera.position.copy(camPos);
+  if (shake > 0) { shake = Math.max(0, shake - dt); camera.position.add(new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), 0).multiplyScalar(shake * 1.2)); }
+  if (shieldFlash && shieldFlash.material.opacity > 0) shieldFlash.material.opacity = Math.max(0, shieldFlash.material.opacity - dt * 1.4);
   const lookTarget = shipPos.clone().add(
     new THREE.Vector3(0,0,-40).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'))
   );

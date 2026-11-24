@@ -115,7 +115,9 @@ Rules drawn from them:
   with amber lights, wide stepped stern block with amber strips, engine pods on struts beside the dome with glowing blue
   faces. Planet = terracotta/clay world with wrinkled relief (normal map from ridged noise; user's material reference was
   an organic-sphere sheet), warm rim, poles turned away from view. Space: per-pixel fbm nebula sky, layered stars, dust.
-  Enemies: dark ridged alien seed-craft, glowing veins, three swept blades, hot eye. Explosions: flash + ring + sparks.
+  Enemies (Nov 24): three kinds — DRONE (green/blue, 1 HP, weaves in to ram), STRIKER (red, 2 HP, holds an arc in front
+  of you, fires led red-magenta plasma bolts, rams after 3 shots), BRUTE (violet, ×1.9, crown ring, 4 HP, wave 3+, 3-bolt
+  spread). Hit flash on enemies, blue shield flash + camera shake when you're hit, 3 s invincibility. Score 100/200/400 × wave. Explosions: flash + ring + sparks.
   GOTCHA: loftHull winding must face outward (it was inside-out once: windows painted on top were never visible).
   Touch: the same glass bottom bar (steer stick, Auto-fire toggle (on by default on touch), Bridge, Fire); aim assist
   bends shots toward the enemy nearest the crosshair; the scene is rendered shifted up above the bar (setViewOffset).
