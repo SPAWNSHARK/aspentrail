@@ -350,15 +350,16 @@ function simRun(k) { simClose(); if (k === 'blueprint') openBlueprint(); else if
     var lens = new THREE.Mesh(new THREE.CircleGeometry(0.28, 48), new THREE.MeshBasicMaterial({ color: 0x8a6cff, toneMapped: false })); lens.rotation.x = -Math.PI / 2; lens.position.y = 1.075; g.add(lens);
     var beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.26, 1.2, 32, 1, true), add(null, 0x7a6cff, 0.12)); beam.position.y = 1.65; g.add(beam);
     // the three buttons, on a sloped bronze panel facing the door (+Z)
-    var panel = new THREE.Mesh(soft(rr(1.5, 0.4, 0.08), 0.06, 0.02), M.bronze); panel.position.set(0, 0.88, 1.08); panel.rotation.x = -0.75; g.add(panel);
+    var brk = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 0.3), M.bronze); brk.position.set(0, 0.9, 1.25); g.add(brk);
+    var panel = new THREE.Mesh(soft(rr(1.5, 0.4, 0.08), 0.06, 0.02), M.bronze); panel.position.set(0, 0.99, 1.36); panel.rotation.x = -0.75;   // in front of the console's bronze rim (r 1.25) g.add(panel);
     [['FIT SCENE', -0.48, 'btn-fit'], ['RESET', 0, 'btn-reset'], ['SIM LIBRARY', 0.48, 'btn-sim']].forEach(function (b) {
       var bt = new THREE.Mesh(soft(rr(0.42, 0.2, 0.05), 0.04, 0.012), M.bronze);
-      bt.position.set(b[1], 0.9, 1.13); bt.rotation.x = -0.75; g.add(bt);
+      bt.position.set(b[1], 1.01, 1.41); bt.rotation.x = -0.75; g.add(bt);
       var face = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.17), new THREE.MeshBasicMaterial({ map: labelTex(b[0]), toneMapped: false })); face.position.z = 0.034; bt.add(face);
-      var gl = new THREE.Mesh(new THREE.PlaneGeometry(0.75, 0.5), add(dot, 0xffa040, 0.45)); gl.position.set(b[1], 0.895, 1.12); gl.rotation.x = -0.75; g.add(gl);
+      var gl = new THREE.Mesh(new THREE.PlaneGeometry(0.75, 0.5), add(dot, 0xffa040, 0.45)); gl.position.set(b[1], 1.005, 1.4); gl.rotation.x = -0.75; g.add(gl);
       // generous tap target on the matching a-entity
       var ent = document.getElementById(b[2]), hit = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.4, 0.3), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
-      ent.setObject3D('mesh', hit); ent.object3D.position.set(CON.x + b[1], 0.95, CON.z + 1.15);
+      ent.setObject3D('mesh', hit); ent.object3D.position.set(CON.x + b[1], 1.05, CON.z + 1.43);
       ent.addEventListener('click', function () { bt.scale.setScalar(0.9); setTimeout(function () { bt.scale.setScalar(1); }, 160); });
     });
   }
