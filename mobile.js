@@ -3,7 +3,7 @@
 // (optionally  wayfarer-mobile="radius: 10.2"  to keep the player inside a round room).
 //
 //  • window.WAYFARER = { touch, mobile }  — quality profile for pages to read
-//  • four arrow buttons (bottom-left) walk the player; a thumbstick (bottom-right) looks; Gyro + Level sit top-right under the deck label
+//  • analog joystick (bottom-left) walks; look stick (bottom-right) looks; Gyro (VR headset) + Level (spirit level) bottom-centre
 //  • tap-to-interact: reuses the page's gaze-cursor selector as a mouse/touch ray
 //  • gaze reticle + fuse are switched on only in VR (Cardboard) mode
 //  • optional round-room bounds so you can't walk through the walls
@@ -17,59 +17,36 @@
   if (mobile) root.classList.add('mobile');
   if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) root.classList.add('standalone');
 
-  // ── controls: one frosted-glass bar across the bottom (iOS glassmorphism, Safari-bottom-bar proportions), white
-  //    rounded line icons in the YouTube tab-bar style. Left: movement pad. Right: look stick. Middle: Gyro, Level.
+  // ── controls (user, Nov 24 v3: "like it was in the beginning"): two floating thumbsticks in the bottom corners —
+  //    left = walk (analog), right = look — plus two small round buttons (Gyro = VR headset, Level = spirit level).
+  //    Real frosted glass: dark translucent fill, heavy backdrop blur + saturation, bright top-edge highlight, sheen.
+  var GLASS = 'background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 48%,rgba(255,255,255,.07)),rgba(22,22,28,.38);' +
+    '-webkit-backdrop-filter:blur(22px) saturate(185%);backdrop-filter:blur(22px) saturate(185%);border:1px solid rgba(255,255,255,.24);' +
+    'box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.45);';
   var css = document.createElement('style');
   css.textContent =
     '.wf-ctl,.wf-ctl *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none}' +
-    '#wf-bar{position:fixed;z-index:15;display:none;left:50%;transform:translateX(-50%);width:auto;' +
-    'bottom:calc(8px + env(safe-area-inset-bottom,0px));height:auto;border-radius:26px;padding:7px 9px;box-sizing:border-box;' +
-    'background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);' +
-    'border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);' +
-    'align-items:center;justify-content:space-between;gap:6px;transition:opacity .25s}' +
-    'html.touch #wf-bar{display:flex}' +
-    // in a Safari tab the browser's own floating toolbar sits over the bottom of the page: lift the bar clear of it
-    'html.touch:not(.standalone) #wf-bar{bottom:calc(6px + env(safe-area-inset-bottom,0px))}' +
-    // no labels across the top of the screen (user, Nov 24)
-    '#hud,#controls-hint,#hint-shoot{display:none!important}' +
-    '#wf-bar svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
-    // movement pad: a glass disc with four chevron petals
-    '#wf-dpad{position:relative;flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
-    '#wf-dpad b{position:absolute;width:36%;height:36%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:transparent;transition:background .1s,transform .1s}' +
-    '#wf-dpad b.on{background:rgba(255,255,255,.3);transform:scale(.94)}' +
-    '#wf-dpad .u{left:32%;top:2%}#wf-dpad .d{left:32%;bottom:2%}#wf-dpad .l{left:2%;top:32%}#wf-dpad .r{right:2%;top:32%}' +
-    '#wf-dpad .c{position:absolute;left:45%;top:45%;width:10%;height:10%;border-radius:50%;background:rgba(255,255,255,.3)}' +
-    // middle: tab-bar style icon buttons with tiny labels
-    '#wf-top{display:flex;flex-direction:column;gap:4px;align-items:center}#wf-top span{display:none}' +
-    '#wf-top b{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:8px;border-radius:50%;color:#fff;' +
-    'font:600 11px -apple-system,system-ui,sans-serif;letter-spacing:.2px;background:transparent}' +
-    '#wf-top b.sel{background:rgba(255,255,255,.18)}#wf-top b.on{background:rgba(255,255,255,.32)}' +
-    // look stick: glass ring with a soft knob
-    '#wf-stick{position:relative;flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
-    '#wf-stick i{position:absolute;left:50%;top:50%;width:40%;height:40%;margin:-20% 0 0 -20%;border-radius:50%;background:rgba(255,255,255,.30);' +
-    'border:1px solid rgba(255,255,255,.55);box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none;display:flex;align-items:center;justify-content:center}' +
-    '#wf-stick.on i{background:rgba(255,255,255,.5)}' +
-    '@media (orientation:landscape) and (max-height:520px){' +
-      '#wf-bar{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;align-items:flex-end;pointer-events:none}' +
-      'html.touch:not(.standalone) #wf-bar{bottom:calc(10px + env(safe-area-inset-bottom,0px))}' +
-      '#wf-dpad,#wf-stick{pointer-events:auto;width:min(30vh,96px);height:min(30vh,96px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
-      '#wf-top{flex-direction:row;pointer-events:auto;padding:4px 8px;border-radius:22px;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}' +
-      '#wf-top b{min-width:0;padding:6px 8px;font-size:10px}' +
-    '}' +
+    '#wf-joy,#wf-stick,#wf-btns{position:fixed;z-index:15;display:none;transition:opacity .25s}' +
+    'html.touch #wf-joy,html.touch #wf-stick,html.touch #wf-btns{display:block}' +
+    '#wf-joy,#wf-stick{bottom:calc(18px + env(safe-area-inset-bottom,0px));width:118px;height:118px;border-radius:50%;' + GLASS + '}' +
+    '#wf-joy{left:calc(18px + env(safe-area-inset-left,0px))}#wf-stick{right:calc(18px + env(safe-area-inset-right,0px))}' +
+    '#wf-joy i,#wf-stick i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;pointer-events:none;display:flex;align-items:center;justify-content:center;' +
+    'background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.7)}' +
+    '#wf-joy.on i,#wf-stick.on i{background:linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,.32))}' +
+    '#wf-btns{left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));white-space:nowrap}' +
+    '#wf-btns b{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0 6px;border-radius:50%;' + GLASS + '}' +
+    '#wf-btns b.sel{background:rgba(255,180,90,.42);border-color:rgba(255,210,150,.8)}#wf-btns b.on{transform:scale(.92)}' +
+    '.wf-ctl svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
+    '#wf-joy svg,#wf-stick svg{width:20px;height:20px;stroke:rgba(20,20,26,.75);color:rgba(20,20,26,.75)}' +
+    '#hud,#controls-hint,#hint-shoot{display:none!important}' +                 // no labels across the screen (user)
     'body.reading .wf-ctl,body.wf-vr .wf-ctl{opacity:0;pointer-events:none}' +
-    '.a-modal,.a-dialog{display:none!important}' +                    // no A-Frame motion-permission box: Gyro asks iOS directly
-    'html.touch #controls-hint{bottom:auto!important;top:48px;width:min(92vw,calc(100vw - 40px));text-align:center;white-space:normal!important;left:50%!important;' +
-    'color:#c8d4f0!important;font-size:10px!important;letter-spacing:1.5px!important;transition:opacity 1.2s}' +
-    'html.touch #controls-hint.wf-gone{opacity:0}' +
-    'html.mobile #hud{font-size:9px!important;letter-spacing:1.5px!important;padding:12px 14px!important}html.mobile #hud span{white-space:nowrap}' +
-    '@media (max-width:480px){html.mobile #hud span:nth-child(2){display:none}}';
+    '.a-modal,.a-dialog{display:none!important}';                         // no A-Frame motion-permission box: Gyro asks iOS directly
   document.head.appendChild(css);
 
   var ICON = {
-    u: '<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>', d: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
-    l: '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>', r: '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
-    gyro: '<svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M3 9a9 9 0 0 0 0 6M21 9a9 9 0 0 1 0 6"/></svg>',
-    level: '<svg viewBox="0 0 24 24"><path d="M3 12h18M12 4v4M10 6l2-2 2 2M12 20v-4M10 18l2 2 2-2"/></svg>',
+    gyro: '<svg viewBox="0 0 24 24"><path d="M3.5 8h17a1.5 1.5 0 0 1 1.5 1.5v5a2.5 2.5 0 0 1-2.5 2.5h-3.6l-1.8-2.6a1.3 1.3 0 0 0-2.2 0L10.1 17H6.5A2.5 2.5 0 0 1 4 14.5v0A1.5 1.5 0 0 1 2 13v-3.5A1.5 1.5 0 0 1 3.5 8z"/><path d="M6.5 8l1.2-2.5h8.6L17.5 8"/><circle cx="7.6" cy="12.2" r="1.6"/><circle cx="16.4" cy="12.2" r="1.6"/></svg>',   // VR headset
+    level: '<svg viewBox="0 0 24 24"><rect x="1.5" y="8" width="21" height="8" rx="1.6"/><rect x="8.5" y="10.2" width="7" height="3.6" rx="1.8"/><circle cx="12" cy="12" r="0.9" fill="#fff"/><path d="M10.6 10.2v3.6M13.4 10.2v3.6M4.5 8v2M19.5 8v2"/></svg>',   // spirit level
+    walk: '<svg viewBox="0 0 24 24"><path d="M12 4l3 3H9zM12 20l3-3H9zM4 12l3-3v6zM20 12l-3-3v6z" fill="currentColor"/></svg>',
     look: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>'
   };
   AFRAME.registerComponent('wayfarer-mobile', {
@@ -99,23 +76,21 @@
         return el;
       }
 
-      // ── left thumb: four arrow buttons. Hold = move; release, cancel or losing the pointer = stop at once ──
-      var dpad = ctl(document.createElement('div')); dpad.id = 'wf-dpad';
-      var dirs = { u: [0, 1], d: [0, -1], l: [-1, 0], r: [1, 0] }, heldDir = { u: 0, d: 0, l: 0, r: 0 };
-      function applyDir() { self.vec.x = heldDir.r - heldDir.l; self.vec.y = heldDir.u - heldDir.d; }
-      [['u', '↑'], ['d', '↓'], ['l', '←'], ['r', '→']].forEach(function (d) {
-        var b = document.createElement('b'), pidB = null; b.className = d[0]; b.innerHTML = ICON[d[0]]; ctl(b); dpad.appendChild(b);
-        function stop(e) { if (e && pidB !== null && e.pointerId !== undefined && e.pointerId !== pidB) return; pidB = null; heldDir[d[0]] = 0; b.classList.remove('on'); applyDir(); }
-        b.addEventListener('pointerdown', function (e) {
-          e.preventDefault(); if (pidB !== null) return; pidB = e.pointerId; try { b.setPointerCapture(pidB); } catch (err) {}
-          heldDir[d[0]] = 1; b.classList.add('on'); applyDir();
-        });
-        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { b.addEventListener(n, stop); });
-        b.addEventListener('touchend', function () { stop(); }); b.addEventListener('touchcancel', function () { stop(); });
-        b._stop = stop;
-      });
-      var centre = document.createElement('span'); centre.className = 'c'; dpad.appendChild(centre);
-      var bar = ctl(document.createElement('div')); bar.id = 'wf-bar'; document.body.appendChild(bar); bar.appendChild(dpad);
+      // ── left thumb: analog joystick. Push = walk that way (speed grows with the push); release = stop at once ──
+      var joy = ctl(document.createElement('div')), jk = document.createElement('i'), jpid = null; joy.id = 'wf-joy'; jk.innerHTML = ICON.walk; joy.appendChild(jk); document.body.appendChild(joy);
+      function joyUpdate(e) {
+        var r = joy.getBoundingClientRect(), R = r.width / 2 - 8;
+        var dx = (e.clientX - (r.left + r.width / 2)) / R, dy = (e.clientY - (r.top + r.height / 2)) / R, len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 1) { dx /= len; dy /= len; len = 1; }
+        jk.style.transform = 'translate(' + (dx * r.width * 0.3) + 'px,' + (dy * r.width * 0.3) + 'px)';
+        if (len < 0.12) { self.vec.x = 0; self.vec.y = 0; return; }
+        self.vec.x = dx; self.vec.y = -dy;
+      }
+      function joyEnd(e) { if (e && e.pointerId !== undefined && jpid !== null && e.pointerId !== jpid) return; jpid = null; self.vec.x = 0; self.vec.y = 0; jk.style.transform = ''; joy.classList.remove('on'); }
+      joy.addEventListener('pointerdown', function (e) { e.preventDefault(); if (jpid !== null) return; jpid = e.pointerId; try { joy.setPointerCapture(jpid); } catch (err) {} joy.classList.add('on'); joyUpdate(e); });
+      joy.addEventListener('pointermove', function (e) { if (e.pointerId === jpid) joyUpdate(e); });
+      ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { joy.addEventListener(n, joyEnd); });
+      joy.addEventListener('touchend', function () { joyEnd(); }); joy.addEventListener('touchcancel', function () { joyEnd(); });
 
       // ── right thumb: look stick. Push left/right to turn, up/down to look; release stops turning and keeps the view ──
       var stick = ctl(document.createElement('div')), knob = document.createElement('i'), look = this.look = { x: 0, y: 0, level: false }, lpid = null;
@@ -136,10 +111,9 @@
       ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { stick.addEventListener(n, lookEnd); });
       stick.addEventListener('touchend', function () { lookEnd(); }); stick.addEventListener('touchcancel', function () { lookEnd(); });
 
-      // ── top right, under the deck label: Gyro and Level. They fire only on a deliberate tap (press and release on the same button) ──
-      var top = ctl(document.createElement('div')); top.id = 'wf-top';
-      var gy = document.createElement('b'), lv = document.createElement('b'); gy.innerHTML = ICON.gyro + '<span>Gyro</span>'; lv.innerHTML = ICON.level + '<span>Level</span>'; ctl(gy); ctl(lv); top.appendChild(gy); top.appendChild(lv);
-      bar.appendChild(top); bar.appendChild(stick);
+      // ── bottom centre: Gyro and Level. They fire only on a deliberate tap (press and release on the same button) ──
+      var top = ctl(document.createElement('div')); top.id = 'wf-btns'; document.body.appendChild(top); document.body.appendChild(stick);
+      var gy = document.createElement('b'), lv = document.createElement('b'); gy.innerHTML = ICON.gyro; lv.innerHTML = ICON.level; gy.setAttribute('aria-label', 'Gyro'); lv.setAttribute('aria-label', 'Level'); ctl(gy); ctl(lv); top.appendChild(gy); top.appendChild(lv);
       this.gyro = false;
       function tap(btn, fn) {
         var pid2 = null, x0 = 0, y0 = 0, t0 = 0;
@@ -151,7 +125,7 @@
         });
         ['pointercancel', 'lostpointercapture'].forEach(function (n) { btn.addEventListener(n, function () { pid2 = null; btn.classList.remove('on'); }); });
       }
-      function setGyro(on) { self.gyro = on; gy.classList.toggle('sel', on); gy.querySelector('span').textContent = on ? 'Gyro on' : 'Gyro'; self.applyGyro(); }
+      function setGyro(on) { self.gyro = on; gy.classList.toggle('sel', on); self.applyGyro(); }
       tap(gy, function () {
         if (self.gyro) return setGyro(false);
         var D = window.DeviceOrientationEvent;
@@ -162,7 +136,7 @@
       tap(lv, function () { look.level = true; });
       sc.addEventListener('loaded', function () { self.applyGyro(); });
       // never keep moving or turning if the page loses focus mid-press
-      function releaseAll() { Array.prototype.forEach.call(dpad.children, function (b) { b._stop(); }); lookEnd(); }
+      function releaseAll() { joyEnd(); lookEnd(); }
       window.addEventListener('blur', releaseAll); document.addEventListener('visibilitychange', function () { if (document.hidden) releaseAll(); });
 
       // ── hint text ──
