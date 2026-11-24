@@ -176,10 +176,12 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] No lettering across the top of the screen (#hud hidden everywhere)
 - [ ] LCARS-inspired UI animations (Star Trek) — on consoles/screens, in the ship's amber palette
 - [ ] Bio-engineered alien ship (organic, ribbed, glowing red windows — alien-bioship.jpg) as an enemy type / capital ship
-- [ ] Space outside: MANY planets at different distances, sizes and biomes, moons, slow-turning Milky Way; travel to them
+- [x] Space outside (Flight Mode): SYSTEM table of 7 worlds (terran, clay desert, ringed gas giants, ice, lava, toxic), moons,
+  slow-turning Milky Way band in the sky shader; NAV chip (‹ name/distance › WARP, keys N/J) warps with a streak tunnel.
+  Planets are real world-space objects (camera far 40000); one procedural PLANET_FS shader paints every biome.
 - [ ] HIGHEST PRIORITY (roadmap): interior → bridge → spaceflight as ONE continuous experience (no black screens)
 - [ ] Space combat run from the Bridge (bridge-combat-concept.jpg: tactical sphere, LCARS side panels)
-- [ ] Visible warp/hyperspace jump effect; missions, objectives, rewards; ship & crew progression
+- [x] Visible warp jump (Flight Mode NAV → WARP). [ ] missions, objectives, rewards; ship & crew progression
 - [ ] Interactive objects in rooms; real-time planetary window views; upgraded Holodeck visuals
 - [ ] Reduce floor glare / better ambient shadows; adjustable mobile controls (size, opacity)
 - [ ] Sounds: footsteps, engine hum, doors, weapons, ambience
