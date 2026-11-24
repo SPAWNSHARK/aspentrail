@@ -56,7 +56,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124g).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124h).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick; bottom-centre two round glass buttons, icons only: Gyro = VR headset, Level = spirit level. Real glassmorphism (dark
@@ -84,8 +84,8 @@ Rules drawn from them:
   in the repo) — moulded arched bronze frame with jamb blocks and side ribs; ONE nameplate per door, on the frame
   header; each leaf has a top light + X-braces to a centre octagon hub, glass tinted per room (`tint` in DOORS).
   The right leaf has a rounded tongue that carries the hub; the OPEN button sits in the hub at the door centre.
-  Left leaf slides left, right leaf slides right (with the button). User sketch: seam is not straight, it jogs
-  round the hub. Ribs, rib legs, cornice and sconces are bevelled extrusions — avoid raw boxes (user: "Minecraft").
+  Left leaf slides left, right leaf slides right (with the button). User sketch (v2, Nov 24): the seam runs straight down
+  the middle and hugs the LEFT half of the octagon hub (r 0.265 outline), so the whole hub rides out on the right leaf. Ribs, rib legs, cornice and sconces are bevelled extrusions — avoid raw boxes (user: "Minecraft").
 - **Doors are ONE shared component: `door.js`** (user, Nov 24: "feels like one game, not 6 separate games").
   Corridor uses `WAYFARER.door.create(...)`; every room calls `WAYFARER.door.roomExit('<id>')` (its old exit box is gone).
   Room exits sit on each room's +Z wall at x=0 as free-standing doors with bronze pocket housings for the leaves.

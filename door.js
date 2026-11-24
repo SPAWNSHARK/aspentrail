@@ -39,9 +39,11 @@
 
   // ───────── shapes ─────────
   function seam(sh, up) {               // seam between the leaves, bottom→top (up) or top→bottom; jogs round the hub
-    var y0 = HUB_Y - 0.3, y1 = HUB_Y + 0.44;
-    if (up) { sh.lineTo(0, y0); sh.lineTo(-TONGUE, y0); sh.lineTo(-TONGUE, HUB_Y + 0.08); sh.quadraticCurveTo(-TONGUE, y1, 0, y1); sh.lineTo(0, DOOR_H); }
-    else { sh.lineTo(0, y1); sh.quadraticCurveTo(-TONGUE, y1, -TONGUE, HUB_Y + 0.08); sh.lineTo(-TONGUE, y0); sh.lineTo(0, y0); sh.lineTo(0, 0); }
+    // user sketch (Nov 24 v2): straight down the middle, then the seam hugs the LEFT half of the octagon hub and carries on
+    // straight down — the whole hub rides on the right leaf. Octagon is flat-topped, outline just outside the hub (r 0.24).
+    var R = 0.265, c = 0.924 * R, d = 0.383 * R, P = [[0, HUB_Y - c], [-d, HUB_Y - c], [-c, HUB_Y - d], [-c, HUB_Y + d], [-d, HUB_Y + c], [0, HUB_Y + c]];
+    if (up) { P.forEach(function (q) { sh.lineTo(q[0], q[1]); }); sh.lineTo(0, DOOR_H); }
+    else { P.slice().reverse().forEach(function (q) { sh.lineTo(q[0], q[1]); }); sh.lineTo(0, 0); }
   }
   function leafShape(right) {
     var sh = new THREE.Shape(), r = R_IN;
@@ -101,7 +103,7 @@
     P.all(function (x, k) {
       if (k === 'rough') return;
       x.strokeStyle = k === 'col' ? '#120c06' : '#000000'; x.lineWidth = 3; x.beginPath(); x.moveTo(X(0), Y(DOOR_H));
-      var y0 = HUB_Y - 0.3, y1 = HUB_Y + 0.44; x.lineTo(X(0), Y(y1)); x.quadraticCurveTo(X(-TONGUE), Y(y1), X(-TONGUE), Y(HUB_Y + 0.08)); x.lineTo(X(-TONGUE), Y(y0)); x.lineTo(X(0), Y(y0)); x.lineTo(X(0), Y(0)); x.stroke();
+      var R = 0.265, c = 0.924 * R, d = 0.383 * R; [[0, HUB_Y + c], [-d, HUB_Y + c], [-c, HUB_Y + d], [-c, HUB_Y - d], [-d, HUB_Y - c], [0, HUB_Y - c], [0, 0]].forEach(function (q) { x.lineTo(X(q[0]), Y(q[1])); }); x.stroke();   // same path as seam()
     });
     return { map: P.tex('col'), bump: P.tex('bump'), rough: P.tex('rough') };
   }
@@ -285,7 +287,7 @@
       var near = Math.abs(lp.x) < 0.8 && lp.z < 0.7;          // standing in the doorway: never shut the door on someone
       if (D.target === 1 && performance.now() - D.openAt > (o.holdMs || 8000) && !near) D.target = 0;
       D.p += (D.target - D.p) * Math.min(1, s * 5.5); if (Math.abs(D.target - D.p) < 0.002) D.p = D.target;
-      lL.position.x = -D.p * (LW + 0.06); lR.position.x = D.p * (LW + TONGUE + 0.08);
+      lL.position.x = -D.p * (LW + 0.06); lR.position.x = D.p * (LW + 0.25 + 0.08);   // the right leaf carries the hub's left half past the frame
       holder.visible = D.p < 0.3; portal.visible = D.p > 0.001; tapM.visible = D.p > 0.85;
       pm.uniforms.fade.value = Math.min(1, D.p * 2.5);
       if (D.flash > 0) { D.flash -= s; if (D.flash <= 0) face.material.map = D.target ? R.faces.close : R.faces.open; }
