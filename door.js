@@ -123,18 +123,38 @@
     });
     return { map: P.tex('col'), bump: P.tex('bump'), rough: P.tex('rough') };
   }
-  function plate(text, w, h) {          // bronze name plate, engraved lettering
-    var c = cv(w, h), x = c.getContext('2d');
-    var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#c4965a'); g.addColorStop(1, '#85603a');
-    x.fillStyle = g; x.fillRect(0, 0, w, h);
-    x.strokeStyle = '#3d2b14'; x.lineWidth = 6; x.strokeRect(5, 5, w - 10, h - 10);
-    x.strokeStyle = 'rgba(255,230,180,0.45)'; x.lineWidth = 2; x.strokeRect(12, 12, w - 24, h - 24);
-    x.textAlign = 'center'; x.textBaseline = 'middle';
-    var fs = Math.min(h * 0.46, (w - 60) / text.length / 0.72);
-    x.font = '700 ' + fs + 'px "Helvetica Neue", Arial, sans-serif'; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.08) + 'px';
-    x.fillStyle = 'rgba(255,235,190,0.55)'; x.fillText(text, w / 2 + 1, h / 2 + 1.5);
-    x.fillStyle = '#2b1d0c'; x.fillText(text, w / 2, h / 2);
-    var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  // nameplate in the SS Wayfarer logo style (reference/logo-wordmark.jpg): gold wide-geometric lettering on black, with
+  // three-bar 'wings' either side. Font: Michroma (OFL, fonts/michroma.woff2); plates redraw once it has loaded.
+  var PLATES = [], FONT = 'Michroma, "Eurostile", "Helvetica Neue", Arial, sans-serif';
+  if (window.FontFace && document.fonts) {
+    var base = (document.currentScript && document.currentScript.src || '').replace(/[^\/]*$/, '');
+    new FontFace('Michroma', 'url(' + base + 'fonts/michroma.woff2)').load().then(function (f) { document.fonts.add(f); PLATES.forEach(function (p) { p.draw(); p.tex.needsUpdate = true; }); }).catch(function () {});
+  }
+  function plate(text, w, h) {
+    var c = cv(w, h), x = c.getContext('2d'), t = new THREE.CanvasTexture(c);
+    function draw() {
+      x.clearRect(0, 0, w, h);
+      var bg = x.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#0c0a08'); bg.addColorStop(1, '#050403'); x.fillStyle = bg; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#7a5530'; x.lineWidth = 4; x.strokeRect(3, 3, w - 6, h - 6);
+      var gold = x.createLinearGradient(0, h * 0.25, 0, h * 0.78); gold.addColorStop(0, '#fff1c8'); gold.addColorStop(0.45, '#e0b064'); gold.addColorStop(0.55, '#b07a34'); gold.addColorStop(1, '#f0cc80');
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      var wing = w * 0.13, room = w - wing * 2 - 40, fs = Math.min(h * 0.42, room / (text.length * 0.92));
+      x.font = '400 ' + fs + 'px ' + FONT; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.06) + 'px';
+      var tw = x.measureText(text).width;
+      if (tw > room) { fs *= room / tw; x.font = '400 ' + fs + 'px ' + FONT; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.06) + 'px'; tw = x.measureText(text).width; }
+      x.fillStyle = 'rgba(0,0,0,0.6)'; x.fillText(text, w / 2 + 2, h / 2 + 3);
+      x.fillStyle = gold; x.fillText(text, w / 2, h / 2 + 1);
+      // wings: three tapering bars and an arrow tip, mirrored
+      [-1, 1].forEach(function (sd) {
+        var inner = w / 2 + sd * (tw / 2 + 18), outer = inner + sd * wing;
+        for (var k = 0; k < 3; k++) {
+          var y = h / 2 - h * 0.13 + k * h * 0.13, len = wing * (1 - k * 0.18), th = h * 0.055;
+          x.fillStyle = gold; x.beginPath();
+          x.moveTo(inner, y - th / 2); x.lineTo(inner + sd * len * 0.82, y - th / 2); x.lineTo(inner + sd * len, y); x.lineTo(inner + sd * len * 0.82, y + th / 2); x.lineTo(inner, y + th / 2); x.closePath(); x.fill();
+        }
+      });
+    }
+    draw(); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; PLATES.push({ draw: draw, tex: t }); return t;
   }
   function buttonFace(state) {           // open | close | press
     var S = 256, c = cv(S, S), x = c.getContext('2d'), hot = state === 'press';
@@ -206,7 +226,7 @@
     var g = new THREE.Group(); g.position.set(o.frame.x, 0, o.frame.z); g.rotation.y = o.frame.rot * Math.PI / 180; (o.parent || o.sc.object3D).add(g);
     var depth = o.depth || 0.1;
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
-    var nm = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.25), new THREE.MeshBasicMaterial({ map: plate(o.name, 600, 152), fog: false, toneMapped: false, color: 0xe8dcc8 }));
+    var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.244), new THREE.MeshBasicMaterial({ map: plate(o.name, 900, 200), fog: false, toneMapped: false }));
     nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);
     if (depth > 0.2 && !o.noPockets) {  // free-standing (room) door: threshold, plus pocket housings the leaves slide into
       var th = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W, 0.02, depth), R.side); th.position.set(0, 0.01, 0.12 - depth / 2); g.add(th);

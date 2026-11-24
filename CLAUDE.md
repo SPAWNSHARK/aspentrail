@@ -168,6 +168,24 @@ Rules drawn from them:
 3. Lounge: YouTube on the TV (needs the API key, same as Media Nexus)
 5. Collision / room boundaries everywhere
 
+## User backlog (Nov 24 — "one at a time"; refs: reference/roadmap-next-updates.jpg, roadmap-key-features.jpg,
+## core-inspiration.jpg, bridge-combat-concept.jpg, lcars-ui.jpg, alien-bioship.jpg, logo-wordmark.jpg)
+Guidelines, not orders: don't destroy what's built if an item doesn't fit.
+- [x] Holodeck console buttons cut by the bronze rim (fixed)
+- [x] Door nameplates in the logo style: Michroma (fonts/michroma.woff2, OFL) gold on black + triple-bar wings (door.js)
+- [x] No lettering across the top of the screen (#hud hidden everywhere)
+- [ ] LCARS-inspired UI animations (Star Trek) — on consoles/screens, in the ship's amber palette
+- [ ] Bio-engineered alien ship (organic, ribbed, glowing red windows — alien-bioship.jpg) as an enemy type / capital ship
+- [ ] Space outside: MANY planets at different distances, sizes and biomes, moons, slow-turning Milky Way; travel to them
+- [ ] HIGHEST PRIORITY (roadmap): interior → bridge → spaceflight as ONE continuous experience (no black screens)
+- [ ] Space combat run from the Bridge (bridge-combat-concept.jpg: tactical sphere, LCARS side panels)
+- [ ] Visible warp/hyperspace jump effect; missions, objectives, rewards; ship & crew progression
+- [ ] Interactive objects in rooms; real-time planetary window views; upgraded Holodeck visuals
+- [ ] Reduce floor glare / better ambient shadows; adjustable mobile controls (size, opacity)
+- [ ] Sounds: footsteps, engine hum, doors, weapons, ambience
+- [ ] Interactive ship blueprint (deck map, room indicators, quick navigation)
+- [ ] Performance pass for mobile + VR
+
 ## Known issues
 - RULE (found Nov 24): never use big single-fan discs / tall single-quad walls for floors, ceilings or walls the
   player walks next to. Their huge thin triangles get clipped wrong near the camera and leave holes (the Lounge's
