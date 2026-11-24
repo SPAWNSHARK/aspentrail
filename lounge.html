@@ -18,6 +18,7 @@
   <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js"></script>
+  <script src="door.js"></script>
   <script src="cats.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -176,16 +177,7 @@
   <a-entity id="lounge-set"></a-entity>
 
   <!-- ===================== EXIT DOOR ===================== -->
-  <a-box position="0 1.55 8.35" width="1.8" height="2.8" depth="0.14"
-    material="color: #0e0c06; emissive: #331a00; emissiveIntensity: 0.45; roughness: 0.6; metalness: 0.5">
-  </a-box>
-  <a-text value="← CORRIDOR" align="center"
-    position="0 2.75 8.3" color="#cc8833" width="3.2">
-  </a-text>
-  <a-box id="exit-door" class="clickable"
-    position="0 1.55 8.44" width="1.6" height="2.6" depth="0.04"
-    material="color: #120e04; emissive: #442200; emissiveIntensity: 0.6">
-  </a-box>
+  <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
   <a-box position="0 0.02 6.2" width="0.18" height="0.04" depth="4.5"
     material="color: #441a00; emissive: #ff3300; emissiveIntensity: 0.9">
   </a-box>
@@ -427,7 +419,7 @@
       gr.addColorStop(0.55, '#8a5a30'); gr.addColorStop(0.75, '#4a2a14'); gr.addColorStop(1.00, '#2a1608');
       g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
       for (var i = 0; i < 9; i++) { g.fillStyle = 'rgba(255,190,110,0.55)'; g.fillRect(i * 57 + 10, 96, 22, 60); }        // lamps / slot lights
-      g.fillStyle = 'rgba(120,170,255,0.8)'; g.fillRect(100, 100, 70, 44);                                               // cool TV glow
+      var tg = g.createRadialGradient(135, 122, 2, 135, 122, 46); tg.addColorStop(0, 'rgba(120,170,255,0.35)'); tg.addColorStop(1, 'rgba(120,170,255,0)'); g.fillStyle = tg; g.fillRect(85, 76, 100, 92);   // cool TV glow (soft: a hard block mirrored as lavender slabs on the floor)
       var tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
       var pm = new THREE.PMREMGenerator(scene.renderer); scene.object3D.environment = pm.fromEquirectangular(tex).texture; pm.dispose();
       setTimeout(function () { scene.object3D.traverse(function (o) { var m = o.material; if (m && m.isMeshStandardMaterial) m.envMapIntensity = 1.7; }); }, 600);
@@ -445,10 +437,6 @@
     });
     tvEl.addEventListener('mouseleave', function () {
       tvEl.setAttribute('material', 'emissiveIntensity', 0.9);
-    });
-    // click: exit
-    document.querySelector('#exit-door').addEventListener('click', function () {
-      window.location.href = 'index.html';
     });
 
     // stars behind the window
@@ -488,5 +476,6 @@
     if (e.key === 'Enter') tvGo();
   });
 </script>
+<script>window.WAYFARER.door.roomExit('lounge');</script>
 </body>
 </html>

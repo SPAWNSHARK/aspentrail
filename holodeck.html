@@ -29,6 +29,7 @@
   <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js"></script>
+  <script src="door.js"></script>
   <script src="stargarden.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -239,7 +240,6 @@
   <a-box position="0 0.03 5.4" width="2.2" height="0.02" depth="7.4" material="color:#2a1a08; emissive:#ffb060; emissiveIntensity:0.55; transparent:true; opacity:0.55; shader:flat"></a-box>
   <a-box position="-1.05 0.04 5.4" width="0.06" height="0.03" depth="7.4" material="color:#ffcf8a; emissive:#ffcf8a; emissiveIntensity:1.1; shader:flat"></a-box>
   <a-box position="1.05 0.04 5.4" width="0.06" height="0.03" depth="7.4" material="color:#ffcf8a; emissive:#ffcf8a; emissiveIntensity:1.1; shader:flat"></a-box>
-  <a-box position="0 1.6 8.88" width="2.0" height="3.1" depth="0.04" material="color:#ffb060; emissive:#ffb060; emissiveIntensity:0.5; opacity:0.35; transparent:true; shader:flat"></a-box>
   <a-light type="point" position="0 1.2 8.0" color="#ffb060" intensity="0.9" distance="6" decay="2"></a-light>
   <!-- Hologram beam -->
   <a-cylinder radius="0.015" height="1.6" position="0 1.7 -1" material="color:#00aaff; opacity:0.35; transparent:true; emissive:#0088ff; emissiveIntensity:2"></a-cylinder>
@@ -266,13 +266,7 @@
   </a-cylinder>
 
   <!-- Exit door (south wall) -->
-  <a-box position="0 1.6 8.95" width="1.8" height="2.9" depth="0.14"
-    material="color:#100800; emissive:#332200; emissiveIntensity:0.4; roughness:0.5; metalness:0.6">
-  </a-box>
-  <a-text value="← CORRIDOR" align="center" position="0 2.85 8.9" color="#cc8833" width="3"></a-text>
-  <a-box id="exit-door" class="clickable" position="0 1.6 9.02" width="1.6" height="2.7" depth="0.04"
-    material="color:#0c0800; emissive:#442200; emissiveIntensity:0.7">
-  </a-box>
+  <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
   <a-box position="0 0.02 6" width="0.15" height="0.04" depth="7"
     material="color:#441a00; emissive:#ff4400; emissiveIntensity:1.2">
   </a-box>
@@ -304,7 +298,6 @@ document.querySelector('a-scene').addEventListener('loaded', function () {
   });
   document.querySelector('#table-click').addEventListener('click', openBlueprint);
   document.querySelector('#sg-ring').addEventListener('click', function () { window.WAYFARER_GARDEN && window.WAYFARER_GARDEN.launch(); });
-  document.querySelector('#exit-door').addEventListener('click', function () { window.location.href = 'index.html'; });
 });
 
 // ======== FLOOR PLAN DATA ========
@@ -495,5 +488,6 @@ function closeShoppingList() {
   document.getElementById('shopping-panel').classList.remove('open');
 }
 </script>
+<script>window.WAYFARER.door.roomExit('holodeck');</script>
 </body>
 </html>

@@ -74,6 +74,17 @@ Rules drawn from them:
   The right leaf has a rounded tongue that carries the hub; the OPEN button sits in the hub at the door centre.
   Left leaf slides left, right leaf slides right (with the button). User sketch: seam is not straight, it jogs
   round the hub. Ribs, rib legs, cornice and sconces are bevelled extrusions — avoid raw boxes (user: "Minecraft").
+- **Doors are ONE shared component: `door.js`** (user, Nov 24: "feels like one game, not 6 separate games").
+  Corridor uses `WAYFARER.door.create(...)`; every room calls `WAYFARER.door.roomExit('<id>')` (its old exit box is gone).
+  Room exits sit on each room's +Z wall at x=0 as free-standing doors with bronze pocket housings for the leaves.
+  `WAYFARER.door.PORTALS` (in door.js) is the single table of doorways: corridor frame, room frame, proxy shape.
+  - **Portals:** an open door shows the other side — a 360° photo from that doorway (`images/portals/room-<id>.jpg`
+    seen from the corridor, `corr-<id>.jpg` seen from a room), box/cylinder-projected so it shifts as you move.
+    Photos are STATIC (cats/screens don't move in them). Walking or tapping through fades to the other page;
+    you arrive with that door open behind you and it closes.
+  - **Regenerate the photos whenever a room or the corridor changes:** `python3 -m http.server 8765` in the repo,
+    then `node tools/capture-portals.js` (env: `AF=<local aframe-v1.5.0.min.js>` in cloud sessions,
+    `ONLY=lounge,media` to redo some, `SKIP_CORRIDOR=1`). Stale photos = the preview won't match the room.
 - **Command Bridge** (`bridge.html`) — glass walls, robots, captain's chair → Flight Mode. OLD grey style.
 - **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
@@ -96,4 +107,8 @@ Rules drawn from them:
 6. Collision / room boundaries everywhere
 
 ## Known issues
+- Bridge exit door stands against the glass wall/space (no wall behind it) until the Bridge restyle.
+- Lounge floor/ceiling turn into flat blown-out patches (lavender floor) when looking sideways near the door. The
+  patches follow the disc's triangles and come from the lounge's 13 point lights. Seen in headless swiftshader;
+  NOT yet checked on iPhone. Shows in `room-lounge.jpg` at the sides.
 - Mobile autoplay: test the 15 s video loop on an actual iPhone before committing to that UX.

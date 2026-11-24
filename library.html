@@ -22,6 +22,7 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="brain.js"></script>
   <script src="mobile.js"></script>
+  <script src="door.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -383,19 +384,7 @@
     <!-- ======================================================
          CORRIDOR EXIT (+Z, entrance side)
     ====================================================== -->
-    <a-box position="0 1.5 9.9" width="2.2" height="3.0" depth="0.12"
-      color="#0a0906" emissive="#002211" emissive-intensity="0.1">
-    </a-box>
-    <a-box id="exit-panel" class="interactive"
-      position="0 1.3 9.92" width="1.8" height="2.5" depth="0.06"
-      color="#060806" emissive="#001a0e" emissive-intensity="0.4">
-    </a-box>
-    <a-box position="0 2.65 9.86" width="1.8" height="0.06" depth="0.1"
-      color="#00aa66" emissive="#00aa66" emissive-intensity="1.5">
-    </a-box>
-    <a-text value="← CORRIDOR" position="0 2.88 9.86"
-      align="center" color="#00ffaa" width="3.2" letter-spacing="2">
-    </a-text>
+    <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
 
   </a-scene>
 
@@ -431,17 +420,6 @@
       panel.classList.remove('open'); document.body.classList.remove('reading');
     });
 
-    // Exit
-    const exit = document.getElementById('exit-panel');
-    exit.addEventListener('mouseenter', () => {
-      showPrompt('[ RETURN TO CORRIDOR ]', '#00ffaa');
-      exit.setAttribute('material', 'emissiveIntensity', 1.0);
-    });
-    exit.addEventListener('mouseleave', () => {
-      hidePrompt();
-      exit.setAttribute('material', 'emissiveIntensity', 0.4);
-    });
-    exit.addEventListener('click', () => { window.location.href = 'index.html'; });
 
     // ─────────────────────────────────────────────────────────────────────
     // WORLD BUILD — textures, bookcases, sconces, stars
@@ -657,5 +635,6 @@
     });
   </script>
 
+<script>window.WAYFARER.door.roomExit('library');</script>
 </body>
 </html>
