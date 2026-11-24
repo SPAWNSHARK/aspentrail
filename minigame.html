@@ -261,7 +261,7 @@ function updateDust(center) {
 //  LIGHTING — warm key from the sun side, teal rim, soft fill
 // ----------------------------------------------------------------
 scene.add(new THREE.HemisphereLight(0x8fb4ff, 0x2a1a10, 0.55));
-const sun = new THREE.DirectionalLight(0xfff0dc, 1.6); sun.position.copy(SUN_DIR).multiplyScalar(100); scene.add(sun);
+const sun = new THREE.DirectionalLight(0xfff0dc, 1.25); sun.position.copy(SUN_DIR).multiplyScalar(100); scene.add(sun);
 const rim = new THREE.DirectionalLight(0x3fe0c8, 0.5); rim.position.set(40, -20, 60); scene.add(rim);
 const fill = new THREE.DirectionalLight(0xffc890, 0.7); fill.position.set(-20, 40, 80); scene.add(fill);
 
@@ -315,7 +315,7 @@ function loftHull(L, W, HT, HB) {
   for (let i = 0; i <= NS; i++) {
     const s = i / NS, z = zN + (zS - zN) * s;
     const plan = Math.pow(Math.sin(Math.min(1, s / 0.62) * Math.PI / 2), 0.75) * (1 - 0.12 * Math.pow(Math.max(0, (s - 0.72) / 0.28), 2));
-    const w = W * plan, ht = HT * Math.pow(plan, 1.15), hb = HB * Math.pow(plan, 1.3);
+    const pl = Math.max(plan, 0.025), w = W * pl, ht = HT * Math.pow(pl, 0.6), hb = HB * Math.pow(pl, 0.7);   // never a zero-size ring (NaN normals); fuller nose in profile
     for (let j = 0; j <= NR; j++) {
       const a = j / NR * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
       const xx = w * Math.sign(ca) * Math.pow(Math.abs(ca), 0.55), yy = (sa > 0 ? ht : hb) * Math.sign(sa) * Math.pow(Math.abs(sa), 0.85);
@@ -330,7 +330,7 @@ function loftHull(L, W, HT, HB) {
 function buildPlayerShip() {
   // proportions from reference/exterior-views.jpg (TOP / REAR): length 10, beam ≈ 3.3, dome centre 80% aft, dome ≈ beam
   const g = new THREE.Group(), maps = hullMaps();
-  const copper = new THREE.MeshStandardMaterial({ map: maps.map, emissiveMap: maps.emissiveMap, emissive: 0xffffff, emissiveIntensity: 1.1, roughness: 0.5, metalness: 0.35 });
+  const copper = new THREE.MeshStandardMaterial({ map: maps.map, emissiveMap: maps.emissiveMap, emissive: 0xffffff, emissiveIntensity: 1.1, roughness: 0.78, metalness: 0.55 });
   const plate = new THREE.MeshStandardMaterial({ map: maps.map, color: 0xb08060, roughness: 0.55, metalness: 0.35 });
   const darkCu = new THREE.MeshStandardMaterial({ color: 0x3a2414, roughness: 0.6, metalness: 0.35 });
   const bronze = new THREE.MeshStandardMaterial({ color: 0xd09858, roughness: 0.35, metalness: 0.5 });
