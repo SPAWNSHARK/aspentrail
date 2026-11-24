@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer — Ship View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-title" content="SS Wayfarer">
+  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png">
+  <link rel="icon" href="/aspentrail/icons/favicon.ico">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #02040c; font-family: -apple-system, system-ui, sans-serif; }
+    canvas { display: block; touch-action: none; }
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.06)); -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid rgba(255,255,255,.22); box-shadow: 0 8px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.28); color: #fff; }
+    #back { position: fixed; left: calc(14px + env(safe-area-inset-left,0px)); top: calc(14px + env(safe-area-inset-top,0px)); z-index: 5; display: flex; align-items: center; gap: 6px;
+      padding: 9px 14px; border-radius: 22px; font: 600 13px -apple-system, system-ui, sans-serif; text-decoration: none; }
+    #back svg, #bar svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #bar { position: fixed; z-index: 5; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom,0px)); display: flex; gap: 6px; padding: 6px; border-radius: 26px; }
+    html:not(.standalone) #bar { bottom: calc(84px + env(safe-area-inset-bottom,0px)); }
+    #bar b { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 64px; padding: 8px 10px; border-radius: 20px; font: 600 10px -apple-system, system-ui, sans-serif; cursor: pointer; }
+    #bar b.on { background: rgba(255,255,255,.22); }
+    #load { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 6; color: #ffcf8a; font: 600 12px -apple-system, system-ui, sans-serif; letter-spacing: 2px; transition: opacity .6s; pointer-events: none; }
+    #load i { display: block; width: 180px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
+    #load i u { display: block; height: 100%; width: 0; background: #ffb060; }
+  </style>
+</head>
+<body>
+  <a id="back" class="glass" href="minigame.html"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Flight Mode</a>
+  <div id="bar" class="glass">
+    <b id="b-spin" class="on"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>Turntable</b>
+    <b id="b-top"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M12 9v6M9 12h6"/></svg>Top</b>
+    <b id="b-rear"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M10 12h4"/></svg>Rear</b>
+    <b id="b-hero"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/></svg>Hero</b>
+  </div>
+  <div id="load">LOADING THE WAYFARER<i><u id="prog"></u></i></div>
+
+<script>
+// Ship View: the high-detail sculpted Wayfarer (models/ship/wayfarer_high.glb, ~75k tris) in space by the terracotta
+// planet. Drag to orbit, pinch to zoom. Plain three.js r128, same palette and lighting language as Flight Mode.
+if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) document.documentElement.classList.add('standalone');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 2000);
+const FIT = () => Math.max(1, 1.25 / (innerWidth / innerHeight));   // narrow (portrait) screens need the camera further back
+camera.position.set(9, 3.5, 9).multiplyScalar(FIT());
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+const SUN = new THREE.Vector3(-0.55, 0.45, -0.7).normalize();
+function cvs(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+const DOT = (() => { const c = cvs(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.3, 'rgba(255,255,255,0.45)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+
+// sky: navy with fbm nebula clouds (same as Flight Mode), stars
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(900, 48, 24), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false,
+  vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: ['varying vec3 vP;',
+    'float h(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }',
+    'float n(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(mix(mix(h(i), h(i + vec3(1,0,0)), f.x), mix(h(i + vec3(0,1,0)), h(i + vec3(1,1,0)), f.x), f.y), mix(mix(h(i + vec3(0,0,1)), h(i + vec3(1,0,1)), f.x), mix(h(i + vec3(0,1,1)), h(i + vec3(1,1,1)), f.x), f.y), f.z); }',
+    'float fbm(vec3 p){ float s = 0.0, a = 0.5; for (int k = 0; k < 5; k++) { s += a * n(p); p *= 2.07; a *= 0.5; } return s; }',
+    'void main(){ vec3 d = normalize(vP); float band = exp(-pow(dot(d, normalize(vec3(0.35, 0.85, 0.25))) * 2.4, 2.0));',
+    ' float c1 = smoothstep(0.45, 0.85, fbm(d * 2.6 + vec3(3.1, 0.0, 1.7))), c2 = smoothstep(0.5, 0.9, fbm(d * 3.3 + vec3(-4.0, 2.2, 0.5)));',
+    ' vec3 col = vec3(0.004, 0.007, 0.02) + vec3(0.02, 0.03, 0.07) * band + vec3(0.05, 0.28, 0.30) * c1 * (0.35 + band) * 0.55 + vec3(0.22, 0.08, 0.34) * c2 * (0.3 + band) * 0.5;',
+    ' gl_FragColor = vec4(col, 1.0); }'].join('\n') })));
+[[3000, 1.1, 0.75], [500, 2.0, 0.95], [50, 3.2, 1]].forEach(([n, size, op]) => {
+  const pos = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, t = Math.random() * Math.PI * 2, q = Math.sqrt(1 - u * u); pos.set([800 * q * Math.cos(t), 800 * u, 800 * q * Math.sin(t)], i * 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ map: DOT, size, sizeAttenuation: false, color: 0xdfe8ff, transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending })));
+});
+const sunS = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xfff0e0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); sunS.position.copy(SUN).multiplyScalar(800); sunS.scale.set(120, 120, 1); scene.add(sunS);
+
+// the terracotta planet below (wrinkled relief from ridged noise, as in Flight Mode)
+(function planet() {
+  const w = 1024, h = 512, hgt = new Float32Array(w * h);
+  const hash = (i, j) => { const n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); };
+  const vn = (u, v) => { const i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1), su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv); return a + (b - a) * su + (c - a) * sv + (a - b - c + d) * su * sv; };
+  const ridged = (u, v) => { let s = 0, a = 0.5; for (let k = 0; k < 5; k++) { s += a * (1 - Math.abs(vn(u, v) * 2 - 1)); u *= 2.1; v *= 2.1; a *= 0.5; } return s; };
+  const fbm = (u, v) => { let s = 0, a = 0.5; for (let k = 0; k < 4; k++) { s += a * vn(u, v); u *= 2.03; v *= 2.03; a *= 0.5; } return s; };
+  const col = cvs(w, h), ci = col.getContext('2d').createImageData(w, h), nor = cvs(w, h), ni = nor.getContext('2d').createImageData(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) hgt[y * w + x] = ridged(x / w * 22, y / h * 11) * 0.75 + fbm(x / w * 66, y / h * 33) * 0.25;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x, k = i * 4, H0 = hgt[i], reg = fbm(x / w * 3 + 11, y / h * 1.5 + 4);
+    const dx = (hgt[y * w + (x + 1) % w] - hgt[y * w + (x - 1 + w) % w]) * 7, dy = (hgt[Math.min(h - 1, y + 1) * w + x] - hgt[Math.max(0, y - 1) * w + x]) * 7, L = Math.hypot(dx, dy, 1);
+    ni.data[k] = (-dx / L * 0.5 + 0.5) * 255; ni.data[k + 1] = (dy / L * 0.5 + 0.5) * 255; ni.data[k + 2] = (1 / L * 0.5 + 0.5) * 255; ni.data[k + 3] = 255;
+    const t = Math.min(1, Math.max(0, (reg - 0.42) * 3)), sh = 0.45 + H0 * 0.7;
+    ci.data[k] = Math.min(255, (128 + 48 * t) * sh); ci.data[k + 1] = Math.min(255, (48 + 92 * t) * sh); ci.data[k + 2] = Math.min(255, (40 + 82 * t) * sh); ci.data[k + 3] = 255; }
+  col.getContext('2d').putImageData(ci, 0, 0); nor.getContext('2d').putImageData(ni, 0, 0);
+  const map = new THREE.CanvasTexture(col); map.encoding = THREE.sRGBEncoding;
+  const p = new THREE.Mesh(new THREE.SphereGeometry(260, 96, 64), new THREE.MeshStandardMaterial({ map, normalMap: new THREE.CanvasTexture(nor), normalScale: new THREE.Vector2(1.6, 1.6), roughness: 0.62, metalness: 0 }));
+  p.position.set(140, -330, -260); p.rotation.set(0.25, 0.6, Math.PI / 2); scene.add(p);
+}());
+
+// lights: warm sun key, teal rim, soft fill (no PMREM environment: on r128 it turned this model black)
+scene.add(new THREE.HemisphereLight(0x8fb4ff, 0x2a1a10, 0.55));
+const key = new THREE.DirectionalLight(0xfff0dc, 1.5); key.position.copy(SUN).multiplyScalar(50); scene.add(key);
+const rim = new THREE.DirectionalLight(0x3fe0c8, 0.5); rim.position.set(30, -10, 40); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffc890, 0.6); fill.position.set(-20, 30, 50); scene.add(fill);
+
+// the ship
+const ship = new THREE.Group(); scene.add(ship); const S = 10;
+const prog = document.getElementById('prog');
+new THREE.GLTFLoader().load('models/ship/wayfarer_high.glb', g => {
+  const m = g.scene; m.scale.setScalar(S);
+  m.traverse(o => { if (o.isMesh) { const mt = o.material; mt.metalness = 0.45; mt.roughness = 0.62; mt.color.set(0xe8a878).convertSRGBToLinear(); mt.needsUpdate = true; } });
+  ship.add(m);
+  [-1, 1].forEach(sx => {           // engine glow at the pod outlets (model units: x ±0.195, y 0.015, z 0.475)
+    const at = new THREE.Vector3(sx * 0.195 * S, 0.015 * S, 0.475 * S);
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.3, 32), new THREE.MeshBasicMaterial({ color: 0x7fe6ff })); face.position.copy(at); ship.add(face);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x4fc8ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.copy(at).add(new THREE.Vector3(0, 0, 0.3)); glow.scale.set(1.6, 1.6, 1); ship.add(glow);
+    const pl = new THREE.PointLight(0x4fc8ff, 0.6, 6); pl.position.copy(at).add(new THREE.Vector3(0, 0, 1)); ship.add(pl);
+  });
+  const L = document.getElementById('load'); L.style.opacity = 0; setTimeout(() => L.remove(), 700);
+  window.SHIP_READY = true;
+}, e => { if (e.total) prog.style.width = (e.loaded / e.total * 100) + '%'; }, err => { document.getElementById('load').firstChild.textContent = 'COULD NOT LOAD THE SHIP'; console.error(err); });
+
+// camera: orbit, gentle turntable, preset views
+const ctl = new THREE.OrbitControls(camera, renderer.domElement);
+ctl.enableDamping = true; ctl.dampingFactor = 0.08; ctl.minDistance = 4; ctl.maxDistance = 60; ctl.autoRotate = true; ctl.autoRotateSpeed = 0.6; ctl.enablePan = false;
+let fly = null;
+function goTo(pos) { fly = { from: camera.position.clone(), to: new THREE.Vector3(...pos).multiplyScalar(FIT()), t: 0 }; }
+const btn = id => document.getElementById(id);
+btn('b-spin').onclick = () => { ctl.autoRotate = !ctl.autoRotate; btn('b-spin').classList.toggle('on', ctl.autoRotate); };
+btn('b-top').onclick = () => goTo([0.01, 13, 0.4]);
+btn('b-rear').onclick = () => goTo([0, 1.6, 12]);
+btn('b-hero').onclick = () => goTo([9, 3.5, 9]);
+const clock = new THREE.Clock();
+(function loop() {
+  requestAnimationFrame(loop); const dt = clock.getDelta();
+  if (fly) { fly.t = Math.min(1, fly.t + dt * 1.2); const k = fly.t * fly.t * (3 - 2 * fly.t); camera.position.lerpVectors(fly.from, fly.to, k); if (fly.t >= 1) fly = null; }
+  ship.position.y = Math.sin(clock.elapsedTime * 0.6) * 0.08;
+  ctl.update(); renderer.render(scene, camera);
+}());
+</script>
+</body>
+</html>
