@@ -35,8 +35,9 @@
       vertexShader: [
         'attribute vec2 aCorner; attribute vec3 aInfo, aCol; uniform float uT, uSpan, uFwd; varying vec2 vC; varying vec3 vCol;',
         'void main(){ vec3 b = position; b.z = mod(b.z - uFwd * uT * aInfo.z + uSpan * 0.5, uSpan) - uSpan * 0.5;',
-        ' vec3 wb = (modelMatrix * vec4(b, 1.0)).xyz; vec3 side = normalize(cross(vec3(0.0, 0.0, 1.0), cameraPosition - wb));',
-        ' vec3 p = wb + vec3(0.0, 0.0, uFwd * aCorner.x * aInfo.x) + side * aCorner.y * aInfo.y;',      // head leads aft, tail trails toward the bow
+        ' vec3 wb = (modelMatrix * vec4(b, 1.0)).xyz, ax = normalize((modelMatrix * vec4(0.0, 0.0, 1.0, 0.0)).xyz);',   // the streaks' own axis (rotated groups, e.g. the Lounge window)
+        ' vec3 side = normalize(cross(ax, cameraPosition - wb));',
+        ' vec3 p = wb + ax * (uFwd * aCorner.x * aInfo.x) + side * aCorner.y * aInfo.y;',      // head leads aft, tail trails toward the bow
         ' vC = aCorner; vCol = aCol; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }'].join('\n'),
       fragmentShader: 'varying vec2 vC; varying vec3 vCol; void main(){ float a = pow(1.0 - vC.x, 2.2) * (1.0 - vC.y * vC.y); a += smoothstep(0.06, 0.0, vC.x) * 1.5 * (1.0 - abs(vC.y)); gl_FragColor = vec4(vCol * a, 1.0); }' });
     var streaks = new THREE.Mesh(g, sm); streaks.frustumCulled = false; streaks.renderOrder = -9; root.add(streaks);
