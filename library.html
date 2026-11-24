@@ -152,7 +152,7 @@
 
     <!-- GLASS FLOOR (centre) — walk on it, see the brain below -->
     <a-circle id="glass-floor" position="0 0 0" rotation="-90 0 0" radius="7.6" segments="64"
-      material="color: #1c3d38; opacity: 0.16; transparent: true; roughness: 0.05; metalness: 0.3">
+      material="color: #1c3d38; opacity: 0.16; transparent: true; depthWrite: false; roughness: 0.05; metalness: 0.3">
     </a-circle>
     <!-- engraved rings in the glass -->
     <a-torus position="0 0.006" rotation="-90 0 0" radius="2.4" radius-tubular="0.012" segments-tubular="64" segments-radial="6"
@@ -202,9 +202,7 @@
     <a-entity id="gel-tank" gel-tank></a-entity>
 
     <!-- THE BRAIN — real 3D folds, built in brain.js -->
-    <a-entity id="brain" position="0 -7.3 0"
-      animation="property: scale; from: 0.965 0.965 0.965; to: 1.04 1.04 1.04; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine">
-    </a-entity>
+    <a-entity id="brain" position="0 -7.3 0"></a-entity>   <!-- heartbeat, discharges: brain.js -->
 
     <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
     <a-light type="point" position="0 -3.0 1.5"  color="#7dffd0" intensity="0.8" distance="13" decay="2"></a-light>

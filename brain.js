@@ -51,8 +51,8 @@
   }
 
   // Colour ramp: sulci dark vein-red/purple, gyri pearly grey-sage with pink drift
-  var C_SULCUS = new THREE.Color(0.11, 0.015, 0.05), C_TMP = new THREE.Color(), C_R = new THREE.Color(),
-      C_PEARL = new THREE.Color(0.30, 0.40, 0.33), C_ROSE = new THREE.Color(0.46, 0.31, 0.34);
+  var C_SULCUS = new THREE.Color(0.17, 0.02, 0.03), C_TMP = new THREE.Color(), C_R = new THREE.Color(),
+      C_PEARL = new THREE.Color(0.56, 0.43, 0.40), C_ROSE = new THREE.Color(0.62, 0.32, 0.32);   // real tissue: pink-beige, redder underneath (user: more realistic)
   function region(dx, dy, dz) {
     return C_R.copy(C_PEARL).lerp(C_ROSE, 0.55 * smooth(-0.1, -0.7, dy) + 0.25 * smooth(0.2, -0.9, dz));
   }
@@ -176,7 +176,9 @@
       [hemisphere(1, low), hemisphere(-1, low), cerebellum(low), stem(low)].forEach(function (g) { grp.add(new THREE.Mesh(g, tissue)); });
 
       // glowing neural paths hugging the cortex (surface points found by raycasting)
-      var pathMat = this.pathMat = new THREE.MeshBasicMaterial({ color: 0xffa23c, fog: false });
+      // blood vessels (not glowing wires): dark red, flushing with each heartbeat
+      var pathMat = this.pathMat = new THREE.MeshStandardMaterial({ color: 0x5a0a0e, roughness: 0.35, emissive: new THREE.Color(0x8a0a10), emissiveIntensity: 0.2 });
+      var surf = this.surf = [];
       grp.updateMatrixWorld(true);
       var rc = new THREE.Raycaster(), hits = [grp.children[0], grp.children[1]], nP = low ? 5 : 12, ORG = new THREE.Vector3(), DIR = new THREE.Vector3();
       for (var pi = 0; pi < nP; pi++) {
@@ -187,7 +189,7 @@
           else { var yy = 0.4 + noise(u * 2.2, ph, 8) * 1.2; ORG.set(side * 9, yy, z); DIR.set(-side, 0, 0); }
           rc.set(ORG, DIR);
           var h = rc.intersectObjects(hits, false)[0];
-          if (h) pts.push(h.point.clone().addScaledVector(h.face.normal.clone().transformDirection(h.object.matrixWorld), 0.045));
+          if (h) { var sp = h.point.clone().addScaledVector(h.face.normal.clone().transformDirection(h.object.matrixWorld), 0.045); pts.push(sp); surf.push(sp); }
         }
         if (pts.length > 6) grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.026 + (pi % 3) * 0.01, 5, false), pathMat));
       }
@@ -221,7 +223,32 @@
       this.motes.frustumCulled = false;
       grp.add(this.motes);
 
+      // electrical discharge: a few jagged bolts across the cortex, rebuilt each strike, plus a flash light
+      this.arcs = [];
+      var arcMat = this.arcMat = new THREE.MeshBasicMaterial({ color: 0x6fd8ff, transparent: true, opacity: 0, depthWrite: false, depthTest: false, fog: false, toneMapped: false });   // drawn over the folds so it reads as a strike
+      for (i = 0; i < 6; i++) { var ln = new THREE.Mesh(new THREE.BufferGeometry(), arcMat); ln.frustumCulled = false; ln.renderOrder = 5; grp.add(ln); this.arcs.push(ln); }
+      var gc = document.createElement('canvas'); gc.width = gc.height = 64; var gx = gc.getContext('2d'), gg = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gg.addColorStop(0, 'rgba(230,250,255,1)'); gg.addColorStop(0.3, 'rgba(120,220,255,0.45)'); gg.addColorStop(1, 'rgba(60,160,255,0)'); gx.fillStyle = gg; gx.fillRect(0, 0, 64, 64);
+      this.spark = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+      this.spark.scale.set(3.2, 3.2, 1); this.spark.material.depthTest = false; this.spark.renderOrder = 5; grp.add(this.spark);
+      this.zap = new THREE.PointLight(0x9fe8ff, 0, 14, 2); grp.add(this.zap);
+      this.nextZap = 2.5; this.zapT = -1;
+
       this.el.setObject3D('brain', grp);
+    },
+
+    strike: function () {                // pick a spot on the cortex and throw jagged bolts across nearby folds
+      var S = this.surf; if (!S || S.length < 4) return;
+      var top = this.top || (this.top = S.filter(function (q) { return q.y > 0.8; })), a = (top.length ? top : S)[Math.floor(Math.random() * (top.length || S.length))], self = this;   // start on the visible crown
+      this.arcs.forEach(function (ln, k) {
+        var b = S[Math.floor(Math.random() * S.length)], pts = [];
+        if (a.distanceTo(b) > 6) b = a.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * 1.2, (Math.random() - 0.5) * 3));
+        for (var j = 0; j < 14; j++) { var u = j / 13, j2 = Math.sin(u * Math.PI) * 0.35;
+          pts.push(new THREE.Vector3(a.x + (b.x - a.x) * u + (Math.random() - 0.5) * j2, a.y + (b.y - a.y) * u + Math.sin(u * Math.PI) * 0.4 + (Math.random() - 0.5) * j2, a.z + (b.z - a.z) * u + (Math.random() - 0.5) * j2)); }
+        ln.geometry.dispose(); ln.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.05), 40, 0.05 + Math.random() * 0.05, 5, false); ln.visible = k < 3 + Math.floor(Math.random() * 4);
+      });
+      this.spark.position.copy(a); this.zap.position.copy(a).add(new THREE.Vector3(0, 1, 0));
+      this.zapT = 0;
     },
 
     tick: function (t, dt) {
@@ -235,9 +262,19 @@
       p.needsUpdate = true;
       this.filMat.emissiveIntensity = 0.85 + 0.45 * Math.sin(t / 700);
       var g = this.el.getObject3D('brain');
-      if (g) g.rotation.y += s * 0.16;               // slow turn (~40 s a revolution)
-      if (this.pathMat) this.pathMat.color.setRGB(1, 0.64, 0.24).multiplyScalar(0.95 + 0.4 * Math.sin(t / 520));
-      if (this.mat) this.mat.emissiveIntensity = 0.16 + 0.10 * Math.sin(t / 1200);
+      // no turning (user): it PUMPS — a lub-dub heartbeat (~66 bpm) swells it slightly and flushes the vessels with blood
+      var bt = (t / 1000) % 0.9, beat = Math.exp(-Math.pow((bt - 0.08) / 0.05, 2)) + 0.6 * Math.exp(-Math.pow((bt - 0.3) / 0.06, 2));
+      if (g) { g.scale.set(1 + 0.018 * beat, 1 + 0.024 * beat, 1 + 0.018 * beat); }
+      if (this.pathMat) this.pathMat.emissiveIntensity = 0.15 + 0.9 * beat;
+      if (this.mat) { this.mat.emissive.setRGB(0.32, 0.03, 0.05); this.mat.emissiveIntensity = 0.08 + 0.22 * beat; }
+      // electrical discharges every few seconds: flicker for ~0.35 s
+      var ts = t / 1000;
+      if (this.zapT < 0 && ts > this.nextZap) { this.strike(); this.nextZap = ts + 2.5 + Math.random() * 5; }
+      if (this.zapT >= 0) {
+        this.zapT += s; var f = this.zapT < 0.35 ? (Math.random() < 0.7 ? 1 : 0.15) * (1 - this.zapT / 0.35) : 0;
+        this.arcMat.opacity = f; this.spark.material.opacity = f * 0.9; this.zap.intensity = f * 3.5;
+        if (this.zapT >= 0.35) { this.zapT = -1; this.arcMat.opacity = 0; this.spark.material.opacity = 0; this.zap.intensity = 0; }
+      }
     },
 
     remove: function () { this.el.removeObject3D('brain'); }
@@ -261,8 +298,10 @@
   function sprite() {
     var c = document.createElement('canvas'); c.width = c.height = 64; var x = c.getContext('2d');
     var g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(180,255,240,0.55)'); g.addColorStop(1, 'rgba(180,255,240,0)');
-    x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+    // a real bubble: clear middle, bright rim, a specular glint
+    g.addColorStop(0, 'rgba(200,255,240,0.05)'); g.addColorStop(0.62, 'rgba(200,255,240,0.18)'); g.addColorStop(0.82, 'rgba(230,255,250,0.95)'); g.addColorStop(0.95, 'rgba(200,255,240,0.25)'); g.addColorStop(1, 'rgba(200,255,240,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64); x.fillStyle = 'rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(22, 20, 7, 4, -0.7, 0, 7); x.fill();
+    return new THREE.CanvasTexture(c);
   }
   AFRAME.registerComponent('gel-tank', {
     init: function () {
@@ -351,22 +390,22 @@
       }
 
       // rising bubbles / plankton
-      var n = low ? 140 : 380, p = new Float32Array(n * 3); this.sp = new Float32Array(n); this.ph = new Float32Array(n);
+      var n = low ? 200 : 420, p = new Float32Array(n * 3); this.sp = new Float32Array(n); this.ph = new Float32Array(n);
       for (i = 0; i < n; i++) {
-        var r = Math.sqrt(Math.random()) * 7.4, th = Math.random() * 6.283;
+        var vent = i % 3 === 0, r = vent ? 5.8 + Math.random() * 0.4 : Math.sqrt(Math.random()) * 7.4, th = vent ? Math.floor(Math.random() * 8) / 8 * 6.283 + Math.random() * 0.08 : Math.random() * 6.283;   // a third rise in streams from vents
         p[i * 3] = Math.cos(th) * r; p[i * 3 + 1] = -15.5 + Math.random() * 15; p[i * 3 + 2] = Math.sin(th) * r;
-        this.sp[i] = 0.25 + Math.random() * 0.7; this.ph[i] = Math.random() * 6.283;
+        this.sp[i] = 0.9 + Math.random() * 1.6; this.ph[i] = Math.random() * 6.283;
       }
       var bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.BufferAttribute(p, 3));
-      this.bub = new THREE.Points(bg, new THREE.PointsMaterial({ map: sprite(), size: low ? 9 : 11, sizeAttenuation: false, transparent: true, opacity: 0.75, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xaaffee, fog: false }));
-      this.bub.frustumCulled = false; grp.add(this.bub);
+      this.bub = new THREE.Points(bg, new THREE.PointsMaterial({ map: sprite(), size: 0.42, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xd8fff4, fog: false }));
+      this.bub.frustumCulled = false; this.bub.renderOrder = -2; grp.add(this.bub);   // before the glass floor (it writes depth)
       this.el.setObject3D('tank', grp);
     },
     tick: function (t, dt) {
       var s = Math.min(dt, 50) / 1000, a = this.bub.geometry.attributes.position, d = a.array, i, n = a.count;
       for (i = 0; i < n; i++) {
         d[i * 3 + 1] += this.sp[i] * s;
-        d[i * 3] += Math.sin(t / 900 + this.ph[i]) * 0.004;
+        d[i * 3] += Math.sin(t / 250 + this.ph[i]) * 0.006; d[i * 3 + 2] += Math.cos(t / 310 + this.ph[i]) * 0.006;   // wobble as they rise
         if (d[i * 3 + 1] > -0.6) d[i * 3 + 1] = -15.6;
       }
       a.needsUpdate = true;
