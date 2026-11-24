@@ -23,6 +23,7 @@
   <script src="brain.js"></script>
   <script src="mobile.js"></script>
   <script src="door.js"></script>
+  <script src="props.js"></script>
   <script src="hyperspace.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -348,7 +349,14 @@
     ====================================================== -->
     <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
 
-  </a-scene>
+      <!-- study corner: walnut writing desk at the back wall with a microscope, specimen rack and hourglass; armillary sphere on a bronze plinth -->
+    <a-entity wf-prop="src: writing_desk; accent: teal" position="0 0 -9.25"></a-entity>
+    <a-entity wf-prop="src: microscope; accent: teal" position="-0.5 0.85 -9.3" rotation="0 20 0"></a-entity>
+    <a-entity wf-prop="src: specimen_vial_rack; accent: teal" position="0.05 0.85 -9.45"></a-entity>
+    <a-entity wf-prop="src: hourglass" position="0.52 0.85 -9.25"></a-entity>
+    <a-cylinder position="-5.9 0.45 -7.05" radius="0.32" height="0.9" segments-radial="32" material="color: #b07840; metalness: 0.8; roughness: 0.38"></a-cylinder><a-torus position="-5.9 0.9 -7.05" rotation="90 0 0" radius="0.33" radius-tubular="0.025" material="color: #ffa040; shader: flat"></a-torus>
+    <a-entity wf-prop="src: armillary_sphere; accent: teal; height: 0.6" position="-5.9 0.92 -7.05"></a-entity>
+</a-scene>
 
   <script>
     const promptEl = document.getElementById('room-prompt');

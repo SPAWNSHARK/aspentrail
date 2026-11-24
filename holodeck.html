@@ -30,6 +30,7 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js"></script>
   <script src="door.js"></script>
+  <script src="props.js"></script>
   <script src="stargarden.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -240,6 +241,11 @@
     </a-camera>
   </a-entity>
 
+  <!-- display plinths in the back corners: planetary orrery and a crystal cluster (models/props) -->
+  <a-cylinder position="6.4 0.45 -6.4" radius="0.32" height="0.9" segments-radial="32" material="color: #b07840; metalness: 0.8; roughness: 0.38"></a-cylinder><a-torus position="6.4 0.9 -6.4" rotation="90 0 0" radius="0.33" radius-tubular="0.025" material="color: #ffa040; shader: flat"></a-torus>
+  <a-entity wf-prop="src: planetary_orrery; height: 0.6" position="6.4 0.92 -6.4" animation="property: rotation; to: 0 360 0; loop: true; dur: 60000; easing: linear"></a-entity>
+  <a-cylinder position="-6.4 0.45 -6.4" radius="0.32" height="0.9" segments-radial="32" material="color: #b07840; metalness: 0.8; roughness: 0.38"></a-cylinder><a-torus position="-6.4 0.9 -6.4" rotation="90 0 0" radius="0.33" radius-tubular="0.025" material="color: #ffa040; shader: flat"></a-torus>
+  <a-entity wf-prop="src: crystal_cluster; height: 0.55" position="-6.4 0.92 -6.4"></a-entity>
 </a-scene>
 
 <script>
