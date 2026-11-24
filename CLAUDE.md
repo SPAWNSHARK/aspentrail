@@ -174,7 +174,9 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] Holodeck console buttons cut by the bronze rim (fixed)
 - [x] Door nameplates in the logo style: Michroma (fonts/michroma.woff2, OFL) gold on black + triple-bar wings (door.js)
 - [x] No lettering across the top of the screen (#hud hidden everywhere)
-- [ ] LCARS-inspired UI animations (Star Trek) — on consoles/screens, in the ship's amber palette
+- [x] LCARS-style animated panels: shared `lcars.js` (`WAYFARER.lcars({w,h,seed,layout:'readout'|'graph'|'keys',label})`,
+  redraws ~8 fps). On the Bridge's 8 console screens + 4 key panels (screens were hidden inside their frames before — fixed).
+  Next candidates: Holodeck console, Media Nexus, Flight Mode HUD.
 - [x] Bio-engineered alien ship: BIOSHIP carrier boss in Flight Mode every 3rd wave (`buildBioship`, procedural flesh textures,
   pale carapace, scalloped drooping skirt, red-orange window rows, spiky drone pods). 30 HP, boss bar, volleys, launches drones.
 - [x] Space outside (Flight Mode): SYSTEM table of 7 worlds (terran, clay desert, ringed gas giants, ice, lava, toxic), moons,
