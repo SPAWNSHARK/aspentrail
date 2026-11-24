@@ -62,11 +62,18 @@ Rules drawn from them:
   `package/dist/aframe-v1.5.0.min.js` in Playwright (headless Chromium, swiftshader GL).
 
 ## What's built (as of 2026-11-24)
+- Live site == branch `claude/hello-mssbj4`. Push there only when the user says so.
 - **Corridor** (`index.html`) — RESTYLED to the reference: dark panelled walls, bronze arched ribs every 3 m,
   curved amber-lit cove ceiling, full-length glass skylight with stars and faint light shafts (no side windows —
   user decision), polished deck with dashed amber centre line and glowing edges, square amber sconces
-  (pairs flank each side door), single-leaf sliding doors with nameplates, OPEN buttons, glowing arch portals at
-  the ends (amber = Bridge, teal = Library). One-step-outside-the-door spawn when returning from a room.
+  (pairs flank each side door), glowing arch portals at the ends (amber = Bridge, teal = Library).
+  One-step-outside-the-door spawn when returning from a room. Default spawn faces the Bridge (user is fine with it).
+  DOORS (user design, Nov 24): double doors modelled on a sci-fi double door photo the user sent (not saved
+  in the repo) — moulded arched bronze frame with jamb blocks and side ribs; ONE nameplate per door, on the frame
+  header; each leaf has a top light + X-braces to a centre octagon hub, glass tinted per room (`tint` in DOORS).
+  The right leaf has a rounded tongue that carries the hub; the OPEN button sits in the hub at the door centre.
+  Left leaf slides left, right leaf slides right (with the button). User sketch: seam is not straight, it jogs
+  round the hub. Ribs, rib legs, cornice and sconces are bevelled extrusions — avoid raw boxes (user: "Minecraft").
 - **Command Bridge** (`bridge.html`) — glass walls, robots, captain's chair → Flight Mode. OLD grey style.
 - **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
@@ -89,6 +96,4 @@ Rules drawn from them:
 6. Collision / room boundaries everywhere
 
 ## Known issues
-- Default Home-Screen spawn faces the Bridge end, although the code comment says it faces the Library.
-  Seen in headless tests of both the old and new corridor; not yet checked on a real iPhone.
 - Mobile autoplay: test the 15 s video loop on an actual iPhone before committing to that UX.

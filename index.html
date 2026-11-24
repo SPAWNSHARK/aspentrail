@@ -113,7 +113,8 @@
     // Style reference: reference/interiors-doors-closed.jpg (Main Corridor panel).
     // corridor: x ±2.5, z ±12.5.  Straight walls to 2.9 m, then a curved cove rising to a glass skylight
     // (x ±0.85, y 3.75) that runs the full length.  Bronze arched ribs every 3 m.  Library at −Z end, Bridge at +Z end.
-    var T = 0.5, H = 2.95, DOOR_W = 1.7, DOOR_H = 2.7;
+    var T = 0.5, H = 2.95, DOOR_W = 1.72, DOOR_H = 2.55;
+    var FR_X = 1.1, FR_TOP = 2.9, R_IN = 0.35, R_OUT = 0.55, HUB_Y = 1.2;   // arched door frame (outer half-width, top), corner radii, centre-hub height
     var COVE_Y = 2.9, SKY_X = 0.85, SKY_Y = 3.75;
     var WALLS = {
       L: { axis: 'x', s: -1, base: 2.5, rot: 90 },
@@ -122,11 +123,11 @@
       B: { axis: 'z', s: -1, base: 12.5, rot: 0 }       // Library end
     };
     var DOORS = [
-      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true, glow: 0xffa040 },
-      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, glow: 0x3fe0c8, sub: 'SECOND BRAIN · DEEP CORE' },
-      { id: 'holodeck', name: ['HOLO', 'DECK'],      one: 'HOLODECK',       page: 'holodeck.html', W: 'L', c: 6 },
-      { id: 'lounge',   name: ['CREW', 'LOUNGE'],    one: 'CREW LOUNGE',    page: 'lounge.html',   W: 'R', c: 4 },
-      { id: 'media',    name: ['MEDIA', 'NEXUS'],    one: 'MEDIA NEXUS',    page: 'media.html',    W: 'R', c: -4 }
+      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true, glow: 0xffa040, tint: 0x4aa8ff },
+      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, glow: 0x3fe0c8, tint: 0x3fe0c8 },
+      { id: 'holodeck', name: ['HOLO', 'DECK'],      one: 'HOLODECK',       page: 'holodeck.html', W: 'L', c: 6, tint: 0x8a5cff },
+      { id: 'lounge',   name: ['CREW', 'LOUNGE'],    one: 'CREW LOUNGE',    page: 'lounge.html',   W: 'R', c: 4, tint: 0xffa060 },
+      { id: 'media',    name: ['MEDIA', 'NEXUS'],    one: 'MEDIA NEXUS',    page: 'media.html',    W: 'R', c: -4, tint: 0x4f8cff }
     ];
     var RIBS = [-10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5];
 
@@ -141,14 +142,12 @@
     };
     var ALONG = { L: -1, R: 1, F: -1, B: 1 };               // door-group local +x expressed along world z (side walls) / x (end walls)
     var DEFAULT_SPAWN = { x: 0, z: 9, yaw: 0 };         // Home Screen launch: the usual view down the hall
-    function btnOffset(d) { return d.end ? 2.0 : 1.4; }
 
     // stretches of each side wall that a door, its button or its frame occupies: ribs and sconces keep clear
     function busy(Wk, z, pad) {
       return DOORS.some(function (d) {
         if (d.W !== Wk) return false;
-        var b = d.c + ALONG[Wk] * btnOffset(d), lo = Math.min(d.c - 1.0, b - 0.25), hi = Math.max(d.c + 1.0, b + 0.25);
-        return z > lo - pad && z < hi + pad;
+        return Math.abs(z - d.c) < 1.36 + pad;
       });
     }
 
@@ -212,17 +211,6 @@
       for (var i = 0; i < 70; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,230,200') + ',' + (0.015 + r() * 0.025) + ')'; x.fillRect(r() * 512, r() * 512, 40 + r() * 160, 20 + r() * 90); }
       x.fillStyle = 'rgba(0,0,0,0.65)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512);
       x.fillStyle = 'rgba(255,220,170,0.05)'; x.fillRect(0, 3, 512, 2); x.fillRect(3, 0, 2, 512);
-      return mkTex(c);
-    }
-    function doorTexture() {             // single leaf: dark bronze with an inset, a horizontal band, a vertical seam
-      var c = cv(256, 512), x = c.getContext('2d'), r = rng(9);
-      var g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, '#2f251e'); g.addColorStop(0.5, '#3b2f26'); g.addColorStop(1, '#2c231c');
-      x.fillStyle = g; x.fillRect(0, 0, 256, 512);
-      for (var i = 0; i < 700; i++) { x.fillStyle = r() < 0.5 ? 'rgba(255,220,170,0.03)' : 'rgba(0,0,0,0.08)'; x.fillRect(r() * 256, 0, 1, 512); }
-      x.strokeStyle = '#7a5530'; x.lineWidth = 4; x.strokeRect(14, 16, 228, 480);
-      x.strokeStyle = 'rgba(255,215,150,0.18)'; x.lineWidth = 2; x.strokeRect(19, 21, 218, 470);
-      x.fillStyle = '#7a5530'; x.fillRect(14, 330, 228, 6);
-      x.fillStyle = 'rgba(0,0,0,0.4)'; x.fillRect(14, 336, 228, 3);
       return mkTex(c);
     }
     function plate(lines, w, h, sub) {     // bronze name plate, engraved lettering
@@ -315,14 +303,10 @@
         cur = a1;
       });
       if (hi > cur) solid(cur, hi);
-      wb('trim', W, -0.12, 0.12, 2.80, 2.86, lo, hi);                      // cornice ledge
       wb('amber', W, -0.06, 0.06, 2.86, 2.9, lo, hi);                      // cove light line on top of the ledge
     }
     function doorFrame(W, o) {
       var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
-      wb('trim', W, -0.08, 0.22, 0, DOOR_H + 0.14, a0 - 0.16, a0); wb('trim', W, -0.08, 0.22, 0, DOOR_H + 0.14, a1, a1 + 0.16);
-      wb('trim', W, -0.08, 0.22, DOOR_H, DOOR_H + 0.14, a0 - 0.16, a1 + 0.16);
-      wb('amber', W, -0.085, 0.01, 0.1, DOOR_H - 0.05, a0 - 0.1, a0 - 0.07); wb('amber', W, -0.085, 0.01, 0.1, DOOR_H - 0.05, a1 + 0.07, a1 + 0.1);   // lit edge reveals
       wb('trim', W, 0.14, 0.36, 0, DOOR_H, a0, a0 + 0.03); wb('trim', W, 0.14, 0.36, 0, DOOR_H, a1 - 0.03, a1);
       wb('trim', W, 0.14, 0.36, DOOR_H - 0.03, DOOR_H, a0, a1);
       wb('trim', W, -0.04, 0.5, 0, 0.025, a0, a1);                      // threshold plate
@@ -330,10 +314,32 @@
       wb('dark', W, T, 0.05, 0, DOOR_H, a0, a1);                         // niche back: never a gap
       wb('dark', W, 0, T + 0.05, -0.05, 0, a0, a1);
     }
-    function sconce(W, a, y) {           // square amber wall lamp on a bronze back plate
-      wb('trim', W, -0.03, 0.03, y - 0.17, y + 0.17, a - 0.14, a + 0.14);
-      wb('lamp', W, -0.08, 0.05, y - 0.12, y + 0.12, a - 0.09, a + 0.09);
-      wb('trim', W, -0.1, 0.07, y + 0.12, y + 0.15, a - 0.12, a + 0.12);
+    // ── rounded, bevelled parts (no raw boxes where the eye lands) ──
+    function rrect(w, h, r) {            // rounded rectangle centred on the origin
+      var x = -w / 2, y = -h / 2, sh = new THREE.Shape();
+      sh.moveTo(x + r, y); sh.lineTo(x + w - r, y); sh.quadraticCurveTo(x + w, y, x + w, y + r); sh.lineTo(x + w, y + h - r); sh.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      sh.lineTo(x + r, y + h); sh.quadraticCurveTo(x, y + h, x, y + h - r); sh.lineTo(x, y + r); sh.quadraticCurveTo(x, y, x + r, y); return sh;
+    }
+    function soft(shape, depth, bev) { return new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 2, curveSegments: 6 }); }
+    var parts = {};                       // material key → geometries already placed in world space
+    function wallMatrix(Wk, along, y, out) {
+      var W = WALLS[Wk], m = new THREE.Matrix4().makeRotationY(W.rot * Math.PI / 180), o = new THREE.Vector3(0, y, out).applyMatrix4(m);
+      if (W.axis === 'x') m.setPosition(W.s * W.base + o.x, o.y, along + o.z); else m.setPosition(along + o.x, o.y, W.s * W.base + o.z);
+      return m;
+    }
+    function place(key, geo, mtx) { var g = geo.clone().applyMatrix4(mtx); if (g.index) g = g.toNonIndexed(); (parts[key] = parts[key] || []).push(g); }
+    function mergeNI(gs) {
+      var n = 0; gs.forEach(function (g) { n += g.attributes.position.count; });
+      var P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2), o = 0;
+      gs.forEach(function (g) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) U.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; });
+      var m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('uv', new THREE.BufferAttribute(U, 2)); return m;
+    }
+    var G = {};
+    function sconce(Wk, a, y) {          // square amber wall lamp on a rounded bronze back plate
+      G.scBack = G.scBack || soft(rrect(0.2, 0.3, 0.04), 0.02, 0.01);
+      G.scLamp = G.scLamp || soft(rrect(0.13, 0.2, 0.03), 0.035, 0.01);
+      G.scCap = G.scCap || soft(rrect(0.2, 0.025, 0.01), 0.05, 0.008);
+      place('trim', G.scBack, wallMatrix(Wk, a, y, 0.01)); place('lamp', G.scLamp, wallMatrix(Wk, a, y - 0.01, 0.03)); place('trim', G.scCap, wallMatrix(Wk, a, y + 0.125, 0.02));
     }
 
     // ───────────────────────────── build ─────────────────────────────
@@ -357,20 +363,29 @@
       buildWall(WALLS.F, ops.F, -2.5, 2.5);   buildWall(WALLS.B, ops.B, -2.5, 2.5);
       DOORS.forEach(function (d) { doorFrame(WALLS[d.W], { c: d.c, w: DOOR_W }); });
 
-      // button housings beside each frame
-      DOORS.forEach(function (d) { var W = WALLS[d.W], a = d.c + ALONG[d.W] * btnOffset(d); if (d.end) a = ALONG[d.W] * btnOffset(d); wb('trim', W, -0.05, 0.1, 0.86, 1.26, a - 0.16, a + 0.16); });
-
       // rib legs (wall pilasters) where the wall is clear; the arches themselves are built below
       ['L', 'R'].forEach(function (k) { RIBS.forEach(function (z) {
-        if (busy(k, z, 0.15)) wb('trim', WALLS[k], -0.12, 0.12, DOOR_H + 0.14, 2.8, z - 0.11, z + 0.11);
-        else { wb('trim', WALLS[k], -0.12, 0.12, 0, 2.8, z - 0.11, z + 0.11); wb('amber', WALLS[k], -0.125, 0.006, 0.12, 2.7, z - 0.012, z + 0.012); }
+        if (busy(k, z, 0)) return;                                     // over a door the arch springs from the cornice
+        G.leg = G.leg || soft(rrect(0.2, 2.84, 0.05), 0.08, 0.03);
+        place('trim', G.leg, wallMatrix(k, z, 1.42, 0.0)); wb('amber', WALLS[k], -0.115, 0.006, 0.14, 2.7, z - 0.012, z + 0.012);
       }); });
 
       // sconces: between ribs, at the clear spots; and a pair flanking every side door, as in the reference
-      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.35)) { sconce(WALLS[k], z, 2.25); glowSpots.push([k, z, 2.25]); } });
-      DOORS.forEach(function (d) { if (d.end) return; [-1.13, 1.13].forEach(function (o) { sconce(WALLS[d.W], d.c + o, 2.55); glowSpots.push([d.W, d.c + o, 2.55]); }); });
+      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.3)) { sconce(k, z, 2.25); glowSpots.push([k, z, 2.25]); } });
+      DOORS.forEach(function (d) { if (d.end) return; [-1.23, 1.23].forEach(function (o) { sconce(d.W, d.c + o, 2.35); glowSpots.push([d.W, d.c + o, 2.35]); }); });
+
+      // cornice: a moulded quarter-round ledge under the cove light, run the length of every wall
+      var cp = new THREE.Shape(); cp.moveTo(0, 2.76); cp.quadraticCurveTo(0.12, 2.77, 0.13, 2.84); cp.lineTo(0.13, 2.86); cp.lineTo(0, 2.86); cp.lineTo(0, 2.76);
+      [['L', 25], ['R', 25], ['F', 5], ['B', 5]].forEach(function (q) {
+        var W = WALLS[q[0]], g = new THREE.ExtrudeGeometry(cp, { depth: q[1], bevelEnabled: false, curveSegments: 6 }); g.translate(0, 0, -q[1] / 2);
+        var m = new THREE.Matrix4();
+        if (q[0] === 'L') m.makeTranslation(-2.5, 0, 0); else if (q[0] === 'R') m.makeScale(-1, 1, 1).setPosition(2.5, 0, 0);
+        else { m.makeRotationY(q[0] === 'B' ? -Math.PI / 2 : Math.PI / 2); m.setPosition(0, 0, W.s * 12.5); }
+        place('trim', g, m);
+      });
 
       Object.keys(buckets).forEach(function (k) { var m = new THREE.Mesh(merge(buckets[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
+      Object.keys(parts).forEach(function (k) { var m = new THREE.Mesh(mergeNI(parts[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
 
       buildCeiling(root, M, aniso);
       buildFloor(root, M, aniso);
@@ -418,7 +433,7 @@
       for (i = N; i >= 0; i--) rib.lineTo(-outer[i][0], outer[i][1]);
       for (i = 0; i <= N; i++) rib.lineTo(-inner[i][0], inner[i][1]);
       for (i = N; i >= 0; i--) rib.lineTo(inner[i][0], inner[i][1]);
-      var rg = new THREE.ExtrudeGeometry(rib, { depth: 0.22, bevelEnabled: false, curveSegments: 1 }); rg.translate(0, 0, -0.11);
+      var rg = new THREE.ExtrudeGeometry(rib, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.02, bevelSegments: 2, curveSegments: 1 }); rg.translate(0, 0, -0.08);
       RIBS.forEach(function (z) { var m = new THREE.Mesh(rg, M.trim); m.position.z = z; root.add(m); });
 
       // skylight: glazing, two long rails, cross bars between the ribs
@@ -479,7 +494,7 @@
         root.position.set(0, -1.6, -2); root.updateMatrixWorld(true);
         var rt = pm.fromScene(sc.object3D, 0.015, 0.1, 1000);
         root.position.set(0, 0, 0); root.updateMatrixWorld(true); camO.visible = cv0; M.lamp.color.copy(lampC); M.amber.color.copy(ambC);
-        [state.floorMat, M.trim].forEach(function (m) { m.envMap = rt.texture; m.envMapIntensity = m === M.trim ? 0.55 : 1.1; m.needsUpdate = true; });
+        [state.floorMat, M.trim].concat(state.doorMats || []).forEach(function (m) { m.envMap = rt.texture; m.envMapIntensity = m === state.floorMat ? 1.1 : (m === M.trim ? 0.6 : 0.35); m.needsUpdate = true; });
         pm.dispose();
       } catch (e) { root.position.set(0, 0, 0); }
     }
@@ -489,37 +504,125 @@
     var promptEl = document.getElementById('room-prompt'), promptT = 0;
     function say(msg, col) { promptEl.textContent = msg; promptEl.style.color = col || '#ffcc66'; promptEl.style.opacity = '1'; clearTimeout(promptT); promptT = setTimeout(function () { promptEl.style.opacity = '0'; }, 1800); }
 
+    // ── door leaves: the seam has a rounded tongue on the right leaf that carries the centre hub and button ──
+    var LW = DOOR_W / 2, TONGUE = 0.3;
+    function seam(sh, up) {               // seam path between the leaves, bottom→top (up) or top→bottom
+      var y0 = HUB_Y - 0.3, y1 = HUB_Y + 0.44;
+      if (up) { sh.lineTo(0, y0); sh.lineTo(-TONGUE, y0); sh.lineTo(-TONGUE, HUB_Y + 0.08); sh.quadraticCurveTo(-TONGUE, y1, 0, y1); sh.lineTo(0, DOOR_H); }
+      else { sh.lineTo(0, y1); sh.quadraticCurveTo(-TONGUE, y1, -TONGUE, HUB_Y + 0.08); sh.lineTo(-TONGUE, y0); sh.lineTo(0, y0); sh.lineTo(0, 0); }
+    }
+    function leafShape(right) {
+      var sh = new THREE.Shape(), r = R_IN;
+      if (right) { sh.moveTo(0, 0); sh.lineTo(LW, 0); sh.lineTo(LW, DOOR_H - r); sh.quadraticCurveTo(LW, DOOR_H, LW - r, DOOR_H); sh.lineTo(0, DOOR_H); seam(sh, false); }
+      else { sh.moveTo(-LW, 0); sh.lineTo(0, 0); seam(sh, true); sh.lineTo(-LW + r, DOOR_H); sh.quadraticCurveTo(-LW, DOOR_H, -LW, DOOR_H - r); sh.lineTo(-LW, 0); }
+      return sh;
+    }
+    function frameShape() {               // arched U-frame: outer outline up and over, inner opening back down
+      var sh = new THREE.Shape(), X = FR_X, r = R_OUT, x = LW, ri = R_IN;
+      sh.moveTo(-X, 0); sh.lineTo(-X, FR_TOP - r); sh.quadraticCurveTo(-X, FR_TOP, -X + r, FR_TOP); sh.lineTo(X - r, FR_TOP); sh.quadraticCurveTo(X, FR_TOP, X, FR_TOP - r); sh.lineTo(X, 0);
+      sh.lineTo(x, 0); sh.lineTo(x, DOOR_H - ri); sh.quadraticCurveTo(x, DOOR_H, x - ri, DOOR_H); sh.lineTo(-x + ri, DOOR_H); sh.quadraticCurveTo(-x, DOOR_H, -x, DOOR_H - ri); sh.lineTo(-x, 0); sh.lineTo(-X, 0);
+      return sh;
+    }
+    function octagon(r) { var sh = new THREE.Shape(); for (var i = 0; i < 8; i++) { var a = (i + 0.5) / 8 * Math.PI * 2; sh[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); } return sh; }
+
+    // paints colour, bump and roughness for a canvas that covers [x0,x1] × [0,y1] in door coordinates
+    function painter(x0, x1, y1, pxPerM) {
+      var W = Math.round((x1 - x0) * pxPerM), Hh = Math.round(y1 * pxPerM), out = {};
+      ['col', 'bump', 'rough'].forEach(function (k) { out[k] = cv(W, Hh); out[k + 'X'] = out[k].getContext('2d'); });
+      out.X = function (x) { return (x - x0) * pxPerM; }; out.Y = function (y) { return (y1 - y) * pxPerM; }; out.S = function (m) { return m * pxPerM; };
+      out.all = function (fn) { fn(out.colX, 'col'); fn(out.bumpX, 'bump'); fn(out.roughX, 'rough'); };
+      out.tex = function (k) { var t = new THREE.CanvasTexture(out[k]); if (k === 'col') t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(1 / (x1 - x0), 1 / y1); t.offset.set(-x0 / (x1 - x0), 0); t.anisotropy = 4; return t; };
+      return out;
+    }
+    function doorPaint(tint) {            // both leaves on one canvas; ExtrudeGeometry cap UVs are door-space metres
+      var P = painter(-LW, LW, DOOR_H, 300), X = P.X, Y = P.Y, S = P.S, tc = new THREE.Color(tint), r = rng(Math.floor(tint % 997));
+      var rail = { col: '#4b3725', bump: '#d0d0d0', rough: '#8a8a8a' }, glass = { col: '#070b14', bump: '#202020', rough: '#4a4a4a' };
+      P.all(function (x, k) { x.fillStyle = rail[k]; x.fillRect(0, 0, 9999, 9999); });
+      function pane(pts, rr) {            // a recessed window: polygon in door metres
+        P.all(function (x, k) {
+          x.beginPath(); pts.forEach(function (q, i) { x[i ? 'lineTo' : 'moveTo'](X(q[0]), Y(q[1])); }); x.closePath();
+          if (k === 'col') {
+            var cx = pts.reduce(function (a, q) { return a + q[0]; }, 0) / pts.length, cy = pts.reduce(function (a, q) { return a + q[1]; }, 0) / pts.length;
+            var g = x.createRadialGradient(X(cx), Y(cy + 0.15), 2, X(cx), Y(cy), S(0.6));
+            g.addColorStop(0, 'rgba(' + Math.round(tc.r * 190) + ',' + Math.round(tc.g * 190) + ',' + Math.round(tc.b * 190) + ',1)'); g.addColorStop(1, '#07090f');
+            x.fillStyle = g; x.fill();
+            x.save(); x.clip(); for (var i = 0; i < 90; i++) { x.fillStyle = 'rgba(' + Math.round(150 + tc.r * 100) + ',' + Math.round(150 + tc.g * 100) + ',' + Math.round(130 + tc.b * 100) + ',' + (0.04 + r() * 0.1) + ')'; x.beginPath(); x.arc(X(cx) + (r() - 0.5) * S(0.7), Y(cy) + (r() - 0.5) * S(1.0), 1 + r() * 4, 0, 6.3); x.fill(); } x.restore();
+            x.strokeStyle = 'rgba(255,215,150,0.35)'; x.lineWidth = 2; x.stroke();
+          } else { x.fillStyle = glass[k]; x.fill(); if (k === 'bump') { x.strokeStyle = '#707070'; x.lineWidth = 5; x.stroke(); } }
+        });
+      }
+      [-1, 1].forEach(function (sd) {
+        var i0 = sd * 0.1, o0 = sd * 0.72;
+        pane([[i0, 1.78], [o0, 1.78], [o0, 2.2], [sd * 0.6, 2.34], [i0, 2.34]]);                                 // tall top light
+        var hx = sd * 0.28;                                                                                        // braces run from the outer corners to the hub
+        pane([[o0, 1.56], [o0, 0.3], [hx, HUB_Y]]);                                                                // outer triangle
+        pane([[i0 + sd * 0.02, 1.62], [o0 - sd * 0.06, 1.62], [hx + sd * 0.02, HUB_Y + 0.12], [i0 + sd * 0.02, HUB_Y + 0.42]]);  // upper
+        pane([[i0 + sd * 0.02, 0.16], [o0 - sd * 0.06, 0.16], [hx + sd * 0.02, HUB_Y - 0.12], [i0 + sd * 0.02, HUB_Y - 0.36]]);  // lower
+        P.all(function (x, k) {           // raised outer border
+          x.strokeStyle = k === 'col' ? '#8a6136' : k === 'bump' ? '#ffffff' : '#606060'; x.lineWidth = S(0.035);
+          x.strokeRect(X(sd > 0 ? 0.04 : -LW + 0.04), Y(DOOR_H - 0.04), S(LW - 0.08), S(DOOR_H - 0.08));
+        });
+      });
+      // the seam: a dark hairline following the tongue
+      P.all(function (x, k) {
+        if (k === 'rough') return;
+        x.strokeStyle = k === 'col' ? '#120c06' : '#000000'; x.lineWidth = 3; x.beginPath(); x.moveTo(X(0), Y(DOOR_H));
+        var y0 = HUB_Y - 0.3, y1 = HUB_Y + 0.44; x.lineTo(X(0), Y(y1)); x.quadraticCurveTo(X(-TONGUE), Y(y1), X(-TONGUE), Y(HUB_Y + 0.08)); x.lineTo(X(-TONGUE), Y(y0)); x.lineTo(X(0), Y(y0)); x.lineTo(X(0), Y(0)); x.stroke();
+      });
+      return { map: P.tex('col'), bump: P.tex('bump'), rough: P.tex('rough') };
+    }
+    function framePaint() {               // moulded bronze frame: jamb blocks, header panel, arch segments, side ribs
+      var P = painter(-FR_X - 0.05, FR_X + 0.05, FR_TOP + 0.05, 220), X = P.X, Y = P.Y, S = P.S, rr = rng(31);
+      P.all(function (x, k) {
+        x.fillStyle = k === 'col' ? '#8f6436' : k === 'bump' ? '#b0b0b0' : '#707070'; x.fillRect(0, 0, 9999, 9999);
+        if (k === 'col') for (var i = 0; i < 900; i++) { var yy = rr() * 9999; x.fillStyle = rr() < 0.5 ? 'rgba(255,215,150,0.05)' : 'rgba(40,20,6,0.06)'; x.fillRect(0, yy % x.canvas.height, x.canvas.width, 1); }
+        var groove = k === 'col' ? 'rgba(30,16,4,0.85)' : k === 'bump' ? '#303030' : '#909090', hi = k === 'col' ? 'rgba(255,220,160,0.35)' : k === 'bump' ? '#ffffff' : '#606060';
+        function box(xa, ya, xb, yb) { x.strokeStyle = groove; x.lineWidth = S(0.018); x.strokeRect(X(xa), Y(yb), S(xb - xa), S(yb - ya)); x.strokeStyle = hi; x.lineWidth = S(0.006); x.strokeRect(X(xa) + S(0.012), Y(yb) + S(0.012), S(xb - xa) - S(0.024), S(yb - ya) - S(0.024)); }
+        function cut(ya) { x.fillStyle = groove; x.fillRect(X(-FR_X - 0.05), Y(ya) - S(0.008), S(2 * FR_X + 0.1), S(0.016)); }
+        [-1, 1].forEach(function (sd) {
+          var a = sd * (LW + 0.04), b = sd * (FR_X - 0.04), xa = Math.min(a, b), xb = Math.max(a, b);
+          box(xa, 0.08, xb, 1.12); box(xa, 1.22, xb, 2.0);
+          for (var j = 0; j < 14; j++) { var yy = 0.15 + j * 0.135; x.fillStyle = groove; x.fillRect(X(sd > 0 ? FR_X - 0.035 : -FR_X + 0.005), Y(yy), S(0.03), S(0.025)); }
+        });
+        cut(1.17); cut(2.05);
+        box(-0.5, DOOR_H + 0.05, 0.5, FR_TOP - 0.05);                         // header panel (the nameplate sits on it)
+      });
+      return { map: P.tex('col'), bump: P.tex('bump'), rough: P.tex('rough') };
+    }
+
     function buildDoors(root) {
-      var dt = doorTexture();
-      var trimM = new THREE.MeshStandardMaterial({ color: 0x8a6034, roughness: 0.4, metalness: 0.6 });
-      var pMat = new THREE.MeshStandardMaterial({ map: dt, roughness: 0.45, metalness: 0.4 });
-      var faces = [trimM, trimM, trimM, trimM, pMat, pMat];
+      var sideM = new THREE.MeshStandardMaterial({ color: 0x7a5530, roughness: 0.45, metalness: 0.7 });
+      var fp = framePaint(), frameM = new THREE.MeshStandardMaterial({ map: fp.map, bumpMap: fp.bump, bumpScale: 2.5, roughnessMap: fp.rough, roughness: 1, metalness: 0.75, color: 0xe0c8a8 });
+      var frameG = soft(frameShape(), 0.1, 0.025), leafGL = soft(leafShape(false), 0.05, 0.01), leafGR = soft(leafShape(true), 0.05, 0.01);
+      var hubO = octagon(0.24); hubO.holes.push(octagon(0.15)); var hubG = soft(hubO, 0.03, 0.012);
+      state.doorMats = [frameM];
       DOORS.forEach(function (d) {
-        var W = WALLS[d.W], g = new THREE.Group(), s = W.s, al = ALONG[d.W];
+        var W = WALLS[d.W], g = new THREE.Group(), s = W.s;
         if (W.axis === 'x') g.position.set(s * 2.5, 0, d.c); else g.position.set(d.c, 0, s * 12.5);
         g.rotation.y = W.rot * Math.PI / 180; root.add(g);
-        // one sliding leaf, 0.3 m back in the recess; it slides into the wall away from the button.  Its nameplate rides with it.
-        var leaf = new THREE.Mesh(new THREE.BoxGeometry(1.72, 2.62, 0.06), faces); leaf.position.set(0, 1.31, -0.3); g.add(leaf);
-        var nm = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.42), new THREE.MeshBasicMaterial({ map: plate(d.name, 400, 216, null), fog: false, toneMapped: false, color: 0xd8ccb8 }));
-        nm.position.set(0, 0.62, 0.032); leaf.add(nm);
-        if (d.end) {                     // header above the portal arch
-          var hs = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.34), new THREE.MeshBasicMaterial({ map: plate([d.one], 680, 156, d.sub || null), fog: false, toneMapped: false, color: 0xe8e0d0 }));
-          hs.position.set(0, 3.64, 0.05); g.add(hs);
-        }
-        // OPEN button: illuminated face + soft glow, with a generous invisible finger target (the entity's own mesh, so taps resolve to it)
+        var fr = new THREE.Mesh(frameG, [frameM, sideM]); fr.position.z = 0.02; g.add(fr);
+        // one nameplate per door, on the frame's header panel
+        var nm = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.25), new THREE.MeshBasicMaterial({ map: plate([d.one], 600, 152, null), fog: false, toneMapped: false, color: 0xe8dcc8 }));
+        nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);
+        // two leaves 0.25 m back in the recess: left slides left, right (with the hub and button) slides right
+        var dp = doorPaint(d.tint || 0xffa040), leafM = new THREE.MeshStandardMaterial({ map: dp.map, bumpMap: dp.bump, bumpScale: 3, roughnessMap: dp.rough, roughness: 1, metalness: 0.55, color: 0xf0e0cc });
+        state.doorMats.push(leafM);
+        var lL = new THREE.Mesh(leafGL, [leafM, sideM]), lR = new THREE.Mesh(leafGR, [leafM, sideM]); lL.position.z = lR.position.z = -0.27; g.add(lL); g.add(lR);
+        var hub = new THREE.Mesh(hubG, sideM); hub.position.set(0, HUB_Y, 0.06); lR.add(hub);
+        // OPEN button at the centre hub: illuminated face + soft glow, with a generous invisible finger target
         var ent = document.createElement('a-entity');
-        var bxp = al * btnOffset(d), byp = 1.06;
         var faceTex = { open: buttonFace('open'), close: buttonFace('close'), press: buttonFace('press') };
-        var holder = new THREE.Mesh(new THREE.CircleGeometry(0.3, 20), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
-        holder.position.set(bxp, byp, 0.07);
-        var face = new THREE.Mesh(new THREE.CircleGeometry(0.1, 32), new THREE.MeshBasicMaterial({ map: faceTex.open, toneMapped: false, fog: false })); face.position.z = -0.006;
-        var glow = new THREE.Mesh(new THREE.CircleGeometry(0.24, 32), new THREE.MeshBasicMaterial({ map: dotTexture(), color: 0xff9a2e, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); glow.position.z = -0.012;
+        var holder = new THREE.Mesh(new THREE.CircleGeometry(0.28, 20), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+        holder.position.set(0, HUB_Y, 0.115);
+        var face = new THREE.Mesh(new THREE.CircleGeometry(0.12, 32), new THREE.MeshBasicMaterial({ map: faceTex.open, toneMapped: false, fog: false })); face.position.z = 0.004;
+        var glow = new THREE.Mesh(new THREE.CircleGeometry(0.22, 32), new THREE.MeshBasicMaterial({ map: dotTexture(), color: 0xff9a2e, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); glow.position.z = 0.001;
         holder.add(glow); holder.add(face);
         ent.setObject3D('mesh', holder);
         ent.setAttribute('class', 'interactive clickable'); sc.appendChild(ent);
-        ent.addEventListener('loaded', function () { g.add(ent.object3D); });          // ride along with the door group's orientation
-        var door = { d: d, W: W, g: g, leaf: leaf, slide: -al, p: 0, target: 0, openAt: 0, face: face, faceTex: faceTex, holder: holder, flash: 0, c: d.c, s: s, ent: ent, glow: glow };
+        ent.addEventListener('loaded', function () { lR.add(ent.object3D); });          // rides with the right leaf
+        var door = { d: d, W: W, g: g, lL: lL, lR: lR, p: 0, target: 0, openAt: 0, face: face, faceTex: faceTex, holder: holder, flash: 0, c: d.c, s: s, ent: ent, glow: glow };
         function press() {
+          if (door.p > 0.25) return;                                  // the button has slid into the wall with its leaf
           door.flash = 0.22; face.material.map = faceTex.press;
           if (door.target === 0) { door.target = 1; door.openAt = performance.now(); beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); say('OPENING — ' + d.one); }
           else { door.target = 0; beep(520, 0.12, 'triangle'); say('CLOSING — ' + d.one); }
@@ -570,7 +673,7 @@
           var inLane = Math.abs(along - D.c) < 0.6;
           if (D.target === 1 && now - D.openAt > 8000 && !(inLane && depthPos > 1.9)) { D.target = 0; D.openAt = 0; }
           D.p += (D.target - D.p) * Math.min(1, s * 5.5); if (Math.abs(D.target - D.p) < 0.002) D.p = D.target;
-          D.leaf.position.x = D.slide * D.p * 1.76;
+          D.lL.position.x = -D.p * (LW + 0.06); D.lR.position.x = D.p * (LW + TONGUE + 0.08); D.holder.visible = D.p < 0.3;
           var open = D.p > 0.92, base = W.axis === 'x' ? 2.15 : 12.15;
           if (open && (inLane || depthPos > base)) {                    // an open doorway: let the player into the niche, kept inside the opening's width
             if (W.axis === 'x') { if (W.s > 0) lim.xp = 2.95; else lim.xm = 2.95; } else { if (W.s > 0) lim.zp = 12.95; else lim.zm = 12.95; }
