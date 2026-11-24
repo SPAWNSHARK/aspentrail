@@ -56,7 +56,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push.
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124c).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: ONE frosted-glass bottom bar —
   iOS glassmorphism, Safari-bar proportions, white YouTube-style line icons; movement pad left, look stick right, Gyro +
   Level in the middle; gyro off by default and the Gyro tap calls DeviceOrientationEvent.requestPermission so only
