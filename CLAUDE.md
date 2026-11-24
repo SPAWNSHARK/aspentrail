@@ -109,11 +109,14 @@ Rules drawn from them:
   walnut panels + bronze rails (procedural `wallTexture`), bevelled bronze ribs with lamps, polished dark deck ring,
   14 bookcase bays all round (not over the entrance or wings). Wing doorways = shared door.js doors with `locked`
   (button buzzes 'SEALED (COMING SOON)') and `noPockets`. The glass floor/brain/scroll pedestals are unchanged.
-- **Flight Mode** (`minigame.html`, plain three.js r128) — REBUILT Nov 24 to match reference/exterior-views.jpg: player
-  ship = lofted teardrop copper hull (painted plates, bridge window band, lit spine windows), blunt greebled stern, ribbed
-  dark-teal Library dome aft, two engine pods on struts at the stern corners. Space: per-pixel fbm nebula sky, layered
-  stars, night-side planet with city lights + sunlit limb (two textures: day + lights), drifting dust. Enemies: dark
-  ridged alien seed-craft with glowing veins, three swept blades, a hot eye. Explosions: flash + shockwave + sparks.
+- **Flight Mode** (`minigame.html`, plain three.js r128) — REBUILT Nov 24 to the user's TOP and REAR views
+  (reference/exterior-views.jpg): lofted teardrop copper hull (beam ≈ ⅓ length), U-shaped bridge window band following the
+  nose, continuous framed spine window strip, big dark-teal Library dome ≈ full beam at 80% aft in a thick bronze ring
+  with amber lights, wide stepped stern block with amber strips, engine pods on struts beside the dome with glowing blue
+  faces. Planet = terracotta/clay world with wrinkled relief (normal map from ridged noise; user's material reference was
+  an organic-sphere sheet), warm rim, poles turned away from view. Space: per-pixel fbm nebula sky, layered stars, dust.
+  Enemies: dark ridged alien seed-craft, glowing veins, three swept blades, hot eye. Explosions: flash + ring + sparks.
+  GOTCHA: loftHull winding must face outward (it was inside-out once: windows painted on top were never visible).
   Touch: the same glass bottom bar (steer stick, Auto-fire toggle (on by default on touch), Bridge, Fire); aim assist
   bends shots toward the enemy nearest the crosshair; the scene is rendered shifted up above the bar (setViewOffset). r128 GOTCHA: hex colours are linear there — run
   `fixColors()` on new objects or they render washed out (dark copper came out cream).

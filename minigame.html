@@ -216,30 +216,34 @@ far.add(new THREE.Mesh(new THREE.SphereGeometry(480, 48, 24), new THREE.ShaderMa
 
 // the sun (cool white) and the planet it lights
 const sunS = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xe8f0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); sunS.position.copy(SUN_DIR).multiplyScalar(440); sunS.scale.set(70, 70, 1); far.add(sunS);
-let planetLights; const planetTex = (() => { const w = 1024, h = 512, c = cvs(w, h), x = c.getContext('2d'), im = x.createImageData(w, h), lc = cvs(w, h), lx = lc.getContext('2d'), lim = lx.createImageData(w, h);
+// a rocky terracotta world with wrinkled relief (material reference: user's organic sphere sheet)
+const planetMaps = (() => { const w = 1024, h = 512, hgt = new Float32Array(w * h);
   const hash = (i, j) => { const n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); };
   const vn = (u, v) => { const i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, a = hash(i, j), b = hash(i + 1, j), c2 = hash(i, j + 1), d = hash(i + 1, j + 1), su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv); return a + (b - a) * su + (c2 - a) * sv + (a - b - c2 + d) * su * sv; };
-  const fbm = (u, v) => { let s = 0, a = 0.5; for (let k = 0; k < 5; k++) { s += a * vn(u, v); u *= 2.03; v *= 2.03; a *= 0.5; } return s; };
-  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) { const u = px / w, v = py / h, land = fbm(u * 7, v * 7), cl = fbm(u * 11 + 31, v * 11 + 7), i4 = (py * w + px) * 4;
-    let R, G, B, A = 0;                                                        // RGB = day colour, A = city lights (night side)
-    if (land > 0.55) { const e = Math.min(1, (land - 0.55) * 4); R = 70 + e * 70; G = 92 + e * 30; B = 55 + e * 25; A = Math.pow(Math.max(0, fbm(u * 60, v * 60) - 0.5) * 2, 3) * 255 * (1 - Math.abs(v - 0.5) * 1.6); }
-    else { const d = land / 0.55; R = 10 + d * 20; G = 34 + d * 50; B = 80 + d * 70; }
-    const ca = Math.max(0, Math.min(1, (cl - 0.5) * 3.2)) * 0.9; R += (240 - R) * ca; G += (244 - G) * ca; B += (250 - B) * ca; A *= 1 - ca * 0.8;
-    im.data[i4] = R; im.data[i4 + 1] = G; im.data[i4 + 2] = B; im.data[i4 + 3] = 255; lim.data[i4] = lim.data[i4 + 1] = lim.data[i4 + 2] = A; lim.data[i4 + 3] = 255; }
-  x.putImageData(im, 0, 0); lx.putImageData(lim, 0, 0); planetLights = new THREE.CanvasTexture(lc); const t = new THREE.CanvasTexture(c); return t; })();
-const planet = new THREE.Mesh(new THREE.SphereGeometry(170, 96, 64), new THREE.ShaderMaterial({ fog: false,
-  uniforms: { map: { value: planetTex }, lights: { value: planetLights }, sun: { value: SUN_DIR } },
-  vertexShader: 'varying vec3 vN, vW; varying vec2 vUv; void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-  fragmentShader: [
-    'uniform sampler2D map, lights; uniform vec3 sun; varying vec3 vN, vW; varying vec2 vUv;',
-    'void main(){ vec3 N = normalize(vN), V = normalize(cameraPosition - vW); vec4 t = vec4(texture2D(map, vUv).rgb, texture2D(lights, vUv).r);',
-    '  float d = dot(N, sun), lit = smoothstep(-0.08, 0.35, d);',
-    '  vec3 day = pow(t.rgb, vec3(2.2)) * 0.9 * lit;',
-    '  vec3 night = vec3(1.0, 0.62, 0.25) * pow(t.a, 1.4) * 2.2 * (1.0 - smoothstep(-0.15, 0.1, d));',
-    '  float rim = pow(1.0 - max(dot(N, V), 0.0), 2.6);',
-    '  vec3 atm = mix(vec3(1.0, 0.6, 0.3), vec3(0.3, 0.6, 1.0), smoothstep(-0.2, 0.4, d)) * rim * smoothstep(-0.45, 0.25, d) * 1.6;',
-    '  gl_FragColor = vec4(day + night + atm, 1.0); }'].join('\n') }));
-planet.position.set(90, -260, -300); planet.rotation.set(0.4, 0.8, 0.1); far.add(planet);
+  const ridged = (u, v) => { let s = 0, a = 0.5; for (let k = 0; k < 5; k++) { s += a * (1 - Math.abs(vn(u, v) * 2 - 1)); u *= 2.1; v *= 2.1; a *= 0.5; } return s; };
+  const fbm = (u, v) => { let s = 0, a = 0.5; for (let k = 0; k < 4; k++) { s += a * vn(u, v); u *= 2.03; v *= 2.03; a *= 0.5; } return s; };
+  const col = cvs(w, h), cx = col.getContext('2d'), ci = cx.createImageData(w, h), nor = cvs(w, h), nx = nor.getContext('2d'), ni = nx.createImageData(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const u = x / w * 22, v = y / h * 11; hgt[y * w + x] = ridged(u, v) * 0.75 + fbm(u * 3, v * 3) * 0.25; }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x, H0 = hgt[i], k = i * 4, region = fbm(x / w * 3 + 11, y / h * 1.5 + 4);
+    const dx = (hgt[y * w + (x + 1) % w] - hgt[y * w + (x - 1 + w) % w]) * 7, dy = (hgt[Math.min(h - 1, y + 1) * w + x] - hgt[Math.max(0, y - 1) * w + x]) * 7, L = Math.hypot(dx, dy, 1);
+    ni.data[k] = (-dx / L * 0.5 + 0.5) * 255; ni.data[k + 1] = (dy / L * 0.5 + 0.5) * 255; ni.data[k + 2] = (1 / L * 0.5 + 0.5) * 255; ni.data[k + 3] = 255;
+    const t = Math.min(1, Math.max(0, (region - 0.42) * 3));                       // terracotta ↔ pale clay regions
+    const r = 128 + (176 - 128) * t, gg = 48 + (140 - 48) * t, b = 40 + (122 - 40) * t, sh = 0.45 + H0 * 0.7;
+    ci.data[k] = Math.min(255, r * sh); ci.data[k + 1] = Math.min(255, gg * sh); ci.data[k + 2] = Math.min(255, b * sh); ci.data[k + 3] = 255;
+  }
+  cx.putImageData(ci, 0, 0); nx.putImageData(ni, 0, 0);
+  const m = new THREE.CanvasTexture(col); m.encoding = THREE.sRGBEncoding; m.anisotropy = 8; const n = new THREE.CanvasTexture(nor); n.anisotropy = 8; return { map: m, normal: n }; })();
+const planet = new THREE.Mesh(new THREE.SphereGeometry(170, 96, 64), new THREE.MeshStandardMaterial({ map: planetMaps.map, normalMap: planetMaps.normal, normalScale: new THREE.Vector2(1.6, 1.6), roughness: 0.62, metalness: 0.0, fog: false }));
+planet.position.set(90, -260, -300); planet.rotation.set(0.25, 0.6, Math.PI / 2); far.add(planet);   // poles sideways, away from the view
+// warm atmosphere rim
+const atm = new THREE.Mesh(new THREE.SphereGeometry(176, 64, 48), new THREE.ShaderMaterial({ transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+  uniforms: { sun: { value: SUN_DIR } },
+  vertexShader: 'varying vec3 vN, vW; void main(){ vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+  fragmentShader: 'uniform vec3 sun; varying vec3 vN, vW; void main(){ vec3 V = normalize(cameraPosition - vW); float rim = pow(max(0.0, 1.0 - abs(dot(-vN, V))), 4.0); float lit = smoothstep(-0.4, 0.5, dot(-vN, sun)); gl_FragColor = vec4(vec3(1.0, 0.55, 0.35) * rim * lit * 1.4, 1.0); }' }));
+atm.position.copy(planet.position); far.add(atm);
+// the planet sits in 'far', which moves with the camera — give it its own sun light so it stays lit the same way
+const planetSun = new THREE.DirectionalLight(0xfff0dc, 1.3); planetSun.position.copy(SUN_DIR).multiplyScalar(500); planetSun.target = planet; far.add(planetSun);
 
 // space dust drifting past the ship (sells the speed); recycled around the camera every frame in the loop
 const DUST_N = 500, dustPos = new Float32Array(DUST_N * 3);
@@ -268,10 +272,10 @@ const fill = new THREE.DirectionalLight(0xffc890, 0.7); fill.position.set(-20, 4
 // Hull plating painted on a lofted hull. UV: u = around the section (0.25 = top centre, 0.75 = keel), v = nose (0) → stern (1).
 function hullMaps() {
   const W = 1024, H = 2048, col = cvs(W, H), emi = cvs(W, H), x = col.getContext('2d'), e = emi.getContext('2d'), R = Math.random;
-  x.fillStyle = '#8a5a32'; x.fillRect(0, 0, W, H); e.fillStyle = '#000'; e.fillRect(0, 0, W, H);
+  x.fillStyle = '#5a3a22'; x.fillRect(0, 0, W, H); e.fillStyle = '#000'; e.fillRect(0, 0, W, H);
   // plates: staggered rectangles in slightly different copper tones, each with a lit top edge and a dark seam
   for (let row = 0; row < 20; row++) { const y0 = row * 104, off = (row % 2) * 50;
-    for (let cx = -off; cx < W; cx += 70 + R() * 90) { const w = 60 + R() * 100, tone = 0.7 + R() * 0.45;
+    for (let cx = -off; cx < W; cx += 70 + R() * 90) { const w = 60 + R() * 100, tone = 0.5 + R() * 0.35;
       x.fillStyle = 'rgb(' + Math.round(150 * tone) + ',' + Math.round(96 * tone) + ',' + Math.round(54 * tone) + ')'; x.fillRect(cx, y0, w, 32);
       x.fillRect(cx, y0, w, 104); x.fillStyle = 'rgba(255,214,160,0.22)'; x.fillRect(cx, y0, w, 3); x.fillRect(cx, y0, 3, 104); x.fillStyle = 'rgba(30,14,4,0.8)'; x.fillRect(cx, y0 + 101, w, 3); x.fillRect(cx + w - 3, y0, 3, 104);
       x.fillStyle = 'rgba(40,20,6,0.85)'; for (let k = 8; k < w - 6; k += 12) { x.fillRect(cx + k, y0 + 7, 3, 3); x.fillRect(cx + k, y0 + 94, 3, 3); }
@@ -281,14 +285,24 @@ function hullMaps() {
   // armour bands across the hull and a raised spine
   [0.3, 0.52, 0.74].forEach(v => { x.fillStyle = 'rgba(30,14,4,0.6)'; x.fillRect(0, v * H - 6, W, 4); x.fillStyle = 'rgba(255,214,160,0.2)'; x.fillRect(0, v * H - 2, W, 2); });
   x.fillStyle = 'rgba(60,32,12,0.55)'; x.fillRect(0.25 * W - 26, 0.22 * H, 4, 0.55 * H); x.fillRect(0.25 * W + 22, 0.22 * H, 4, 0.55 * H);
-  // bridge window band near the nose: dark teal glass with warm cabin light behind it, wrapping round the top
-  x.fillStyle = '#0d2a2c'; x.fillRect(0.08 * W, 0.17 * H, 0.34 * W, 0.045 * H);
-  for (let k = 0; k < 14; k++) { const u = 0.08 * W + k * (0.34 * W / 14); x.fillStyle = '#5a3a1e'; x.fillRect(u, 0.17 * H, 3, 0.045 * H);
-    e.fillStyle = 'rgba(255,190,110,' + (0.45 + R() * 0.4) + ')'; e.fillRect(u + 6, 0.177 * H, 0.34 * W / 14 - 12, 0.03 * H); }
-  e.fillStyle = 'rgba(60,200,190,0.35)'; e.fillRect(0.08 * W, 0.17 * H, 0.34 * W, 3);
-  // the row of lit windows down the spine
-  for (let k = 0; k < 9; k++) { const v = (0.3 + k * 0.045) * H; x.fillStyle = '#1a1410'; x.fillRect(0.25 * W - 18, v, 36, 0.032 * H); x.fillStyle = '#5a3a1e'; x.strokeStyle = '#5a3a1e'; x.lineWidth = 3; x.strokeRect(0.25 * W - 18, v, 36, 0.032 * H);
-    e.fillStyle = 'rgba(255,200,120,0.85)'; e.fillRect(0.25 * W - 14, v + 4, 28, 0.032 * H - 8); }
+  // the raised deck plate: an oval outline on the top surface, its front edge is the bridge window band (U-shape
+  // following the nose, as in the TOP reference view); u = 0.25 is the top centre line, ±0.25 reaches the waterline
+  const half = sv => 0.205 * Math.sqrt(Math.max(0, Math.min(1, (sv - 0.1) / 0.24)));
+  function curve(ctx, s0, s1, sign, off) { ctx.beginPath(); for (let k = 0; k <= 60; k++) { const sv = s0 + (s1 - s0) * k / 60, u = 0.25 + sign * (half(sv) + off); k ? ctx.lineTo(u * W, sv * H) : ctx.moveTo(u * W, sv * H); } ctx.stroke(); }
+  [-1, 1].forEach(sg => {
+    x.lineCap = 'round';
+    x.strokeStyle = '#0c2628'; x.lineWidth = 34; curve(x, 0.1, 0.36, sg, 0.012);                 // glass band
+    e.strokeStyle = 'rgba(80,220,210,0.35)'; e.lineWidth = 26; curve(e, 0.1, 0.36, sg, 0.012);     // teal glow in the glass
+    e.strokeStyle = 'rgba(255,190,110,0.55)'; e.lineWidth = 8; e.setLineDash([22, 16]); curve(e, 0.12, 0.36, sg, 0.012); e.setLineDash([]);   // cabin lights
+    x.strokeStyle = '#6a4424'; x.lineWidth = 5; curve(x, 0.1, 0.72, sg, 0.04);                       // inner plate edge, carried on to the dome
+    x.strokeStyle = 'rgba(255,214,160,0.3)'; x.lineWidth = 2; curve(x, 0.1, 0.72, sg, 0.046);
+    x.strokeStyle = '#4a2c14'; x.lineWidth = 5; curve(x, 0.1, 0.4, sg, -0.008);                      // outer frame of the band
+  });
+  // the continuous strip of lit windows down the spine, in a bronze frame
+  const sx0 = 0.25 * W - 30, sy0 = 0.27 * H, sy1 = 0.66 * H;
+  x.fillStyle = '#4a2c14'; x.fillRect(sx0 - 8, sy0 - 8, 76, sy1 - sy0 + 16); x.fillStyle = '#0d2224'; x.fillRect(sx0, sy0, 60, sy1 - sy0);
+  for (let k = 0; k < 9; k++) { const y = sy0 + k * (sy1 - sy0) / 9; x.fillStyle = '#5a3a1e'; x.fillRect(sx0, y, 60, 5);
+    e.fillStyle = 'rgba(255,205,130,' + (0.7 + R() * 0.3) + ')'; e.fillRect(sx0 + 12, y + 14, 36, (sy1 - sy0) / 9 - 26); e.fillStyle = 'rgba(80,210,200,0.25)'; e.fillRect(sx0 + 4, y + 7, 52, (sy1 - sy0) / 9 - 10); }
   // small amber running lights along the waterline and teal marker lights
   for (let k = 0; k < 18; k++) { const v = (0.2 + k * 0.042) * H; [0.02, 0.48].forEach(u => { e.fillStyle = 'rgba(255,170,80,0.9)'; e.fillRect(u * W, v, 10, 6); }); }
   e.fillStyle = 'rgba(80,240,230,1)'; e.beginPath(); e.arc(0.5 * W, 0.006 * H, 10, 0, 7); e.fill();
@@ -300,7 +314,7 @@ function loftHull(L, W, HT, HB) {
   const NS = 72, NR = 48, pos = [], uv = [], idx = [], zN = -L * 0.62, zS = L * 0.38;
   for (let i = 0; i <= NS; i++) {
     const s = i / NS, z = zN + (zS - zN) * s;
-    const plan = Math.pow(Math.sin(Math.min(1, s / 0.72) * Math.PI / 2), 0.62) * (1 - 0.12 * Math.pow(Math.max(0, (s - 0.72) / 0.28), 2));
+    const plan = Math.pow(Math.sin(Math.min(1, s / 0.62) * Math.PI / 2), 0.75) * (1 - 0.12 * Math.pow(Math.max(0, (s - 0.72) / 0.28), 2));
     const w = W * plan, ht = HT * Math.pow(plan, 1.15), hb = HB * Math.pow(plan, 1.3);
     for (let j = 0; j <= NR; j++) {
       const a = j / NR * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
@@ -308,51 +322,66 @@ function loftHull(L, W, HT, HB) {
       pos.push(xx, yy, z); uv.push(j / NR, 1 - s);
     }
   }
-  for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++) { const a = i * (NR + 1) + j, b = a + NR + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++) { const a = i * (NR + 1) + j, b = a + NR + 1; idx.push(a, a + 1, b, b, a + 1, b + 1); }   // outward-facing
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
   g.userData = { zS: zS, W: W, HT: HT, HB: HB };
   return g;
 }
 function buildPlayerShip() {
+  // proportions from reference/exterior-views.jpg (TOP / REAR): length 10, beam ≈ 3.3, dome centre 80% aft, dome ≈ beam
   const g = new THREE.Group(), maps = hullMaps();
-  const copper = new THREE.MeshStandardMaterial({ map: maps.map, emissiveMap: maps.emissiveMap, emissive: 0xffffff, emissiveIntensity: 2.4, roughness: 0.5, metalness: 0.35 });
+  const copper = new THREE.MeshStandardMaterial({ map: maps.map, emissiveMap: maps.emissiveMap, emissive: 0xffffff, emissiveIntensity: 1.1, roughness: 0.5, metalness: 0.35 });
+  const plate = new THREE.MeshStandardMaterial({ map: maps.map, color: 0xb08060, roughness: 0.55, metalness: 0.35 });
   const darkCu = new THREE.MeshStandardMaterial({ color: 0x3a2414, roughness: 0.6, metalness: 0.35 });
   const bronze = new THREE.MeshStandardMaterial({ color: 0xd09858, roughness: 0.35, metalness: 0.5 });
-  const tealGlow = new THREE.MeshBasicMaterial({ color: 0x6ff8ea });
-  const L = 10, W = 2.2, HT = 0.75, HB = 0.45;
+  const amberL = new THREE.MeshBasicMaterial({ color: 0xffb060 }), blueL = new THREE.MeshBasicMaterial({ color: 0x7fe6ff });
+  const L = 10, W = 1.66, HT = 0.62, HB = 0.42;
   const hullG = loftHull(L, W, HT, HB), hull = new THREE.Mesh(hullG, copper); g.add(hull);
-  const zS = hullG.userData.zS;
-  // stern: blunt, built-up block with greebles and amber lights
-  const sternW = W * 0.88 * 2;
-  const stern = new THREE.Mesh(new THREE.BoxGeometry(sternW, (HT + HB) * 0.82, 0.5), darkCu); stern.position.set(0, (HT - HB) * 0.35, zS + 0.05); g.add(stern);
-  for (let k = 0; k < 7; k++) { const gb = new THREE.Mesh(new THREE.BoxGeometry(0.2 + Math.random() * 0.4, 0.12 + Math.random() * 0.3, 0.2 + Math.random() * 0.3), k % 2 ? bronze : darkCu); gb.position.set((k - 3) * sternW / 7.5, (Math.random() - 0.3) * 0.5, zS + 0.35); g.add(gb); }
-  [-0.5, 0, 0.5].forEach(xx => { const l = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.06), new THREE.MeshBasicMaterial({ color: 0xffb060 })); l.position.set(xx, -0.05, zS + 0.31); g.add(l); });
-  // the Library dome aft: glass with radial bronze ribs and a teal glow inside
-  const dz = zS - 1.55, dr = 1.28, dy = HT * 0.72;
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(dr + 0.18, dr + 0.3, 0.22, 48), darkCu); base.position.set(0, dy - 0.02, dz); g.add(base);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(dr + 0.08, 0.07, 10, 64), bronze); rim.rotation.x = Math.PI / 2; rim.position.set(0, dy + 0.1, dz); g.add(rim);
-  const inner = new THREE.Mesh(new THREE.SphereGeometry(dr * 0.92, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x06463f })); inner.scale.y = 0.4; inner.position.set(0, dy + 0.08, dz); g.add(inner);
-  const glass = new THREE.Mesh(new THREE.SphereGeometry(dr, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x0c4a46, emissive: 0x0a3a36, roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.6 }));
-  glass.scale.y = 0.46; glass.position.set(0, dy + 0.1, dz); g.add(glass);
-  const ribs = new THREE.Group(); ribs.position.set(0, dy + 0.1, dz); ribs.scale.y = 0.46; g.add(ribs);
-  for (let k = 0; k < 6; k++) { const rb = new THREE.Mesh(new THREE.TorusGeometry(dr + 0.005, 0.03, 6, 32, Math.PI), bronze); rb.rotation.y = k * Math.PI / 6; ribs.add(rb); }   // arches over the top = 12 meridians
-  const lat = new THREE.Mesh(new THREE.TorusGeometry(dr * 0.72, 0.025, 6, 48), bronze); lat.rotation.x = Math.PI / 2; lat.position.y = dr * 0.69; ribs.add(lat);
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.08, 16), bronze); hub.position.set(0, dy + 0.1 + dr * 0.46, dz); g.add(hub);
-  const swirl = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x3ff0e0, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); swirl.position.set(0, dy + 0.25, dz); swirl.scale.set(1.8, 1.0, 1); swirl.material.opacity = 0.4; g.add(swirl);
-  // the two engine pods, on short struts at the stern corners, nozzles glowing teal
-  const podProf = [[0, -1.25], [0.22, -1.2], [0.4, -1.0], [0.46, -0.7], [0.46, 0.6], [0.5, 0.7], [0.5, 0.95], [0.42, 1.1], [0.36, 1.12]].map(p => new THREE.Vector2(p[0], p[1]));
+  const zS = hullG.userData.zS, box = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); g.add(o); return o; };
+
+  // ── the Library dome: thick bronze ring with amber lights, dark teal glass, 8 ribs to a hub ──
+  const dz = -L * 0.62 + L * 0.8, dr = 1.24, dy = HT * 0.62;
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(dr + 0.3, dr + 0.4, 0.26, 64), plate); collar.position.set(0, dy, dz); g.add(collar);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(dr + 0.14, 0.13, 12, 64), bronze); ring.rotation.x = Math.PI / 2; ring.position.set(0, dy + 0.14, dz); g.add(ring);
+  for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2, l = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.03, 0.05), amberL); l.position.set(Math.cos(a) * (dr + 0.33), dy + 0.13, dz + Math.sin(a) * (dr + 0.33)); l.rotation.y = -a; g.add(l); }
+  const inner = new THREE.Mesh(new THREE.CircleGeometry(dr, 48), new THREE.MeshBasicMaterial({ color: 0x0a3a36 })); inner.rotation.x = -Math.PI / 2; inner.position.set(0, dy + 0.15, dz); g.add(inner);
+  const swirl = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x2fd8c8, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })); swirl.position.set(0, dy + 0.2, dz); swirl.scale.set(1.8, 1.8, 1); g.add(swirl);
+  const glass = new THREE.Mesh(new THREE.SphereGeometry(dr, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x0c4a46, emissive: 0x08302c, roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.6 }));
+  glass.scale.y = 0.38; glass.position.set(0, dy + 0.15, dz); g.add(glass);
+  const ribs = new THREE.Group(); ribs.position.set(0, dy + 0.15, dz); ribs.scale.y = 0.38; g.add(ribs);
+  for (let k = 0; k < 4; k++) { const rb = new THREE.Mesh(new THREE.TorusGeometry(dr + 0.005, 0.035, 6, 32, Math.PI), bronze); rb.rotation.y = k * Math.PI / 4; ribs.add(rb); }
+  [0.45, 0.8].forEach(f => { const lat = new THREE.Mesh(new THREE.TorusGeometry(dr * Math.cos(Math.asin(f)), 0.02, 6, 48), bronze); lat.rotation.x = Math.PI / 2; lat.position.y = dr * f; ribs.add(lat); });
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.1, 16), bronze); hub.position.set(0, dy + 0.15 + dr * 0.38, dz); g.add(hub);
+
+  // ── stern: wide stepped block, plates and amber light strips (REAR view) ──
+  const sz = zS - 0.05;
+  box(2.7, 0.95, 0.7, darkCu, 0, 0.05, sz);                                         // core block
+  box(2.1, 0.42, 0.25, plate, 0, 0.2, sz + 0.45);                                   // upper tier
+  box(1.2, 0.38, 0.25, plate, 0, -0.25, sz + 0.45);                                 // lower tier
+  [-1, 1].forEach(sd => { box(0.55, 0.62, 0.45, plate, sd * 1.15, 0.0, sz + 0.25); box(0.3, 0.3, 0.3, darkCu, sd * 0.75, 0.38, sz + 0.4); box(0.4, 0.12, 0.6, bronze, sd * 1.35, 0.45, sz - 0.1); });
+  [[0, 0.24, 0.5, 0.05], [-1.15, -0.12, 0.3, 0.035], [1.15, -0.12, 0.3, 0.035]].forEach(q => box(q[2], q[3], 0.02, amberL, q[0], q[1], sz + (q[0] ? 0.48 : 0.58)));
+  for (let k = 0; k < 4; k++) box(0.08, 0.3, 0.05, bronze, -0.45 + k * 0.3, -0.25, sz + 0.59);  // vertical ribs on the lower tier
+  // stepped side blocks between the dome and the stern (TOP view notches)
+  [-1, 1].forEach(sd => { for (let k = 0; k < 3; k++) box(0.3, 0.3 + k * 0.05, 0.38, k % 2 ? plate : darkCu, sd * (1.28 + k * 0.05), 0.12, dz + 0.5 + k * 0.4); });
+
+  // ── engine pods on struts beside the dome, blue faces aft ──
+  const podProf = [[0, -1.25], [0.2, -1.2], [0.32, -1.05], [0.36, -0.8], [0.36, 0.9], [0.4, 1.0], [0.42, 1.18], [0.38, 1.25]].map(p => new THREE.Vector2(p[0], p[1]));
   for (const sx of [-1, 1]) {
-    const px = sx * (W + 0.55), py = 0.28, pz = zS - 0.35;
-    const pod = new THREE.Mesh(new THREE.LatheGeometry(podProf, 28), copper); pod.rotation.x = Math.PI / 2; pod.position.set(px, py, pz); g.add(pod);
-    [-0.55, 0.05, 0.62].forEach(o => { const bd = new THREE.Mesh(new THREE.TorusGeometry(0.47, 0.045, 8, 28), darkCu); bd.position.set(px, py, pz + o); g.add(bd); });
-    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.16, 0.5), darkCu); strut.position.set(sx * (W + 0.05), 0.2, pz - 0.1); g.add(strut);
-    const noz = new THREE.Mesh(new THREE.CircleGeometry(0.34, 28), tealGlow); noz.position.set(px, py, pz + 1.13); g.add(noz);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.42, 28), new THREE.MeshBasicMaterial({ color: 0x2a8f88, side: THREE.DoubleSide })); ring.position.set(px, py, pz + 1.125); g.add(ring);
-    const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x3fe0d0, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); plume.position.set(px, py, pz + 1.35); plume.scale.set(1.5, 1.5, 1); g.add(plume);
-    const pt = new THREE.PointLight(0x3fe0d0, 0.5, 5); pt.position.set(px, py, pz + 3.2); g.add(pt);
-    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0x6ff8ea })); tip.position.set(px + sx * 0.46, py, pz + 0.3); g.add(tip);
+    const px = sx * (W + 0.62), py = 0.18, pz = dz + 0.55;
+    const pod = new THREE.Mesh(new THREE.LatheGeometry(podProf, 32), copper); pod.rotation.x = Math.PI / 2; pod.position.set(px, py, pz); g.add(pod);
+    [-0.75, -0.2, 0.4, 0.95].forEach(o => { const bd = new THREE.Mesh(new THREE.TorusGeometry(0.37, 0.045, 8, 32), darkCu); bd.position.set(px, py, pz + o); g.add(bd); });
+    box(0.82, 0.12, 0.22, darkCu, sx * (W + 0.18), 0.18, pz + 0.55);               // strut
+    box(0.08, 0.36, 0.08, bronze, sx * (W + 0.38), 0.18, pz + 0.55);
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.32, 32), blueL); face.position.set(px, py, pz + 1.255); g.add(face);
+    const iris = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.2, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); iris.position.set(px, py, pz + 1.26); g.add(iris);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.05, 8, 32), bronze); rim.position.set(px, py, pz + 1.22); g.add(rim);
+    const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x4fc8ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); plume.position.set(px, py, pz + 1.45); plume.scale.set(0.9, 0.9, 1); plume.material.opacity = 0.55; g.add(plume);
+    const intake = new THREE.Mesh(new THREE.CircleGeometry(0.16, 20), new THREE.MeshBasicMaterial({ color: 0x4fc8ff })); intake.rotation.y = Math.PI; intake.position.set(px, py, pz - 1.255); g.add(intake);
+    const pt = new THREE.PointLight(0x4fc8ff, 0.5, 5); pt.position.set(px, py, pz + 3); g.add(pt);
   }
-  g.scale.setScalar(0.55);                       // ~5.5 units long: same play size as before
+  // nose marker light
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), blueL); nose.position.set(0, 0, -L * 0.62 - 0.02); g.add(nose);
+  g.scale.setScalar(0.55);
   return fixColors(g);
 }
 
