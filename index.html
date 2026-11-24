@@ -85,7 +85,7 @@
   <div id="controls-hint">WASD / DRAG TO LOOK · CLICK OR TAP THE OPEN BUTTON BESIDE A DOOR · VR ICON FOR CARDBOARD</div>
   <div id="wf-fade"></div>
 
-  <a-scene wayfarer-mobile
+  <a-scene wayfarer-mobile light="defaultLightsEnabled: false"
     fog="type: exponential; color: #0c0a08; density: 0.010"
     background="color: #02030a"
     vr-mode-ui="enabled: true"
@@ -110,8 +110,11 @@
     var MOB = window.WAYFARER && window.WAYFARER.mobile;
 
     // ───────────────────────────── layout (metres) ─────────────────────────────
-    // corridor: x ±2.5, z ±12.5, height 3.5.  Walls are 0.5 thick.  Library at -Z end, Bridge at +Z end.
-    var T = 0.5, H = 3.5, DOOR_W = 1.7, DOOR_H = 2.7, WIN_W = 2.0, WIN_SILL = 0.95, WIN_TOP = 2.55;
+    // Style reference: reference/interiors-doors-closed.jpg (Main Corridor panel).
+    // corridor: x ±2.5, z ±12.5.  Straight walls to 2.9 m, then a curved cove rising to a glass skylight
+    // (x ±0.85, y 3.75) that runs the full length.  Bronze arched ribs every 3 m.  Library at −Z end, Bridge at +Z end.
+    var T = 0.5, H = 2.95, DOOR_W = 1.7, DOOR_H = 2.7;
+    var COVE_Y = 2.9, SKY_X = 0.85, SKY_Y = 3.75;
     var WALLS = {
       L: { axis: 'x', s: -1, base: 2.5, rot: 90 },
       R: { axis: 'x', s: 1, base: 2.5, rot: -90 },
@@ -119,14 +122,13 @@
       B: { axis: 'z', s: -1, base: 12.5, rot: 0 }       // Library end
     };
     var DOORS = [
-      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true },
-      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, sub: 'SECOND BRAIN · DEEP CORE' },
+      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true, glow: 0xffa040 },
+      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, glow: 0x3fe0c8, sub: 'SECOND BRAIN · DEEP CORE' },
       { id: 'holodeck', name: ['HOLO', 'DECK'],      one: 'HOLODECK',       page: 'holodeck.html', W: 'L', c: 6 },
       { id: 'lounge',   name: ['CREW', 'LOUNGE'],    one: 'CREW LOUNGE',    page: 'lounge.html',   W: 'R', c: 4 },
       { id: 'media',    name: ['MEDIA', 'NEXUS'],    one: 'MEDIA NEXUS',    page: 'media.html',    W: 'R', c: -4 }
     ];
-    var WINDOWS = [ { W: 'L', c: 11 }, { W: 'L', c: 1.5 }, { W: 'L', c: -4.5 }, { W: 'L', c: -10 },
-                    { W: 'R', c: 9.5 }, { W: 'R', c: 0 }, { W: 'R', c: -9.5 } ];
+    var RIBS = [-10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5];
 
     // where you stand when you come back out of a room: one step outside its doorway, facing down the hall
     // (heading = yaw about +Y, 0 faces −Z i.e. toward the Library, 180 faces +Z toward the Bridge)
@@ -139,92 +141,93 @@
     };
     var ALONG = { L: -1, R: 1, F: -1, B: 1 };               // door-group local +x expressed along world z (side walls) / x (end walls)
     var DEFAULT_SPAWN = { x: 0, z: 9, yaw: 0 };         // Home Screen launch: the usual view down the hall
+    function btnOffset(d) { return d.end ? 2.0 : 1.4; }
+
+    // stretches of each side wall that a door, its button or its frame occupies: ribs and sconces keep clear
+    function busy(Wk, z, pad) {
+      return DOORS.some(function (d) {
+        if (d.W !== Wk) return false;
+        var b = d.c + ALONG[Wk] * btnOffset(d), lo = Math.min(d.c - 1.0, b - 0.25), hi = Math.max(d.c + 1.0, b + 0.25);
+        return z > lo - pad && z < hi + pad;
+      });
+    }
 
     // ───────────────────────────── helpers ─────────────────────────────
     function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
     function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-    function mkTex(c, rep) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; }
+    function mkTex(c) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; }
+    function coveXY(t, s) { return [s * (SKY_X + (2.5 - SKY_X) * Math.cos(t)), COVE_Y + (SKY_Y - COVE_Y) * Math.sin(t)]; }
 
     // ───────────────────────────── textures ─────────────────────────────
-    function wallTexture() {            // 1.2 m wide × 3.5 m tall tile; v maps world height
+    function wallTexture() {            // 1.2 m wide × H tall tile; v maps world height.  Dark walnut-brown panels, bronze rails
       var W = 512, Hh = 1024, c = cv(W, Hh), x = c.getContext('2d'), r = rng(11);
-      function Y(m) { return (1 - m / 3.5) * Hh; }
-      x.fillStyle = '#9b9388'; x.fillRect(0, 0, W, Hh);
-      // wainscot
-      x.fillStyle = '#6f6a63'; x.fillRect(0, Y(0.95), W, Y(0) - Y(0.95));
-      // panel insets
+      function Y(m) { return (1 - m / H) * Hh; }
+      x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, Hh);
       function inset(x0, y0, x1, y1, base) {
         x.fillStyle = base; x.fillRect(x0, y0, x1 - x0, y1 - y0);
-        x.fillStyle = 'rgba(255,255,255,0.10)'; x.fillRect(x0, y0, x1 - x0, 3); x.fillRect(x0, y0, 3, y1 - y0);
-        x.fillStyle = 'rgba(0,0,0,0.22)'; x.fillRect(x0, y1 - 3, x1 - x0, 3); x.fillRect(x1 - 3, y0, 3, y1 - y0);
+        x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(x0, y0, x1 - x0, 3); x.fillRect(x0, y0, 3, y1 - y0);
+        x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(x0, y1 - 3, x1 - x0, 3); x.fillRect(x1 - 3, y0, 3, y1 - y0);
       }
-      inset(22, Y(3.22), W - 22, Y(1.08), '#a39b90');
-      inset(22, Y(0.86), W - 22, Y(0.08), '#7a746c');
-      // seams + rivets
-      x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(0, 0, 3, Hh); x.fillRect(W - 3, 0, 3, Hh);
-      [[34, Y(3.14)], [W - 34, Y(3.14)], [34, Y(1.16)], [W - 34, Y(1.16)], [34, Y(0.78)], [W - 34, Y(0.78)], [34, Y(0.16)], [W - 34, Y(0.16)]].forEach(function (p) {
-        x.fillStyle = '#5a4a32'; x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill();
-        x.fillStyle = 'rgba(255,220,160,0.25)'; x.beginPath(); x.arc(p[0] - 1, p[1] - 1, 1.6, 0, 6.3); x.fill();
+      inset(26, Y(2.72), W - 26, Y(1.06), '#372b23');
+      inset(26, Y(0.86), W - 26, Y(0.14), '#2f251e');
+      // vertical seams
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, Hh); x.fillRect(W - 3, 0, 3, Hh);
+      x.fillStyle = 'rgba(255,200,140,0.05)'; x.fillRect(3, 0, 2, Hh);
+      [[38, Y(2.64)], [W - 38, Y(2.64)], [38, Y(1.14)], [W - 38, Y(1.14)], [38, Y(0.78)], [W - 38, Y(0.78)], [38, Y(0.22)], [W - 38, Y(0.22)]].forEach(function (p) {
+        x.fillStyle = '#6b4c28'; x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill();
+        x.fillStyle = 'rgba(255,220,160,0.35)'; x.beginPath(); x.arc(p[0] - 1, p[1] - 1, 1.6, 0, 6.3); x.fill();
       });
-      // bronze rail at 0.95 m and cornice line at 3.3 m
-      function rail(m, hgt) { var g = x.createLinearGradient(0, Y(m + hgt), 0, Y(m)); g.addColorStop(0, '#c49a5c'); g.addColorStop(0.5, '#8a6a3c'); g.addColorStop(1, '#5a4326'); x.fillStyle = g; x.fillRect(0, Y(m + hgt), W, Y(m) - Y(m + hgt)); }
-      rail(0.95, 0.045); rail(3.26, 0.035);
-      // grain
-      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.035)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 2, 1 + r() * 8); }
+      function rail(m, hgt) { var g = x.createLinearGradient(0, Y(m + hgt), 0, Y(m)); g.addColorStop(0, '#d9a866'); g.addColorStop(0.5, '#9a6c36'); g.addColorStop(1, '#5a3d1e'); x.fillStyle = g; x.fillRect(0, Y(m + hgt), W, Y(m) - Y(m + hgt)); }
+      rail(0.95, 0.05); rail(2.80, 0.04);
+      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 2, 1 + r() * 8); }
       return mkTex(c);
+    }
+    function coveTexture() {            // u: 1.2 m along the hall, v: the whole curve from wall top (0) to skylight edge (1)
+      var W = 512, Hh = 512, c = cv(W, Hh), x = c.getContext('2d'), r = rng(19);
+      x.fillStyle = '#2a211b'; x.fillRect(0, 0, W, Hh);
+      [[22, 30, W - 22, 236], [22, 270, W - 22, 486]].forEach(function (q) {
+        x.fillStyle = '#33281f'; x.fillRect(q[0], q[1], q[2] - q[0], q[3] - q[1]);
+        x.fillStyle = 'rgba(255,210,150,0.06)'; x.fillRect(q[0], q[1], q[2] - q[0], 3);
+        x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(q[0], q[3] - 3, q[2] - q[0], 3);
+      });
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, Hh);
+      for (var i = 0; i < 5000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 6, 1 + r() * 2); }
+      return mkTex(c);
+    }
+    function coveGlowTexture() {        // emissive wash: amber from the hidden strip at the wall top, a softer warm edge at the skylight
+      var c = cv(4, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 256, 0, 0);
+      g.addColorStop(0, 'rgb(255,150,60)'); g.addColorStop(0.08, 'rgb(170,88,30)'); g.addColorStop(0.35, 'rgb(40,20,8)');
+      g.addColorStop(0.8, 'rgb(14,8,4)'); g.addColorStop(0.96, 'rgb(90,62,36)'); g.addColorStop(1, 'rgb(150,110,70)');
+      x.fillStyle = g; x.fillRect(0, 0, 4, 256); var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
     }
     function trimTexture() {             // brushed bronze, 1 m tile
       var c = cv(256, 256), x = c.getContext('2d'), r = rng(5);
-      x.fillStyle = '#85693f'; x.fillRect(0, 0, 256, 256);
-      for (var i = 0; i < 1400; i++) { var y = r() * 256, a = r() * 0.16; x.fillStyle = r() < 0.5 ? 'rgba(255,225,170,' + a * 0.5 + ')' : 'rgba(40,24,8,' + a * 0.5 + ')'; x.fillRect(0, y, 256, 1); }
+      x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 1400; i++) { var y = r() * 256, a = r() * 0.18; x.fillStyle = r() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, y, 256, 1); }
       return mkTex(c);
     }
-    function deckTexture() {             // matte graphite, 1 m tiles with seams
+    function deckTexture() {             // polished dark deck plates, 1 m tiles
       var c = cv(512, 512), x = c.getContext('2d'), r = rng(23);
-      x.fillStyle = '#2b2c2f'; x.fillRect(0, 0, 512, 512);
-      for (var i = 0; i < 20000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.045)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 2, 1 + r() * 2); }
-      x.fillStyle = 'rgba(0,0,0,0.5)'; x.fillRect(0, 0, 512, 4); x.fillRect(0, 0, 4, 512); x.fillRect(255, 0, 2, 512); x.fillRect(0, 255, 512, 2);
-      x.fillStyle = 'rgba(255,255,255,0.05)'; x.fillRect(0, 4, 512, 2); x.fillRect(4, 0, 2, 512);
-      [[18, 18], [494, 18], [18, 494], [494, 494]].forEach(function (p) { x.fillStyle = '#16171a'; x.beginPath(); x.arc(p[0], p[1], 5, 0, 6.3); x.fill(); });
+      x.fillStyle = '#1e1a17'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 70; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,230,200') + ',' + (0.015 + r() * 0.025) + ')'; x.fillRect(r() * 512, r() * 512, 40 + r() * 160, 20 + r() * 90); }
+      x.fillStyle = 'rgba(0,0,0,0.65)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512);
+      x.fillStyle = 'rgba(255,220,170,0.05)'; x.fillRect(0, 3, 512, 2); x.fillRect(3, 0, 2, 512);
       return mkTex(c);
     }
-    function ceilTexture() {
-      var c = cv(256, 256), x = c.getContext('2d'), r = rng(3);
-      x.fillStyle = '#a39c90'; x.fillRect(0, 0, 256, 256);
-      for (var i = 0; i < 3000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'; x.fillRect(r() * 256, r() * 256, 1 + r() * 3, 1 + r() * 3); }
-      x.fillStyle = 'rgba(0,0,0,0.3)'; x.fillRect(0, 0, 256, 2); x.fillRect(0, 0, 2, 256);
-      return mkTex(c);
-    }
-    function ventTexture() {              // cabinet fronts under the windows
-      var c = cv(256, 256), x = c.getContext('2d');
-      x.fillStyle = '#8f877c'; x.fillRect(0, 0, 256, 256);
-      x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(0, 0, 256, 3); x.fillRect(0, 253, 256, 3);
-      for (var i = 0; i < 9; i++) { x.fillStyle = '#2a2622'; x.fillRect(48, 40 + i * 20, 160, 8); x.fillStyle = 'rgba(255,255,255,0.12)'; x.fillRect(48, 48 + i * 20, 160, 1); }
-      return mkTex(c);
-    }
-    function hullTexture() {
-      var c = cv(512, 512), x = c.getContext('2d'), r = rng(41);
-      x.fillStyle = '#7b756d'; x.fillRect(0, 0, 512, 512);
-      for (var i = 0; i < 40; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,240,210') + ',' + (0.03 + r() * 0.05) + ')'; x.fillRect(r() * 512, r() * 512, 20 + r() * 120, 12 + r() * 70); }
-      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 512, 5); x.fillRect(0, 0, 5, 512); x.fillRect(254, 0, 3, 512); x.fillRect(0, 254, 512, 3);
-      x.fillStyle = '#8a6a3c'; x.fillRect(0, 6, 512, 3);
-      for (var u = 0; u < 4; u++) for (var v = 0; v < 4; v++) { x.fillStyle = '#4a4137'; x.beginPath(); x.arc(20 + u * 128, 20 + v * 128, 3, 0, 6.3); x.fill(); }
-      for (i = 0; i < 6000; i++) { x.fillStyle = 'rgba(0,0,0,0.06)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 3, 1); }
-      return mkTex(c);
-    }
-    function doorTexture() {
+    function doorTexture() {             // single leaf: dark bronze with an inset, a horizontal band, a vertical seam
       var c = cv(256, 512), x = c.getContext('2d'), r = rng(9);
-      var g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, '#8e867b'); g.addColorStop(0.5, '#a09888'); g.addColorStop(1, '#857d72');
+      var g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, '#2f251e'); g.addColorStop(0.5, '#3b2f26'); g.addColorStop(1, '#2c231c');
       x.fillStyle = g; x.fillRect(0, 0, 256, 512);
-      for (var i = 0; i < 700; i++) { x.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'; x.fillRect(r() * 256, 0, 1, 512); }
-      x.strokeStyle = 'rgba(0,0,0,0.35)'; x.lineWidth = 3; x.strokeRect(16, 20, 224, 472);
-      x.strokeStyle = 'rgba(255,255,255,0.14)'; x.lineWidth = 2; x.strokeRect(19, 23, 218, 466);
-      x.fillStyle = '#4b3a22'; x.fillRect(0, 0, 256, 6); x.fillRect(0, 506, 256, 6);
+      for (var i = 0; i < 700; i++) { x.fillStyle = r() < 0.5 ? 'rgba(255,220,170,0.03)' : 'rgba(0,0,0,0.08)'; x.fillRect(r() * 256, 0, 1, 512); }
+      x.strokeStyle = '#7a5530'; x.lineWidth = 4; x.strokeRect(14, 16, 228, 480);
+      x.strokeStyle = 'rgba(255,215,150,0.18)'; x.lineWidth = 2; x.strokeRect(19, 21, 218, 470);
+      x.fillStyle = '#7a5530'; x.fillRect(14, 330, 228, 6);
+      x.fillStyle = 'rgba(0,0,0,0.4)'; x.fillRect(14, 336, 228, 3);
       return mkTex(c);
     }
     function plate(lines, w, h, sub) {     // bronze name plate, engraved lettering
       var c = cv(w, h), x = c.getContext('2d');
-      var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#b38a50'); g.addColorStop(1, '#7e5e32');
+      var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#c4965a'); g.addColorStop(1, '#85603a');
       x.fillStyle = g; x.fillRect(0, 0, w, h);
       x.strokeStyle = '#3d2b14'; x.lineWidth = 6; x.strokeRect(5, 5, w - 10, h - 10);
       x.strokeStyle = 'rgba(255,230,180,0.45)'; x.lineWidth = 2; x.strokeRect(12, 12, w - 24, h - 24);
@@ -255,26 +258,24 @@
       [-1, 1].forEach(function (sd) { var cx = 128 + sd * 46, tip = cx + sd * 14 * dir; x.beginPath(); x.moveTo(cx - sd * 14 * dir, 150); x.lineTo(tip, 170); x.lineTo(cx - sd * 14 * dir, 190); x.closePath(); x.fill(); });
       var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
     }
-    function planetTexture() {
-      var w = 512, h = 256, c = cv(w, h), x = c.getContext('2d'), im = x.createImageData(w, h);
-      function hash(i, j) { var n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return n - Math.floor(n); }
-      function vn(u, v) { var i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, a = hash(i, j), b = hash(i + 1, j), c2 = hash(i, j + 1), d = hash(i + 1, j + 1), su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv); return a + (b - a) * su + (c2 - a) * sv + (a - b - c2 + d) * su * sv; }
-      function fbm(u, v) { var s = 0, a = 0.5; for (var k = 0; k < 5; k++) { s += a * vn(u, v); u *= 2.03; v *= 2.03; a *= 0.5; } return s; }
-      for (var py = 0; py < h; py++) for (var px = 0; px < w; px++) {
-        var u = px / w, v = py / h, land = fbm(u * 6, v * 6), cl = fbm(u * 9 + 31, v * 9 + 7), i4 = (py * w + px) * 4, R, G, B;
-        if (land > 0.56) { var e = Math.min(1, (land - 0.56) * 4); R = 70 + e * 90; G = 100 + e * 40 - e * 20; B = 55 + e * 20; }
-        else { var d = land / 0.56; R = 14 + d * 22; G = 50 + d * 70; B = 110 + d * 80; }
-        var polar = Math.abs(v - 0.5) > 0.4 ? (Math.abs(v - 0.5) - 0.4) * 10 : 0; R += (235 - R) * Math.min(1, polar); G += (240 - G) * Math.min(1, polar); B += (250 - B) * Math.min(1, polar);
-        var ca = Math.max(0, Math.min(1, (cl - 0.5) * 3.2)) * 0.85; R += (245 - R) * ca; G += (248 - G) * ca; B += (255 - B) * ca;
-        im.data[i4] = R; im.data[i4 + 1] = G; im.data[i4 + 2] = B; im.data[i4 + 3] = 255;
-      }
-      x.putImageData(im, 0, 0); var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-    }
     function dotTexture() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
-    function poolTexture() { var c = cv(128, 128), x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(170,200,255,0.55)'); g.addColorStop(0.6, 'rgba(120,160,230,0.2)'); g.addColorStop(1, 'rgba(100,140,220,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); }
+    function rampTexture(sym) {          // soft band across u: sym → bright centre, else bright at u=0 fading to u=1
+      var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0);
+      if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); }
+      else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); }
+      x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c);
+    }
+    function shaftTexture() {            // skylight light shaft: bright at the top, gone by the floor, soft sides
+      var c = cv(64, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256);
+      g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(0.5, 'rgba(255,255,255,0.25)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 64, 256);
+      var e = x.createLinearGradient(0, 0, 64, 0); e.addColorStop(0, 'rgba(0,0,0,1)'); e.addColorStop(0.3, 'rgba(0,0,0,0)'); e.addColorStop(0.7, 'rgba(0,0,0,0)'); e.addColorStop(1, 'rgba(0,0,0,1)');
+      x.globalCompositeOperation = 'destination-out'; x.fillStyle = e; x.fillRect(0, 0, 64, 256);
+      return new THREE.CanvasTexture(c);
+    }
 
     // ───────────────────────────── geometry collector (world-aligned boxes, world-space UVs) ─────────────────────────────
-    var TILE = { wall: [1.2, 3.5], trim: [1, 1], vent: [1.2, 1.2], dark: [1, 1], amber: [1, 1], lamp: [1, 1] };
+    var TILE = { wall: [1.2, H], trim: [1, 1], dark: [1, 1], amber: [1, 1], lamp: [1, 1] };
     var buckets = {};
     function bx(key, cx, cy, cz, w, h, d) {
       var g = new THREE.BoxGeometry(w, h, d); g.translate(cx, cy, cz);
@@ -300,98 +301,187 @@
       var m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('uv', new THREE.BufferAttribute(U, 2)); m.setIndex(new THREE.BufferAttribute(I, 1)); return m;
     }
 
-    function buildWall(W, ops, lo, hi) {
+    function buildWall(W, ops, lo, hi, Wk) {
       ops = ops.slice().sort(function (a, b) { return a.c - b.c; }); var cur = lo;
+      function solid(a0, a1) {
+        wb('wall', W, 0, T, 0, H, a0, a1);
+        wb('amber', W, -0.025, 0.03, 0.05, 0.085, a0, a1);                 // baseboard light line
+        wb('trim', W, -0.02, 0.03, 0, 0.05, a0, a1);                       // kick plate under it
+      }
       ops.forEach(function (o) {
         var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
-        if (a0 > cur) wb('wall', W, 0, T, 0, H, cur, a0);
-        if (o.type === 'door') wb('wall', W, 0, T, DOOR_H, H, a0, a1);
-        else { wb('wall', W, 0, T, 0, WIN_SILL, a0, a1); wb('wall', W, 0, T, WIN_TOP, H, a0, a1); }
+        if (a0 > cur) solid(cur, a0);
+        wb('wall', W, 0, T, DOOR_H, H, a0, a1);
         cur = a1;
       });
-      if (hi > cur) wb('wall', W, 0, T, 0, H, cur, hi);
-      wb('trim', W, -0.04, 0.08, 3.38, H, lo, hi);                    // cornice
+      if (hi > cur) solid(cur, hi);
+      wb('trim', W, -0.12, 0.12, 2.80, 2.86, lo, hi);                      // cornice ledge
+      wb('amber', W, -0.06, 0.06, 2.86, 2.9, lo, hi);                      // cove light line on top of the ledge
     }
     function doorFrame(W, o) {
       var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
-      wb('trim', W, -0.06, 0.2, 0, DOOR_H + 0.14, a0 - 0.14, a0); wb('trim', W, -0.06, 0.2, 0, DOOR_H + 0.14, a1, a1 + 0.14);
-      wb('trim', W, -0.06, 0.2, DOOR_H, DOOR_H + 0.14, a0 - 0.14, a1 + 0.14);
+      wb('trim', W, -0.08, 0.22, 0, DOOR_H + 0.14, a0 - 0.16, a0); wb('trim', W, -0.08, 0.22, 0, DOOR_H + 0.14, a1, a1 + 0.16);
+      wb('trim', W, -0.08, 0.22, DOOR_H, DOOR_H + 0.14, a0 - 0.16, a1 + 0.16);
+      wb('amber', W, -0.085, 0.01, 0.1, DOOR_H - 0.05, a0 - 0.1, a0 - 0.07); wb('amber', W, -0.085, 0.01, 0.1, DOOR_H - 0.05, a1 + 0.07, a1 + 0.1);   // lit edge reveals
       wb('trim', W, 0.14, 0.36, 0, DOOR_H, a0, a0 + 0.03); wb('trim', W, 0.14, 0.36, 0, DOOR_H, a1 - 0.03, a1);
       wb('trim', W, 0.14, 0.36, DOOR_H - 0.03, DOOR_H, a0, a1);
       wb('trim', W, -0.04, 0.5, 0, 0.025, a0, a1);                      // threshold plate
-      wb('amber', W, 0.1, 0.02, DOOR_H - 0.08, DOOR_H - 0.05, a0 + 0.03, a1 - 0.03);   // narrow guide strip under the header
-      // niche behind the panels: dark back wall so there is never a gap
-      wb('dark', W, T, 0.05, 0, DOOR_H, a0, a1);
-      wb('dark', W, 0, T + 0.05, -0.05, 0, a0, a1);                    // niche floor: no gap under the door
+      wb('amber', W, -0.045, 0.01, 0.0, 0.026, a0, a1);                  // threshold light
+      wb('dark', W, T, 0.05, 0, DOOR_H, a0, a1);                         // niche back: never a gap
+      wb('dark', W, 0, T + 0.05, -0.05, 0, a0, a1);
     }
-    function windowFrame(W, o) {
-      var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
-      wb('trim', W, 0, T, WIN_SILL, WIN_SILL + 0.04, a0, a1); wb('trim', W, 0, T, WIN_TOP - 0.04, WIN_TOP, a0, a1);                 // deep liners
-      wb('trim', W, 0, T, WIN_SILL, WIN_TOP, a0, a0 + 0.04); wb('trim', W, 0, T, WIN_SILL, WIN_TOP, a1 - 0.04, a1);
-      wb('trim', W, -0.08, 0.14, 0.9, 2.9, a0 - 0.16, a0); wb('trim', W, -0.08, 0.14, 0.9, 2.9, a1, a1 + 0.16);                     // pilasters
-      wb('trim', W, -0.08, 0.14, WIN_TOP, 2.9, a0, a1);                                                                               // head
-      wb('trim', W, -0.3, 0.3, 0.86, WIN_SILL, a0 - 0.1, a1 + 0.1);                                                                    // sill shelf
-      wb('vent', W, -0.12, 0.12, 0.08, 0.86, a0 - 0.1, a1 + 0.1);                                                                      // cabinet
-      wb('amber', W, -0.085, 0.02, 1.05, 2.45, a0 - 0.03, a0 - 0.01); wb('amber', W, -0.085, 0.02, 1.05, 2.45, a1 + 0.01, a1 + 0.03); // narrow guide strips
+    function sconce(W, a, y) {           // square amber wall lamp on a bronze back plate
+      wb('trim', W, -0.03, 0.03, y - 0.17, y + 0.17, a - 0.14, a + 0.14);
+      wb('lamp', W, -0.08, 0.05, y - 0.12, y + 0.12, a - 0.09, a + 0.09);
+      wb('trim', W, -0.1, 0.07, y + 0.12, y + 0.15, a - 0.12, a + 0.12);
     }
 
     // ───────────────────────────── build ─────────────────────────────
-    var state = { doors: [], hullLights: [] };
+    var state = { doors: [], hullLights: [] }, glowSpots = [];
     function build() {
       var root = new THREE.Group(); sc.object3D.add(root);
       var aniso = Math.min(4, sc.renderer.capabilities.getMaxAnisotropy());
       var M = {
-        wall:  new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.88, metalness: 0.05 }),
-        trim:  new THREE.MeshStandardMaterial({ map: trimTexture(), color: 0xb9ab95, roughness: 0.5, metalness: 0.5, emissive: 0x140c04, emissiveIntensity: 0.4 }),
-        vent:  new THREE.MeshStandardMaterial({ map: ventTexture(), roughness: 0.85, metalness: 0.1 }),
-        dark:  new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 0.9, metalness: 0.1, emissive: 0x1a140c, emissiveIntensity: 0.6 }),
-        amber: new THREE.MeshBasicMaterial({ color: 0xff9a2e, fog: false }),
-        lamp:  new THREE.MeshBasicMaterial({ color: 0xfff1de, fog: false })
+        wall:  new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.62, metalness: 0.15 }),
+        trim:  new THREE.MeshStandardMaterial({ map: trimTexture(), color: 0xd8b58a, roughness: 0.45, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.5 }),
+        dark:  new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 0.9, metalness: 0.1, emissive: 0x140d07, emissiveIntensity: 0.6 }),
+        amber: new THREE.MeshBasicMaterial({ color: 0xffa040, fog: false, toneMapped: false }),
+        lamp:  new THREE.MeshBasicMaterial({ color: 0xffb468, fog: false, toneMapped: false })
       };
-      var maps = [M.wall.map, M.trim.map, M.vent.map]; maps.forEach(function (t) { t.anisotropy = aniso; });
+      [M.wall.map, M.trim.map].forEach(function (t) { t.anisotropy = aniso; });
 
       // walls, frames
       var ops = { L: [], R: [], F: [], B: [] };
-      DOORS.forEach(function (d) { ops[d.W].push({ c: d.c, w: DOOR_W, type: 'door' }); });
-      WINDOWS.forEach(function (w) { ops[w.W].push({ c: w.c, w: WIN_W, type: 'window' }); });
-      buildWall(WALLS.L, ops.L, -13, 13); buildWall(WALLS.R, ops.R, -13, 13);
-      buildWall(WALLS.F, ops.F, -3, 3);   buildWall(WALLS.B, ops.B, -3, 3);
+      DOORS.forEach(function (d) { ops[d.W].push({ c: d.c, w: DOOR_W }); });
+      buildWall(WALLS.L, ops.L, -12.5, 12.5); buildWall(WALLS.R, ops.R, -12.5, 12.5);
+      buildWall(WALLS.F, ops.F, -2.5, 2.5);   buildWall(WALLS.B, ops.B, -2.5, 2.5);
       DOORS.forEach(function (d) { doorFrame(WALLS[d.W], { c: d.c, w: DOOR_W }); });
-      WINDOWS.forEach(function (w) { windowFrame(WALLS[w.W], { c: w.c, w: WIN_W }); });
 
-      // button housings (static) beside each frame
-      DOORS.forEach(function (d) {
-        var W = WALLS[d.W], a = d.end ? 1.55 : d.c + 1.4;
-        wb('trim', W, -0.05, 0.1, 0.88, 1.24, a - 0.15, a + 0.15);
-        if (!d.end) wb('trim', W, -0.03, 0.06, 1.38, 1.9, a - 0.46, a + 0.46);       // plaque backing plate
-      });
-      // ceiling beams + corner posts
-      for (var z = -12; z <= 12; z += 3) bx('trim', 0, 3.43, z, 5, 0.14, 0.12);
+      // button housings beside each frame
+      DOORS.forEach(function (d) { var W = WALLS[d.W], a = d.c + ALONG[d.W] * btnOffset(d); if (d.end) a = ALONG[d.W] * btnOffset(d); wb('trim', W, -0.05, 0.1, 0.86, 1.26, a - 0.16, a + 0.16); });
+
+      // rib legs (wall pilasters) where the wall is clear; the arches themselves are built below
+      ['L', 'R'].forEach(function (k) { RIBS.forEach(function (z) {
+        if (busy(k, z, 0.15)) wb('trim', WALLS[k], -0.12, 0.12, DOOR_H + 0.14, 2.8, z - 0.11, z + 0.11);
+        else { wb('trim', WALLS[k], -0.12, 0.12, 0, 2.8, z - 0.11, z + 0.11); wb('amber', WALLS[k], -0.125, 0.006, 0.12, 2.7, z - 0.012, z + 0.012); }
+      }); });
+
+      // sconces: between ribs, at the clear spots; and a pair flanking every side door, as in the reference
+      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.35)) { sconce(WALLS[k], z, 2.25); glowSpots.push([k, z, 2.25]); } });
+      DOORS.forEach(function (d) { if (d.end) return; [-1.13, 1.13].forEach(function (o) { sconce(WALLS[d.W], d.c + o, 2.55); glowSpots.push([d.W, d.c + o, 2.55]); }); });
 
       Object.keys(buckets).forEach(function (k) { var m = new THREE.Mesh(merge(buckets[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
 
-      // floor, ceiling, light panels, floor strips
-      var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.88, metalness: 0.12 }));
-      fl.material.map.repeat.set(5, 25); fl.material.map.anisotropy = aniso; fl.rotation.x = -Math.PI / 2; root.add(fl);
-      var ce = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), new THREE.MeshStandardMaterial({ map: ceilTexture(), roughness: 0.9, metalness: 0.05, side: THREE.FrontSide }));
-      ce.material.map.repeat.set(5, 25); ce.rotation.x = Math.PI / 2; ce.position.y = H; root.add(ce);
-      var panels = new THREE.InstancedMesh(new THREE.PlaneGeometry(1.2, 2.1), M.lamp, 16), dm = new THREE.Object3D(), pi = 0;
-      for (var zz = -10.5; zz <= 10.5; zz += 3) [-1.05, 1.05].forEach(function (xx) { dm.position.set(xx, H - 0.012, zz); dm.rotation.set(Math.PI / 2, 0, 0); dm.updateMatrix(); panels.setMatrixAt(pi++, dm.matrix); });
-      panels.count = pi; root.add(panels);
-      var strip = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 24.8), M.amber); strip.rotation.x = -Math.PI / 2; strip.position.y = 0.004; root.add(strip);
-      var brz = new THREE.MeshBasicMaterial({ color: 0x6f5126, fog: false });
-      [-1.75, 1.75].forEach(function (xx) { var s = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 24.8), brz); s.rotation.x = -Math.PI / 2; s.position.set(xx, 0.004, 0); root.add(s); });
+      buildCeiling(root, M, aniso);
+      buildFloor(root, M, aniso);
+      buildPortals(root, M);
 
-      // cool light pools on the deck under each window (additive, soft)
-      var pool = poolTexture(), pm = new THREE.MeshBasicMaterial({ map: pool, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.5, fog: false });
-      WINDOWS.forEach(function (w) { var s = WALLS[w.W].s, m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), pm); m.rotation.x = -Math.PI / 2; m.position.set(s * 1.5, 0.008, w.c); root.add(m); });
+      // soft light splashes on the wall around each sconce (additive, cheap)
+      var dot = dotTexture(), gm = new THREE.MeshBasicMaterial({ map: dot, color: 0xff9a3c, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+      glowSpots.forEach(function (g) { var W = WALLS[g[0]], m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), gm); m.position.set(W.s * (2.5 - 0.012), g[2], g[1]); m.rotation.y = W.rot * Math.PI / 180; root.add(m); });
 
-      // ── lights ──
-      root.add(new THREE.HemisphereLight(0xfff0dc, 0x3a3128, 0.55));
-      [10.5, 5, 0, -5, -10.5].forEach(function (zl) { var l = new THREE.PointLight(0xfff0dc, 0.85, 9, 1.4); l.position.set(0, 3.0, zl); root.add(l); });
-      var lib = new THREE.PointLight(0xa9c2ff, 0.5, 5, 2); lib.position.set(0, 2.0, -11.6); root.add(lib);
+      // ── lights ── warm amber, plus the end-door colours
+      root.add(new THREE.HemisphereLight(0xffd8b0, 0x2a1c12, 0.8));
+      [10.5, 5, 0, -5, -10.5].forEach(function (zl) { var l = new THREE.PointLight(0xffc690, 1.35, 9, 1.4); l.position.set(0, 2.7, zl); root.add(l); });
+      DOORS.forEach(function (d) { if (!d.end) return; var l = new THREE.PointLight(d.glow, 0.9, 6, 2); l.position.set(0, 2.0, WALLS[d.W].s * 11.4); root.add(l); });
 
-      buildDoors(root); buildHull(root); buildSky(root);
+      buildDoors(root); buildSky(root);
+      bakeReflections(root, M);
+    }
+
+    // ── curved cove ceiling, skylight glazing, ribs, light shafts ──
+    function buildCeiling(root, M, aniso) {
+      var N = 14, cm = new THREE.MeshStandardMaterial({ map: coveTexture(), emissiveMap: coveGlowTexture(), emissive: 0xffffff, emissiveIntensity: 0.9, roughness: 0.55, metalness: 0.2, side: THREE.DoubleSide });
+      cm.map.anisotropy = aniso;
+      [-1, 1].forEach(function (s) {
+        var pos = [], uvs = [], idx = [], len = [0], i, pts = [];
+        for (i = 0; i <= N; i++) pts.push(coveXY(i / N * Math.PI / 2, s));
+        for (i = 1; i <= N; i++) len.push(len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+        for (i = 0; i <= N; i++) [-12.5, 12.5].forEach(function (z) { pos.push(pts[i][0], pts[i][1], z); uvs.push(z / 1.2, len[i] / len[N]); });
+        for (i = 0; i < N; i++) { var a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx); g.computeVertexNormals();
+        root.add(new THREE.Mesh(g, cm));
+      });
+      // end caps: close the curved profile above the end walls
+      var cap = new THREE.Shape(); cap.moveTo(-2.6, 2.8); cap.lineTo(2.6, 2.8);
+      for (var i = 0; i <= N; i++) { var p = coveXY(i / N * Math.PI / 2, 1); cap.lineTo(p[0], p[1]); }
+      cap.lineTo(SKY_X, SKY_Y + 0.1); cap.lineTo(-SKY_X, SKY_Y + 0.1);
+      for (i = N; i >= 0; i--) { p = coveXY(i / N * Math.PI / 2, -1); cap.lineTo(p[0], p[1]); }
+      var capM = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.7, metalness: 0.2, side: THREE.DoubleSide });
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.ShapeGeometry(cap), capM); m.position.z = s * 12.49; root.add(m); });
+
+      // ribs: one bronze band following the profile, crossing the skylight
+      var IN = 0.13, outer = [], inner = [];
+      for (i = 0; i <= N; i++) { var t = i / N * Math.PI / 2, q = coveXY(t, -1), cx = -SKY_X, cy = COVE_Y, dx = cx - q[0], dy = cy - q[1], dl = Math.hypot(dx, dy) || 1; outer.push(q); inner.push([q[0] + dx / dl * IN, q[1] + dy / dl * IN]); }
+      var rib = new THREE.Shape(); rib.moveTo(outer[0][0], outer[0][1]);
+      for (i = 1; i <= N; i++) rib.lineTo(outer[i][0], outer[i][1]);
+      for (i = N; i >= 0; i--) rib.lineTo(-outer[i][0], outer[i][1]);
+      for (i = 0; i <= N; i++) rib.lineTo(-inner[i][0], inner[i][1]);
+      for (i = N; i >= 0; i--) rib.lineTo(inner[i][0], inner[i][1]);
+      var rg = new THREE.ExtrudeGeometry(rib, { depth: 0.22, bevelEnabled: false, curveSegments: 1 }); rg.translate(0, 0, -0.11);
+      RIBS.forEach(function (z) { var m = new THREE.Mesh(rg, M.trim); m.position.z = z; root.add(m); });
+
+      // skylight: glazing, two long rails, cross bars between the ribs
+      var glass = new THREE.Mesh(new THREE.PlaneGeometry(SKY_X * 2, 25), new THREE.MeshBasicMaterial({ color: 0x7fb4e0, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+      glass.rotation.x = Math.PI / 2; glass.position.y = SKY_Y + 0.02; root.add(glass);
+      var railG = new THREE.BoxGeometry(0.08, 0.1, 25);
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(railG, M.trim); m.position.set(s * (SKY_X - 0.02), SKY_Y + 0.02, 0); root.add(m); });
+      var barG = new THREE.BoxGeometry(SKY_X * 2, 0.05, 0.05);
+      for (var z = -12; z <= 12; z += 1.5) { if (RIBS.indexOf(z) >= 0) continue; var b = new THREE.Mesh(barG, M.trim); b.position.set(0, SKY_Y + 0.04, z); root.add(b); }
+      [-1, 1].forEach(function (s) { var l = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 25), M.amber); l.rotation.x = Math.PI / 2; l.rotation.y = s * 0.6; l.position.set(s * (SKY_X + 0.04), SKY_Y - 0.035, 0); root.add(l); });
+
+      // light shafts falling from the skylight (faint, additive, cool white)
+      var sm = new THREE.MeshBasicMaterial({ map: shaftTexture(), color: 0xbcd4ff, transparent: true, opacity: 0.075, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+      state.shafts = [];
+      [-9, -3, 3, 9].forEach(function (z) { var m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3.6), sm.clone()); m.position.set(0, 1.9, z); m.rotation.x = -0.18; root.add(m); state.shafts.push(m); });
+    }
+
+    // ── polished deck, dashed amber centre line, edge glow ──
+    function buildFloor(root, M, aniso) {
+      var fm = new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.3, metalness: 0.55, color: 0xa89e92 });
+      fm.map.repeat.set(5, 25); fm.map.anisotropy = aniso;
+      var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), fm); fl.rotation.x = -Math.PI / 2; root.add(fl); state.floorMat = fm;
+      var dashes = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.07, 0.85), M.amber, 17), dm = new THREE.Object3D(), n = 0;
+      for (var z = -12; z <= 12.01; z += 1.5) { dm.position.set(0, 0.004, z); dm.rotation.set(-Math.PI / 2, 0, 0); dm.updateMatrix(); dashes.setMatrixAt(n++, dm.matrix); }
+      dashes.count = n; root.add(dashes);
+      var add = function (tex, col, op) { return new THREE.MeshBasicMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); };
+      var cg = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 25), add(rampTexture(true), 0xff8a30, 0.28)); cg.rotation.x = -Math.PI / 2; cg.position.y = 0.003; root.add(cg);
+      var edge = rampTexture(false);
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 25), add(edge, 0xff9a40, 0.32)); m.rotation.x = -Math.PI / 2; m.rotation.z = s > 0 ? Math.PI : 0; m.position.set(s * (2.5 - 0.4), 0.003, 0); root.add(m); });
+      // thin bronze inlay lines, as in the reference deck
+      var brz = new THREE.MeshBasicMaterial({ color: 0x6a4a26, fog: false });
+      [-1.2, 1.2].forEach(function (xx) { var s = new THREE.Mesh(new THREE.PlaneGeometry(0.025, 25), brz); s.rotation.x = -Math.PI / 2; s.position.set(xx, 0.004, 0); root.add(s); });
+    }
+
+    // ── glowing arch portals around the two end doors (amber: Bridge, teal: Library) ──
+    function buildPortals(root, M) {
+      DOORS.forEach(function (d) {
+        if (!d.end) return;
+        var s = WALLS[d.W].s, g = new THREE.Group(), R = 1.5, cy = 1.9; g.position.set(0, 0, s * 12.5); g.rotation.y = s > 0 ? Math.PI : 0; root.add(g);
+        var glowM = new THREE.MeshBasicMaterial({ color: d.glow, fog: false, toneMapped: false });
+        var arc = new THREE.Mesh(new THREE.TorusGeometry(R, 0.1, 10, 48, Math.PI), M.trim); arc.position.set(0, cy, 0.1); g.add(arc);
+        var arcL = new THREE.Mesh(new THREE.TorusGeometry(R - 0.1, 0.022, 6, 48, Math.PI), glowM); arcL.position.set(0, cy, 0.17); g.add(arcL);
+        [-1, 1].forEach(function (k) {
+          var leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, cy, 0.2), M.trim); leg.position.set(k * R, cy / 2, 0.1); g.add(leg);
+          var ll = new THREE.Mesh(new THREE.BoxGeometry(0.04, cy - 0.1, 0.02), glowM); ll.position.set(k * (R - 0.1), cy / 2 + 0.05, 0.2); g.add(ll);
+        });
+        var halo = new THREE.Mesh(new THREE.RingGeometry(R - 0.35, R + 0.45, 48, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ map: rampTexture(true), color: d.glow, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        halo.position.set(0, cy, 0.02); g.add(halo);
+      });
+    }
+
+    // one-off environment capture from eye height: gives the polished deck and bronze their reflections
+    function bakeReflections(root, M) {
+      try {
+        var r = sc.renderer, pm = new THREE.PMREMGenerator(r);
+        var camO = document.getElementById('cam').object3D, cv0 = camO.visible; camO.visible = false;
+        var lampC = M.lamp.color.clone(), ambC = M.amber.color.clone(); M.lamp.color.multiplyScalar(0.25); M.amber.color.multiplyScalar(0.45);
+        root.position.set(0, -1.6, -2); root.updateMatrixWorld(true);
+        var rt = pm.fromScene(sc.object3D, 0.015, 0.1, 1000);
+        root.position.set(0, 0, 0); root.updateMatrixWorld(true); camO.visible = cv0; M.lamp.color.copy(lampC); M.amber.color.copy(ambC);
+        [state.floorMat, M.trim].forEach(function (m) { m.envMap = rt.texture; m.envMapIntensity = m === M.trim ? 0.55 : 1.1; m.needsUpdate = true; });
+        pm.dispose();
+      } catch (e) { root.position.set(0, 0, 0); }
     }
 
     // ───────────────────────────── doors ─────────────────────────────
@@ -400,34 +490,25 @@
     function say(msg, col) { promptEl.textContent = msg; promptEl.style.color = col || '#ffcc66'; promptEl.style.opacity = '1'; clearTimeout(promptT); promptT = setTimeout(function () { promptEl.style.opacity = '0'; }, 1800); }
 
     function buildDoors(root) {
-      var dt = doorTexture(), panelMats = null;
-      var trimM = new THREE.MeshStandardMaterial({ color: 0x8a6b3c, roughness: 0.45, metalness: 0.5 });
-      var pMat = new THREE.MeshStandardMaterial({ map: dt, roughness: 0.6, metalness: 0.35 });
+      var dt = doorTexture();
+      var trimM = new THREE.MeshStandardMaterial({ color: 0x8a6034, roughness: 0.4, metalness: 0.6 });
+      var pMat = new THREE.MeshStandardMaterial({ map: dt, roughness: 0.45, metalness: 0.4 });
       var faces = [trimM, trimM, trimM, trimM, pMat, pMat];
       DOORS.forEach(function (d) {
-        var W = WALLS[d.W], g = new THREE.Group(), s = W.s;
+        var W = WALLS[d.W], g = new THREE.Group(), s = W.s, al = ALONG[d.W];
         if (W.axis === 'x') g.position.set(s * 2.5, 0, d.c); else g.position.set(d.c, 0, s * 12.5);
         g.rotation.y = W.rot * Math.PI / 180; root.add(g);
-        // two sliding panels, sitting 0.3 m back in the recess; they slide sideways into the wall
-        var pL = new THREE.Mesh(new THREE.BoxGeometry(0.86, 2.58, 0.06), faces), pR = pL.clone();
-        pL.position.set(-0.43, 1.3, -0.3); pR.position.set(0.43, 1.3, -0.3); g.add(pL); g.add(pR);
-        // blade sign: readable from far down the hall, both directions
-        var sign = plate(d.name.length === 2 ? [d.name.join(' ')] : d.name, 512, 128, null);
-        var sm = new THREE.MeshBasicMaterial({ map: sign, fog: false, toneMapped: false, color: 0xe8e0d0 });
-        if (!d.end) {
-          [90, -90].forEach(function (ry) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.23), sm); m.rotation.y = ry * Math.PI / 180; m.position.set(ry > 0 ? 0.012 : -0.012, 3.12, 0.5); g.add(m); });
-          var bar = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.9), trimM); bar.position.set(0, 3.3, 0.45); g.add(bar);
-          [-0.4, 0.4].forEach(function (zz) { var cord = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.1, 0.012), trimM); cord.position.set(0, 3.25, 0.5 + zz * 0.0); }); // (kept simple: plate hangs on the bar)
-          // flat plaque beside the frame
-          var pq = new THREE.Mesh(new THREE.PlaneGeometry(0.84, 0.46), new THREE.MeshBasicMaterial({ map: plate(d.name, 400, 220, null), fog: false, toneMapped: false, color: 0xdcd2c0 }));
-          pq.position.set(ALONG[d.W] * 1.4, 1.64, 0.04); g.add(pq);
-        } else {
-          var hs = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.4), new THREE.MeshBasicMaterial({ map: plate([d.one], 680, 160, d.sub || null), fog: false, toneMapped: false, color: 0xe8e0d0 }));
-          hs.position.set(0, 3.1, 0.045); g.add(hs);
+        // one sliding leaf, 0.3 m back in the recess; it slides into the wall away from the button.  Its nameplate rides with it.
+        var leaf = new THREE.Mesh(new THREE.BoxGeometry(1.72, 2.62, 0.06), faces); leaf.position.set(0, 1.31, -0.3); g.add(leaf);
+        var nm = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.42), new THREE.MeshBasicMaterial({ map: plate(d.name, 400, 216, null), fog: false, toneMapped: false, color: 0xd8ccb8 }));
+        nm.position.set(0, 0.62, 0.032); leaf.add(nm);
+        if (d.end) {                     // header above the portal arch
+          var hs = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.34), new THREE.MeshBasicMaterial({ map: plate([d.one], 680, 156, d.sub || null), fog: false, toneMapped: false, color: 0xe8e0d0 }));
+          hs.position.set(0, 3.64, 0.05); g.add(hs);
         }
         // OPEN button: illuminated face + soft glow, with a generous invisible finger target (the entity's own mesh, so taps resolve to it)
         var ent = document.createElement('a-entity');
-        var bxp = ALONG[d.W] * (d.end ? 1.55 : 1.4), byp = 1.06;
+        var bxp = al * btnOffset(d), byp = 1.06;
         var faceTex = { open: buttonFace('open'), close: buttonFace('close'), press: buttonFace('press') };
         var holder = new THREE.Mesh(new THREE.CircleGeometry(0.3, 20), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
         holder.position.set(bxp, byp, 0.07);
@@ -437,7 +518,7 @@
         ent.setObject3D('mesh', holder);
         ent.setAttribute('class', 'interactive clickable'); sc.appendChild(ent);
         ent.addEventListener('loaded', function () { g.add(ent.object3D); });          // ride along with the door group's orientation
-        var door = { d: d, W: W, g: g, pL: pL, pR: pR, p: 0, target: 0, openAt: 0, face: face, faceTex: faceTex, holder: holder, flash: 0, c: d.c, s: s, ent: ent, glow: glow };
+        var door = { d: d, W: W, g: g, leaf: leaf, slide: -al, p: 0, target: 0, openAt: 0, face: face, faceTex: faceTex, holder: holder, flash: 0, c: d.c, s: s, ent: ent, glow: glow };
         function press() {
           door.flash = 0.22; face.material.map = faceTex.press;
           if (door.target === 0) { door.target = 1; door.openAt = performance.now(); beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); say('OPENING — ' + d.one); }
@@ -449,53 +530,24 @@
       setTimeout(function () { var rc = sc.components.raycaster; if (rc) rc.refreshObjects(); }, 300);
     }
 
-    // ───────────────────────────── exterior: hull, planet, stars ─────────────────────────────
-    function buildHull(root) {
-      var tex = hullTexture(); tex.anisotropy = 4;
-      [-1, 1].forEach(function (s) {
-        var segs = 10, pos = [], uvs = [], col = [], idx = [], z0 = -15, z1 = 15, i;
-        for (i = 0; i <= segs; i++) {
-          var dx = i / segs * 7, x = 3.0 + dx, y = 0.9 - 0.09 * Math.pow(dx, 1.5), shade = 1 - 0.65 * (i / segs);
-          [z0, z1].forEach(function (z) { pos.push(s * x, y, z); uvs.push(z / 3, dx / 3); col.push(shade, shade, shade * 1.04); });
-        }
-        for (i = 0; i < segs; i++) { var a = i * 2, b = a + 1, c = a + 2, d = a + 3; if (s > 0) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c); }
-        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
-        var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, side: THREE.DoubleSide, fog: false })); root.add(m);
-        // a few fins / antennae so the hull reads as hull, not a ramp
-        var fm = new THREE.MeshBasicMaterial({ color: 0x5f574d, fog: false });
-        [[-9, 4.2], [-2.5, 5.5], [5, 4.0], [11, 5.2]].forEach(function (p) { var dxx = p[1] - 3, yy = 0.9 - 0.09 * Math.pow(dxx, 1.5); var b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 1.4), fm); b.position.set(s * p[1], yy + 0.35, p[0]); root.add(b);
-          var a = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 1.8, 6), fm); a.position.set(s * p[1], yy + 1.4, p[0] + 0.3); root.add(a); });
-        var nav = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), new THREE.MeshBasicMaterial({ color: s > 0 ? 0x33ff77 : 0xff3a3a, fog: false })); nav.position.set(s * 9.2, -0.5, 14); root.add(nav); state.hullLights.push(nav);
-      });
-    }
+    // ───────────────────────────── stars (seen through the skylight) ─────────────────────────────
     function buildSky(root) {
       var PR = Math.min(2, window.devicePixelRatio || 1), R = 900, r = rng(77), dot = dotTexture();
-      function starSet(n, size, colFn, op) {
+      function starSet(n, size, colFn, op, band) {
         var pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
-        for (var i = 0; i < n; i++) { var y = r() * 2 - 1, ph = r() * 6.2832, rr = Math.sqrt(1 - y * y), c = colFn(); pos[i * 3] = R * rr * Math.cos(ph); pos[i * 3 + 1] = R * y; pos[i * 3 + 2] = R * rr * Math.sin(ph); col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2]; }
+        for (var i = 0; i < n; i++) {
+          var y = 0.15 + r() * 0.85, ph = r() * 6.2832;
+          if (band) { ph = (r() - 0.5) * 0.5 + (r() < 0.5 ? 1.5708 : -1.5708); y = 0.2 + r() * 0.8; }      // a denser band running along the hall
+          var rr = Math.sqrt(1 - y * y), c = colFn(); pos[i * 3] = R * rr * Math.cos(ph); pos[i * 3 + 1] = R * y; pos[i * 3 + 2] = R * rr * Math.sin(ph); col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2];
+        }
         var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
         var p = new THREE.Points(g, new THREE.PointsMaterial({ map: dot, alphaTest: 0.01, size: size * PR * 1.8, sizeAttenuation: false, vertexColors: true, fog: false, toneMapped: false, transparent: true, opacity: op, depthWrite: false }));
         p.frustumCulled = false; p.renderOrder = -10; root.add(p);
       }
-      starSet(MOB ? 2200 : 4200, 1.0, function () { var b = 0.25 + r() * 0.4; return [b, b * 0.92, b * 1.05]; }, 0.95);
-      starSet(MOB ? 260 : 500, 1.5, function () { var b = 0.55 + r() * 0.3; return [b * 0.9, b * 0.94, b]; }, 0.95);
-      starSet(MOB ? 14 : 24, 3.2, function () { return [0.72, 0.84, 1]; }, 1); starSet(MOB ? 9 : 16, 3.0, function () { return [1, 0.8, 0.55]; }, 1);
-      // the planet — far away, so every near window frame passes in front of the same disc
-      var sun = new THREE.Vector3(-0.35, 0.45, 0.82).normalize(), tex = planetTexture();
-      var pm = new THREE.Mesh(new THREE.SphereGeometry(190, 64, 40), new THREE.ShaderMaterial({
-        uniforms: { map: { value: tex }, sun: { value: sun } },
-        vertexShader: 'varying vec3 vN, vW; varying vec2 vUv; void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-        fragmentShader: 'uniform sampler2D map; uniform vec3 sun; varying vec3 vN, vW; varying vec2 vUv; void main(){ vec3 N = normalize(vN), V = normalize(cameraPosition - vW); float d = dot(N, sun); float lit = smoothstep(-0.12, 0.4, d);' +
-          ' vec3 col = texture2D(map, vUv).rgb * mix(0.035, 1.12, lit); float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0); col += vec3(0.28, 0.55, 1.0) * rim * (0.25 + 1.3 * smoothstep(-0.35, 0.6, d)); gl_FragColor = vec4(col, 1.0); }',
-        fog: false }));
-      pm.position.set(420, -110, -120); root.add(pm);
-      var halo = new THREE.Mesh(new THREE.SphereGeometry(190 * 1.045, 48, 32), new THREE.ShaderMaterial({
-        transparent: true, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false,
-        vertexShader: 'varying vec3 vNv; void main(){ vNv = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: 'varying vec3 vNv; void main(){ float i = pow(max(0.62 - dot(vNv, vec3(0.0, 0.0, 1.0)), 0.0), 3.0); gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * i * 1.6; }', fog: false }));
-      halo.position.copy(pm.position); root.add(halo);
-      // a small cool-white sun off the port side
-      var sn = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0xe8f0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false })); sn.scale.set(90, 90, 1); sn.position.set(-640, 160, -260); sn.renderOrder = -9; root.add(sn);
+      starSet(MOB ? 1600 : 3000, 1.0, function () { var b = 0.3 + r() * 0.45; return [b, b * 0.94, b * 1.08]; }, 0.95);
+      starSet(MOB ? 1200 : 2200, 0.9, function () { var b = 0.25 + r() * 0.35; return [b * 0.95, b * 0.9, b * 1.1]; }, 0.9, true);
+      starSet(MOB ? 200 : 380, 1.6, function () { var b = 0.6 + r() * 0.3; return [b * 0.9, b * 0.94, b]; }, 0.95);
+      starSet(MOB ? 14 : 24, 3.0, function () { return [0.72, 0.84, 1]; }, 1); starSet(MOB ? 9 : 16, 2.8, function () { return [1, 0.8, 0.55]; }, 1);
     }
 
     // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
@@ -509,6 +561,8 @@
         var s = Math.min(dt, 50) / 1000, p = this.cam.object3D.position, now = performance.now();
         // blink nav lights
         state.hullLights.forEach(function (l, i) { l.visible = ((t / 1000 + i * 0.7) % 2) < 0.2; });
+        // light shafts fade out as you walk into them (seen from inside they'd be a flat smear)
+        if (state.shafts) state.shafts.forEach(function (m) { var d = Math.abs(p.z - m.position.z); m.material.opacity = 0.075 * Math.max(0, Math.min(1, (d - 1.2) / 2.5)); m.visible = m.material.opacity > 0.001; });
         // door animation + auto-close
         var lim = { xm: 2.15, xp: 2.15, zm: 12.15, zp: 12.15 };
         state.doors.forEach(function (D) {
@@ -516,7 +570,7 @@
           var inLane = Math.abs(along - D.c) < 0.6;
           if (D.target === 1 && now - D.openAt > 8000 && !(inLane && depthPos > 1.9)) { D.target = 0; D.openAt = 0; }
           D.p += (D.target - D.p) * Math.min(1, s * 5.5); if (Math.abs(D.target - D.p) < 0.002) D.p = D.target;
-          var off = D.p * 0.86; D.pL.position.x = -0.43 - off; D.pR.position.x = 0.43 + off;
+          D.leaf.position.x = D.slide * D.p * 1.76;
           var open = D.p > 0.92, base = W.axis === 'x' ? 2.15 : 12.15;
           if (open && (inLane || depthPos > base)) {                    // an open doorway: let the player into the niche, kept inside the opening's width
             if (W.axis === 'x') { if (W.s > 0) lim.xp = 2.95; else lim.xm = 2.95; } else { if (W.s > 0) lim.zp = 12.95; else lim.zm = 12.95; }
