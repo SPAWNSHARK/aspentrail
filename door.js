@@ -163,11 +163,9 @@
     g.addColorStop(0, hot ? '#fff6d8' : '#ffd37a'); g.addColorStop(0.6, hot ? '#ffcf70' : '#f59a2a'); g.addColorStop(1, hot ? '#f0a040' : '#b4600e');
     x.fillStyle = g; x.beginPath(); x.arc(128, 128, 108, 0, 6.3); x.fill();
     x.strokeStyle = 'rgba(70,30,0,0.7)'; x.lineWidth = 5; x.beginPath(); x.arc(128, 128, 108, 0, 6.3); x.stroke();
-    x.fillStyle = '#2a1500'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.font = '800 58px "Helvetica Neue", Arial, sans-serif'; if (x.letterSpacing !== undefined) x.letterSpacing = '3px';
-    x.fillText(state === 'close' ? 'CLOSE' : 'OPEN', 128, 112);
+    x.fillStyle = '#2a1500';                // symbol only (user): two arrows apart = open, together = close
     var dir = state === 'close' ? -1 : 1;
-    [-1, 1].forEach(function (sd) { var cx = 128 + sd * 46, tip = cx + sd * 14 * dir; x.beginPath(); x.moveTo(cx - sd * 14 * dir, 150); x.lineTo(tip, 170); x.lineTo(cx - sd * 14 * dir, 190); x.closePath(); x.fill(); });
+    [-1, 1].forEach(function (sd) { var cx = 128 + sd * 40, b = cx - sd * 26 * dir, tip = cx + sd * 26 * dir; x.beginPath(); x.moveTo(b, 92); x.lineTo(tip, 128); x.lineTo(b, 164); x.closePath(); x.fill(); });
     var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
   }
 

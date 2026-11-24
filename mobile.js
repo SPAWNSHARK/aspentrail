@@ -22,37 +22,37 @@
   var css = document.createElement('style');
   css.textContent =
     '.wf-ctl,.wf-ctl *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none}' +
-    '#wf-bar{position:fixed;z-index:15;display:none;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),420px);' +
-    'bottom:calc(8px + env(safe-area-inset-bottom,0px));height:auto;border-radius:30px;padding:10px 12px;box-sizing:border-box;' +
+    '#wf-bar{position:fixed;z-index:15;display:none;left:50%;transform:translateX(-50%);width:auto;' +
+    'bottom:calc(8px + env(safe-area-inset-bottom,0px));height:auto;border-radius:26px;padding:7px 9px;box-sizing:border-box;' +
     'background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);' +
     'border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);' +
-    'align-items:center;justify-content:space-between;gap:10px;transition:opacity .25s}' +
+    'align-items:center;justify-content:space-between;gap:6px;transition:opacity .25s}' +
     'html.touch #wf-bar{display:flex}' +
     // in a Safari tab the browser's own floating toolbar sits over the bottom of the page: lift the bar clear of it
-    'html.touch:not(.standalone) #wf-bar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}' +
+    'html.touch:not(.standalone) #wf-bar{bottom:calc(6px + env(safe-area-inset-bottom,0px))}' +
     // no labels across the top of the screen (user, Nov 24)
-    '#hud{display:none!important}' +
-    '#wf-bar svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
+    '#hud,#controls-hint,#hint-shoot{display:none!important}' +
+    '#wf-bar svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
     // movement pad: a glass disc with four chevron petals
-    '#wf-dpad{position:relative;flex:0 0 auto;width:min(22vh,28vw,118px);height:min(22vh,28vw,118px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
-    '#wf-dpad b{position:absolute;width:38%;height:38%;border-radius:18px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.10);transition:background .1s,transform .1s}' +
-    '#wf-dpad b.on{background:rgba(255,255,255,.38);transform:scale(.94)}' +
-    '#wf-dpad .u{left:31%;top:4%}#wf-dpad .d{left:31%;bottom:4%}#wf-dpad .l{left:4%;top:31%}#wf-dpad .r{right:4%;top:31%}' +
-    '#wf-dpad .c{position:absolute;left:41%;top:41%;width:18%;height:18%;border-radius:50%;border:2px solid rgba(255,255,255,.35)}' +
+    '#wf-dpad{position:relative;flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
+    '#wf-dpad b{position:absolute;width:36%;height:36%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:transparent;transition:background .1s,transform .1s}' +
+    '#wf-dpad b.on{background:rgba(255,255,255,.3);transform:scale(.94)}' +
+    '#wf-dpad .u{left:32%;top:2%}#wf-dpad .d{left:32%;bottom:2%}#wf-dpad .l{left:2%;top:32%}#wf-dpad .r{right:2%;top:32%}' +
+    '#wf-dpad .c{position:absolute;left:45%;top:45%;width:10%;height:10%;border-radius:50%;background:rgba(255,255,255,.3)}' +
     // middle: tab-bar style icon buttons with tiny labels
-    '#wf-top{display:flex;flex-direction:column;gap:10px;align-items:center}' +
-    '#wf-top b{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;padding:10px 8px;border-radius:22px;color:#fff;' +
+    '#wf-top{display:flex;flex-direction:column;gap:4px;align-items:center}#wf-top span{display:none}' +
+    '#wf-top b{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:8px;border-radius:50%;color:#fff;' +
     'font:600 11px -apple-system,system-ui,sans-serif;letter-spacing:.2px;background:transparent}' +
     '#wf-top b.sel{background:rgba(255,255,255,.18)}#wf-top b.on{background:rgba(255,255,255,.32)}' +
     // look stick: glass ring with a soft knob
-    '#wf-stick{position:relative;flex:0 0 auto;width:min(22vh,28vw,118px);height:min(22vh,28vw,118px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
+    '#wf-stick{position:relative;flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
     '#wf-stick i{position:absolute;left:50%;top:50%;width:40%;height:40%;margin:-20% 0 0 -20%;border-radius:50%;background:rgba(255,255,255,.30);' +
     'border:1px solid rgba(255,255,255,.55);box-shadow:0 4px 18px rgba(0,0,0,.35);pointer-events:none;display:flex;align-items:center;justify-content:center}' +
     '#wf-stick.on i{background:rgba(255,255,255,.5)}' +
     '@media (orientation:landscape) and (max-height:520px){' +
       '#wf-bar{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;align-items:flex-end;pointer-events:none}' +
       'html.touch:not(.standalone) #wf-bar{bottom:calc(10px + env(safe-area-inset-bottom,0px))}' +
-      '#wf-dpad,#wf-stick{pointer-events:auto;width:min(32vh,118px);height:min(32vh,118px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
+      '#wf-dpad,#wf-stick{pointer-events:auto;width:min(30vh,96px);height:min(30vh,96px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
       '#wf-top{flex-direction:row;pointer-events:auto;padding:4px 8px;border-radius:22px;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}' +
       '#wf-top b{min-width:0;padding:6px 8px;font-size:10px}' +
     '}' +
@@ -168,8 +168,7 @@
       // ── hint text ──
       var hint = document.getElementById('controls-hint');
       if (hint) {
-        hint.textContent = 'LEFT PAD WALK · RIGHT STICK LOOK · GYRO / LEVEL IN THE MIDDLE · TAP GLOWING BUTTONS';
-        setTimeout(function () { hint.classList.add('wf-gone'); }, 9000);
+        hint.remove();
       }
 
       // ── tap-to-interact + VR-only gaze reticle ──
