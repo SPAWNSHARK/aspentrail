@@ -56,7 +56,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124d).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124e).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: ONE frosted-glass bottom bar —
   iOS glassmorphism, Safari-bar proportions, white YouTube-style line icons; movement pad left, look stick right, Gyro +
   Level in the middle; gyro off by default and the Gyro tap calls DeviceOrientationEvent.requestPermission so only
@@ -106,7 +106,9 @@ Rules drawn from them:
 - **Light speed is shared code: `hyperspace.js`** (`WAYFARER.hyperspace(root, {fwd, arc, minR, center, core})`).
   Corridor: fwd +1, arc ±70°, minR 16, tunnel 0.6, width 0.55. Bridge: fwd −1, full circle, minR 14, core glow.
   Library dome: fwd +1 (its door faces the bow), arc ±75°, same settings as the corridor. Streaks are DoubleSide
-  billboards (seen from below they face away — that once hid them entirely in the corridor).
+  billboards (seen from below they face away — that once hid them entirely in the corridor). Streak heads are soft round
+  caps and widths are capped; the backdrop tunnel texture uses thin soft-sided streaks (wide hard rects showed as flickering
+  blocks through the skylight on iPhone — user video Nov 24).
 - **Library ceiling** restyled Nov 24 to match: glass dome under 12 bevelled bronze ribs + mid ring + glowing crown,
   big amber light ring at the dome base, amber cove at the wall top, dark ceiling panels. Library WALLS restyled Nov 24 too:
   walnut panels + bronze rails (procedural `wallTexture`), bevelled bronze ribs with lamps, polished dark deck ring,

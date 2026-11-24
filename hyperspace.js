@@ -21,7 +21,7 @@
     for (var i = 0; i < N; i++) {
       var ang = (arc[0] + r() * (arc[1] - arc[0])) * Math.PI / 180, rad = (o.minR || 7) + Math.pow(r(), 1.5) * ((o.maxR || 187) - (o.minR || 7));
       var x = Math.sin(ang) * rad + cx0, y = Math.cos(ang) * rad + cy0, z = (r() - 0.5) * SPAN;
-      var len = 30 + r() * 160, wid = (0.15 + r() * 0.25 + rad * 0.012) * (o.width || 1), spd = 260 + r() * 340, hue = r();
+      var len = 30 + r() * 160, wid = (0.15 + r() * 0.25 + Math.min(rad * 0.012, 0.5)) * (o.width || 1), spd = 260 + r() * 340, hue = r();
       var c = hue < 0.7 ? [0.75, 0.85, 1.0] : hue < 0.9 ? [1, 1, 1] : [0.55, 0.7, 1.0], br = (0.5 + r() * 0.8) * (o.bright || 1);
       [[0, -1], [0, 1], [1, -1], [1, 1]].forEach(function (k, j) {
         var q = i * 4 + j; base.set([x, y, z], q * 3); corner.set(k, q * 2); info.set([len, wid, spd], q * 3); col.set([c[0] * br, c[1] * br, c[2] * br], q * 3);
@@ -39,7 +39,8 @@
         ' vec3 side = normalize(cross(ax, cameraPosition - wb));',
         ' vec3 p = wb + ax * (uFwd * aCorner.x * aInfo.x) + side * aCorner.y * aInfo.y;',      // head leads aft, tail trails toward the bow
         ' vC = aCorner; vCol = aCol; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }'].join('\n'),
-      fragmentShader: 'varying vec2 vC; varying vec3 vCol; void main(){ float a = pow(1.0 - vC.x, 2.2) * (1.0 - vC.y * vC.y); a += smoothstep(0.06, 0.0, vC.x) * 1.5 * (1.0 - abs(vC.y)); gl_FragColor = vec4(vCol * a, 1.0); }' });
+      // soft round head + tapered body: the old head was a flat full-width bar, so wide far streaks showed as hard-edged blocks (user video, Nov 24)
+      fragmentShader: 'varying vec2 vC; varying vec3 vCol; void main(){ float y2 = vC.y * vC.y; float a = pow(1.0 - vC.x, 2.2) * smoothstep(0.0, 0.05, vC.x) * (1.0 - y2) * (1.0 - y2); a += 1.4 * pow(max(0.0, 1.0 - length(vec2(vC.x * 14.0, vC.y))), 2.0); gl_FragColor = vec4(vCol * a, 1.0); }' });
     var streaks = new THREE.Mesh(g, sm); streaks.frustumCulled = false; streaks.renderOrder = -9; root.add(streaks);
 
     // the tunnel: faint streaked walls far out, scrolling aft
@@ -47,9 +48,11 @@
     for (var k = 0; k < 420; k++) {
       var u = r() * 512, v = r() * 512, L = 60 + r() * 380, a = 0.12 + r() * 0.5, gr = x2.createLinearGradient(0, v, 0, v + L);
       gr.addColorStop(0, 'rgba(120,160,255,0)'); gr.addColorStop(1, 'rgba(180,210,255,' + a + ')');
-      var wpx = 1.5 + r() * 4.5; x2.fillStyle = gr; x2.fillRect(u, v, wpx, L); if (v + L > 512) x2.fillRect(u, v - 512, wpx, L);
+      var wpx = 0.6 + r() * 1.4; x2.fillStyle = gr;                      // thin, soft-sided (wide hard rects read as blocks overhead)
+      [[2.2, 0.25], [1.4, 0.45], [1, 1]].forEach(function (q) { x2.globalAlpha = q[1]; var ww = wpx * q[0], uu = u - (ww - wpx) / 2; x2.fillRect(uu, v, ww, L); if (v + L > 512) x2.fillRect(uu, v - 512, ww, L); });
+      x2.globalAlpha = 1;
     }
-    var tt = new THREE.CanvasTexture(c); tt.wrapS = tt.wrapT = THREE.RepeatWrapping; tt.repeat.set(3, 1.5);
+    var tt = new THREE.CanvasTexture(c); tt.wrapS = tt.wrapT = THREE.RepeatWrapping; tt.repeat.set(6, 1.5); tt.anisotropy = 4;
     var tun = new THREE.Mesh(new THREE.CylinderGeometry(260, 260, 1400, 48, 1, true), new THREE.MeshBasicMaterial({ map: tt, color: 0x9fc0ff, transparent: true, opacity: o.tunnel == null ? 0.85 : o.tunnel, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false, toneMapped: false }));
     tun.rotation.x = fwd * Math.PI / 2; tun.renderOrder = -10; root.add(tun);   // texture v runs toward the bow; the bright end of each streak leads aft
     var haze = new THREE.Mesh(new THREE.CylinderGeometry(250, 250, 1400, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x0a1630, side: THREE.BackSide, fog: false, depthWrite: false }));
