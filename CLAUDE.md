@@ -33,7 +33,9 @@ Rules drawn from them:
   dark walnut-brown/charcoal wall panels; polished dark reflective floors; small square amber sconces.
 - **Colour:** amber is the default light. Teal = Library electrogel / dome. Blue-purple = holograms only
   (Holodeck galaxy, Bridge orb). Nothing grey or white-lit (the pre-Nov-2026 rooms were grey; that look is retired).
-- **Lived-in:** plants, bookshelves, brass fittings in rooms (not the corridor).
+- **Lived-in:** plants, bookshelves, brass fittings — in rooms AND the corridor (user, Nov 24: inset bookshelves in the hall).
+- **Outside the ship = light speed** (user, Nov 24): star streaks rushing aft over a streaked blue tunnel, not a static
+  starfield. Ship flies toward the Bridge (+Z), so streaks move toward −Z. Any window/viewport should show the same.
 - **Fidelity:** the images are paintings. Match layout, palette, light mood and silhouettes; fake glow/gloss with
   emissive strips, additive gradient planes and a one-off PMREM reflection bake. No post-processing bloom (phone cost).
 
@@ -67,7 +69,10 @@ Rules drawn from them:
   curved amber-lit cove ceiling, full-length glass skylight with stars and faint light shafts (no side windows —
   user decision), polished deck with dashed amber centre line and glowing edges, square amber sconces
   (pairs flank each side door), glowing arch portals at the ends (amber = Bridge, teal = Library).
-  One-step-outside-the-door spawn when returning from a room. Default spawn faces the Bridge (user is fine with it).
+  One-step-outside-the-door spawn when returning from a room.
+  SKYLIGHT shows light speed (`buildSky`: animated streak quads + scrolling tunnel texture). SEVEN recessed walnut
+  bookcases between ribs (`SHELVES` table; 2 columns × 6 lit shelves; ~instanced books with gilt spines, leaning/stacked
+  books, vases, frames, plants, globes). Default spawn faces the Bridge (user is fine with it).
   DOORS (user design, Nov 24): double doors modelled on a sci-fi double door photo the user sent (not saved
   in the repo) — moulded arched bronze frame with jamb blocks and side ribs; ONE nameplate per door, on the frame
   header; each leaf has a top light + X-braces to a centre octagon hub, glass tinted per room (`tint` in DOORS).
@@ -98,7 +103,7 @@ Rules drawn from them:
 - **Icons** — frameless ship icon (from `reference/app-icon-source.jpg`) at 180/192/512 + favicon; share image.
 
 ## What's next (agreed order: restyle room by room to the reference)
-1. Command Bridge restyle (circular, amber ceiling ring, panoramic window, orb pedestal)
+1. Command Bridge restyle (circular, amber ceiling ring, panoramic window showing LIGHT SPEED, orb pedestal)
 2. Holodeck restyle (bronze console + 3 buttons; SIM LIBRARY is a candidate home for the blueprint planner)
 3. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
    restrict it to the Pages domain in Google Cloud)

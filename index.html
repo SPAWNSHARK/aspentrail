@@ -144,6 +144,11 @@
     var ALONG = { L: -1, R: 1, F: -1, B: 1 };               // door-group local +x expressed along world z (side walls) / x (end walls)
     var DEFAULT_SPAWN = { x: 0, z: 9, yaw: 0 };         // Home Screen launch: the usual view down the hall
 
+    // built-in bookshelves, recessed into the wall between ribs (user, Nov 24: reference was a hallway with inset shelves)
+    var SHELVES = [{ W: 'L', c: -9 }, { W: 'L', c: -3 }, { W: 'L', c: 3 }, { W: 'L', c: 9 }, { W: 'R', c: -9 }, { W: 'R', c: 0 }, { W: 'R', c: 9 }];
+    var SH_W = 2.4, SH_Y0 = 0.14, SH_Y1 = 2.62, SH_D = 0.38;
+    function shelfAt(Wk, z, pad) { return SHELVES.some(function (q) { return q.W === Wk && Math.abs(z - q.c) < SH_W / 2 + pad; }); }
+
     // stretches of each side wall that a door, its button or its frame occupies: ribs and sconces keep clear
     function busy(Wk, z, pad) {
       return DOORS.some(function (d) {
@@ -231,7 +236,7 @@
     }
 
     // ───────────────────────────── geometry collector (world-aligned boxes, world-space UVs) ─────────────────────────────
-    var TILE = { wall: [1.2, H], trim: [1, 1], dark: [1, 1], amber: [1, 1], lamp: [1, 1] };
+    var TILE = { wall: [1.2, H], trim: [1, 1], dark: [1, 1], amber: [1, 1], lamp: [1, 1], wood: [1, 1] };
     var buckets = {};
     function bx(key, cx, cy, cz, w, h, d) {
       var g = new THREE.BoxGeometry(w, h, d); g.translate(cx, cy, cz);
@@ -267,12 +272,98 @@
       ops.forEach(function (o) {
         var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
         if (a0 > cur) solid(cur, a0);
-        wb('wall', W, 0, T, DOOR_H, H, a0, a1);
+        if (o.type === 'shelf') {
+          wb('wall', W, 0, T, SH_Y1, H, a0, a1); wb('wall', W, 0, T, 0, SH_Y0, a0, a1);
+          wb('amber', W, -0.025, 0.03, 0.05, 0.085, a0, a1); wb('trim', W, -0.02, 0.03, 0, 0.05, a0, a1);
+          shelfUnit(Wk, W, a0, a1);
+        } else wb('wall', W, 0, T, DOOR_H, H, a0, a1);
         cur = a1;
       });
       if (hi > cur) solid(cur, hi);
       wb('amber', W, -0.06, 0.06, 2.86, 2.9, lo, hi);                      // cove light line on top of the ledge
     }
+    // ── a recessed bookcase: walnut carcass, bronze lip, two columns × six shelves, amber strip under every shelf ──
+    var books = [], bookCol = [], decor = [];
+    var BOOK_COLS = ['#6b1e1e', '#7a2a1a', '#1f3350', '#24405e', '#2d4a2f', '#3c5a36', '#b08a3e', '#8c6a2a', '#e2d6bc', '#cbbd9a', '#1c1c1e', '#3a2a22', '#1f5a5a', '#5a2e4a', '#9a4a24', '#4a3a6a'];
+    function shelfUnit(Wk, W, a0, a1) {
+      var r = rng(Math.round((a0 + 20) * 97) + (Wk === 'L' ? 1 : 7)), mid = (a0 + a1) / 2, rows = 6, pitch = (SH_Y1 - SH_Y0) / rows;
+      wb('wood', W, SH_D, T - SH_D, SH_Y0, SH_Y1, a0, a1);                                  // back panel
+      wb('wood', W, 0, SH_D, SH_Y0, SH_Y1, a0, a0 + 0.025); wb('wood', W, 0, SH_D, SH_Y0, SH_Y1, a1 - 0.025, a1);   // sides
+      wb('wood', W, 0, SH_D, SH_Y1 - 0.03, SH_Y1, a0, a1);                                   // top
+      wb('wood', W, 0.01, SH_D - 0.01, SH_Y0, SH_Y1, mid - 0.016, mid + 0.016);             // centre upright
+      wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y0, a0 - 0.05, a1 + 0.05); wb('trim', W, -0.035, 0.045, SH_Y1, SH_Y1 + 0.05, a0 - 0.05, a1 + 0.05);   // bronze lip
+      wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y1 + 0.05, a0 - 0.05, a0); wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y1 + 0.05, a1, a1 + 0.05);
+      wb('trim', W, -0.012, 0.012, SH_Y0, SH_Y1, mid - 0.02, mid + 0.02);
+      for (var k = 0; k < rows; k++) {
+        var y = SH_Y0 + k * pitch;
+        wb('wood', W, 0.005, SH_D - 0.005, y, y + 0.03, a0, a1);                              // shelf board
+        wb('trim', W, -0.004, 0.01, y, y + 0.03, a0 + 0.025, a1 - 0.025);                     // brass nosing
+        if (k > 0) wb('amber', W, 0.012, 0.006, y - 0.008, y - 0.003, a0 + 0.04, a1 - 0.04);  // strip light under the shelf above
+        [[a0 + 0.035, mid - 0.025], [mid + 0.025, a1 - 0.035]].forEach(function (seg) { fillRow(Wk, seg[0], seg[1], y + 0.03, pitch - 0.05, r); });
+      }
+      wb('amber', W, 0.012, 0.006, SH_Y1 - 0.038, SH_Y1 - 0.033, a0 + 0.04, a1 - 0.04);
+    }
+    function fillRow(Wk, x0, x1, y, room, r) {
+      var x = x0, decorDone = r() < 0.45 ? 0 : 1;
+      while (x < x1 - 0.03) {
+        if (!decorDone && r() < 0.12 && x1 - x > 0.4) {                    // an ornament between the books
+          var kind = Math.floor(r() * 4), w = 0.26;
+          decor.push({ Wk: Wk, a: x + w / 2, y: y, kind: kind, h: Math.min(room - 0.02, 0.18 + r() * 0.12), r: r() });
+          x += w; decorDone = 1; continue;
+        }
+        if (r() < 0.08 && x1 - x > 0.3) {                                  // a short stack lying flat
+          var n = 2 + Math.floor(r() * 3), bw = 0.22 + r() * 0.06, yy = y;
+          for (var j = 0; j < n; j++) { var th = 0.03 + r() * 0.025; books.push({ Wk: Wk, a: x + bw / 2, y: yy + th / 2, t: bw, h: th, d: 0.15 + r() * 0.06, lean: 0, flat: 1 }); bookCol.push(BOOK_COLS[Math.floor(r() * BOOK_COLS.length)]); yy += th; }
+          x += bw + 0.01; continue;
+        }
+        var t = 0.022 + r() * 0.035, h = Math.min(room - 0.01, 0.2 + r() * 0.16);
+        if (x + t > x1) break;
+        var lean = 0;
+        if (r() < 0.05 && x1 - x > 0.12) { lean = 0.22; x += 0.05; }       // the odd book leaning on its neighbour
+        books.push({ Wk: Wk, a: x + t / 2, y: y + h / 2, t: t, h: h, d: 0.16 + r() * 0.08, lean: lean, flat: 0 }); bookCol.push(BOOK_COLS[Math.floor(r() * BOOK_COLS.length)]);
+        x += t + (r() < 0.1 ? 0.01 : 0.002);
+      }
+    }
+    function spineTexture() {               // light spine with gilt bands; tinted per book by instance colour
+      var c = cv(64, 256), x = c.getContext('2d'), r = rng(5);
+      x.fillStyle = '#d8d0c4'; x.fillRect(0, 0, 64, 256);
+      for (var i = 0; i < 1500; i++) { x.fillStyle = 'rgba(0,0,0,' + r() * 0.08 + ')'; x.fillRect(r() * 64, r() * 256, 1, 2); }
+      x.fillStyle = '#fff4d8'; [[18, 5], [28, 2], [214, 2], [222, 5]].forEach(function (b) { x.fillRect(0, b[0], 64, b[1]); });
+      x.fillStyle = 'rgba(255,240,210,0.7)'; x.fillRect(16, 70, 32, 70);
+      x.fillStyle = 'rgba(0,0,0,0.25)'; x.fillRect(0, 0, 4, 256); x.fillRect(60, 0, 4, 256);
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function woodTexture() {
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(13);
+      x.fillStyle = '#3a2516'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 160; i++) { var y = r() * 256; x.strokeStyle = r() < 0.5 ? 'rgba(20,10,4,0.35)' : 'rgba(120,70,36,0.25)'; x.lineWidth = 1 + r() * 2; x.beginPath(); x.moveTo(0, y); for (var u = 0; u <= 256; u += 32) x.lineTo(u, y + Math.sin(u * 0.03 + i) * 3); x.stroke(); }
+      return mkTex(c);
+    }
+    function buildBooks(root) {
+      if (!books.length) return;
+      var g = new THREE.BoxGeometry(1, 1, 1), m = new THREE.MeshStandardMaterial({ map: spineTexture(), roughness: 0.75, metalness: 0.05 });
+      var im = new THREE.InstancedMesh(g, m, books.length), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), S = new THREE.Vector3(), P = new THREE.Vector3(), E = new THREE.Euler(), col = new THREE.Color();
+      books.forEach(function (b, i) {
+        var mw = wallMatrix(b.Wk, b.a, b.y, -(0.03 + b.d / 2));
+        E.set(0, 0, b.flat ? 0 : -b.lean); q.setFromEuler(E);
+        var local = new THREE.Matrix4().compose(P.set(0, 0, 0), q, S.set(b.t, b.h, b.d));
+        M4.multiplyMatrices(mw, local); im.setMatrixAt(i, M4); im.setColorAt(i, col.set(bookCol[i]));
+      });
+      im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; root.add(im);
+      // ornaments: vases, framed pictures, potted plants, a brass globe
+      var vaseM = new THREE.MeshStandardMaterial({ color: 0x5a6a6e, roughness: 0.35, metalness: 0.2 }), brass = new THREE.MeshStandardMaterial({ color: 0xb8894a, roughness: 0.35, metalness: 0.85 });
+      var leaf = new THREE.MeshStandardMaterial({ color: 0x3f6b2e, roughness: 0.8 }), pot = new THREE.MeshStandardMaterial({ color: 0x8a4a2a, roughness: 0.8 });
+      var pic = new THREE.MeshBasicMaterial({ color: 0xc8b48c }), frameM = new THREE.MeshStandardMaterial({ color: 0x4a2e18, roughness: 0.6 });
+      var vaseG = new THREE.LatheGeometry([[0, 0], [0.05, 0.005], [0.075, 0.05], [0.07, 0.1], [0.035, 0.15], [0.03, 0.18], [0.04, 0.19]].map(function (p) { return new THREE.Vector2(p[0], p[1]); }), 16);
+      decor.forEach(function (d) {
+        var g2 = new THREE.Group(); g2.applyMatrix4(wallMatrix(d.Wk, d.a, d.y, -0.18)); root.add(g2);
+        if (d.kind === 0) { var v = new THREE.Mesh(vaseG, d.r < 0.5 ? vaseM : brass); v.scale.setScalar(d.h / 0.19); g2.add(v); }
+        else if (d.kind === 1) { var f = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.16, 0.015), frameM); f.position.set(0, 0.085, 0.06); f.rotation.x = -0.18; g2.add(f); var pp = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.12), pic); pp.position.set(0, 0.002, 0.0085); f.add(pp); }
+        else if (d.kind === 2) { var po = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.045, 0.09, 12), pot); po.position.y = 0.045; g2.add(po); for (var j = 0; j < 7; j++) { var lf = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 4), leaf); lf.scale.set(0.6, 1.4, 0.6); lf.position.set(Math.cos(j) * 0.04, 0.12 + (j % 3) * 0.025, Math.sin(j) * 0.04); lf.rotation.z = Math.cos(j * 2) * 0.5; g2.add(lf); } }
+        else { var st = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.03, 12), brass); st.position.y = 0.015; g2.add(st); var gl = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 10), new THREE.MeshStandardMaterial({ color: 0x2f5a6a, roughness: 0.5 })); gl.position.y = 0.11; g2.add(gl); var rg = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.006, 6, 24), brass); rg.position.y = 0.11; rg.rotation.x = 0.4; g2.add(rg); }
+      });
+    }
+
     function doorFrame(W, o) {
       var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
       wb('trim', W, 0.14, 0.36, 0, DOOR_H, a0, a0 + 0.03); wb('trim', W, 0.14, 0.36, 0, DOOR_H, a1 - 0.03, a1);
@@ -320,15 +411,17 @@
         trim:  new THREE.MeshStandardMaterial({ map: trimTexture(), color: 0xd8b58a, roughness: 0.45, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.5 }),
         dark:  new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 0.9, metalness: 0.1, emissive: 0x140d07, emissiveIntensity: 0.6 }),
         amber: new THREE.MeshBasicMaterial({ color: 0xffa040, fog: false, toneMapped: false }),
-        lamp:  new THREE.MeshBasicMaterial({ color: 0xffb468, fog: false, toneMapped: false })
+        lamp:  new THREE.MeshBasicMaterial({ color: 0xffb468, fog: false, toneMapped: false }),
+        wood:  new THREE.MeshStandardMaterial({ map: woodTexture(), roughness: 0.6, metalness: 0.05, color: 0xc8a888, emissive: 0x1a0c04, emissiveIntensity: 0.6 })
       };
       [M.wall.map, M.trim.map].forEach(function (t) { t.anisotropy = aniso; });
 
       // walls, frames
       var ops = { L: [], R: [], F: [], B: [] };
       DOORS.forEach(function (d) { ops[d.W].push({ c: d.c, w: DOOR_W }); });
-      buildWall(WALLS.L, ops.L, -12.5, 12.5); buildWall(WALLS.R, ops.R, -12.5, 12.5);
-      buildWall(WALLS.F, ops.F, -2.5, 2.5);   buildWall(WALLS.B, ops.B, -2.5, 2.5);
+      SHELVES.forEach(function (q) { ops[q.W].push({ c: q.c, w: SH_W, type: 'shelf' }); });
+      buildWall(WALLS.L, ops.L, -12.5, 12.5, 'L'); buildWall(WALLS.R, ops.R, -12.5, 12.5, 'R');
+      buildWall(WALLS.F, ops.F, -2.5, 2.5, 'F');   buildWall(WALLS.B, ops.B, -2.5, 2.5, 'B');
       DOORS.forEach(function (d) { doorFrame(WALLS[d.W], { c: d.c, w: DOOR_W }); });
 
       // rib legs (wall pilasters) where the wall is clear; the arches themselves are built below
@@ -339,7 +432,7 @@
       }); });
 
       // sconces: between ribs, at the clear spots; and a pair flanking every side door, as in the reference
-      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.3)) { sconce(k, z, 2.25); glowSpots.push([k, z, 2.25]); } });
+      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.3) && !shelfAt(k, z, 0.2)) { sconce(k, z, 2.25); glowSpots.push([k, z, 2.25]); } });
       DOORS.forEach(function (d) { if (d.end) return; [-1.23, 1.23].forEach(function (o) { sconce(d.W, d.c + o, 2.35); glowSpots.push([d.W, d.c + o, 2.35]); }); });
 
       // cornice: a moulded quarter-round ledge under the cove light, run the length of every wall
@@ -368,7 +461,7 @@
       [10.5, 5, 0, -5, -10.5].forEach(function (zl) { var l = new THREE.PointLight(0xffc690, 1.35, 9, 1.4); l.position.set(0, 2.7, zl); root.add(l); });
       DOORS.forEach(function (d) { if (!d.end) return; var l = new THREE.PointLight(d.glow, 0.9, 6, 2); l.position.set(0, 2.0, WALLS[d.W].s * 11.4); root.add(l); });
 
-      buildDoors(root); buildSky(root);
+      buildBooks(root); buildDoors(root); buildSky(root);
       bakeReflections(root, M);
     }
 
@@ -486,23 +579,47 @@
     }
 
     // ───────────────────────────── stars (seen through the skylight) ─────────────────────────────
+    // ── light speed overhead: star streaks rushing aft (the ship flies toward the Bridge, +Z) over a scrolling tunnel ──
     function buildSky(root) {
-      var PR = Math.min(2, window.devicePixelRatio || 1), R = 900, r = rng(77), dot = dotTexture();
-      function starSet(n, size, colFn, op, band) {
-        var pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
-        for (var i = 0; i < n; i++) {
-          var y = 0.15 + r() * 0.85, ph = r() * 6.2832;
-          if (band) { ph = (r() - 0.5) * 0.5 + (r() < 0.5 ? 1.5708 : -1.5708); y = 0.2 + r() * 0.8; }      // a denser band running along the hall
-          var rr = Math.sqrt(1 - y * y), c = colFn(); pos[i * 3] = R * rr * Math.cos(ph); pos[i * 3 + 1] = R * y; pos[i * 3 + 2] = R * rr * Math.sin(ph); col[i * 3] = c[0]; col[i * 3 + 1] = c[1]; col[i * 3 + 2] = c[2];
-        }
-        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-        var p = new THREE.Points(g, new THREE.PointsMaterial({ map: dot, alphaTest: 0.01, size: size * PR * 1.8, sizeAttenuation: false, vertexColors: true, fog: false, toneMapped: false, transparent: true, opacity: op, depthWrite: false }));
-        p.frustumCulled = false; p.renderOrder = -10; root.add(p);
+      var r = rng(77), N = MOB ? 900 : 1600, SPAN = 700;
+      var base = new Float32Array(N * 4 * 3), corner = new Float32Array(N * 4 * 2), info = new Float32Array(N * 4 * 3), col = new Float32Array(N * 4 * 3), idx = [];
+      for (var i = 0; i < N; i++) {
+        var y = 6 + Math.pow(r(), 1.6) * 160, spread = 12 + y * 1.1, x = (r() * 2 - 1) * spread, z = (r() - 0.5) * SPAN;
+        var len = 30 + r() * 160, wid = 0.15 + r() * 0.25 + y * 0.012, spd = 260 + r() * 340, hue = r();
+        var c = hue < 0.7 ? [0.75, 0.85, 1.0] : hue < 0.9 ? [1, 1, 1] : [0.55, 0.7, 1.0], br = 0.5 + r() * 0.8;
+        [[0, -1], [0, 1], [1, -1], [1, 1]].forEach(function (k, j) {
+          var o = i * 4 + j; base.set([x, y, z], o * 3); corner.set(k, o * 2); info.set([len, wid, spd], o * 3); col.set([c[0] * br, c[1] * br, c[2] * br], o * 3);
+        });
+        var q = i * 4; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3);
       }
-      starSet(MOB ? 1600 : 3000, 1.0, function () { var b = 0.3 + r() * 0.45; return [b, b * 0.94, b * 1.08]; }, 0.95);
-      starSet(MOB ? 1200 : 2200, 0.9, function () { var b = 0.25 + r() * 0.35; return [b * 0.95, b * 0.9, b * 1.1]; }, 0.9, true);
-      starSet(MOB ? 200 : 380, 1.6, function () { var b = 0.6 + r() * 0.3; return [b * 0.9, b * 0.94, b]; }, 0.95);
-      starSet(MOB ? 14 : 24, 3.0, function () { return [0.72, 0.84, 1]; }, 1); starSet(MOB ? 9 : 16, 2.8, function () { return [1, 0.8, 0.55]; }, 1);
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(base, 3)); g.setAttribute('aCorner', new THREE.BufferAttribute(corner, 2));
+      g.setAttribute('aInfo', new THREE.BufferAttribute(info, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 3)); g.setIndex(idx);
+      var sm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSpan: { value: SPAN } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
+        vertexShader: [
+          'attribute vec2 aCorner; attribute vec3 aInfo, aCol; uniform float uT, uSpan; varying vec2 vC; varying vec3 vCol;',
+          'void main(){ vec3 b = position; b.z = mod(b.z - uT * aInfo.z + uSpan * 0.5, uSpan) - uSpan * 0.5;',
+          ' vec3 wb = (modelMatrix * vec4(b, 1.0)).xyz; vec3 side = normalize(cross(vec3(0.0, 0.0, 1.0), cameraPosition - wb));',
+          ' vec3 p = wb + vec3(0.0, 0.0, aCorner.x * aInfo.x) + side * aCorner.y * aInfo.y;',
+          ' vC = aCorner; vCol = aCol; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }'].join('\n'),
+        fragmentShader: 'varying vec2 vC; varying vec3 vCol; void main(){ float a = pow(1.0 - vC.x, 2.2) * (1.0 - vC.y * vC.y); a += smoothstep(0.06, 0.0, vC.x) * 1.5 * (1.0 - abs(vC.y)); gl_FragColor = vec4(vCol * a, 1.0); }' });
+      var streaks = new THREE.Mesh(g, sm); streaks.frustumCulled = false; streaks.renderOrder = -9; root.add(streaks);
+
+      // the tunnel: faint streaked walls far overhead, scrolling aft
+      var c = cv(512, 512), x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, 512, 512);
+      for (var k = 0; k < 420; k++) {
+        var u = r() * 512, v = r() * 512, L = 60 + r() * 380, a = 0.12 + r() * 0.5, gr = x.createLinearGradient(0, v, 0, v + L);
+        gr.addColorStop(0, 'rgba(120,160,255,0)'); gr.addColorStop(1, 'rgba(180,210,255,' + a + ')');
+        var wpx = 1.5 + r() * 4.5; x.fillStyle = gr; x.fillRect(u, v, wpx, L);   // bright end leads (aft-moving)
+        if (v + L > 512) x.fillRect(u, v - 512, wpx, L);
+      }
+      var tt = new THREE.CanvasTexture(c); tt.wrapS = tt.wrapT = THREE.RepeatWrapping; tt.repeat.set(3, 1.5);
+      var tun = new THREE.Mesh(new THREE.CylinderGeometry(260, 260, 1400, 48, 1, true), new THREE.MeshBasicMaterial({ map: tt, color: 0x9fc0ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false, toneMapped: false }));
+      tun.rotation.x = Math.PI / 2; tun.renderOrder = -10; root.add(tun);
+      // a faint blue haze so the dark between streaks reads as a tunnel, not empty space
+      var haze = new THREE.Mesh(new THREE.CylinderGeometry(250, 250, 1400, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x0a1630, side: THREE.BackSide, fog: false, depthWrite: false }));
+      haze.rotation.x = Math.PI / 2; haze.renderOrder = -11; root.add(haze);
+      state.hyper = { mat: sm, tex: tt };
     }
 
     // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
@@ -517,6 +634,7 @@
         // blink nav lights
         state.hullLights.forEach(function (l, i) { l.visible = ((t / 1000 + i * 0.7) % 2) < 0.2; });
         // light shafts fade out as you walk into them (seen from inside they'd be a flat smear)
+        if (state.hyper) { state.hyper.mat.uniforms.uT.value = t / 1000; state.hyper.tex.offset.y = (t / 1000 * 0.9) % 1; }
         if (state.shafts) state.shafts.forEach(function (m) { var d = Math.abs(p.z - m.position.z); m.material.opacity = 0.075 * Math.max(0, Math.min(1, (d - 1.2) / 2.5)); m.visible = m.material.opacity > 0.001; });
         // doors (shared door.js: animation, auto-close, portal); the corridor keeps its own walls and doorway lanes
         var lim = { xm: 2.15, xp: 2.15, zm: 12.15, zp: 12.15 };

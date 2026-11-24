@@ -24,7 +24,7 @@ const ROOMS = (process.env.ONLY || 'bridge,library,holodeck,lounge,media').split
     console.log('  wrote', file);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  for (const id of ROOMS) {
+  for (const id of (process.env.SKIP_ROOMS ? [] : ROOMS)) {   // SKIP_ROOMS=1: only the corridor changed
     const P = await page(id + '.html?capture=1');
     await save(P, `window.WAYFARER.door.PORTALS.${id}.room`, `room-${id}.jpg`); await P.close();
   }
