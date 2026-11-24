@@ -47,6 +47,8 @@
     #nav b { padding:6px 10px; border-radius:16px; cursor:pointer; } #nav b:active { background:rgba(255,255,255,.25); }
     #nav span { display:flex; flex-direction:column; align-items:center; min-width:96px; } #nav i { font-style:normal; letter-spacing:1.5px; color:#ffd9a0; } #nav small { font-size:9px; opacity:.7; }
     #nav-warp { background:rgba(120,190,255,.25); letter-spacing:1px; }
+    #boss { position:absolute; top:calc(62px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%); width:min(70vw,360px); display:none; text-align:center; font:600 10px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#ff9a7a; }
+    #boss i { display:block; height:5px; margin-top:4px; border-radius:3px; background:rgba(255,255,255,.12); overflow:hidden; } #boss u { display:block; height:100%; width:100%; background:linear-gradient(90deg,#ff5a3a,#ffb070); }
     #warp-flash { position:fixed; inset:0; background:#dff0ff; opacity:0; pointer-events:none; z-index:9; transition:opacity .08s; }
     #reticle { position:absolute; left:50%; top:50%; width:min(62vmin,420px); height:min(62vmin,420px); transform:translate(-50%,-50%); overflow:visible; pointer-events:none; }
     #reticle * { fill:none; stroke-linecap:round; }
@@ -147,6 +149,7 @@
     <svg id="lock" viewBox="-50 -50 100 100"><path d="M-46 -26 V-46 H-26 M26 -46 H46 V-26 M46 26 V46 H26 M-26 46 H-46 V26"/><circle r="5"/></svg>
     <div id="crosshair" style="display:none"></div>
     <div id="wave-announce"></div>
+    <div id="boss"><span>BIOSHIP</span><i><u id="boss-fill"></u></i></div>
     <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">THALOS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
   </div>
@@ -536,6 +539,56 @@ function buildEnemyShip(kind) {
   return fixColors(g);
 }
 
+// ── BIOSHIP CARRIER (reference/alien-bioship.jpg): an organic capital ship — pale carapace dome, fleshy pink hull,
+// ribbed spiky frills, rows of glowing red-orange windows, spiky drone pods underneath. Boss every 3rd wave.
+function fleshTex(base, vein, win) {
+  const W = 1024, H = 512, c = cvs(W, H), x = c.getContext('2d'), e = cvs(W, H), ex = e.getContext('2d');
+  x.fillStyle = base; x.fillRect(0, 0, W, H); ex.fillStyle = '#000'; ex.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1), r = 6 + Math.random() * 50; x.save(); x.translate(Math.random() * W, Math.random() * H); x.scale(r * 2, r); g.addColorStop(0, Math.random() < 0.5 ? 'rgba(255,240,230,0.10)' : 'rgba(90,20,20,0.10)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); }
+  x.strokeStyle = vein; x.lineCap = 'round';                                  // veins / grooves
+  for (let i = 0; i < 70; i++) { x.lineWidth = 1 + Math.random() * 5; x.globalAlpha = 0.25 + Math.random() * 0.5; x.beginPath(); let px = Math.random() * W, py = Math.random() * H; x.moveTo(px, py); for (let k = 0; k < 8; k++) { px += 20 + Math.random() * 60; py += (Math.random() - 0.5) * 40; x.lineTo(px, py); } x.stroke(); }
+  x.globalAlpha = 1;
+  if (win) for (let row = 0; row < 3; row++) { const y = H * (0.42 + row * 0.07); for (let k = 0; k < 26; k++) { const wx = 60 + k * 34 + (row % 2) * 17, ww = 18 + Math.random() * 8, wh = 12 + Math.random() * 6;
+    x.fillStyle = '#3a0a08'; x.fillRect(wx - 2, y - 2, ww + 4, wh + 4); ex.fillStyle = 'rgb(255,' + (90 + Math.random() * 60 | 0) + ',50)'; ex.fillRect(wx, y, ww, wh); x.fillStyle = '#ff7a50'; x.fillRect(wx, y, ww, wh); } }
+  for (let i = 0; i < 120; i++) { x.fillStyle = 'rgba(60,10,10,0.6)'; x.beginPath(); x.arc(Math.random() * W, Math.random() * H, 1 + Math.random() * 3, 0, 7); x.fill(); }   // pores
+  const t = new THREE.CanvasTexture(c), te = new THREE.CanvasTexture(e); t.encoding = te.encoding = THREE.sRGBEncoding; t.anisotropy = te.anisotropy = 4; return { map: t, em: te };
+}
+let BIO = null;
+function buildBioship() {
+  BIO = BIO || { hull: fleshTex('#c87a72', '#7a2a2a', true), shell: fleshTex('#e6dccf', '#8a6a60', false), skirt: fleshTex('#d98a80', '#f0c8b8', false) };
+  const g = new THREE.Group();
+  const flesh = new THREE.MeshStandardMaterial({ map: BIO.hull.map, emissiveMap: BIO.hull.em, emissive: 0xffffff, emissiveIntensity: 1.6, roughness: 0.55, metalness: 0.05 });
+  const shell = new THREE.MeshStandardMaterial({ map: BIO.shell.map, roughness: 0.6, metalness: 0.0, color: 0xffffff });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x5a3434, roughness: 0.5 });
+  const glow = new THREE.MeshBasicMaterial({ color: 0xff6a3a });
+  // hull: a long organic body, pointed bow (−Z), ribbed
+  const hg = new THREE.SphereGeometry(1, 64, 40), hp = hg.attributes.position;
+  for (let i = 0; i < hp.count; i++) { let x = hp.getX(i), y = hp.getY(i), z = hp.getZ(i); const bow = Math.max(0, -z), rib = 1 + 0.06 * Math.sin(z * 22) * (1 - Math.abs(y));
+    const taper = 1 - Math.pow(bow, 1.6) * 0.85; hp.setXYZ(i, x * 1.15 * taper * rib, y * 0.42 * taper * (y < 0 ? 0.8 : 1), z * 3.0 - bow * bow * 0.8); }
+  hg.computeVertexNormals(); g.add(new THREE.Mesh(hg, flesh));
+  // the pale carapace dome over the back half, with dark tendril ribs
+  const cg = new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), car = new THREE.Mesh(cg, shell); car.scale.set(1.0, 0.75, 1.55); car.position.set(0, 0.18, 1.0); g.add(car);
+  for (let k = 0; k < 3; k++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.9 - k * 0.12, 0.09, 8, 24, Math.PI * 0.9), dark); t.position.set(0, 0.25 + k * 0.05, -0.2 - k * 0.45); t.rotation.set(-0.3, 0, Math.PI * 0.05); t.scale.set(0.6, 0.5, 1); g.add(t); }
+  // frill: a scalloped, ribbed skirt round the hull that droops at the edge (the reference's pink mantle)
+  { const A = 96, T = 6, pos = [], uv = [], idx = [];
+    for (let i = 0; i <= A; i++) { const a = i / A * Math.PI * 2, sx = Math.sin(a), cz = Math.cos(a), bow = Math.max(0, -cz);
+      const scal = 1 + 0.16 * Math.pow(Math.abs(Math.sin(a * 11)), 0.6) * (1 - bow * 0.6);
+      for (let j = 0; j <= T; j++) { const t = j / T, w = 1.05 + t * 0.75 * scal * (1 - bow * 0.7);
+        pos.push(sx * w * (1 - Math.pow(bow, 1.6) * 0.8), -0.05 - t * t * 0.38 + 0.04 * Math.sin(a * 22) * t, cz * (3.0 + t * 0.5) - bow * bow * 0.8 * (1 - t * 0.4)); uv.push(i / A * 3, t * 0.3 + 0.1); } }
+    for (let i = 0; i < A; i++) for (let j = 0; j < T; j++) { const q = i * (T + 1) + j; idx.push(q, q + T + 1, q + 1, q + 1, q + T + 1, q + T + 2); }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); sg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); sg.setIndex(idx); sg.computeVertexNormals();
+    const skin = new THREE.MeshStandardMaterial({ map: BIO.skirt.map, roughness: 0.55, metalness: 0.0, side: THREE.DoubleSide });
+    g.add(new THREE.Mesh(sg, skin)); }
+  // drone pods slung underneath: spiky spheres with glowing window bands
+  for (let k = 0; k < 6; k++) { const pod = new THREE.Group(); pod.position.set((k % 2 ? 1 : -1) * 0.45, -0.42, -1.4 + k * 0.55); g.add(pod);
+    pod.add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), flesh)); const band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 6, 16), glow); band.rotation.x = Math.PI / 2; pod.add(band);
+    for (let j = 0; j < 6; j++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 6), dark); const a = j / 6 * Math.PI * 2; sp.position.set(Math.cos(a) * 0.19, -0.05, Math.sin(a) * 0.19); sp.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2); pod.add(sp); } }
+  const eye = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xff5a2a, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); eye.position.set(0, 0, -3.3); eye.scale.set(1.2, 1.2, 1); g.add(eye);
+  g.scale.setScalar(5.5);
+  g.userData.color = 0xff6a3a; g.userData.shell = flesh;
+  return fixColors(g);
+}
+
 // ----------------------------------------------------------------
 //  GAME STATE
 // ----------------------------------------------------------------
@@ -674,7 +727,7 @@ function restartGame() {
   document.getElementById('gameover-screen').style.display = 'none';
   enemies.forEach(e => scene.remove(e.mesh));    enemies.length = 0;
   bullets.forEach(b => scene.remove(b.mesh));    bullets.length = 0;
-  enemyBolts.forEach(b => scene.remove(b.mesh));  enemyBolts.length = 0;
+  enemyBolts.forEach(b => scene.remove(b.mesh));  enemyBolts.length = 0; document.getElementById('boss').style.display = 'none';
   explosions.forEach(e => { scene.remove(e.mesh); scene.remove(e.light); });
   explosions.length = 0;
   waveClearing = false;
@@ -686,6 +739,7 @@ function launchWave() {
   spawnTimer    = 0;
   spawnInterval = Math.max(0.9, 3.5 - wave * 0.3);
   announce(`WAVE  ${wave}`);
+  if (wave % 3 === 0) setTimeout(spawnCarrier, 2500);
 }
 
 const _v = new THREE.Vector3();
@@ -756,6 +810,13 @@ function enemyShoot(from, spread) {
 }
 function hitFlash(e) { e.flash = 0.12; e.mesh.userData.shell.emissiveIntensity = 6; }
 
+function spawnCarrier() {
+  if (state !== 'playing') return;
+  const mesh = buildBioship(), off = new THREE.Vector3(40, 15, -110).applyEuler(new THREE.Euler(0, shipYaw, 0));
+  mesh.position.copy(shipPos).add(off); scene.add(mesh);
+  enemies.push({ mesh, kind: 'carrier', hp: 30, max: 30, t: 0, fire: 3, orbit: 0, shots: 0, flash: 0, spawn: 5 });
+  announce('BIOSHIP INBOUND'); document.getElementById('boss').style.display = 'block';
+}
 function explode(pos, color) {
   const mesh = new THREE.Group(); mesh.position.copy(pos); scene.add(mesh);
   const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xfff0d0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.scale.set(3, 3, 1); mesh.add(flash);
@@ -811,7 +872,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
     if (keys['Space']) tryShoot();
     // touch help: bullets lean toward the enemy nearest the crosshair, and auto-fire shoots when one is in the sights
     aimTarget = null; { const fwdV = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')); let best = TOUCH ? 0.94 : 0.985;
-      enemies.forEach(e => { const d = e.mesh.position.clone().sub(shipPos), dist = d.length(); if (dist > 90) return; const c = d.normalize().dot(fwdV); if (c > best) { best = c; aimTarget = e; } }); }
+      enemies.forEach(e => { const d = e.mesh.position.clone().sub(shipPos), dist = d.length(); if (dist > (e.kind === 'carrier' ? 170 : 90)) return; const c = d.normalize().dot(fwdV); if (c > best) { best = c; aimTarget = e; } }); }
     if (autoFire && aimTarget) tryShoot();
     if (shootCD > 0) shootCD -= dt;
 
@@ -838,14 +899,15 @@ function lerp(a, b, t) { return a + (b - a) * t; }
       if (!dead) {
         for (let j = enemies.length - 1; j >= 0; j--) {
           const ej = enemies[j];
-          if (b.mesh.position.distanceTo(ej.mesh.position) < (ej.kind === 'brute' ? 3.2 : 1.9)) {
+          if (b.mesh.position.distanceTo(ej.mesh.position) < (ej.kind === 'carrier' ? 11 : ej.kind === 'brute' ? 3.2 : 1.9)) {
             dead = true; ej.hp--;
             if (ej.hp > 0) { hitFlash(ej); break; }
             explode(ej.mesh.position.clone(), ej.mesh.userData.color || 0xff6600);
             if (ej.kind === 'brute') { explode(ej.mesh.position.clone().add(new THREE.Vector3(1, 0.5, 0)), 0xffa040); }
+            if (ej.kind === 'carrier') { for (let v = 0; v < 6; v++) setTimeout(() => explode(ej.mesh.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 30)), v % 2 ? 0xff6a3a : 0xffd090), v * 160); document.getElementById('boss').style.display = 'none'; announce('BIOSHIP DESTROYED'); }
             scene.remove(ej.mesh);
             enemies.splice(j, 1);
-            score += (ej.kind === 'brute' ? 400 : ej.kind === 'striker' ? 200 : 100) * wave;
+            score += (ej.kind === 'carrier' ? 2500 : ej.kind === 'brute' ? 400 : ej.kind === 'striker' ? 200 : 100) * wave;
             hud_score();
             break;
           }
@@ -859,7 +921,14 @@ function lerp(a, b, t) { return a + (b - a) * t; }
       const e = enemies[i]; e.t += dt;
       const toPlayer = shipPos.clone().sub(e.mesh.position), dist = toPlayer.length(); toPlayer.normalize();
       const side = new THREE.Vector3().crossVectors(toPlayer, new THREE.Vector3(0, 1, 0)).normalize();
-      if (e.kind === 'drone' || (e.kind === 'striker' && e.shots >= 3)) {            // weave in and ram
+      if (e.kind === 'carrier') {                                          // hold at long range ahead, volley, launch drones
+        e.orbit += dt * 0.08;
+        const want = shipPos.clone().add(new THREE.Vector3(Math.cos(e.orbit) * 45, 12 + Math.sin(e.orbit * 0.6) * 8, -85).applyEuler(new THREE.Euler(0, shipYaw, 0)));
+        e.mesh.position.lerp(want, Math.min(1, dt * 0.25));
+        e.fire -= dt; if (e.fire <= 0 && dist < 160) { for (let v = 0; v < 2; v++) setTimeout(() => { if (enemies.includes(e)) enemyShoot(e.mesh.position.clone().add(new THREE.Vector3(0, -2, 0)), true); }, v * 350); e.fire = 4.2; }
+        e.spawn -= dt; if (e.spawn <= 0) { e.spawn = 7; for (let v = 0; v < 2; v++) { const d = buildEnemyShip('drone'); d.position.copy(e.mesh.position).add(new THREE.Vector3((v - 0.5) * 6, -3, 0)); scene.add(d); enemies.push({ mesh: d, kind: 'drone', hp: 1, t: Math.random() * 10, fire: 9, orbit: 0, shots: 0, flash: 0 }); } }
+        document.getElementById('boss-fill').style.width = (e.hp / e.max * 100) + '%';
+      } else if (e.kind === 'drone' || (e.kind === 'striker' && e.shots >= 3)) {            // weave in and ram
         const sp = (ENEMY_SPD + wave * 0.6) * (e.kind === 'striker' ? 1.5 : 1);
         e.mesh.position.addScaledVector(toPlayer, sp * dt).addScaledVector(side, Math.sin(e.t * 2.6) * 5 * dt).y += Math.cos(e.t * 1.9) * 2 * dt;
       } else {                                                                          // hold at range, circle, shoot
@@ -871,9 +940,9 @@ function lerp(a, b, t) { return a + (b - a) * t; }
         if (e.fire <= 0 && dist < 60) { enemyShoot(e.mesh.position.clone(), e.kind === 'brute'); e.shots++; e.fire = (e.kind === 'brute' ? 3.6 : 2.9) - Math.min(0.8, wave * 0.08); }
       }
       e.mesh.lookAt(shipPos);
-      e.mesh.rotation.z += dt * (e.kind === 'brute' ? 0.4 : 1.3);
-      if (e.flash > 0) { e.flash -= dt; if (e.flash <= 0) e.mesh.userData.shell.emissiveIntensity = 1.3; }
-      if (e.mesh.position.distanceTo(shipPos) < (e.kind === 'brute' ? 4 : 2.4)) {
+      if (e.kind === 'carrier') { e.mesh.rotation.z = Math.sin(e.t * 0.4) * 0.08; } else e.mesh.rotation.z += dt * (e.kind === 'brute' ? 0.4 : 1.3);
+      if (e.flash > 0) { e.flash -= dt; if (e.flash <= 0) e.mesh.userData.shell.emissiveIntensity = e.kind === 'carrier' ? 1.6 : 1.3; }
+      if (e.kind !== 'carrier' && e.mesh.position.distanceTo(shipPos) < (e.kind === 'brute' ? 4 : 2.4)) {
         explode(e.mesh.position.clone(), 0xff2200);
         scene.remove(e.mesh);
         enemies.splice(i, 1);

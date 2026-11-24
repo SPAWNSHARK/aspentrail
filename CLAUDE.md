@@ -175,7 +175,8 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] Door nameplates in the logo style: Michroma (fonts/michroma.woff2, OFL) gold on black + triple-bar wings (door.js)
 - [x] No lettering across the top of the screen (#hud hidden everywhere)
 - [ ] LCARS-inspired UI animations (Star Trek) — on consoles/screens, in the ship's amber palette
-- [ ] Bio-engineered alien ship (organic, ribbed, glowing red windows — alien-bioship.jpg) as an enemy type / capital ship
+- [x] Bio-engineered alien ship: BIOSHIP carrier boss in Flight Mode every 3rd wave (`buildBioship`, procedural flesh textures,
+  pale carapace, scalloped drooping skirt, red-orange window rows, spiky drone pods). 30 HP, boss bar, volleys, launches drones.
 - [x] Space outside (Flight Mode): SYSTEM table of 7 worlds (terran, clay desert, ringed gas giants, ice, lava, toxic), moons,
   slow-turning Milky Way band in the sky shader; NAV chip (‹ name/distance › WARP, keys N/J) warps with a streak tunnel.
   Planets are real world-space objects (camera far 40000); one procedural PLANET_FS shader paints every biome.
