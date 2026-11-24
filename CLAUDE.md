@@ -146,8 +146,11 @@ Rules drawn from them:
   walnut walls + bronze ribs, polished deck + amber rings, dark ceiling with bronze rims round the amber ring, amber
   cove; the wall has a real gap behind the TV with a round window showing light speed running SIDEWAYS (the Lounge
   faces starboard; ship forward = +X in this room, so the hyperspace group is rotated 90°).
-- **Media Nexus** (`media.html`) — circular room, 11 screens on placeholder searches. Needs the hybrid rebuild
-  and a YouTube Data API v3 key.
+- **Media Nexus** (`media.html`) — REBUILT Nov 24 as the HYBRID theatre: walnut round room, amber ceiling ring, two rows of
+  kit cinema seats (back row on a carpeted riser, centre aisle), big main screen in a bronze proscenium at −Z with kit
+  speaker towers either side, 12 channel screens on the side walls (CHANNELS list in the page). Tap a wall screen → it
+  goes on the main screen; tap the main screen → opens a YouTube search for that channel. Placeholder cards until the
+  user supplies a YouTube Data API key (then fetch each channel's latest video + thumbnail into the cards).
 - **Holodeck** (`holodeck.html`) — RESTYLED Nov 24: square room (±9 m, 4.4 m high), dark panels with glowing amber
   grid + `+` marks (emissive grid texture), bronze ribs/beams/posts, amber ceiling ring over a round bronze console with
   a violet emitter lens and a spiral GALAXY hologram (entity `#hd-house`, auto-hidden by stargarden.js while Star Garden
@@ -157,8 +160,8 @@ Rules drawn from them:
 - **Icons** — frameless ship icon (from `reference/app-icon-source.jpg`) at 180/192/512 + favicon; share image.
 
 ## What's next (agreed order: restyle room by room to the reference)
-1. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
-   restrict it to the Pages domain in Google Cloud)
+1. Media Nexus live channels — needs a YouTube Data API key from the user (a key in a Pages site is public:
+   restrict it to the Pages domain in Google Cloud); swap the CHANNELS placeholders for real subscriptions
 2. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
 3. Lounge: YouTube on the TV (needs the API key, same as Media Nexus)
 5. Collision / room boundaries everywhere
