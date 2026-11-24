@@ -90,7 +90,14 @@ Rules drawn from them:
   - **Regenerate the photos whenever a room or the corridor changes:** `python3 -m http.server 8765` in the repo,
     then `node tools/capture-portals.js` (env: `AF=<local aframe-v1.5.0.min.js>` in cloud sessions,
     `ONLY=lounge,media` to redo some, `SKIP_CORRIDOR=1`). Stale photos = the preview won't match the room.
-- **Command Bridge** (`bridge.html`) — glass walls, robots, captain's chair → Flight Mode. OLD grey style.
+- **Command Bridge** (`bridge.html`) — RESTYLED Nov 24 to the reference, all procedural three.js: round room r 8.2;
+  panoramic curved window across the bow (−Z, 140°, eight panes, bronze mullions, sill + header) showing light speed
+  coming at you (vanishing-point glow); amber ceiling ring + perimeter cove; dark panelled back walls with bronze
+  ribs, sconces and two plant/book shelves; polished deck with amber inlay rings; raised dais, tan tufted leather
+  captain's chair (tap → `minigame.html`), blue swirling orb on a brass stand; four white robots seated at curved
+  consoles with teal screens (heads glance between screens). Exit = shared door at +Z (now has a wall behind it).
+- **Light speed is shared code: `hyperspace.js`** (`WAYFARER.hyperspace(root, {fwd, arc, minR, center, core})`).
+  Corridor: fwd +1, arc ±80° (overhead). Bridge: fwd −1, full circle, minR 14 (keep streaks outside the room).
 - **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.
@@ -103,16 +110,15 @@ Rules drawn from them:
 - **Icons** — frameless ship icon (from `reference/app-icon-source.jpg`) at 180/192/512 + favicon; share image.
 
 ## What's next (agreed order: restyle room by room to the reference)
-1. Command Bridge restyle (circular, amber ceiling ring, panoramic window showing LIGHT SPEED, orb pedestal)
-2. Holodeck restyle (bronze console + 3 buttons; SIM LIBRARY is a candidate home for the blueprint planner)
-3. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
+1. Holodeck restyle (bronze console + 3 buttons; SIM LIBRARY is a candidate home for the blueprint planner)
+2. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
    restrict it to the Pages domain in Google Cloud)
-4. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
-5. Lounge touch-up to the reference (bookshelf, lamp, plants, YouTube on the TV)
+3. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
+4. Lounge touch-up to the reference (bookshelf, lamp, plants, YouTube on the TV)
+5. Flight Mode (`minigame.html`) restyle to match
 6. Collision / room boundaries everywhere
 
 ## Known issues
-- Bridge exit door stands against the glass wall/space (no wall behind it) until the Bridge restyle.
 - Lounge floor/ceiling turn into flat blown-out patches (lavender floor) when looking sideways near the door. The
   patches follow the disc's triangles and come from the lounge's 13 point lights. Seen in headless swiftshader;
   NOT yet checked on iPhone. Shows in `room-lounge.jpg` at the sides.

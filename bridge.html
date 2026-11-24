@@ -15,10 +15,10 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js"></script>
   <script src="door.js"></script>
+  <script src="hyperspace.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -50,406 +50,320 @@
 
   <div id="hud">
     <span>SS WAYFARER</span>
-    <span>COMMAND BRIDGE — SECTOR 01</span>
+    <span>COMMAND BRIDGE — AT LIGHT SPEED</span>
     <span>DECK 01</span>
   </div>
   <div id="room-prompt"></div>
-  <div id="controls-hint">WASD / DRAG TO LOOK · GAZE OR CLICK TO INTERACT</div>
+  <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
-  <a-scene wayfarer-mobile
-    fog="type: exponential; color: #00000a; density: 0.015"
+  <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
+       Round room (r 8.2): panoramic window across the bow (−Z) showing light speed, amber ceiling ring, raised dais with the
+       captain's chair, blue orb on a brass stand, four robots at consoles. Exit (shared door.js) at +Z. -->
+  <a-scene wayfarer-mobile="radius: 7.5" wf-bridge light="defaultLightsEnabled: false"
+    background="color: #02040c"
     vr-mode-ui="enabled: true"
-    renderer="antialias: true; colorManagement: true">
+    renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
 
-    <!-- ======================================================
-         SPACE ENVIRONMENT (visible through glass walls)
-    ====================================================== -->
-    <a-sky id="sky" color="#00000a"></a-sky>
-
-    <!-- Distant planet -->
-    <a-sphere position="18 -4 -25" radius="5.5"
-      material="color: #1a1206; emissive: #2a1a08; emissiveIntensity: 0.4; shader: flat">
-    </a-sphere>
-    <!-- Planet ring -->
-    <a-torus position="18 -4 -25" radius="8.5" tube="0.6"
-      rotation="15 0 30"
-      material="color: #2a1a06; emissive: #331a05; emissiveIntensity: 0.3; opacity: 0.7; transparent: true; shader: flat">
-    </a-torus>
-
-    <!-- Distant moon -->
-    <a-sphere position="-22 6 -18" radius="2.2"
-      material="color: #0a0e18; emissive: #0a0e18; emissiveIntensity: 0.35; shader: flat">
-    </a-sphere>
-
-    <!-- Nebula clouds (large faint spheres far out) -->
-    <a-sphere position="0 -15 -30" radius="18"
-      material="color: #06020f; emissive: #08031a; emissiveIntensity: 0.25; opacity: 0.4; transparent: true; shader: flat">
-    </a-sphere>
-    <a-sphere position="25 10 -20" radius="12"
-      material="color: #0a0304; emissive: #180408; emissiveIntensity: 0.2; opacity: 0.3; transparent: true; shader: flat">
-    </a-sphere>
-
-    <!-- ======================================================
-         PLAYER — enters from corridor side (+Z)
-    ====================================================== -->
     <a-entity id="player" position="0 0 5.5">
       <a-camera
         wasd-controls="acceleration: 22; fly: false"
         look-controls="pointerLockEnabled: true; touchEnabled: true"
         position="0 1.6 0">
-        <a-cursor
-          color="#ffcc66" opacity="0.6"
-          fuse="true" fuse-timeout="1500"
-          raycaster="objects: .interactive">
-        </a-cursor>
+        <a-cursor color="#ffcc66" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .interactive"></a-cursor>
       </a-camera>
     </a-entity>
 
-    <!-- ======================================================
-         ROOM STRUCTURE
-    ====================================================== -->
-
-    <!-- Outer floor -->
-    <a-circle id="br-floor" position="0 0 0" rotation="-90 0 0" radius="8.2">
-    </a-circle>
-
-    <!-- Raised inner platform -->
-    <a-circle id="br-platform" position="0 0.18 0" rotation="-90 0 0" radius="5.8">
-    </a-circle>
-
-    <!-- Ceiling -->
-    <a-circle position="0 5.2 0" rotation="90 0 0" radius="8.2"
-      color="#040303" opacity="0.85" transparent="true">
-    </a-circle>
-
-    <!-- Floor edge conduit ring -->
-    <a-torus radius="8.0" radius-tubular="0.04" position="0 0.06 0" rotation="-90 0 0"
-      material="color: #1a1208; roughness: 0.3; metalness: 0.92">
-    </a-torus>
-    <!-- Ceiling perimeter greeble boxes (12 evenly spaced) -->
-    <a-box position="0 5.15 -7.8" width="0.9" height="0.18" depth="0.22"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-    <a-box position="6.75 5.15 -3.9" width="0.9" height="0.18" depth="0.22" rotation="0 -60 0"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-    <a-box position="6.75 5.15 3.9" width="0.9" height="0.18" depth="0.22" rotation="0 -120 0"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-    <a-box position="0 5.15 7.8" width="0.9" height="0.18" depth="0.22" rotation="0 180 0"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-    <a-box position="-6.75 5.15 3.9" width="0.9" height="0.18" depth="0.22" rotation="0 120 0"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-    <a-box position="-6.75 5.15 -3.9" width="0.9" height="0.18" depth="0.22" rotation="0 60 0"
-      material="color: #121008; roughness: 0.35; metalness: 0.88"></a-box>
-
-    <!-- GLASS WALLS — transparent cylinder, double-sided -->
-    <a-cylinder position="0 2.6 0" radius="8.2" height="5.2"
-      open-ended="true"
-      material="side: double; color: #0a1830; opacity: 0.18; transparent: true; roughness: 0; metalness: 0.95">
-    </a-cylinder>
-
-    <!-- Structural ring at top of glass wall -->
-    <a-torus position="0 5.2 0" rotation="-90 0 0"
-      radius="8.2" tube="0.12"
-      color="#1a1004" emissive="#ff5500" emissive-intensity="0.3">
-    </a-torus>
-    <!-- Structural ring at base -->
-    <a-torus position="0 0 0" rotation="-90 0 0"
-      radius="8.2" tube="0.12"
-      color="#1a1004" emissive="#ff4400" emissive-intensity="0.25">
-    </a-torus>
-
-    <!-- ======================================================
-         LIGHTING
-    ====================================================== -->
-    <a-light type="ambient" color="#160e05" intensity="0.3"></a-light>
-
-    <!-- Uplight from floor center -->
-    <a-light type="point" position="0 0.08 0" color="#ff5500" intensity="0.9" distance="7" decay="2"></a-light>
-
-    <!-- Blue wash from viewscreen -->
-    <a-light type="point" position="0 2.2 -5.5" color="#001ecc" intensity="2.5" distance="10" decay="1.5"></a-light>
-
-    <!-- Warm ceiling wash -->
-    <a-light type="point" position="0 5.0 0" color="#2a1505" intensity="2.0" distance="12" decay="2"></a-light>
-
-    <!-- Station screen glows -->
-    <a-light type="point" position="-4.2 1.8 -1.5" color="#002eaa" intensity="1.0" distance="4" decay="2"></a-light>
-    <a-light type="point" position="-2.2 1.8 -3.9" color="#002eaa" intensity="1.0" distance="4" decay="2"></a-light>
-    <a-light type="point" position=" 2.2 1.8 -3.9" color="#002eaa" intensity="1.0" distance="4" decay="2"></a-light>
-    <a-light type="point" position=" 4.2 1.8 -1.5" color="#002eaa" intensity="1.0" distance="4" decay="2"></a-light>
-
-    <!-- Fill light so robots are visible from entrance -->
-    <a-light type="point" position="0 2.5 -2" color="#331a08" intensity="1.2" distance="8" decay="2"></a-light>
-
-    <!-- ======================================================
-         FORWARD VIEWSCREEN
-    ====================================================== -->
-    <a-plane position="0 2.5 -7.8" width="12.5" height="4.5"
-      color="#000612" emissive="#000420" emissive-intensity="1">
-    </a-plane>
-    <!-- Scan line -->
-    <a-plane position="0 2.5 -7.78" width="12.5" height="0.025"
-      color="#0011aa" emissive="#0011aa" emissive-intensity="0.5"
-      animation="property: position; to: 0 4.75 -7.78; from: 0 0.25 -7.78; loop: true; dur: 4000; easing: linear">
-    </a-plane>
-    <!-- Frame -->
-    <a-box position="0 4.77 -7.76" width="13" height="0.12" depth="0.1" color="#1a1004" emissive="#ff5500" emissive-intensity="0.4"></a-box>
-    <a-box position="0 0.23 -7.76" width="13" height="0.12" depth="0.1" color="#1a1004" emissive="#ff5500" emissive-intensity="0.4"></a-box>
-    <a-box position="-6.26 2.5 -7.76" width="0.1" height="4.5" depth="0.1" color="#1a1004" emissive="#ff4400" emissive-intensity="0.3"></a-box>
-    <a-box position=" 6.26 2.5 -7.76" width="0.1" height="4.5" depth="0.1" color="#1a1004" emissive="#ff4400" emissive-intensity="0.3"></a-box>
-
-    <!-- ======================================================
-         CAPTAIN'S CHAIR — faces FORWARD (-Z, toward viewscreen)
-         Backrest is on the +Z side (toward entrance)
-    ====================================================== -->
-
-    <!-- Dais outer step -->
-    <a-box position="0 0.09 -1.0" width="3.2" height="0.18" depth="3.0" color="#100e08" roughness="0.85"></a-box>
-    <!-- Dais inner step -->
-    <a-box position="0 0.22 -1.0" width="2.2" height="0.22" depth="2.0" color="#141108" roughness="0.8"></a-box>
-    <!-- Dais glow trim -->
-    <a-box position="0 0.19 -1.0" width="3.22" height="0.04" depth="3.02"
-      color="#ff4400" emissive="#ff4400" emissive-intensity="0.6">
-    </a-box>
-
-    <!-- Chair base post -->
-    <a-box position="0 0.52 -1.0" width="0.18" height="0.3" depth="0.18" color="#1a1208"></a-box>
-    <!-- Seat -->
-    <a-box position="0 0.82 -1.0" width="1.0" height="0.1" depth="0.85"
-      color="#1c1409" emissive="#2a1200" emissive-intensity="0.2">
-    </a-box>
-    <!-- Backrest — on the +Z side (entrance side) so player faces viewscreen -->
-    <a-box position="0 1.45 -0.62" width="1.0" height="1.3" depth="0.1"
-      color="#1c1409" emissive="#3a1800" emissive-intensity="0.15">
-    </a-box>
-    <!-- Headrest -->
-    <a-box position="0 2.12 -0.57" width="0.65" height="0.35" depth="0.12"
-      color="#1a1208" emissive="#441800" emissive-intensity="0.2">
-    </a-box>
-    <!-- Armrests -->
-    <a-box position="-0.56 0.92 -1.0" width="0.1" height="0.08" depth="0.75"
-      color="#221608" emissive="#ff4400" emissive-intensity="0.5">
-    </a-box>
-    <a-box position=" 0.56 0.92 -1.0" width="0.1" height="0.08" depth="0.75"
-      color="#221608" emissive="#ff4400" emissive-intensity="0.5">
-    </a-box>
-    <!-- Glow strip on top of backrest (entrance-facing side) -->
-    <a-box position="0 2.32 -0.56" width="0.8" height="0.04" depth="0.09"
-      color="#ff8800" emissive="#ff8800" emissive-intensity="2.5">
-    </a-box>
-
-    <!-- Invisible interactive seat -->
-    <a-box id="captains-chair" class="interactive"
-      position="0 0.88 -1.0" width="1.0" height="0.06" depth="0.85"
-      material="opacity: 0; transparent: true">
-    </a-box>
-
-    <!-- ======================================================
-         HOLOGRAPHIC ORB above captain's chair
-    ====================================================== -->
-    <a-sphere position="0 3.1 -1.0" radius="0.22"
-      color="#000a22" emissive="#0033ff" emissive-intensity="0.9"
-      animation="property: rotation; to: 0 360 0; loop: true; dur: 9000; easing: linear">
-    </a-sphere>
-    <a-torus position="0 3.1 -1.0" radius="0.48" tube="0.018"
-      color="#0044ff" emissive="#0044ff" emissive-intensity="0.7"
-      animation="property: rotation; to: 60 360 20; loop: true; dur: 5500; easing: linear">
-    </a-torus>
-    <a-torus position="0 3.1 -1.0" radius="0.35" tube="0.012"
-      color="#0066ff" emissive="#0066ff" emissive-intensity="0.5"
-      animation="property: rotation; to: -30 360 70; loop: true; dur: 7000; easing: linear">
-    </a-torus>
-
-    <!-- ======================================================
-         CREW STATIONS — 4 robots at forward arc, facing viewscreen
-    ====================================================== -->
-
-    <!-- STATION 1: Far left  (-70° → x=-4.32, z=-1.57) -->
-    <a-entity position="-4.32 0.18 -1.57" rotation="0 32 0">
-      <a-box position="0 0.52 0.52" width="1.15" height="0.08" depth="0.72"
-        color="#0e0c07" emissive="#001eaa" emissive-intensity="0.5">
-      </a-box>
-      <a-plane position="0 0.88 0.24" rotation="-38 0 0" width="0.92" height="0.55"
-        color="#000c20" emissive="#0044cc" emissive-intensity="1.0">
-      </a-plane>
-      <!-- Robot body -->
-      <a-box position="0 0.88 -0.08" width="0.42" height="0.6" depth="0.3"
-        color="#1c1408" emissive="#221200" emissive-intensity="0.3">
-      </a-box>
-      <!-- Robot head -->
-      <a-box position="0 1.35 -0.08" width="0.3" height="0.24" depth="0.24"
-        color="#161008">
-      </a-box>
-      <!-- Eye strip — orange glow -->
-      <a-box position="0 1.355 0.03" width="0.22" height="0.038" depth="0.02"
-        color="#ff8800" emissive="#ff6600" emissive-intensity="2.5">
-      </a-box>
-      <!-- Chest panel glow -->
-      <a-box position="0 0.88 0.16" width="0.2" height="0.15" depth="0.02"
-        color="#0022aa" emissive="#0033cc" emissive-intensity="1.2">
-      </a-box>
-      <!-- Shoulder lights -->
-      <a-box position="-0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-      <a-box position=" 0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-    </a-entity>
-
-    <!-- STATION 2: Left center  (-30° → x=-2.3, z=-3.99) -->
-    <a-entity position="-2.3 0.18 -3.99" rotation="0 13 0">
-      <a-box position="0 0.52 0.52" width="1.15" height="0.08" depth="0.72"
-        color="#0e0c07" emissive="#001eaa" emissive-intensity="0.5">
-      </a-box>
-      <a-plane position="0 0.88 0.24" rotation="-38 0 0" width="0.92" height="0.55"
-        color="#000c20" emissive="#0055dd" emissive-intensity="1.0">
-      </a-plane>
-      <a-box position="0 0.88 -0.08" width="0.42" height="0.6" depth="0.3"
-        color="#1c1408" emissive="#221200" emissive-intensity="0.3">
-      </a-box>
-      <a-box position="0 1.35 -0.08" width="0.3" height="0.24" depth="0.24" color="#161008"></a-box>
-      <a-box position="0 1.355 0.03" width="0.22" height="0.038" depth="0.02"
-        color="#ff8800" emissive="#ff6600" emissive-intensity="2.5">
-      </a-box>
-      <a-box position="0 0.88 0.16" width="0.2" height="0.15" depth="0.02"
-        color="#0022aa" emissive="#0033cc" emissive-intensity="1.2">
-      </a-box>
-      <a-box position="-0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-      <a-box position=" 0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-    </a-entity>
-
-    <!-- STATION 3: Right center  (+30° → x=+2.3, z=-3.99) -->
-    <a-entity position="2.3 0.18 -3.99" rotation="0 -13 0">
-      <a-box position="0 0.52 0.52" width="1.15" height="0.08" depth="0.72"
-        color="#0e0c07" emissive="#001eaa" emissive-intensity="0.5">
-      </a-box>
-      <a-plane position="0 0.88 0.24" rotation="-38 0 0" width="0.92" height="0.55"
-        color="#000c20" emissive="#0044cc" emissive-intensity="1.0">
-      </a-plane>
-      <a-box position="0 0.88 -0.08" width="0.42" height="0.6" depth="0.3"
-        color="#1c1408" emissive="#221200" emissive-intensity="0.3">
-      </a-box>
-      <a-box position="0 1.35 -0.08" width="0.3" height="0.24" depth="0.24" color="#161008"></a-box>
-      <a-box position="0 1.355 0.03" width="0.22" height="0.038" depth="0.02"
-        color="#ff8800" emissive="#ff6600" emissive-intensity="2.5">
-      </a-box>
-      <a-box position="0 0.88 0.16" width="0.2" height="0.15" depth="0.02"
-        color="#0022aa" emissive="#0033cc" emissive-intensity="1.2">
-      </a-box>
-      <a-box position="-0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-      <a-box position=" 0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-    </a-entity>
-
-    <!-- STATION 4: Far right  (+70° → x=+4.32, z=-1.57) -->
-    <a-entity position="4.32 0.18 -1.57" rotation="0 -32 0">
-      <a-box position="0 0.52 0.52" width="1.15" height="0.08" depth="0.72"
-        color="#0e0c07" emissive="#001eaa" emissive-intensity="0.5">
-      </a-box>
-      <a-plane position="0 0.88 0.24" rotation="-38 0 0" width="0.92" height="0.55"
-        color="#000c20" emissive="#0055dd" emissive-intensity="1.0">
-      </a-plane>
-      <a-box position="0 0.88 -0.08" width="0.42" height="0.6" depth="0.3"
-        color="#1c1408" emissive="#221200" emissive-intensity="0.3">
-      </a-box>
-      <a-box position="0 1.35 -0.08" width="0.3" height="0.24" depth="0.24" color="#161008"></a-box>
-      <a-box position="0 1.355 0.03" width="0.22" height="0.038" depth="0.02"
-        color="#ff8800" emissive="#ff6600" emissive-intensity="2.5">
-      </a-box>
-      <a-box position="0 0.88 0.16" width="0.2" height="0.15" depth="0.02"
-        color="#0022aa" emissive="#0033cc" emissive-intensity="1.2">
-      </a-box>
-      <a-box position="-0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-      <a-box position=" 0.23 1.08 -0.08" width="0.04" height="0.04" depth="0.04"
-        color="#ff2200" emissive="#ff2200" emissive-intensity="2.0">
-      </a-box>
-    </a-entity>
-
-    <!-- ======================================================
-         CEILING RING FIXTURES
-    ====================================================== -->
-    <a-torus position="0 5.15 0" rotation="90 0 0" radius="2.8" tube="0.055"
-      color="#1a1004" emissive="#ff5500" emissive-intensity="1.0">
-    </a-torus>
-    <a-torus position="0 5.18 0" rotation="90 0 0" radius="5.8" tube="0.04"
-      color="#1a0e02" emissive="#ff4400" emissive-intensity="0.45">
-    </a-torus>
-
-    <!-- ======================================================
-         FLOOR RING DETAILS
-    ====================================================== -->
-    <a-torus position="0 0.01 0" rotation="-90 0 0" radius="5.8" tube="0.045"
-      color="#331100" emissive="#ff4400" emissive-intensity="0.6">
-    </a-torus>
-    <a-torus position="0 0.01 0" rotation="-90 0 0" radius="3.2" tube="0.03"
-      color="#221100" emissive="#ff5500" emissive-intensity="0.5">
-    </a-torus>
-    <a-torus position="0 0.19 0" rotation="-90 0 0" radius="5.8" tube="0.025"
-      color="#441a00" emissive="#ff6600" emissive-intensity="0.35">
-    </a-torus>
-
-    <!-- ======================================================
-         CORRIDOR EXIT — back of room (+Z)
-    ====================================================== -->
-    <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
-
+    <!-- tap target for the captain's chair (geometry is built in the script) -->
+    <a-box id="captains-chair" class="interactive" position="0 1.0 0.2" width="1.1" height="1.6" depth="1.0"
+      material="opacity: 0; transparent: true; depthWrite: false"></a-box>
   </a-scene>
 
   <script>
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      var T = window.TEX;
-      document.querySelector('#sky').setAttribute('src', T.starfield);
-      document.querySelector('#br-floor').setAttribute('material',
-        'src: url(' + T.floorGrate + '); repeat: 12 12; roughness: 0.28; metalness: 0.85; color: #888899');
-      document.querySelector('#br-platform').setAttribute('material',
-        'src: url(' + T.metalPanel + '); repeat: 4 4; roughness: 0.38; metalness: 0.72; color: #aaaacc');
-    });
+  (function () {
+    var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
+    var MOB = window.WAYFARER && window.WAYFARER.mobile;
+    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22;
 
-    // Generate stars procedurally
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      const scene = document.querySelector('a-scene');
-      for (let i = 0; i < 220; i++) {
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        const r = 16 + Math.random() * 10;
-        const x = r * Math.sin(phi) * Math.cos(theta);
-        const y = r * Math.sin(phi) * Math.sin(theta);
-        const z = r * Math.cos(phi);
-        const star = document.createElement('a-sphere');
-        const brightness = 0.4 + Math.random() * 0.8;
-        const size = 0.02 + Math.random() * 0.07;
-        star.setAttribute('position', `${x.toFixed(2)} ${y.toFixed(2)} ${z.toFixed(2)}`);
-        star.setAttribute('radius', size.toFixed(3));
-        star.setAttribute('material', `color: #ffffff; emissive: #ffffff; emissiveIntensity: ${brightness.toFixed(2)}; shader: flat`);
-        scene.appendChild(star);
-      }
-    });
-
-    const prompt = document.getElementById('room-prompt');
-    function showPrompt(text, color) {
-      prompt.textContent = text;
-      prompt.style.color = color || '#ffcc66';
-      prompt.style.textShadow = `0 0 12px ${color || '#ff8833'}`;
-      prompt.style.opacity = '1';
+    // ───────── helpers ─────────
+    function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+    function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function tex(c, rx, ry, srgb) { var t = new THREE.CanvasTexture(c); if (srgb !== false) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx || 1, ry || 1); t.anisotropy = 4; return t; }
+    function rrect(w, h, r) { var x = -w / 2, y = -h / 2, s = new THREE.Shape(); s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h); s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; }
+    function soft(shape, depth, bev) { var g = new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 3, curveSegments: 8 }); g.translate(0, 0, -depth / 2); return g; }
+    function lathe(pts, seg) { return new THREE.LatheGeometry(pts.map(function (p) { return new THREE.Vector2(p[0], p[1]); }), seg || 32); }
+    function mesh(g, m, parent, x, y, z) { var o = new THREE.Mesh(g, m); o.position.set(x || 0, y || 0, z || 0); (parent || root).add(o); return o; }
+    function limb(a, b, r, m, parent) {      // capsule between two points
+      var A = new THREE.Vector3().fromArray(a), B = new THREE.Vector3().fromArray(b), d = B.clone().sub(A), L = d.length();
+      var o = new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(0.001, L), 4, 10), m);
+      o.position.copy(A).add(B).multiplyScalar(0.5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); parent.add(o); return o;
     }
-    function hidePrompt() { prompt.style.opacity = '0'; }
+    function polar(theta, r, y) { return new THREE.Vector3(r * Math.sin(theta), y, -r * Math.cos(theta)); }   // theta: 0 = straight ahead (bow, −Z)
 
-    const chair = document.getElementById('captains-chair');
-    chair.addEventListener('mouseenter', () => showPrompt('[ ENGAGE FLIGHT MODE ]', '#ffaa33'));
-    chair.addEventListener('mouseleave', hidePrompt);
-    chair.addEventListener('click', () => {
-      window.location.href = 'minigame.html';
+    // ───────── textures ─────────
+    function wallTexture() {
+      var W = 512, H = 1024, c = cv(W, H), x = c.getContext('2d'), r = rng(11);
+      function Y(m) { return (1 - m / WALL_H) * H; }
+      x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, H);
+      function inset(y0, y1, col) { x.fillStyle = col; x.fillRect(26, Y(y1), W - 52, Y(y0) - Y(y1)); x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(26, Y(y1), W - 52, 3); x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(26, Y(y0) - 3, W - 52, 3); }
+      inset(1.06, 3.9, '#372b23'); inset(0.14, 0.86, '#2f251e');
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, H);
+      function rail(m, h) { var g = x.createLinearGradient(0, Y(m + h), 0, Y(m)); g.addColorStop(0, '#d9a866'); g.addColorStop(0.5, '#9a6c36'); g.addColorStop(1, '#5a3d1e'); x.fillStyle = g; x.fillRect(0, Y(m + h), W, Y(m) - Y(m + h)); }
+      rail(0.95, 0.05); rail(4.0, 0.04);
+      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * H, 1 + r() * 2, 1 + r() * 8); }
+      return tex(c);
+    }
+    function bronzeTexture() { var c = cv(256, 256), x = c.getContext('2d'), r = rng(5); x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256); for (var i = 0; i < 1400; i++) { var a = r() * 0.18; x.fillStyle = r() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, r() * 256, 256, 1); } return tex(c); }
+    function deckTexture() {             // polished dark deck: concentric plates read from the radial UVs of a circle
+      var c = cv(512, 512), x = c.getContext('2d'), r = rng(23);
+      x.fillStyle = '#1e1a17'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 70; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,230,200') + ',' + (0.015 + r() * 0.025) + ')'; x.fillRect(r() * 512, r() * 512, 40 + r() * 160, 20 + r() * 90); }
+      x.fillStyle = 'rgba(0,0,0,0.65)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512);
+      return tex(c, 8, 8);
+    }
+    function ceilTexture() {
+      var c = cv(512, 512), x = c.getContext('2d'), r = rng(3);
+      x.fillStyle = '#231b15'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 4000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(255,220,180,0.03)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 3, 1 + r() * 3); }
+      x.strokeStyle = 'rgba(0,0,0,0.5)'; x.lineWidth = 3; x.strokeRect(0, 0, 512, 512); x.strokeStyle = 'rgba(255,200,140,0.06)'; x.strokeRect(4, 4, 504, 504);
+      return tex(c, 6, 6);
+    }
+    function leatherTexture() {          // tan leather with vertical tufting channels
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(9);
+      x.fillStyle = '#b07446'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 5000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(60,30,10,0.07)' : 'rgba(255,220,180,0.06)'; x.fillRect(r() * 256, r() * 256, 1 + r() * 2, 1 + r() * 2); }
+      for (var k = 0; k < 5; k++) { var xx = 24 + k * 52, g = x.createLinearGradient(xx - 10, 0, xx + 10, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(50,22,8,0.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(xx - 10, 0, 20, 256); }
+      return tex(c, 1, 1);
+    }
+    function screenTexture(seed, hue) {   // console UI: graph, bars, readouts
+      var c = cv(256, 160), x = c.getContext('2d'), r = rng(seed);
+      x.fillStyle = '#021a1c'; x.fillRect(0, 0, 256, 160);
+      x.strokeStyle = 'rgba(80,240,220,0.18)'; x.lineWidth = 1; for (var i = 0; i < 256; i += 16) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 160); x.stroke(); } for (i = 0; i < 160; i += 16) { x.beginPath(); x.moveTo(0, i); x.lineTo(256, i); x.stroke(); }
+      x.strokeStyle = hue || '#5ff6e2'; x.lineWidth = 2; x.beginPath(); for (i = 0; i <= 140; i += 4) x.lineTo(8 + i, 70 - Math.sin(i * 0.08 + seed) * 22 - r() * 8); x.stroke();
+      for (i = 0; i < 6; i++) { x.fillStyle = 'rgba(95,246,226,' + (0.4 + r() * 0.5) + ')'; x.fillRect(170 + i * 13, 120 - r() * 90, 8, 120); }
+      x.fillStyle = '#9ffcf0'; x.font = '12px monospace'; for (i = 0; i < 4; i++) x.fillText(('0' + Math.floor(r() * 99)).slice(-2) + '.' + Math.floor(r() * 9) + ' ' + ['VEL', 'HDG', 'PWR', 'NAV', 'SHD'][i], 10, 108 + i * 13);
+      x.strokeStyle = '#5ff6e2'; x.lineWidth = 2; x.strokeRect(2, 2, 252, 156);
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function rampTex(sym) { var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0); if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c); }
+    function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
+
+    var root, M, anim = [], hyper;
+    function build() {
+      root = new THREE.Group(); sc.object3D.add(root);
+      M = {
+        wall:   new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.62, metalness: 0.15, side: THREE.BackSide }),
+        bronze: new THREE.MeshStandardMaterial({ map: bronzeTexture(), color: 0xd8b58a, roughness: 0.42, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.5 }),
+        dark:   new THREE.MeshStandardMaterial({ color: 0x2a221c, roughness: 0.6, metalness: 0.3 }),
+        floor:  new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.28, metalness: 0.55, color: 0xa89e92 }),
+        ceil:   new THREE.MeshStandardMaterial({ map: ceilTexture(), roughness: 0.8, metalness: 0.15, side: THREE.DoubleSide }),
+        amber:  new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }),
+        lamp:   new THREE.MeshBasicMaterial({ color: 0xffb468, toneMapped: false }),
+        leather:new THREE.MeshStandardMaterial({ map: leatherTexture(), roughness: 0.5, metalness: 0.05 }),
+        shell:  new THREE.MeshStandardMaterial({ color: 0xe6e7ea, roughness: 0.28, metalness: 0.25 }),
+        joint:  new THREE.MeshStandardMaterial({ color: 0x2a2c31, roughness: 0.4, metalness: 0.6 }),
+        wood:   new THREE.MeshStandardMaterial({ color: 0x4a2e1a, roughness: 0.6, metalness: 0.05 }),
+        leaf:   new THREE.MeshStandardMaterial({ color: 0x3f6b2e, roughness: 0.8, side: THREE.DoubleSide }),
+        pot:    new THREE.MeshStandardMaterial({ color: 0x8a4a2a, roughness: 0.8 })
+      };
+      var add = function (tx, col, op) { return new THREE.MeshBasicMaterial({ map: tx, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }); };
+      var dot = dotTex(), back = Math.PI * 2 - WIN_ARC;
+
+      // ── shell: solid walls round the back, sill + header round the bow, the window between ──
+      var wall = new THREE.CylinderGeometry(R, R, WALL_H, 96, 1, true, Math.PI + WIN_ARC / 2, back);
+      M.wall.map.repeat.set(Math.round(back * R / 1.3), 1); mesh(wall, M.wall, root, 0, WALL_H / 2, 0);
+      var low = new THREE.CylinderGeometry(R, R, WIN_Y0, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC), lowM = M.wall.clone(); lowM.map = M.wall.map.clone(); lowM.map.repeat.set(16, WIN_Y0 / WALL_H); lowM.map.needsUpdate = true;
+      mesh(low, lowM, root, 0, WIN_Y0 / 2, 0);
+      var hi = new THREE.CylinderGeometry(R, R, WALL_H - WIN_Y1, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC); mesh(hi, M.dark, root, 0, (WALL_H + WIN_Y1) / 2, 0).material = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.7, metalness: 0.2, side: THREE.BackSide });
+      var glass = new THREE.CylinderGeometry(R - 0.04, R - 0.04, WIN_Y1 - WIN_Y0, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC);
+      mesh(glass, new THREE.MeshBasicMaterial({ color: 0x8fb8ff, transparent: true, opacity: 0.06, depthWrite: false, side: THREE.DoubleSide }), root, 0, (WIN_Y0 + WIN_Y1) / 2, 0);
+      // sill shelf and header beam (bronze), mullions between eight panes
+      var sill = new THREE.RingGeometry(R - 0.42, R, 64, 1, Math.PI / 2 - WIN_ARC / 2 - 0.02, WIN_ARC + 0.04); var sm = mesh(sill, M.bronze, root, 0, WIN_Y0, 0); sm.rotation.x = -Math.PI / 2;
+      [WIN_Y0 + 0.02, WIN_Y1].forEach(function (y, i) { var t = mesh(new THREE.TorusGeometry(R - 0.08, i ? 0.11 : 0.06, 10, 96, WIN_ARC + 0.04), M.bronze, root, 0, y, 0); t.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - WIN_ARC / 2 - 0.02); });
+      var mull = soft(rrect(0.14, WIN_Y1 - WIN_Y0, 0.05), 0.16, 0.025);
+      for (var k = 0; k <= 8; k++) { var th = -WIN_ARC / 2 + k * WIN_ARC / 8, p = polar(th, R - 0.12, (WIN_Y0 + WIN_Y1) / 2), m = mesh(mull, M.bronze, root, p.x, p.y, p.z); m.rotation.y = -th; }
+      // console ledge glow under the window
+      var sg = mesh(new THREE.TorusGeometry(R - 0.42, 0.012, 6, 96, WIN_ARC), M.amber, root, 0, WIN_Y0 - 0.02, 0); sg.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - WIN_ARC / 2);
+
+      // back wall: ribs, sconces, plant shelves either side
+      var leg = soft(rrect(0.2, WALL_H - 0.4, 0.05), 0.1, 0.03), sc0 = soft(rrect(0.2, 0.3, 0.04), 0.02, 0.01), scL = soft(rrect(0.13, 0.2, 0.03), 0.035, 0.01);
+      for (var d = 85; d <= 275; d += 22) {
+        var th2 = d * Math.PI / 180; if (Math.abs(d - 180) < 16) continue;
+        var pl = polar(th2, R - 0.06, (WALL_H - 0.4) / 2), lg = mesh(leg, M.bronze, root, pl.x, pl.y, pl.z); lg.rotation.y = -th2 + Math.PI;
+        var mid = th2 + 11 * Math.PI / 180; if (d + 11 > 275 || Math.abs(d + 11 - 180) < 22 || Math.abs(d + 11 - 125) < 9 || Math.abs(d + 11 - 235) < 9) continue;
+        var ps = polar(mid, R - 0.02, 2.55), b1 = mesh(sc0, M.bronze, root, ps.x, ps.y, ps.z); b1.rotation.y = -mid + Math.PI;
+        var pl2 = polar(mid, R - 0.05, 2.54), b2 = mesh(scL, M.lamp, root, pl2.x, pl2.y, pl2.z); b2.rotation.y = -mid + Math.PI;
+        var gp = polar(mid, R - 0.01, 2.55), gl = mesh(new THREE.PlaneGeometry(1.2, 1.2), add(dot, 0xff9a3c, 0.4), root, gp.x, gp.y, gp.z); gl.rotation.y = -mid;
+      }
+      [125, 235].forEach(function (dg) { plantShelf(dg * Math.PI / 180); });
+
+      // ── ceiling: dark coffers, the big amber ring, a perimeter cove ──
+      var ce = mesh(new THREE.CircleGeometry(R, 96), M.ceil, root, 0, WALL_H, 0); ce.rotation.x = Math.PI / 2;
+      var ring = mesh(new THREE.TorusGeometry(3.6, 0.13, 12, 128), new THREE.MeshBasicMaterial({ color: 0xffb060, toneMapped: false }), root, 0, WALL_H - 0.16, 0); ring.rotation.x = Math.PI / 2;
+      [3.25, 3.95].forEach(function (rr) { var t = mesh(new THREE.TorusGeometry(rr, 0.07, 10, 128), M.bronze, root, 0, WALL_H - 0.12, 0); t.rotation.x = Math.PI / 2; });
+      var halo = mesh(new THREE.RingGeometry(2.4, 4.9, 96, 1), add(radialRing(), 0xff9a40, 0.55), root, 0, WALL_H - 0.02, 0); halo.rotation.x = Math.PI / 2;
+      var inner = mesh(new THREE.CircleGeometry(3.2, 64), new THREE.MeshStandardMaterial({ color: 0x120d0a, roughness: 0.6, metalness: 0.3, side: THREE.DoubleSide }), root, 0, WALL_H - 0.08, 0); inner.rotation.x = Math.PI / 2;
+      var core = mesh(new THREE.TorusGeometry(0.7, 0.04, 8, 64), M.amber, root, 0, WALL_H - 0.1, 0); core.rotation.x = Math.PI / 2;
+      var cove = mesh(new THREE.TorusGeometry(R - 0.12, 0.035, 6, 160), M.amber, root, 0, WALL_H - 0.18, 0); cove.rotation.x = Math.PI / 2;
+      var coveW = mesh(new THREE.CylinderGeometry(R - 0.02, R - 0.02, 1.3, 96, 1, true), add(rampTex(false), 0xff9a40, 0.35), root, 0, WALL_H - 0.85, 0); coveW.material.side = THREE.BackSide;
+      coveW.material.map.rotation = Math.PI / 2; coveW.material.map.center.set(0.5, 0.5);
+      var crn = mesh(new THREE.TorusGeometry(R - 0.1, 0.09, 8, 160), M.bronze, root, 0, WALL_H - 0.08, 0); crn.rotation.x = Math.PI / 2;
+
+      // ── floor: polished deck, amber inlay rings, radial bronze lines ──
+      var fl = mesh(new THREE.CircleGeometry(R, 96), M.floor, root); fl.rotation.x = -Math.PI / 2;
+      [[DAIS_R + 0.45, 0.025, M.amber], [4.6, 0.02, M.amber], [R - 0.55, 0.03, M.amber], [3.3, 0.015, M.bronze]].forEach(function (q) { var t = mesh(new THREE.RingGeometry(q[0] - q[1], q[0] + q[1], 128), q[2], root, 0, 0.004, 0); t.rotation.x = -Math.PI / 2; });
+      for (var a = 0; a < 12; a++) { var ang = a / 12 * Math.PI * 2, ln = mesh(new THREE.PlaneGeometry(0.02, R - 0.7 - 2.6), M.bronze, root); var mp = polar(ang, (2.6 + R - 0.7) / 2, 0.004); ln.position.copy(mp); ln.rotation.set(-Math.PI / 2, 0, -ang); }
+      [4.6, R - 0.55].forEach(function (rr) { var gr = mesh(new THREE.RingGeometry(rr - 0.35, rr + 0.35, 128), add(radialRing(), 0xff8a30, 0.22), root, 0, 0.005, 0); gr.rotation.x = -Math.PI / 2; });
+
+      buildDais(add, dot); buildOrb(add, dot); buildStations(add, dot);
+
+      // ── lights ──
+      root.add(new THREE.HemisphereLight(0xffd8b0, 0x2a1c12, 0.75));
+      for (var i = 0; i < 4; i++) { var la = i / 4 * Math.PI * 2 + Math.PI / 4, l = new THREE.PointLight(0xffc08a, 1.15, 10, 1.4); l.position.copy(polar(la, 3.6, WALL_H - 0.5)); root.add(l); }
+      var win = new THREE.PointLight(0x7aa6ff, 0.9, 11, 1.5); win.position.set(0, 2.4, -6.4); root.add(win);
+      [-1, 1].forEach(function (s) { var tl = new THREE.PointLight(0x3fd8d0, 0.6, 4.5, 2); tl.position.copy(polar(s * 0.7, 5.3, 1.3)); root.add(tl); });
+
+      // light speed through the window: the ship flies bow-first (−Z here), streaks rush toward you
+      hyper = window.WAYFARER.hyperspace(root, { fwd: -1, arc: [-180, 180], count: MOB ? 1100 : 1900, core: true, seed: 101, minR: 14, center: [0, 2.3] });
+
+      bake();
+    }
+    function radialRing() { var c = cv(256, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); var t = new THREE.CanvasTexture(c); return t; }
+
+    // ── wall-hung shelf with plants and a few books ──
+    function plantShelf(th) {
+      var g = new THREE.Group(), p = polar(th, R - 0.2, 0); g.position.copy(p); g.rotation.y = -th; root.add(g);   // local +z faces the room
+      mesh(new THREE.BoxGeometry(1.5, 2.3, 0.04), M.wood, g, 0, 1.75, -0.16);
+      var r = rng(Math.round(th * 100));
+      [0.9, 1.6, 2.3].forEach(function (y, row) {
+        mesh(soft(rrect(1.55, 0.04, 0.015), 0.34, 0.01), M.wood, g, 0, y, 0);
+        mesh(new THREE.BoxGeometry(1.5, 0.012, 0.012), M.amber, g, 0, y - 0.03, 0.17);
+        var x = -0.68;
+        while (x < 0.62) {
+          if (r() < 0.35) {             // potted plant, leaves arching out
+            var pot = mesh(new THREE.CylinderGeometry(0.1, 0.075, 0.16, 14), M.pot, g, x + 0.11, y + 0.1, 0.02);
+            for (var j = 0; j < 9; j++) { var lf = mesh(new THREE.SphereGeometry(0.07, 6, 4), M.leaf, g, x + 0.11 + Math.cos(j * 2.4) * 0.08, y + 0.24 + (j % 3) * 0.05, 0.02 + Math.sin(j * 2.4) * 0.08); lf.scale.set(0.5, 1.6, 0.5); lf.rotation.set(Math.sin(j) * 0.6, 0, Math.cos(j * 1.7) * 0.7); }
+            if (row === 2) for (var v = 0; v < 4; v++) limbVine(g, x + 0.05 + v * 0.04, y, r);
+            x += 0.26;
+          } else {                      // a few books
+            var n = 3 + Math.floor(r() * 5);
+            for (var b = 0; b < n && x < 0.68; b++) { var t = 0.03 + r() * 0.03, h = 0.2 + r() * 0.14; var bk = mesh(new THREE.BoxGeometry(t, h, 0.18), new THREE.MeshStandardMaterial({ color: ['#6b1e1e', '#1f3350', '#2d4a2f', '#b08a3e', '#e2d6bc', '#3a2a22', '#1f5a5a'][Math.floor(r() * 7)], roughness: 0.75 }), g, x + t / 2, y + 0.02 + h / 2, 0); x += t + 0.003; }
+            x += 0.06;
+          }
+        }
+      });
+    }
+    function limbVine(g, x, y, r) { var L = 0.3 + r() * 0.5; for (var i = 0; i < 6; i++) { var lf = mesh(new THREE.SphereGeometry(0.03, 5, 3), M.leaf, g, x + Math.sin(i) * 0.02, y - i * L / 6, 0.16); lf.scale.set(1, 1.6, 0.4); } }
+
+    // ── the dais and the captain's chair (faces the bow) ──
+    function buildDais(add, dot) {
+      mesh(lathe([[0, DAIS_H], [DAIS_R - 0.06, DAIS_H], [DAIS_R, DAIS_H - 0.03], [DAIS_R + 0.04, DAIS_H - 0.1], [DAIS_R + 0.04, 0.0]], 96), M.floor, root);
+      var t = mesh(new THREE.TorusGeometry(DAIS_R + 0.045, 0.022, 8, 128), M.amber, root, 0, DAIS_H - 0.1, 0); t.rotation.x = Math.PI / 2;
+      var t2 = mesh(new THREE.TorusGeometry(DAIS_R - 0.03, 0.03, 8, 128), M.bronze, root, 0, DAIS_H, 0); t2.rotation.x = Math.PI / 2;
+      var gl = mesh(new THREE.RingGeometry(DAIS_R, DAIS_R + 0.7, 128), add(rampTex(false), 0xff9a40, 0.5), root, 0, 0.006, 0); gl.rotation.x = -Math.PI / 2;
+      gl.material.map = (function () { var c = cv(256, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); return new THREE.CanvasTexture(c); }());
+      var ring2 = mesh(new THREE.TorusGeometry(1.2, 0.012, 6, 96), M.amber, root, 0, DAIS_H + 0.003, 0); ring2.rotation.x = Math.PI / 2;
+
+      var ch = new THREE.Group(); ch.position.set(0, DAIS_H, 0.2); root.add(ch);
+      mesh(lathe([[0, 0], [0.42, 0], [0.44, 0.03], [0.3, 0.07], [0.09, 0.12], [0.08, 0.4], [0.16, 0.45], [0, 0.46]], 32), M.bronze, ch);
+      var seat = mesh(soft(rrect(0.78, 0.66, 0.16), 0.12, 0.06), M.leather, ch, 0, 0.55, 0); seat.rotation.x = -Math.PI / 2;
+      var backG = soft(rrect(0.82, 1.2, 0.26), 0.16, 0.06), bk = mesh(backG, M.leather, ch, 0, 1.17, 0.34); bk.rotation.x = 0.13;
+      var bshell = mesh(soft(rrect(0.86, 1.24, 0.28), 0.05, 0.02), M.bronze, ch, 0, 1.17, 0.46); bshell.rotation.x = 0.13;
+      var hd = mesh(soft(rrect(0.5, 0.3, 0.13), 0.14, 0.05), M.leather, ch, 0, 1.92, 0.44); hd.rotation.x = 0.13;
+      var star = mesh(new THREE.CircleGeometry(0.05, 4), new THREE.MeshBasicMaterial({ color: 0xe8c070, toneMapped: false }), ch, 0, 1.6, 0.25); star.rotation.x = 0.13;
+      [-1, 1].forEach(function (s) {
+        var arm = mesh(soft(rrect(0.16, 0.7, 0.07), 0.1, 0.04), M.leather, ch, s * 0.5, 0.82, -0.02); arm.rotation.x = -Math.PI / 2;
+        mesh(new THREE.BoxGeometry(0.06, 0.28, 0.5), M.bronze, ch, s * 0.5, 0.65, 0.0);
+        var pad = mesh(new THREE.PlaneGeometry(0.12, 0.22), new THREE.MeshBasicMaterial({ map: screenTexture(30 + s, '#ffc070'), toneMapped: false }), ch, s * 0.5, 0.885, -0.18); pad.rotation.x = -Math.PI / 2 + 0.25;
+      });
+    }
+
+    // ── the blue orb on its brass stand, beside the chair ──
+    function buildOrb(add, dot) {
+      var g = new THREE.Group(); g.position.set(1.4, DAIS_H, -0.35); root.add(g);
+      mesh(lathe([[0, 0], [0.26, 0], [0.27, 0.04], [0.2, 0.07], [0.07, 0.14], [0.05, 0.3], [0.045, 1.05], [0.07, 1.1], [0.16, 1.16], [0.2, 1.22], [0.19, 1.24], [0.12, 1.18], [0, 1.17]], 32), M.bronze, g);
+      var c = cv(256, 128), x = c.getContext('2d'), r = rng(4);
+      x.fillStyle = '#0a2a8a'; x.fillRect(0, 0, 256, 128);
+      for (var i = 0; i < 260; i++) { x.strokeStyle = 'rgba(' + Math.floor(120 + r() * 120) + ',' + Math.floor(180 + r() * 75) + ',255,' + (0.15 + r() * 0.5) + ')'; x.lineWidth = 1 + r() * 3; x.beginPath(); var y0 = r() * 128; x.moveTo(0, y0); for (var u = 0; u <= 256; u += 16) x.lineTo(u, y0 + Math.sin(u * 0.05 + i) * 10); x.stroke(); }
+      var ot = new THREE.CanvasTexture(c); ot.colorSpace = THREE.SRGBColorSpace; ot.wrapS = THREE.RepeatWrapping;
+      var orb = mesh(new THREE.SphereGeometry(0.22, 32, 20), new THREE.MeshBasicMaterial({ map: ot, toneMapped: false }), g, 0, 1.46, 0);
+      var shell = mesh(new THREE.SphereGeometry(0.245, 32, 20), add(null, 0x6aa8ff, 0.18), g, 0, 1.46, 0);
+      var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x4a8cff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.3, 1.3, 1); halo.position.set(0, 1.46, 0); g.add(halo);
+      var l = new THREE.PointLight(0x4a7dff, 1.3, 5, 2); l.position.set(0, 1.46, 0); g.add(l);
+      anim.push(function (t) { orb.rotation.y = t * 0.6; ot.offset.x = t * 0.05; halo.material.opacity = 0.6 + 0.15 * Math.sin(t * 2.2); l.intensity = 1.2 + 0.2 * Math.sin(t * 2.2); });
+    }
+
+    // ── four robots at curved consoles, facing the window ──
+    function buildStations(add, dot) {
+      var desk = soft(rrect(1.5, 0.6, 0.12), 0.8, 0.04), top = soft(rrect(1.56, 0.08, 0.03), 0.84, 0.02);
+      [-58, -22, 22, 58].forEach(function (deg, si) {
+        var th = deg * Math.PI / 180, g = new THREE.Group(); g.position.copy(polar(th, 6.0, 0)); g.rotation.y = -th; root.add(g);   // local −Z = toward the window
+        var dk = mesh(desk, M.dark, g, 0, 0.42, 0); dk.scale.y = 1.4;
+        mesh(top, M.bronze, g, 0, 0.86, 0);
+        var strip = mesh(new THREE.BoxGeometry(1.5, 0.015, 0.015), M.amber, g, 0, 0.82, 0.43);
+        [-0.37, 0.37].forEach(function (sx, j) {
+          var scr = mesh(new THREE.PlaneGeometry(0.62, 0.4), new THREE.MeshBasicMaterial({ map: screenTexture(si * 7 + j), toneMapped: false }), g, sx, 1.16, -0.12); scr.rotation.x = -0.45;
+          var fr = mesh(soft(rrect(0.68, 0.46, 0.04), 0.03, 0.01), M.bronze, g, sx, 1.16, -0.135); fr.rotation.x = -0.45;
+          var arm2 = mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.25, 8), M.bronze, g, sx, 0.98, -0.2);
+        });
+        var keys = mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: screenTexture(si * 13 + 5, '#ffb060'), toneMapped: false, transparent: true, opacity: 0.9 }), g, 0, 0.905, 0.18); keys.rotation.x = -Math.PI / 2;
+        var sg = mesh(new THREE.PlaneGeometry(1.6, 0.9), add(dot, 0x3fd8d0, 0.25), g, 0, 1.2, -0.2); sg.rotation.x = -0.45;
+        robot(g, si);
+      });
+    }
+    function robot(station, si) {
+      var g = new THREE.Group(); g.position.set(0, 0, 0.95); station.add(g);           // seated just behind the console, facing −Z
+      mesh(lathe([[0, 0], [0.25, 0], [0.26, 0.02], [0.05, 0.06], [0.04, 0.44], [0.2, 0.46], [0.21, 0.5], [0, 0.5]], 24), M.bronze, g);   // stool
+      var S = M.shell, J = M.joint;
+      mesh(new THREE.SphereGeometry(0.15, 16, 12), J, g, 0, 0.6, 0.02).scale.set(1.3, 0.7, 1);                                // pelvis
+      var torso = limb([0, 0.66, 0.03], [0, 1.0, -0.04], 0.165, S, g); torso.scale.set(1.15, 1, 0.85);                         // torso
+      mesh(new THREE.BoxGeometry(0.16, 0.12, 0.02), new THREE.MeshBasicMaterial({ color: 0x3fd8d0, toneMapped: false }), g, 0, 0.92, -0.2);   // chest light
+      limb([0, 1.12, -0.04], [0, 1.24, -0.05], 0.045, J, g);                                                                  // neck
+      var head = mesh(new THREE.SphereGeometry(0.13, 24, 16), S, g, 0, 1.36, -0.06); head.scale.set(0.92, 1.08, 1);
+      var visor = mesh(new THREE.SphereGeometry(0.128, 24, 12, Math.PI * 0.62, Math.PI * 0.76, Math.PI * 0.34, Math.PI * 0.26), new THREE.MeshStandardMaterial({ color: 0x0c0e12, roughness: 0.15, metalness: 0.6 }), g, 0, 1.36, -0.065);
+      visor.scale.set(0.95, 1.1, 1.03);
+      [-0.045, 0.045].forEach(function (ex) { mesh(new THREE.SphereGeometry(0.016, 8, 6), new THREE.MeshBasicMaterial({ color: 0x7ffcf0, toneMapped: false }), g, ex, 1.375, -0.185); });
+      [-1, 1].forEach(function (s) {
+        mesh(new THREE.SphereGeometry(0.075, 14, 10), S, g, s * 0.22, 1.1, -0.03);                                            // shoulder
+        limb([s * 0.23, 1.06, -0.04], [s * 0.26, 0.86, -0.26], 0.05, S, g);                                                    // upper arm
+        mesh(new THREE.SphereGeometry(0.05, 10, 8), J, g, s * 0.26, 0.86, -0.26);                                              // elbow
+        limb([s * 0.26, 0.86, -0.26], [s * 0.2, 0.93, -0.55], 0.042, S, g);                                                    // forearm → console
+        mesh(new THREE.SphereGeometry(0.045, 10, 8), J, g, s * 0.2, 0.93, -0.58).scale.set(1, 0.5, 1.3);                     // hand
+        limb([s * 0.1, 0.58, 0.0], [s * 0.12, 0.56, -0.38], 0.068, S, g);                                                      // thigh
+        mesh(new THREE.SphereGeometry(0.065, 10, 8), J, g, s * 0.12, 0.56, -0.38);                                             // knee
+        limb([s * 0.12, 0.54, -0.38], [s * 0.12, 0.1, -0.42], 0.055, S, g);                                                    // shin
+        mesh(new THREE.BoxGeometry(0.1, 0.06, 0.2), J, g, s * 0.12, 0.04, -0.47);                                              // foot
+      });
+      // a slight idle: heads turn between screens now and then
+      var ph = si * 1.7;
+      anim.push(function (t) { var a = Math.sin(t * 0.35 + ph); head.rotation.y = visor.rotation.y = Math.sign(a) * Math.pow(Math.abs(a), 4) * 0.35; });
+    }
+
+    // one-off reflection capture (polished deck, bronze, robot shells)
+    function bake() {
+      try {
+        var r = sc.renderer, pm = new THREE.PMREMGenerator(r), rig = document.getElementById('player').object3D, v = rig.visible; rig.visible = false;
+        var lc = M.amber.color.clone(); M.amber.color.multiplyScalar(0.5);
+        root.position.set(0, -1.6, 0); root.updateMatrixWorld(true);
+        var rt = pm.fromScene(sc.object3D, 0.02, 0.1, 1000);
+        root.position.set(0, 0, 0); root.updateMatrixWorld(true); rig.visible = v; M.amber.color.copy(lc);
+        [[M.floor, 1.0], [M.bronze, 0.6], [M.shell, 0.8], [M.leather, 0.25], [M.dark, 0.4]].forEach(function (q) { q[0].envMap = rt.texture; q[0].envMapIntensity = q[1]; q[0].needsUpdate = true; });
+        pm.dispose();
+      } catch (e) { root.position.set(0, 0, 0); }
+    }
+
+    AFRAME.registerComponent('wf-bridge', {
+      init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build); },
+      tick: function (t) { var s = t / 1000; if (hyper) hyper.update(s); anim.forEach(function (f) { f(s); }); }
     });
 
+    // captain's chair → Flight Mode
+    var prompt = document.getElementById('room-prompt');
+    function showPrompt(text) { prompt.textContent = text; prompt.style.opacity = '1'; }
+    var chair = document.getElementById('captains-chair');
+    chair.addEventListener('mouseenter', function () { showPrompt('[ ENGAGE FLIGHT MODE ]'); });
+    chair.addEventListener('mouseleave', function () { prompt.style.opacity = '0'; });
+    chair.addEventListener('click', function () { window.location.href = 'minigame.html'; });
+  }());
   </script>
 
 <script>window.WAYFARER.door.roomExit('bridge');</script>
