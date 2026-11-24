@@ -9,6 +9,7 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="shipskin.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,12 +104,12 @@ const ship = new THREE.Group(); scene.add(ship); const S = 10;
 const prog = document.getElementById('prog');
 new THREE.GLTFLoader().load('models/ship/wayfarer_high.glb', g => {
   const m = g.scene; m.scale.setScalar(S);
-  m.traverse(o => { if (o.isMesh) { const mt = o.material; mt.metalness = 0.45; mt.roughness = 0.62; mt.color.set(0xe8a878).convertSRGBToLinear(); mt.needsUpdate = true; } });
+  WAYFARER_SHIPSKIN(m);   // clean procedural copper skin (shipskin.js) instead of the kit's noisy texture
   ship.add(m);
   [-1, 1].forEach(sx => {           // engine glow at the pod outlets (model units: x ±0.195, y 0.015, z 0.475)
     const at = new THREE.Vector3(sx * 0.195 * S, 0.015 * S, 0.475 * S);
-    const face = new THREE.Mesh(new THREE.CircleGeometry(0.3, 32), new THREE.MeshBasicMaterial({ color: 0x7fe6ff })); face.position.copy(at); ship.add(face);
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x4fc8ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.copy(at).add(new THREE.Vector3(0, 0, 0.3)); glow.scale.set(1.6, 1.6, 1); ship.add(glow);
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.26, 32), new THREE.MeshBasicMaterial({ color: 0x3fa8d8 })); face.position.copy(at); ship.add(face);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x4fc8ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.copy(at).add(new THREE.Vector3(0, 0, 0.3)); glow.scale.set(0.9, 0.9, 1); glow.material.opacity = 0.5; ship.add(glow);
     const pl = new THREE.PointLight(0x4fc8ff, 0.6, 6); pl.position.copy(at).add(new THREE.Vector3(0, 0, 1)); ship.add(pl);
   });
   const L = document.getElementById('load'); L.style.opacity = 0; setTimeout(() => L.remove(), 700);
