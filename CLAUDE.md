@@ -56,8 +56,10 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: arrow pad + look stick,
-  gyro off by default, tap-to-interact), `brain.js`, `cats.js`, `stargarden.js`
+- Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: ONE frosted-glass bottom bar —
+  iOS glassmorphism, Safari-bar proportions, white YouTube-style line icons; movement pad left, look stick right, Gyro +
+  Level in the middle; gyro off by default and the Gyro tap calls DeviceOrientationEvent.requestPermission so only
+  Apple's native prompt shows; every a-scene has device-orientation-permission-ui="enabled: false"), `brain.js`, `cats.js`, `stargarden.js`
 - Pages that build lights in three.js must put `light="defaultLightsEnabled: false"` on `<a-scene>`, otherwise
   A-Frame adds a white directional light that puts a hotspot on glossy floors.
 - Testing in a cloud session: aframe.io is blocked there; `npm pack aframe@1.5.0` and route the CDN URL to
