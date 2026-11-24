@@ -59,7 +59,9 @@ Rules drawn from them:
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: ONE frosted-glass bottom bar —
   iOS glassmorphism, Safari-bar proportions, white YouTube-style line icons; movement pad left, look stick right, Gyro +
   Level in the middle; gyro off by default and the Gyro tap calls DeviceOrientationEvent.requestPermission so only
-  Apple's native prompt shows; every a-scene has device-orientation-permission-ui="enabled: false"), `brain.js`, `cats.js`, `stargarden.js`
+  Apple's native prompt shows; every a-scene has device-orientation-permission-ui="enabled: false")
+  NO labels across the top of the screen (user, Nov 24): `#hud` is hidden everywhere by mobile.js. In a Safari tab the
+  bar is lifted 78 px clear of Safari's floating toolbar (`html:not(.standalone)`); Home Screen app sits low., `brain.js`, `cats.js`, `stargarden.js`
 - Pages that build lights in three.js must put `light="defaultLightsEnabled: false"` on `<a-scene>`, otherwise
   A-Frame adds a white directional light that puts a hotspot on glossy floors.
 - Testing in a cloud session: aframe.io is blocked there; `npm pack aframe@1.5.0` and route the CDN URL to
@@ -112,7 +114,8 @@ Rules drawn from them:
   dark-teal Library dome aft, two engine pods on struts at the stern corners. Space: per-pixel fbm nebula sky, layered
   stars, night-side planet with city lights + sunlit limb (two textures: day + lights), drifting dust. Enemies: dark
   ridged alien seed-craft with glowing veins, three swept blades, a hot eye. Explosions: flash + shockwave + sparks.
-  Touch: the same glass bottom bar (steer stick, Bridge, Fire). r128 GOTCHA: hex colours are linear there — run
+  Touch: the same glass bottom bar (steer stick, Auto-fire toggle (on by default on touch), Bridge, Fire); aim assist
+  bends shots toward the enemy nearest the crosshair; the scene is rendered shifted up above the bar (setViewOffset). r128 GOTCHA: hex colours are linear there — run
   `fixColors()` on new objects or they render washed out (dark copper came out cream).
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.

@@ -94,6 +94,8 @@
       background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
       border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);touch-action:none;-webkit-user-select:none;user-select:none}
     html.touch #fm-bar{display:flex}
+    html.touch:not(.standalone) #fm-bar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+    #fm-auto.on{background:rgba(255,255,255,.22)}
     html.touch #hint-shoot{display:none}
     #fm-stick,#fm-fire{position:relative;width:min(28vh,36vw,170px);height:min(28vh,36vw,170px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
     #fm-stick i{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;pointer-events:none}
@@ -107,7 +109,6 @@
 <body>
 
   <div id="hud">
-    <div id="ship-name">SS WAYFARER — FLIGHT MODE</div>
     <div id="score-display">SCORE &nbsp;<span id="score">0</span></div>
     <div id="lives-display">HULL &nbsp;<span id="lives">■ ■ ■</span></div>
     <div id="crosshair"><div class="ch-ring"></div></div>
@@ -121,7 +122,7 @@
     <div class="inst">ARROWS / WASD — FLY</div>
     <div class="inst">SPACE / CLICK — FIRE</div>
     <div class="inst">ESC — RETURN TO BRIDGE</div>
-    <div class="blink">[ PRESS SPACE OR CLICK TO LAUNCH ]</div>
+    <div class="blink">[ PRESS SPACE, CLICK OR TAP FIRE TO LAUNCH ]</div>
     <button class="btn" onclick="window.location.href='bridge.html'">← RETURN TO BRIDGE</button>
   </div>
 
@@ -135,7 +136,10 @@
 
 <div id="fm-bar">
     <div id="fm-stick"><i><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></i></div>
-    <div id="fm-mid"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span>Bridge</span></div>
+    <div id="fm-midcol" style="display:flex;flex-direction:column;gap:14px;align-items:center">
+      <div id="fm-auto" class="on" style="white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif;padding:8px 10px;border-radius:18px"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Auto-fire</span></div>
+      <div id="fm-mid"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span>Bridge</span></div>
+    </div>
     <div id="fm-fire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg><span>Fire</span></div>
   </div>
 
@@ -421,8 +425,10 @@ const SHOOT_DELAY  = 0.21;
 // ----------------------------------------------------------------
 //  INPUT
 // ----------------------------------------------------------------
-const keys = {}, steer = { x: 0, y: 0 };
-if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) document.documentElement.classList.add('touch');
+const keys = {}, steer = { x: 0, y: 0 }; let aimTarget = null;
+const TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0; let autoFire = TOUCH;
+if (TOUCH) document.documentElement.classList.add('touch');
+if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) document.documentElement.classList.add('standalone');
 (function () {
   const bar = document.getElementById('fm-bar'), stick = document.getElementById('fm-stick'), knob = stick.querySelector('i'), fire = document.getElementById('fm-fire');
   ['pointerdown', 'pointerup', 'click', 'touchstart'].forEach(n => bar.addEventListener(n, e => { e.stopPropagation(); if (n === 'touchstart') e.preventDefault(); }, { passive: false }));
@@ -436,6 +442,14 @@ if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) document.documen
   fire.addEventListener('pointerdown', e => { fire.classList.add('on'); keys['Space'] = true; if (state === 'title') startGame(); else if (state === 'gameover') restartGame(); else tryShoot(); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => fire.addEventListener(n, () => { fire.classList.remove('on'); keys['Space'] = false; }));
   document.getElementById('fm-mid').addEventListener('pointerup', () => { location.href = 'bridge.html'; });
+  // keep the ship and crosshair in the clear space above the bar: render the scene shifted up by the bar's height
+  function frameAboveBar() {
+    const r = bar.getBoundingClientRect(), d = TOUCH && r.height ? Math.round(innerHeight - r.top) : 0, ch = document.getElementById('crosshair');
+    if (d > 0) camera.setViewOffset(innerWidth, innerHeight + d, 0, d, innerWidth, innerHeight); else camera.clearViewOffset();
+    ch.style.top = 'calc(50% - ' + d / 2 + 'px)'; document.getElementById('wave-announce').style.top = 'calc(50% - ' + d / 2 + 'px)';
+  }
+  addEventListener('resize', () => setTimeout(frameAboveBar, 50)); setTimeout(frameAboveBar, 0);
+  const af = document.getElementById('fm-auto'); af.addEventListener('pointerup', () => { autoFire = !autoFire; af.classList.toggle('on', autoFire); });
 })();
 addEventListener('keydown', e => {
   keys[e.code] = true;
@@ -512,6 +526,7 @@ function tryShoot() {
   const pt = new THREE.PointLight(0xff6600, 2.5, 6);
   mesh.add(pt);
   scene.add(mesh);
+  if (aimTarget) dir.copy(aimTarget.mesh.position.clone().sub(shipPos).normalize());   // aim assist
   bullets.push({ mesh, vel: dir.multiplyScalar(BULLET_SPD), life: 3.5 });
 }
 
@@ -578,6 +593,10 @@ function lerp(a, b, t) { return a + (b - a) * t; }
     if (keys['ArrowUp']    || keys['KeyW']) shipPitch = Math.min( 1.1, shipPitch + TURN_SPD * dt * 0.7);
     if (keys['ArrowDown']  || keys['KeyS']) shipPitch = Math.max(-1.1, shipPitch - TURN_SPD * dt * 0.7);
     if (keys['Space']) tryShoot();
+    // touch help: bullets lean toward the enemy nearest the crosshair, and auto-fire shoots when one is in the sights
+    aimTarget = null; { const fwdV = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')); let best = TOUCH ? 0.94 : 0.985;
+      enemies.forEach(e => { const d = e.mesh.position.clone().sub(shipPos), dist = d.length(); if (dist > 90) return; const c = d.normalize().dot(fwdV); if (c > best) { best = c; aimTarget = e; } }); }
+    if (autoFire && aimTarget) tryShoot();
     if (shootCD > 0) shootCD -= dt;
 
     const tgtRoll = (keys['ArrowLeft']||keys['KeyA']) ? 0.55 : (keys['ArrowRight']||keys['KeyD']) ? -0.55 : -steer.x * 0.55;

@@ -15,6 +15,7 @@
   var root = document.documentElement;
   if (touch) root.classList.add('touch');
   if (mobile) root.classList.add('mobile');
+  if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) root.classList.add('standalone');
 
   // ── controls: one frosted-glass bar across the bottom (iOS glassmorphism, Safari-bottom-bar proportions), white
   //    rounded line icons in the YouTube tab-bar style. Left: movement pad. Right: look stick. Middle: Gyro, Level.
@@ -27,6 +28,10 @@
     'border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);' +
     'align-items:center;justify-content:space-between;gap:10px;transition:opacity .25s}' +
     'html.touch #wf-bar{display:flex}' +
+    // in a Safari tab the browser's own floating toolbar sits over the bottom of the page: lift the bar clear of it
+    'html.touch:not(.standalone) #wf-bar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}' +
+    // no labels across the top of the screen (user, Nov 24)
+    '#hud{display:none!important}' +
     '#wf-bar svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
     // movement pad: a glass disc with four chevron petals
     '#wf-dpad{position:relative;flex:0 0 auto;width:min(28vh,36vw,176px);height:min(28vh,36vw,176px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}' +
