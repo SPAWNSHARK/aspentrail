@@ -56,7 +56,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124c).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261124d).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls: ONE frosted-glass bottom bar —
   iOS glassmorphism, Safari-bar proportions, white YouTube-style line icons; movement pad left, look stick right, Gyro +
   Level in the middle; gyro off by default and the Gyro tap calls DeviceOrientationEvent.requestPermission so only
@@ -75,7 +75,8 @@ Rules drawn from them:
   curved amber-lit cove ceiling, full-length glass skylight with stars and faint light shafts (no side windows —
   user decision), polished deck with dashed amber centre line and glowing edges, square amber sconces
   (pairs flank each side door), glowing arch portals at the ends (amber = Bridge, teal = Library).
-  One-step-outside-the-door spawn when returning from a room.
+  One-step-outside-the-door spawn when returning from a room; leaving the Bridge/Library you face AWAY from it (SPAWN yaw:
+  0 = facing −Z, 180 = facing +Z; the old heading check read the entity +Z axis and turned every spawn round — fixed).
   SKYLIGHT shows light speed (`buildSky`: animated streak quads + scrolling tunnel texture). SEVEN recessed walnut
   bookcases between ribs (`SHELVES` table; 2 columns × 6 lit shelves; ~instanced books with gilt spines, leaning/stacked
   books, vases, frames, plants, globes). Default spawn faces the Bridge (user is fine with it).
