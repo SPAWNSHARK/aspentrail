@@ -23,6 +23,7 @@
   <script src="brain.js"></script>
   <script src="mobile.js"></script>
   <script src="door.js"></script>
+  <script src="hyperspace.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -168,18 +169,11 @@
       material="color: #e9a56e; roughness: 0.42; metalness: 0.45">
     </a-ring>
 
-    <!-- GLASS CEILING (centre) — look up, see space -->
-    <a-circle position="0 5 0" rotation="90 0 0" radius="7.6" segments="64"
-      material="color: #0b1530; opacity: 0.10; transparent: true; roughness: 0.05; metalness: 0.5">
-    </a-circle>
+    <!-- GLASS DOME over the centre: built in buildDome() (glass, bronze ribs, amber ring), light speed beyond it -->
     <!-- CEILING RING (structure around the skylight) -->
     <a-ring id="ceil-ring" position="0 5 0" rotation="90 0 0" radius-inner="7.6" radius-outer="11" segments-theta="96"
       material="color: #8a8aa0; roughness: 0.7; metalness: 0.2; side: double">
     </a-ring>
-    <a-torus position="0 4.97 0" rotation="-90 0 0" radius="7.62" radius-tubular="0.045" segments-tubular="128" segments-radial="8"
-      material="color: #2c2a33; emissive: #6fa8ff; emissiveIntensity: 0.85; roughness: 0.4"></a-torus>
-    <a-torus position="0 4.9 0" rotation="-90 0 0" radius="9.4" radius-tubular="0.03" segments-tubular="128" segments-radial="6"
-      material="color: #2c2a33; emissive: #6fa8ff; emissiveIntensity: 0.9"></a-torus>
 
     <!-- CURVED WALLS — plated texture applied in script -->
     <a-cylinder id="lib-walls" position="0 2.5 0" radius="11" height="5" open-ended="true" segments-radial="72"
@@ -187,7 +181,7 @@
     </a-cylinder>
     <!-- wall top / base trim -->
     <a-torus position="0 4.96 0" rotation="-90 0 0" radius="10.95" radius-tubular="0.07" segments-tubular="128" segments-radial="6"
-      material="color: #1a1712; roughness: 0.6"></a-torus>
+      material="color: #8c6234; roughness: 0.42; metalness: 0.8"></a-torus>
     <a-torus position="0 0.05 0" rotation="-90 0 0" radius="10.9" radius-tubular="0.08" segments-tubular="128" segments-radial="6"
       material="color: #1a1712; roughness: 0.6"></a-torus>
 
@@ -532,18 +526,52 @@
       });
     }
 
-    // SKYLIGHT DOME RIBS + BRASS CROSSBAR over the glass
+    // CEILING + DOME — same architecture as the corridor and Bridge: bronze ribs, amber light ring, amber cove, dark panels.
+    // The ship flies bow-first toward the corridor door (+Z here), so light speed streams aft (−Z) over the dome.
     function buildDome() {
-      const root = el('a-entity', {}, scene);
-      for (let k = 0; k < 6; k++) {
-        el('a-torus', { position: '0 5 0', rotation: `0 ${k * 30} 0`, scale: '1 0.38 1', radius: 7.62, 'radius-tubular': 0.07, arc: 180,
-          'segments-tubular': 48, 'segments-radial': 6, material: 'color: #3a2f22; roughness: 0.4; metalness: 0.8; emissive: #6fa8ff; emissiveIntensity: 0.18' }, root);
-      }
-      el('a-torus', { position: '0 7.65 0', rotation: '-90 0 0', radius: 0.55, 'radius-tubular': 0.07, 'segments-tubular': 32, 'segments-radial': 6,
-        material: 'color: #3a2f22; roughness: 0.4; metalness: 0.8; emissive: #6fa8ff; emissiveIntensity: 0.4' }, root);
-      const bm = 'color: #9a7a38; roughness: 0.4; metalness: 0.9; emissive: #2a1a06; emissiveIntensity: 0.5';
-      el('a-box', { position: '0 0.06 -0.25', width: 15.2, height: 0.14, depth: 0.55, material: bm }, root);
-      [-5.5, -2.0, 2.0, 5.5].forEach(x => el('a-box', { position: `${x} 0.13 -0.25`, width: 0.5, height: 0.08, depth: 0.7, material: bm }, root));
+      const R0 = 7.62, Y0 = 5, SQ = 0.38, root = new THREE.Group(); scene.object3D.add(root);
+      const bz = (function () { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256);
+        for (let i = 0; i < 1400; i++) { const a = Math.random() * 0.18; x.fillStyle = Math.random() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, Math.random() * 256, 256, 1); }
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }());
+      const bronze = new THREE.MeshStandardMaterial({ map: bz, color: 0xd8b58a, roughness: 0.42, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.6 });
+      const amber = new THREE.MeshBasicMaterial({ color: 0xffb060, toneMapped: false });
+      const addM = (col, op, map) => new THREE.MeshBasicMaterial({ map: map || null, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false });
+      const ramp = (function () { const c = document.createElement('canvas'); c.width = 256; c.height = 4; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); return new THREE.CanvasTexture(c); }());
+
+      // glass dome (squashed hemisphere), faintly blue
+      const glass = new THREE.Mesh(new THREE.SphereGeometry(R0 - 0.02, 64, 20, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x8fb8ff, transparent: true, opacity: 0.035, depthWrite: false, side: THREE.BackSide, fog: false }));
+      glass.scale.y = SQ; glass.position.y = Y0; root.add(glass);
+      // twelve bevelled bronze ribs following the dome, a ring at mid-height, a glowing crown
+      const prof = []; for (let i = 0; i <= 24; i++) { const t = i / 24 * Math.PI / 2; prof.push([R0 * Math.cos(t), Y0 + R0 * SQ * Math.sin(t)]); }
+      const rib = new THREE.Shape(); rib.moveTo(prof[0][0], prof[0][1]); prof.forEach(p => rib.lineTo(p[0], p[1]));
+      for (let i = 24; i >= 0; i--) { const t = i / 24 * Math.PI / 2, nx = Math.cos(t) / 1, ny = Math.sin(t) / SQ, l = Math.hypot(nx, ny); rib.lineTo(prof[i][0] - nx / l * 0.14, prof[i][1] - ny / l * 0.14); }
+      const ribG = new THREE.ExtrudeGeometry(rib, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.02, bevelSegments: 2, curveSegments: 1 }); ribG.translate(0, 0, -0.06);
+      for (let k = 0; k < 12; k++) { const m = new THREE.Mesh(ribG, bronze); m.rotation.y = k * Math.PI / 6; root.add(m); }
+      const latY = Y0 + R0 * SQ * Math.sin(Math.PI / 4), latR = R0 * Math.cos(Math.PI / 4);
+      const lat = new THREE.Mesh(new THREE.TorusGeometry(latR - 0.05, 0.06, 8, 96), bronze); lat.rotation.x = Math.PI / 2; lat.position.y = latY - 0.03; root.add(lat);
+      const crown = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.1, 10, 48), bronze); crown.rotation.x = Math.PI / 2; crown.position.y = Y0 + R0 * SQ - 0.06; root.add(crown);
+      const cg = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.03, 8, 48), amber); cg.rotation.x = Math.PI / 2; cg.position.y = Y0 + R0 * SQ - 0.12; root.add(cg);
+
+      // the big amber light ring at the dome base, between bronze rims (as on the Bridge)
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(R0 + 0.18, 0.12, 12, 160), amber); ring.rotation.x = Math.PI / 2; ring.position.y = Y0 - 0.12; root.add(ring);
+      [R0 - 0.1, R0 + 0.5].forEach(r => { const t = new THREE.Mesh(new THREE.TorusGeometry(r, 0.08, 10, 160), bronze); t.rotation.x = Math.PI / 2; t.position.y = Y0 - 0.06; root.add(t); });
+      const halo = new THREE.Mesh(new THREE.RingGeometry(R0 - 1.0, R0 + 1.4, 128), addM(0xff9a40, 0.5, ramp)); halo.rotation.x = Math.PI / 2; halo.position.y = Y0 - 0.02; root.add(halo);
+      // outer ring of the ceiling: bronze rim at 9.4 m and the amber cove where it meets the wall
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(9.4, 0.07, 8, 160), bronze); rim.rotation.x = Math.PI / 2; rim.position.y = Y0 - 0.06; root.add(rim);
+      const cove = new THREE.Mesh(new THREE.TorusGeometry(10.85, 0.04, 6, 192), amber); cove.rotation.x = Math.PI / 2; cove.position.y = Y0 - 0.16; root.add(cove);
+      const crn = new THREE.Mesh(new THREE.TorusGeometry(10.9, 0.1, 8, 192), bronze); crn.rotation.x = Math.PI / 2; crn.position.y = Y0 - 0.06; root.add(crn);
+      const wash = new THREE.Mesh(new THREE.CylinderGeometry(10.96, 10.96, 1.3, 128, 1, true), addM(0xff9a40, 0.3, (function () { const c = document.createElement('canvas'); c.width = 4; c.height = 128; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return new THREE.CanvasTexture(c); }())));
+      wash.material.side = THREE.BackSide; wash.position.y = Y0 - 0.8; root.add(wash);
+
+      // the brass crossbar over the glass (kept from the earlier build), now in the ship's bronze
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.14, 0.55), bronze); bar.position.set(0, Y0 + 0.06, -0.25); root.add(bar);
+      [-5.5, -2.0, 2.0, 5.5].forEach(x => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.7), bronze); b.position.set(x, Y0 + 0.13, -0.25); root.add(b); });
+      const barL = new THREE.Mesh(new THREE.BoxGeometry(15.0, 0.012, 0.012), amber); barL.position.set(0, Y0 - 0.015, 0.03); root.add(barL);
+
+      // light speed beyond the dome
+      const hs = window.WAYFARER.hyperspace(scene.object3D, { fwd: 1, arc: [-75, 75], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 33 });
+      AFRAME.registerComponent('wf-lib-hyper', { tick: function (t) { hs.update(t / 1000); } });
+      scene.setAttribute('wf-lib-hyper', '');
     }
 
     // STARS — one draw call instead of 180 entities
@@ -602,7 +630,6 @@
         document.querySelector('a-light[type="ambient"]').setAttribute('intensity', 0.5);
       }
       document.getElementById('brain').setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
-      document.querySelector('#sky').setAttribute('src', T.starfield);
 
       // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
       const walls = document.getElementById('lib-walls');
@@ -622,14 +649,13 @@
       setEmissiveMap(deck, L.floor.glow, 0.9, [8, 8]);
 
       const ceil = document.getElementById('ceil-ring');
-      ceil.setAttribute('material', { src: T.ceilPanel, repeat: '10 10', color: '#a8a8c0', roughness: 0.7, metalness: 0.15, side: 'double' });
+      ceil.setAttribute('material', { src: T.ceilPanel, repeat: '10 10', color: '#5a4434', roughness: 0.8, metalness: 0.15, side: 'double' });
 
       buildBookcases(L);
       buildSconces();
       buildWings();
       buildLamps();
       buildDome();
-      buildStars();
 
       requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('boot').classList.add('done')));
     });

@@ -97,7 +97,12 @@ Rules drawn from them:
   captain's chair (tap → `minigame.html`), blue swirling orb on a brass stand; four white robots seated at curved
   consoles with teal screens (heads glance between screens). Exit = shared door at +Z (now has a wall behind it).
 - **Light speed is shared code: `hyperspace.js`** (`WAYFARER.hyperspace(root, {fwd, arc, minR, center, core})`).
-  Corridor: fwd +1, arc ±80° (overhead). Bridge: fwd −1, full circle, minR 14 (keep streaks outside the room).
+  Corridor: fwd +1, arc ±70°, minR 16, tunnel 0.6, width 0.55. Bridge: fwd −1, full circle, minR 14, core glow.
+  Library dome: fwd +1 (its door faces the bow), arc ±75°, same settings as the corridor. Streaks are DoubleSide
+  billboards (seen from below they face away — that once hid them entirely in the corridor).
+- **Library ceiling** restyled Nov 24 to match: glass dome under 12 bevelled bronze ribs + mid ring + glowing crown,
+  big amber light ring at the dome base, amber cove at the wall top, dark ceiling panels. Library WALLS are still the
+  older grey plated industrial look with hazard stripes — not yet matched to the style guide.
 - **Flight Mode** (`minigame.html`) — 3rd-person fly/fight mini-game.
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.

@@ -7,6 +7,7 @@
 // arc   = where streaks are placed around the ship's axis, degrees from straight up (0 = overhead, 180 = below).
 //         Corridor only sees up through the skylight: [-80, 80]. The Bridge window sees everything: [-180, 180].
 // core  = a bright vanishing point dead ahead (Bridge).
+// tunnel = opacity of the streaked backdrop (0.85); bright / width scale the streaks; maxR = outer radius of the streak field.
 // minR  = keep streaks at least this far from the axis (outside the room you're in); center = [x, y] of the axis.
 (function () {
   var THREE = AFRAME.THREE;
@@ -18,10 +19,10 @@
     var fwd = o.fwd || 1, arc = o.arc || [-180, 180], N = o.count || 1600, SPAN = 700, r = rng(o.seed || 77), cx0 = (o.center || [0, 0])[0], cy0 = (o.center || [0, 0])[1];
     var base = new Float32Array(N * 4 * 3), corner = new Float32Array(N * 4 * 2), info = new Float32Array(N * 4 * 3), col = new Float32Array(N * 4 * 3), idx = [];
     for (var i = 0; i < N; i++) {
-      var ang = (arc[0] + r() * (arc[1] - arc[0])) * Math.PI / 180, rad = (o.minR || 7) + Math.pow(r(), 1.5) * 180;
+      var ang = (arc[0] + r() * (arc[1] - arc[0])) * Math.PI / 180, rad = (o.minR || 7) + Math.pow(r(), 1.5) * ((o.maxR || 187) - (o.minR || 7));
       var x = Math.sin(ang) * rad + cx0, y = Math.cos(ang) * rad + cy0, z = (r() - 0.5) * SPAN;
-      var len = 30 + r() * 160, wid = 0.15 + r() * 0.25 + rad * 0.012, spd = 260 + r() * 340, hue = r();
-      var c = hue < 0.7 ? [0.75, 0.85, 1.0] : hue < 0.9 ? [1, 1, 1] : [0.55, 0.7, 1.0], br = 0.5 + r() * 0.8;
+      var len = 30 + r() * 160, wid = (0.15 + r() * 0.25 + rad * 0.012) * (o.width || 1), spd = 260 + r() * 340, hue = r();
+      var c = hue < 0.7 ? [0.75, 0.85, 1.0] : hue < 0.9 ? [1, 1, 1] : [0.55, 0.7, 1.0], br = (0.5 + r() * 0.8) * (o.bright || 1);
       [[0, -1], [0, 1], [1, -1], [1, 1]].forEach(function (k, j) {
         var q = i * 4 + j; base.set([x, y, z], q * 3); corner.set(k, q * 2); info.set([len, wid, spd], q * 3); col.set([c[0] * br, c[1] * br, c[2] * br], q * 3);
       });
@@ -30,7 +31,7 @@
     var g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(base, 3)); g.setAttribute('aCorner', new THREE.BufferAttribute(corner, 2));
     g.setAttribute('aInfo', new THREE.BufferAttribute(info, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 3)); g.setIndex(idx);
-    var sm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSpan: { value: SPAN }, uFwd: { value: fwd } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
+    var sm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSpan: { value: SPAN }, uFwd: { value: fwd } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false, side: THREE.DoubleSide,   // billboards can face away (seen from below)
       vertexShader: [
         'attribute vec2 aCorner; attribute vec3 aInfo, aCol; uniform float uT, uSpan, uFwd; varying vec2 vC; varying vec3 vCol;',
         'void main(){ vec3 b = position; b.z = mod(b.z - uFwd * uT * aInfo.z + uSpan * 0.5, uSpan) - uSpan * 0.5;',
@@ -48,7 +49,7 @@
       var wpx = 1.5 + r() * 4.5; x2.fillStyle = gr; x2.fillRect(u, v, wpx, L); if (v + L > 512) x2.fillRect(u, v - 512, wpx, L);
     }
     var tt = new THREE.CanvasTexture(c); tt.wrapS = tt.wrapT = THREE.RepeatWrapping; tt.repeat.set(3, 1.5);
-    var tun = new THREE.Mesh(new THREE.CylinderGeometry(260, 260, 1400, 48, 1, true), new THREE.MeshBasicMaterial({ map: tt, color: 0x9fc0ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false, toneMapped: false }));
+    var tun = new THREE.Mesh(new THREE.CylinderGeometry(260, 260, 1400, 48, 1, true), new THREE.MeshBasicMaterial({ map: tt, color: 0x9fc0ff, transparent: true, opacity: o.tunnel == null ? 0.85 : o.tunnel, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false, toneMapped: false }));
     tun.rotation.x = fwd * Math.PI / 2; tun.renderOrder = -10; root.add(tun);   // texture v runs toward the bow; the bright end of each streak leads aft
     var haze = new THREE.Mesh(new THREE.CylinderGeometry(250, 250, 1400, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x0a1630, side: THREE.BackSide, fog: false, depthWrite: false }));
     haze.rotation.x = Math.PI / 2; haze.renderOrder = -11; root.add(haze);

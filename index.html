@@ -581,7 +581,7 @@
 
     // ───────────────────────────── stars (seen through the skylight) ─────────────────────────────
     // ── light speed overhead (shared hyperspace.js): the ship flies toward the Bridge (+Z), streaks rush aft ──
-    function buildSky(root) { state.hyper = window.WAYFARER.hyperspace(root, { fwd: 1, arc: [-80, 80], count: MOB ? 900 : 1600 }); }
+    function buildSky(root) { state.hyper = window.WAYFARER.hyperspace(root, { fwd: 1, arc: [-70, 70], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9 }); }
 
     // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
     var navigating = false, fade = document.getElementById('wf-fade');
