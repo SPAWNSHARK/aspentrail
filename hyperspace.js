@@ -66,9 +66,19 @@
       coreS = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cc), color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false, transparent: true }));
       coreS.position.set(cx0, cy0, fwd * 600); coreS.scale.set(240, 240, 1); coreS.renderOrder = -8; root.add(coreS);
     }
+    // light spill: the streaks throw a cool, restless blue glow onto the room (floor gloss, walls).
+    // spill: [{ p: [x,y,z], i: intensity, d: distance }] creates point lights in (o.spillRoot || root); lights: existing ones to animate
+    var spills = [];
+    (o.spill || []).forEach(function (q) { var l = new THREE.PointLight(0x8fb2ff, q.i, q.d || 12, q.decay == null ? 1.3 : q.decay); l.position.set(q.p[0], q.p[1], q.p[2]); (o.spillRoot || root).add(l); spills.push([l, q.i]); });
+    (o.lights || []).forEach(function (l) { spills.push([l, l.intensity]); });
+    function hsh(n) { n = Math.sin(n * 91.7) * 43758.5; return n - Math.floor(n); }
     return {
-      update: function (ts) { sm.uniforms.uT.value = ts; tt.offset.y = (ts * 0.9) % 1; if (coreS) coreS.material.opacity = 0.85 + 0.15 * Math.sin(ts * 3.1); },
-      objects: [streaks, tun, haze].concat(coreS ? [coreS] : [])
+      update: function (ts) {
+        if (spills.length) { var k = Math.floor(ts * 4), f = ts * 4 - k, burst = hsh(k) * (1 - f) + hsh(k + 1) * f;   // smooth random surges as bright streaks pass
+          var m = 0.72 + 0.1 * Math.sin(ts * 7.3) + 0.06 * Math.sin(ts * 13.7 + 1.3) + 0.35 * burst * burst;
+          spills.forEach(function (e, j) { e[0].intensity = e[1] * (m + 0.05 * Math.sin(ts * 9.1 + j * 2.1)); }); }
+        sm.uniforms.uT.value = ts; tt.offset.y = (ts * 0.9) % 1; if (coreS) coreS.material.opacity = 0.85 + 0.15 * Math.sin(ts * 3.1); },
+      objects: [streaks, tun, haze].concat(coreS ? [coreS] : []), spills: spills
     };
   };
 }());

@@ -15,13 +15,13 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261124e"></script>
+  <script src="textures.js?v=20261124f"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261124e"></script>
-  <script src="door.js?v=20261124e"></script>
-  <script src="props.js?v=20261124e"></script>
-  <script src="hyperspace.js?v=20261124e"></script>
-  <script src="cats.js?v=20261124e"></script>
+  <script src="mobile.js?v=20261124f"></script>
+  <script src="door.js?v=20261124f"></script>
+  <script src="props.js?v=20261124f"></script>
+  <script src="hyperspace.js?v=20261124f"></script>
+  <script src="cats.js?v=20261124f"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -161,7 +161,7 @@
     material="color: #2a6ad0; emissive: #4a8aff; emissiveIntensity: 1.6">
   </a-box>
   <a-text value="[ TAP SCREEN TO BROWSE ]" align="center" position="0 1.95 -7.51" color="#9fc4ff" width="5" letter-spacing="4"></a-text>
-  <a-light type="point" position="0 2.9 -6.4" color="#8ab4ff" intensity="1.0" distance="9" decay="2"></a-light>
+  <a-light id="win-spill" type="point" position="0 2.9 -6.4" color="#8ab4ff" intensity="1.2" distance="11" decay="1.6"></a-light>
   <!-- soft warm fill over seating + rug (independent of the TV, so a dark frame still reads) -->
   <a-light id="fill-seat" type="point" position="0 3.4 1.2" color="#ffc890" intensity="1.1" distance="11" decay="1.2"></a-light>
   <a-light id="fill-rug" type="point" position="0.5 3.2 -3.8" color="#ffc080" intensity="1.0" distance="10" decay="1.2"></a-light>
@@ -456,7 +456,7 @@
       var wr = new THREE.Mesh(new THREE.TorusGeometry(3.15, 0.14, 12, 96), bronze); wr.position.set(0, 2.6, zc + 0.05); g.add(wr);
       // light speed outside: a frame turned so the ship's forward (+X in this room) is the streams' axis
       var outside = new THREE.Group(); outside.rotation.y = Math.PI / 2; sc.object3D.add(outside);
-      var hs = window.WAYFARER.hyperspace(outside, { fwd: 1, arc: [-180, 180], count: (window.WAYFARER && window.WAYFARER.mobile) ? 900 : 1500, minR: 12, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 55, center: [0, 2.6] });
+      var hs = window.WAYFARER.hyperspace(outside, { fwd: 1, arc: [-180, 180], count: (window.WAYFARER && window.WAYFARER.mobile) ? 900 : 1500, minR: 12, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 55, center: [0, 2.6], lights: (function () { var e = document.getElementById('win-spill'), l = e && e.getObject3D('light'); return l ? [l] : []; }()) });
       AFRAME.registerComponent('wf-lounge-hyper', { tick: function (t) { hs.update(t / 1000); } });
       sc.setAttribute('wf-lounge-hyper', '');
     }

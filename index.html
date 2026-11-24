@@ -15,11 +15,11 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261124e"></script>
+  <script src="textures.js?v=20261124f"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261124e"></script>
-  <script src="door.js?v=20261124e"></script>
-  <script src="hyperspace.js?v=20261124e"></script>
+  <script src="mobile.js?v=20261124f"></script>
+  <script src="door.js?v=20261124f"></script>
+  <script src="hyperspace.js?v=20261124f"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -514,21 +514,28 @@
       [-9, -3, 3, 9].forEach(function (z) { var m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3.6), sm.clone()); m.position.set(0, 1.9, z); m.rotation.x = -0.18; root.add(m); state.shafts.push(m); });
     }
 
-    // ── polished deck, dashed amber centre line, edge glow ──
+    // ── polished deck, woven runner with brass rods, edge glow ──
     function buildFloor(root, M, aniso) {
       var fm = new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.3, metalness: 0.55, color: 0xa89e92 });
       fm.map.repeat.set(5, 25); fm.map.anisotropy = aniso;
       var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), fm); fl.rotation.x = -Math.PI / 2; root.add(fl); state.floorMat = fm;
-      var dashes = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.07, 0.85), M.amber, 17), dm = new THREE.Object3D(), n = 0;
-      for (var z = -12; z <= 12.01; z += 1.5) { dm.position.set(0, 0.004, z); dm.rotation.set(-Math.PI / 2, 0, 0); dm.updateMatrix(); dashes.setMatrixAt(n++, dm.matrix); }
-      dashes.count = n; root.add(dashes);
       var add = function (tex, col, op) { return new THREE.MeshBasicMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); };
-      var cg = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 25), add(rampTexture(true), 0xff8a30, 0.28)); cg.rotation.x = -Math.PI / 2; cg.position.y = 0.003; root.add(cg);
+      // a long woven runner down the middle instead of a dashed "road" line (user, Nov 24: "why is the hallway a road")
+      var rc = cv(256, 512), rx = rc.getContext('2d'), rr2 = rng(41);
+      rx.fillStyle = '#2a0f0c'; rx.fillRect(0, 0, 256, 512);
+      for (var k = 0; k < 6000; k++) { rx.fillStyle = 'rgba(' + (rr2() < 0.5 ? '0,0,0' : '200,120,90') + ',' + (0.05 + rr2() * 0.06) + ')'; rx.fillRect(rr2() * 256, rr2() * 512, 1, 2 + rr2() * 3); }   // wool
+      rx.strokeStyle = '#b8823e'; rx.lineWidth = 10; rx.strokeRect(18, -10, 220, 540); rx.strokeStyle = '#1c0a08'; rx.lineWidth = 4; rx.strokeRect(34, -10, 188, 540);
+      rx.fillStyle = '#b8823e'; for (var y = 0; y < 512; y += 32) { rx.beginPath(); rx.moveTo(26, y + 4); rx.lineTo(32, y + 16); rx.lineTo(26, y + 28); rx.lineTo(20, y + 16); rx.fill(); rx.beginPath(); rx.moveTo(230, y + 4); rx.lineTo(236, y + 16); rx.lineTo(230, y + 28); rx.lineTo(224, y + 16); rx.fill(); }
+      rx.strokeStyle = 'rgba(190,130,62,0.6)'; rx.lineWidth = 2; rx.beginPath(); rx.moveTo(128, 150); rx.lineTo(166, 256); rx.lineTo(128, 362); rx.lineTo(90, 256); rx.closePath(); rx.stroke();      // a medallion per repeat
+      rx.beginPath(); rx.moveTo(128, 196); rx.lineTo(148, 256); rx.lineTo(128, 316); rx.lineTo(108, 256); rx.closePath(); rx.fillStyle = 'rgba(70,24,18,0.9)'; rx.fill(); rx.stroke();
+      rx.fillStyle = '#b8823e'; rx.beginPath(); rx.arc(128, 256, 5, 0, 7); rx.fill();
+      var rt = mkTex(rc); rt.repeat.set(1, 9); rt.anisotropy = aniso;
+      var runner = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 24.2, 1, 24), new THREE.MeshStandardMaterial({ map: rt, roughness: 0.95, metalness: 0, color: 0xb8a8a0 }));
+      runner.rotation.x = -Math.PI / 2; runner.position.y = 0.006; root.add(runner);
+      var rodM = new THREE.MeshStandardMaterial({ color: 0xc08a48, roughness: 0.3, metalness: 0.9 });
+      [-0.78, 0.78].forEach(function (xx) { var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 24.2, 8), rodM); rod.rotation.x = Math.PI / 2; rod.position.set(xx, 0.018, 0); root.add(rod); });
       var edge = rampTexture(false);
       [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 25), add(edge, 0xff9a40, 0.32)); m.rotation.x = -Math.PI / 2; m.rotation.z = s > 0 ? Math.PI : 0; m.position.set(s * (2.5 - 0.4), 0.003, 0); root.add(m); });
-      // thin bronze inlay lines, as in the reference deck
-      var brz = new THREE.MeshBasicMaterial({ color: 0x6a4a26, fog: false });
-      [-1.2, 1.2].forEach(function (xx) { var s = new THREE.Mesh(new THREE.PlaneGeometry(0.025, 25), brz); s.rotation.x = -Math.PI / 2; s.position.set(xx, 0.004, 0); root.add(s); });
     }
 
     // ── glowing arch portals around the two end doors (amber: Bridge, teal: Library) ──
@@ -582,7 +589,8 @@
 
     // ───────────────────────────── stars (seen through the skylight) ─────────────────────────────
     // ── light speed overhead (shared hyperspace.js): the ship flies toward the Bridge (+Z), streaks rush aft ──
-    function buildSky(root) { state.hyper = window.WAYFARER.hyperspace(root, { fwd: 1, arc: [-70, 70], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9 }); }
+    function buildSky(root) { state.hyper = window.WAYFARER.hyperspace(root, { fwd: 1, arc: [-70, 70], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9,
+      spill: [{ p: [0, 3.3, -7], i: 1.6, d: 10 }, { p: [0, 3.3, 0], i: 1.6, d: 10 }, { p: [0, 3.3, 7], i: 1.6, d: 10 }] }); }   // blue glare on the deck/walls
 
     // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
     var navigating = false, fade = document.getElementById('wf-fade');

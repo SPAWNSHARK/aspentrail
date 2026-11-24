@@ -18,13 +18,13 @@
   <meta name="theme-color" content="#000208">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <script src="textures.js?v=20261124e"></script>
+  <script src="textures.js?v=20261124f"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="brain.js?v=20261124e"></script>
-  <script src="mobile.js?v=20261124e"></script>
-  <script src="door.js?v=20261124e"></script>
-  <script src="props.js?v=20261124e"></script>
-  <script src="hyperspace.js?v=20261124e"></script>
+  <script src="brain.js?v=20261124f"></script>
+  <script src="mobile.js?v=20261124f"></script>
+  <script src="door.js?v=20261124f"></script>
+  <script src="props.js?v=20261124f"></script>
+  <script src="hyperspace.js?v=20261124f"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -572,7 +572,8 @@
       const barL = new THREE.Mesh(new THREE.BoxGeometry(15.0, 0.012, 0.012), amber); barL.position.set(0, Y0 - 0.015, 0.03); root.add(barL);
 
       // light speed beyond the dome
-      const hs = window.WAYFARER.hyperspace(scene.object3D, { fwd: 1, arc: [-75, 75], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 33 });
+      const hs = window.WAYFARER.hyperspace(scene.object3D, { fwd: 1, arc: [-75, 75], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 33,
+        spill: [{ p: [0, 5.5, 0], i: 1.1 * Math.PI, d: 16, decay: 1.2 }] });   // the dome throws blue light on the deck and shelves
       AFRAME.registerComponent('wf-lib-hyper', { tick: function (t) { hs.update(t / 1000); } });
       scene.setAttribute('wf-lib-hyper', '');
     }
