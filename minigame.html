@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261124j"></script>
+  <script src="shipskin.js?v=20261124k"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
@@ -326,6 +326,18 @@ SYSTEM.forEach((P, i) => {
   }
   planets.push({ ...P, group: g, mesh: m, moons });
 });
+// planets and moons are solid (user: "I just smashed through the planet"): the ship skims the atmosphere instead —
+// pushed back out to just above the surface and slid along it, with a shudder and a warning.
+const _pc = new THREE.Vector3(); let skimWarn = 0;
+function collidePlanets() {
+  let hit = false; skimWarn = Math.max(0, skimWarn - 1 / 60);
+  planets.forEach(P => {
+    const bodies = [[P.group.position, P.r * 1.04 + 4]];
+    P.moons.forEach(M => { M.mesh.getWorldPosition(_pc); bodies.push([_pc.clone(), M.mesh.geometry.parameters.radius * 1.05 + 3]); });
+    bodies.forEach(([c, R]) => { const d = shipPos.distanceTo(c); if (d < R) { const n = shipPos.clone().sub(c).normalize(); shipPos.copy(c).addScaledVector(n, R); hit = true; } });
+  });
+  if (hit) { shake = Math.max(shake, 0.25); if (skimWarn <= 0) { announce('PULL UP'); skimWarn = 3; } }
+}
 function updateSystem(t) {
   planets.forEach(P => { P.mesh.material.uniforms.time.value = t; P.mesh.rotation.y = t * 0.01; P.moons.forEach(M => { const a = M.ph + t * M.sp; M.mesh.position.set(Math.cos(a) * M.d, Math.sin(a) * M.d * M.tilt, Math.sin(a) * M.d); M.mesh.material.uniforms.time.value = t; }); });
   skyMesh.rotation.y = t * 0.0015;                                            // the Milky Way turns, slowly
@@ -883,6 +895,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
     const fwd = new THREE.Vector3(0,0,-1)
       .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
     shipPos.addScaledVector(fwd, SHIP_SPEED * dt);
+    collidePlanets();
     playerShip.position.copy(shipPos);
     playerShip.rotation.set(shipPitch, shipYaw, shipRoll, 'YXZ');
 
