@@ -112,18 +112,20 @@ Rules drawn from them:
   60 s stretch cycle, browser TV, painting, plaque.
 - **Media Nexus** (`media.html`) — circular room, 11 screens on placeholder searches. Needs the hybrid rebuild
   and a YouTube Data API v3 key.
-- **Holodeck** (`holodeck.html`) — 2D house blueprint planner (drag furniture, shopping-list export) and the
-  Star Garden program on the amber projector ring.
+- **Holodeck** (`holodeck.html`) — RESTYLED Nov 24: square room (±9 m, 4.4 m high), dark panels with glowing amber
+  grid + `+` marks (emissive grid texture), bronze ribs/beams/posts, amber ceiling ring over a round bronze console with
+  a violet emitter lens and a spiral GALAXY hologram (entity `#hd-house`, auto-hidden by stargarden.js while Star Garden
+  runs). Three console buttons: FIT SCENE (step back to view), RESET (close programs), SIM LIBRARY (HTML menu → House
+  Blueprint planner or Star Garden). The 2D blueprint planner and Star Garden code are unchanged.
 - **Icons** — frameless ship icon (from `reference/app-icon-source.jpg`) at 180/192/512 + favicon; share image.
 
 ## What's next (agreed order: restyle room by room to the reference)
-1. Holodeck restyle (bronze console + 3 buttons; SIM LIBRARY is a candidate home for the blueprint planner)
-2. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
+1. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
    restrict it to the Pages domain in Google Cloud)
-3. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
-4. Lounge touch-up to the reference (bookshelf, lamp, plants, YouTube on the TV)
-5. Flight Mode (`minigame.html`) restyle to match
-6. Collision / room boundaries everywhere
+2. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
+3. Lounge touch-up to the reference (bookshelf, lamp, plants, YouTube on the TV)
+4. Flight Mode (`minigame.html`) restyle to match
+5. Collision / room boundaries everywhere
 
 ## Known issues
 - Lounge floor/ceiling turn into flat blown-out patches (lavender floor) when looking sideways near the door. The
