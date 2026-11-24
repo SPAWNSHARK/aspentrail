@@ -109,7 +109,10 @@ Rules drawn from them:
 - **Library** (`library.html`) — pearly veined brain in a cabled electrogel tank, copper room, dome, scroll
   reader. Scrolls hold placeholder text, not the user's Obsidian notes yet.
 - **Crew Lounge** (`lounge.html`) — curved leather sofa, brass table, woven rug, rigged alien cats on a shared
-  60 s stretch cycle, browser TV, painting, plaque.
+  60 s stretch cycle, browser TV, bookshelf, sideboard, painting, plants, plaques. SHELL restyled Nov 24 (`buildShell`):
+  walnut walls + bronze ribs, polished deck + amber rings, dark ceiling with bronze rims round the amber ring, amber
+  cove; the wall has a real gap behind the TV with a round window showing light speed running SIDEWAYS (the Lounge
+  faces starboard; ship forward = +X in this room, so the hyperspace group is rotated 90°).
 - **Media Nexus** (`media.html`) — circular room, 11 screens on placeholder searches. Needs the hybrid rebuild
   and a YouTube Data API v3 key.
 - **Holodeck** (`holodeck.html`) — RESTYLED Nov 24: square room (±9 m, 4.4 m high), dark panels with glowing amber
@@ -124,12 +127,12 @@ Rules drawn from them:
 1. Media Nexus hybrid rebuild — needs YouTube API key from the user (a key in a Pages site is public:
    restrict it to the Pages domain in Google Cloud)
 2. Library — load the user's real Obsidian markdown into the scrolls (user will add the files)
-3. Lounge touch-up to the reference (bookshelf, lamp, plants, YouTube on the TV)
+3. Lounge: YouTube on the TV (needs the API key, same as Media Nexus)
 4. Flight Mode (`minigame.html`) restyle to match
 5. Collision / room boundaries everywhere
 
 ## Known issues
-- Lounge floor/ceiling turn into flat blown-out patches (lavender floor) when looking sideways near the door. The
-  patches follow the disc's triangles and come from the lounge's 13 point lights. Seen in headless swiftshader;
-  NOT yet checked on iPhone. Shows in `room-lounge.jpg` at the sides.
+- RULE (found Nov 24): never use big single-fan discs / tall single-quad walls for floors, ceilings or walls the
+  player walks next to. Their huge thin triangles get clipped wrong near the camera and leave holes (the Lounge's
+  old "lavender floor" was the background showing through). Use RingGeometry(…, 96, 14) / segments-height ≥ 12.
 - Mobile autoplay: test the 15 s video loop on an actual iPhone before committing to that UX.
