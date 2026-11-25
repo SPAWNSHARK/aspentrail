@@ -16,10 +16,10 @@
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125c"></script>
-  <script src="door.js?v=20261125c"></script>
-  <script src="hyperspace.js?v=20261125c"></script>
-  <script src="lcars.js?v=20261125c"></script>
+  <script src="mobile.js?v=20261125d"></script>
+  <script src="door.js?v=20261125d"></script>
+  <script src="hyperspace.js?v=20261125d"></script>
+  <script src="lcars.js?v=20261125d"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -108,16 +108,21 @@
     function wallTexture() {
       var W = 512, H = 1024, c = cv(W, H), x = c.getContext('2d'), r = rng(11);
       function Y(m) { return (1 - m / WALL_H) * H; }
-      x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, H);
+      x.fillStyle = '#4a2a1a'; x.fillRect(0, 0, W, H);   // dark copper plate
       function inset(y0, y1, col) { x.fillStyle = col; x.fillRect(26, Y(y1), W - 52, Y(y0) - Y(y1)); x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(26, Y(y1), W - 52, 3); x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(26, Y(y0) - 3, W - 52, 3); }
-      inset(1.06, 3.9, '#372b23'); inset(0.14, 0.86, '#2f251e');
+      inset(1.06, 3.9, '#6a3c24'); inset(0.14, 0.86, '#5a3220');
+      x.fillStyle = 'rgba(30,14,6,0.8)'; for (var rv = 0; rv < 2; rv++) for (var ry = 0.3; ry < 3.9; ry += 0.45) { x.beginPath(); x.arc(rv ? W - 14 : 14, Y(ry), 4, 0, 7); x.fill(); }   // rivet rows
       x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, H);
       function rail(m, h) { var g = x.createLinearGradient(0, Y(m + h), 0, Y(m)); g.addColorStop(0, '#d9a866'); g.addColorStop(0.5, '#9a6c36'); g.addColorStop(1, '#5a3d1e'); x.fillStyle = g; x.fillRect(0, Y(m + h), W, Y(m) - Y(m + h)); }
       rail(0.95, 0.05); rail(4.0, 0.04);
-      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * H, 1 + r() * 2, 1 + r() * 8); }
+      for (var i = 0; i < 6000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.07)' : 'rgba(255,215,180,0.05)'; x.fillRect(r() * W - 30, r() * H, 30 + r() * 140, 1); }   // horizontal brushing, not grain
       return tex(c);
     }
-    function bronzeTexture() { var c = cv(256, 256), x = c.getContext('2d'), r = rng(5); x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256); for (var i = 0; i < 1400; i++) { var a = r() * 0.18; x.fillStyle = r() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, r() * 256, 256, 1); } return tex(c); }
+    function bronzeTexture() {           // brushed copper (user, Nov 25: metal, never wood): fine straight brushing, faint heat tint
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(5); x.fillStyle = '#c27a48'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 2600; i++) { var a = r() * 0.12; x.fillStyle = r() < 0.5 ? 'rgba(255,225,190,' + a + ')' : 'rgba(70,30,12,' + a + ')'; x.fillRect(r() * 256 - 40, r() * 256, 40 + r() * 200, 1); }
+      var g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, 'rgba(255,170,120,0.08)'); g.addColorStop(0.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(120,60,140,0.05)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+      return tex(c); }
     function deckTexture() {             // polished dark deck: concentric plates read from the radial UVs of a circle
       var c = cv(512, 512), x = c.getContext('2d'), r = rng(23);
       x.fillStyle = '#1e1a17'; x.fillRect(0, 0, 512, 512);
@@ -127,16 +132,16 @@
     }
     function ceilTexture() {
       var c = cv(512, 512), x = c.getContext('2d'), r = rng(3);
-      x.fillStyle = '#231b15'; x.fillRect(0, 0, 512, 512);
+      x.fillStyle = '#3a2216'; x.fillRect(0, 0, 512, 512);
       for (var i = 0; i < 4000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(255,220,180,0.03)'; x.fillRect(r() * 512, r() * 512, 1 + r() * 3, 1 + r() * 3); }
       x.strokeStyle = 'rgba(0,0,0,0.5)'; x.lineWidth = 3; x.strokeRect(0, 0, 512, 512); x.strokeStyle = 'rgba(255,200,140,0.06)'; x.strokeRect(4, 4, 504, 504);
       return tex(c, 6, 6);
     }
-    function leatherTexture() {          // tan leather with vertical tufting channels
+    function leatherTexture() {          // captain's chair: polished copper with ribbed channels (was tan leather that read as wood)
       var c = cv(256, 256), x = c.getContext('2d'), r = rng(9);
-      x.fillStyle = '#b07446'; x.fillRect(0, 0, 256, 256);
-      for (var i = 0; i < 5000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(60,30,10,0.07)' : 'rgba(255,220,180,0.06)'; x.fillRect(r() * 256, r() * 256, 1 + r() * 2, 1 + r() * 2); }
-      for (var k = 0; k < 5; k++) { var xx = 24 + k * 52, g = x.createLinearGradient(xx - 10, 0, xx + 10, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.5, 'rgba(50,22,8,0.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(xx - 10, 0, 20, 256); }
+      x.fillStyle = '#c4784a'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 1600; i++) { x.fillStyle = r() < 0.5 ? 'rgba(255,230,200,0.06)' : 'rgba(60,24,8,0.06)'; x.fillRect(0, r() * 256, 256, 1); }
+      for (var k = 0; k < 5; k++) { var xx = 24 + k * 52, g = x.createLinearGradient(xx - 9, 0, xx + 9, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.45, 'rgba(40,14,4,0.6)'); g.addColorStop(0.55, 'rgba(255,220,180,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(xx - 9, 0, 18, 256); }
       return tex(c, 1, 1);
     }
     function screenTexture(seed, hue) {   // console UI: graph, bars, readouts
@@ -156,17 +161,17 @@
     function build() {
       root = new THREE.Group(); sc.object3D.add(root);
       M = {
-        wall:   new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.62, metalness: 0.15, side: THREE.BackSide }),
-        bronze: new THREE.MeshStandardMaterial({ map: bronzeTexture(), color: 0xd8b58a, roughness: 0.42, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.5 }),
+        wall:   new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.38, metalness: 0.75, side: THREE.BackSide }),
+        bronze: new THREE.MeshStandardMaterial({ map: bronzeTexture(), color: 0xffffff, roughness: 0.3, metalness: 0.95, emissive: 0x1a0a04, emissiveIntensity: 0.4 }),
         dark:   new THREE.MeshStandardMaterial({ color: 0x2a221c, roughness: 0.6, metalness: 0.3 }),
         floor:  new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.28, metalness: 0.55, color: 0xa89e92 }),
-        ceil:   new THREE.MeshStandardMaterial({ map: ceilTexture(), roughness: 0.8, metalness: 0.15, side: THREE.DoubleSide }),
+        ceil:   new THREE.MeshStandardMaterial({ map: ceilTexture(), roughness: 0.45, metalness: 0.7, side: THREE.DoubleSide }),
         amber:  new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }),
         lamp:   new THREE.MeshBasicMaterial({ color: 0xffb468, toneMapped: false }),
-        leather:new THREE.MeshStandardMaterial({ map: leatherTexture(), roughness: 0.5, metalness: 0.05 }),
+        leather:new THREE.MeshStandardMaterial({ map: leatherTexture(), roughness: 0.24, metalness: 0.92 }),   // the chair: copper, not leather
         shell:  new THREE.MeshStandardMaterial({ color: 0xe6e7ea, roughness: 0.28, metalness: 0.25 }),
         joint:  new THREE.MeshStandardMaterial({ color: 0x2a2c31, roughness: 0.4, metalness: 0.6 }),
-        wood:   new THREE.MeshStandardMaterial({ color: 0x4a2e1a, roughness: 0.6, metalness: 0.05 }),
+        wood:   new THREE.MeshStandardMaterial({ color: 0xb87048, roughness: 0.32, metalness: 0.9 }),   // shelves: copper sheet (name kept)
         leaf:   new THREE.MeshStandardMaterial({ color: 0x3f6b2e, roughness: 0.8, side: THREE.DoubleSide }),
         pot:    new THREE.MeshStandardMaterial({ color: 0x8a4a2a, roughness: 0.8 })
       };
@@ -354,7 +359,7 @@
         root.position.set(0, -1.6, 0); root.updateMatrixWorld(true);
         var rt = pm.fromScene(sc.object3D, 0.02, 0.1, 1000);
         root.position.set(0, 0, 0); root.updateMatrixWorld(true); rig.visible = v; M.amber.color.copy(lc);
-        [[M.floor, 1.0], [M.bronze, 0.6], [M.shell, 0.8], [M.leather, 0.25], [M.dark, 0.4]].forEach(function (q) { q[0].envMap = rt.texture; q[0].envMapIntensity = q[1]; q[0].needsUpdate = true; });
+        [[M.floor, 1.0], [M.bronze, 0.6], [M.shell, 0.8], [M.leather, 0.9], [M.wall, 0.5], [M.wood, 0.6], [M.ceil, 0.35], [M.dark, 0.4]].forEach(function (q) { q[0].envMap = rt.texture; q[0].envMapIntensity = q[1]; q[0].needsUpdate = true; });
         pm.dispose();
       } catch (e) { root.position.set(0, 0, 0); }
     }
@@ -410,6 +415,11 @@
   }());
   </script>
 
-<script>window.WAYFARER.door.roomExit('bridge');</script>
+<script>window.WAYFARER.door.roomExit('bridge');
+  // no wood anywhere on the Bridge (user): turn the shared door's frame/leaves to polished copper on this page only
+  (function metalDoor() { var D = window.WAYFARER.roomDoor; if (!D || !D.g) return setTimeout(metalDoor, 200);
+    D.g.traverse(function (o) { if (!o.isMesh || !o.material) return; var arr = Array.isArray(o.material) ? o.material : [o.material];
+      o.material = arr.map(function (m) { if (!m.isMeshStandardMaterial || m.transparent) return m; var c = m.clone(); c.color.setHex(0xe09a68); c.metalness = 0.92; c.roughness = 0.3; c.envMapIntensity = 0.8; return c; });
+      if (!Array.isArray(o.material) || o.material.length === 1) o.material = Array.isArray(o.material) ? o.material[0] : o.material; }); }());</script>
 </body>
 </html>
