@@ -224,6 +224,7 @@
   function create(o) {
     var renderer = o.sc.renderer; res(renderer);
     var g = new THREE.Group(); g.position.set(o.frame.x, 0, o.frame.z); g.rotation.y = o.frame.rot * Math.PI / 180; (o.parent || o.sc.object3D).add(g);
+    g.userData.noCollide = true;   // doorways stay walkable (mobile.js obstacle scan skips this subtree)
     var depth = o.depth || 0.1;
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
     var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.244), new THREE.MeshBasicMaterial({ map: plate(o.name, 900, 200), fog: false, toneMapped: false }));

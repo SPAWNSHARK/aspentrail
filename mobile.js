@@ -50,7 +50,7 @@
     look: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>'
   };
   AFRAME.registerComponent('wayfarer-mobile', {
-    schema: { speed: { default: 2.6 }, radius: { default: 0 } },
+    schema: { speed: { default: 2.6 }, radius: { default: 0 }, collide: { default: true } },
 
     init: function () {
       var self = this, sc = this.el;
@@ -200,6 +200,46 @@
       if (sc.hasLoaded) ready(); else sc.addEventListener('loaded', ready);
     },
 
+    // ── furniture collision (user, Nov 25: "you can run straight into couches, chairs, robots"): scan the room for solid
+    //    things at body height and keep the player's 0.28 m circle out of their footprints (axis-aligned boxes in XZ).
+    //    Skipped: floors/rugs/steps (top < 0.45 m), ceiling fittings (bottom > 1.4 m), walls/shells (footprint > 12 m²), invisible hit
+    //    targets, points/sprites/lines, instanced books, doorways (userData.noCollide) and the player rig. Rescanned while
+    //    GLB props stream in. Only resolves while you're moving, so a seat you land in never shoves you.
+    scanSolids: function () {
+      var T = AFRAME.THREE, sc = this.el, rig = this.mover && this.mover.parentNode && this.mover.parentNode.object3D, out = [], bb = new T.Box3();
+      function skip(o) { for (var q = o; q; q = q.parent) { if (q.userData && q.userData.noCollide) return true; if (rig && q === rig) return true; if (q.el && q.el.classList && q.el.classList.contains('no-collide')) return true; } return false; }
+      sc.object3D.updateMatrixWorld(true);
+      sc.object3D.traverse(function (o) {
+        if (!o.isMesh || o.isInstancedMesh || !o.visible || !o.geometry) return;
+        var m = Array.isArray(o.material) ? o.material[0] : o.material; if (!m || (m.transparent && m.opacity < 0.15) || m.visible === false) return;
+        for (var q = o; q; q = q.parent) if (q.visible === false) return;
+        if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+        bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+        var w = bb.max.x - bb.min.x, d = bb.max.z - bb.min.z;
+        if (bb.max.y < 0.45 || bb.min.y > 1.4 || w * d > 12 || w > 7 || d > 7 || w * d < 0.0004) return;
+        if (skip(o)) return;
+        out.push([bb.min.x, bb.min.z, bb.max.x, bb.max.z]);
+      });
+      this.solids = out;
+    },
+    collide: function (m, lp) {
+      if (!this.solids || !this.solids.length) return;
+      var T = AFRAME.THREE, wp = this._cw || (this._cw = new T.Vector3()); m.getWorldPosition(wp);
+      var R = 0.28, S = this.solids, px = wp.x - (m.position.x - lp.x), pz = wp.z - (m.position.z - lp.z);   // where we were last frame (world)
+      var tx = wp.x, tz = wp.z, n = Math.max(1, Math.ceil(Math.hypot(tx - px, tz - pz) / 0.08)), x = px, z = pz;
+      for (var k = 1; k <= n; k++) {                         // sub-steps: a fast move can't hop over a thin sofa segment
+        var ox = x, oz = z; x = px + (tx - px) * k / n; z = pz + (tz - pz) * k / n;
+        for (var pass = 0; pass < 3; pass++) for (var i = 0; i < S.length; i++) {
+          var b = S[i], x0 = b[0] - R, z0 = b[1] - R, x1 = b[2] + R, z1 = b[3] + R;
+          if (x <= x0 || x >= x1 || z <= z0 || z >= z1) continue;
+          // push back out through the side we came in by (slides along the face); fall back to the shallowest side
+          if (ox <= x0) x = x0; else if (ox >= x1) x = x1; else if (oz <= z0) z = z0; else if (oz >= z1) z = z1;
+          else { var dl = x - x0, dr = x1 - x, dn = z - z0, df = z1 - z, mn = Math.min(dl, dr, dn, df); if (mn === dl) x = x0; else if (mn === dr) x = x1; else if (mn === dn) z = z0; else z = z1; }
+        }
+      }
+      m.position.x += x - wp.x; m.position.z += z - wp.z;
+    },
+
     applyGyro: function () {
       var c = this.el.querySelector('[camera]');
       if (c && c.components['look-controls']) c.setAttribute('look-controls', 'magicWindowTrackingEnabled', this.gyro);
@@ -230,6 +270,13 @@
           m.position.x += (fx * v.y - fz * v.x) * this.data.speed * s;
           m.position.z += (fz * v.y + fx * v.x) * this.data.speed * s;
         }
+      }
+      if (this.data.collide) {
+        if (!this.scanAt) { this.scanAt = t + 1500; this.scans = 0; }
+        if (t > this.scanAt && this.scans < 8) { this.scanSolids(); this.scans++; this.scanAt = t + 2000; }   // props stream in for a while
+        var lp = this._lp || (this._lp = new AFRAME.THREE.Vector3(1e9, 0, 0));
+        if (lp.x < 1e8 && Math.abs(m.position.x - lp.x) + Math.abs(m.position.z - lp.z) > 1e-5) this.collide(m, lp);   // only while moving
+        lp.copy(m.position);
       }
       if (this.data.radius > 0) {                           // keep keyboard + stick inside the room
         m.getWorldPosition(this.wp);

@@ -15,11 +15,11 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261125b"></script>
+  <script src="textures.js?v=20261125c"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125b"></script>
-  <script src="door.js?v=20261125b"></script>
-  <script src="hyperspace.js?v=20261125b"></script>
+  <script src="mobile.js?v=20261125c"></script>
+  <script src="door.js?v=20261125c"></script>
+  <script src="hyperspace.js?v=20261125c"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -87,7 +87,7 @@
   <div id="controls-hint">WASD / DRAG TO LOOK · CLICK OR TAP THE OPEN BUTTON BESIDE A DOOR · VR ICON FOR CARDBOARD</div>
   <div id="wf-fade"></div>
 
-  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile light="defaultLightsEnabled: false"
+  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="collide: false" light="defaultLightsEnabled: false"
     fog="type: exponential; color: #0c0a08; density: 0.010"
     background="color: #02030a"
     vr-mode-ui="enabled: true"
