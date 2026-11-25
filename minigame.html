@@ -17,7 +17,8 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261124k"></script>
+  <script src="shipskin.js?v=20261125a"></script>
+  <script>if (/[?&]from=bridge/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
@@ -50,7 +51,8 @@
     #boss { position:absolute; top:calc(62px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%); width:min(70vw,360px); display:none; text-align:center; font:600 10px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#ff9a7a; }
     #boss i { display:block; height:5px; margin-top:4px; border-radius:3px; background:rgba(255,255,255,.12); overflow:hidden; } #boss u { display:block; height:100%; width:100%; background:linear-gradient(90deg,#ff5a3a,#ffb070); }
     #hint-shoot { display:none !important; }
-    #warp-flash { position:fixed; inset:0; background:#dff0ff; opacity:0; pointer-events:none; z-index:9; transition:opacity .08s; }
+    #warp-flash { position:fixed; inset:0; background:radial-gradient(circle,#ffffff,#dff0ff 45%,#9fc4ff); opacity:0; pointer-events:none; z-index:9; transition:opacity .08s; }
+    html.from-bridge, html.from-bridge body { background:#dff0ff; } html.from-bridge #title-screen { display:none; } html.from-bridge #warp-flash { opacity:1; }
     #reticle { position:absolute; left:50%; top:50%; width:min(62vmin,420px); height:min(62vmin,420px); transform:translate(-50%,-50%); overflow:visible; pointer-events:none; }
     #reticle * { fill:none; stroke-linecap:round; }
     #reticle .r-faint { stroke:rgba(150,230,220,.18); stroke-width:1; }
@@ -163,7 +165,7 @@
     <div class="inst">ESC — RETURN TO BRIDGE</div>
     <div class="blink">[ PRESS SPACE, CLICK OR TAP FIRE TO LAUNCH ]</div>
     <button class="btn" onclick="event.stopPropagation(); window.location.href='hangar.html'">VIEW THE WAYFARER</button>
-    <button class="btn" onclick="window.location.href='bridge.html'">← RETURN TO BRIDGE</button>
+    <button class="btn" onclick="event.stopPropagation(); toBridge()">← RETURN TO BRIDGE</button>
   </div>
 
   <div class="overlay" id="gameover-screen" style="display:none">
@@ -171,7 +173,7 @@
     <h1>HULL BREACH</h1>
     <div class="score-final">FINAL SCORE &nbsp; <span id="final-score">0</span></div>
     <div class="blink">[ PRESS R OR CLICK TO RETRY ]</div>
-    <button class="btn" onclick="window.location.href='bridge.html'">← RETURN TO BRIDGE</button>
+    <button class="btn" onclick="event.stopPropagation(); toBridge()">← RETURN TO BRIDGE</button>
   </div>
 
 <div id="warp-flash"></div>
@@ -355,6 +357,21 @@ function navLabel() {
   const P = planets[navIndex], d = P.group.position.distanceTo(shipPos);
   document.getElementById('nav-name').textContent = P.name; document.getElementById('nav-dist').textContent = d > 1000 ? (d / 1000).toFixed(1) + ' Mm' : Math.round(d) + ' km';
 }
+// ── ONE CONTINUOUS TRIP (roadmap #1): the Bridge chair pushes you through its window into light speed and lands you here,
+// already dropping out of warp; leaving does the reverse (a warp-out flash straight into the Bridge seat). No black screens.
+function toBridge() {
+  if (warp && warp.depart) return;
+  const fwd = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
+  document.getElementById('warp-flash').style.transition = 'opacity .1s';
+  warp = { t: 0, from: shipPos.clone(), to: shipPos.clone().addScaledVector(fwd, 2500), depart: true };
+}
+function arriveFromBridge() {
+  startGame();
+  const back = new THREE.Vector3(0, 0, 700);
+  warp = { t: 1.5, from: shipPos.clone().add(back), to: shipPos.clone(), arrive: true };   // join the tunnel at full speed, decelerate out
+  const wf = document.getElementById('warp-flash'); wf.style.transition = 'opacity 1.1s ease-out';
+  requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.classList.remove('from-bridge'); wf.style.opacity = 0; }));
+}
 function startWarp() {
   if (warp || state !== 'playing') return;
   const P = planets[navIndex], dir = P.group.position.clone().sub(shipPos).normalize();
@@ -372,8 +389,10 @@ function updateWarp(dt) {
   warpLines.seeds.forEach((s2, i) => { const a = s2[0], r = s2[1], z = (s2[2] - warp.t * 900) % 400; const base = shipPos.clone().addScaledVector(side, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).addScaledVector(fwd, ((z + 400) % 400) - 60);
     warpLines.pos.set([base.x, base.y, base.z], i * 6); const tail = base.clone().addScaledVector(fwd, -len); warpLines.pos.set([tail.x, tail.y, tail.z], i * 6 + 3); });
   warpLines.line.geometry.attributes.position.needsUpdate = true; warpLines.line.material.opacity = 0.9 * intensity;
-  document.getElementById('warp-flash').style.opacity = k > 0.88 ? (1 - k) * 8 : 0;
-  if (k >= 1) { warp = null; navIndex = (navIndex + 1) % planets.length; }
+  const wf = document.getElementById('warp-flash');
+  if (warp.depart) { wf.style.opacity = Math.min(1, warp.t / 1.1); if (warp.t > 1.25 && !warp.gone) { warp.gone = true; document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'bridge.html?from=flight'; } return true; }
+  wf.style.opacity = warp.arrive ? 0 : k > 0.88 ? (1 - k) * 8 : 0;
+  if (k >= 1) { if (!warp.arrive) navIndex = (navIndex + 1) % planets.length; warp = null; }
   return true;
 }
 
@@ -681,7 +700,7 @@ if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: sta
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(n => stick.addEventListener(n, end));
   fire.addEventListener('pointerdown', e => { fire.classList.add('on'); keys['Space'] = true; if (state === 'title') startGame(); else if (state === 'gameover') restartGame(); else tryShoot(); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => fire.addEventListener(n, () => { fire.classList.remove('on'); keys['Space'] = false; }));
-  document.getElementById('fm-mid').addEventListener('pointerup', () => { location.href = 'bridge.html'; });
+  document.getElementById('fm-mid').addEventListener('pointerup', () => { toBridge(); });
   // keep the ship and crosshair in the clear space above the bar: render the scene shifted up by the bar's height
   function frameAboveBar() {
     const land = innerWidth > innerHeight && innerHeight <= 520, r = bar.getBoundingClientRect(), d = TOUCH && r.height && !land ? Math.round(innerHeight - r.top) : 0, ch = document.getElementById('crosshair');
@@ -700,7 +719,7 @@ addEventListener('keydown', e => {
     else if (state === 'gameover') restartGame();
   }
   if (e.code === 'KeyR' && state === 'gameover') restartGame();
-  if (e.code === 'Escape') location.href = 'bridge.html';
+  if (e.code === 'Escape') toBridge();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('click', () => {
@@ -867,6 +886,7 @@ const clock = new THREE.Clock();
 
 function lerp(a, b, t) { return a + (b - a) * t; }
 
+if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge();
 (function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.05);

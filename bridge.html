@@ -16,10 +16,11 @@
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261124k"></script>
-  <script src="door.js?v=20261124k"></script>
-  <script src="hyperspace.js?v=20261124k"></script>
-  <script src="lcars.js?v=20261124k"></script>
+  <script src="mobile.js?v=20261125a"></script>
+  <script src="door.js?v=20261125a"></script>
+  <script src="hyperspace.js?v=20261125a"></script>
+  <script src="lcars.js?v=20261125a"></script>
+  <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -45,6 +46,8 @@
       color: #554433; font-family: 'Courier New', monospace;
       font-size: 10px; letter-spacing: 2px; pointer-events: none; z-index: 10;
     }
+    #jump { position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0; background:radial-gradient(circle,#ffffff,#dff0ff 45%,#9fc4ff); }
+    html.from-flight, html.from-flight body { background:#dff0ff; } html.from-flight #jump { opacity:1; }
   </style>
 </head>
 <body>
@@ -55,6 +58,7 @@
     <span>DECK 01</span>
   </div>
   <div id="room-prompt"></div>
+  <div id="jump"></div>
   <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
   <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
@@ -148,7 +152,7 @@
     function rampTex(sym) { var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0); if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c); }
     function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
 
-    var root, M, anim = [], hyper;
+    var root, M, anim = [], hyper, hyperT = 0, warpK = 1;   // warpK speeds the light-speed streaks up for the jump
     function build() {
       root = new THREE.Group(); sc.object3D.add(root);
       M = {
@@ -357,7 +361,7 @@
 
     AFRAME.registerComponent('wf-bridge', {
       init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build); },
-      tick: function (t) { var s = t / 1000; if (hyper) hyper.update(s); anim.forEach(function (f) { f(s); }); }
+      tick: function (t, dt) { var s = t / 1000; hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
     });
 
     // captain's chair → Flight Mode
@@ -366,7 +370,43 @@
     var chair = document.getElementById('captains-chair');
     chair.addEventListener('mouseenter', function () { showPrompt('[ ENGAGE FLIGHT MODE ]'); });
     chair.addEventListener('mouseleave', function () { prompt.style.opacity = '0'; });
-    chair.addEventListener('click', function () { window.location.href = 'minigame.html'; });
+    // ── ONE CONTINUOUS TRIP (roadmap #1): sit in the chair, the camera pushes through the window as light speed builds,
+    //    a blue-white flash carries straight into Flight Mode (which opens mid-warp). Coming back runs it in reverse.
+    var T3 = AFRAME.THREE, jump = document.getElementById('jump'), busy = false;
+    function camRig() { var cam = sc.camera && sc.camera.el; return cam ? { cam: cam, lc: cam.components['look-controls'] } : null; }
+    function freeze(r, on) { r.cam.setAttribute('look-controls', 'enabled', !on); r.cam.setAttribute('wasd-controls', 'enabled', !on); }
+    function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
+    var SEAT = new T3.Vector3(0, 1.3, 0.5), PLAYER = document.getElementById('player');
+    function engage() {
+      var r = camRig(); if (busy || !r) return; busy = true; freeze(r, true); prompt.style.opacity = '0';
+      var o = r.cam.object3D, p0 = new T3.Vector3(), q0 = new T3.Quaternion(); o.getWorldPosition(p0); o.getWorldQuaternion(q0);
+      PLAYER.object3D.position.set(0, 0, 0); PLAYER.object3D.rotation.set(0, 0, 0); o.position.copy(p0); o.quaternion.copy(q0);
+      var cam3 = r.cam.getObject3D('camera'), fov0 = cam3.fov, t0 = performance.now(), qF = new T3.Quaternion();
+      (function step() {
+        var t = (performance.now() - t0) / 1000, a = ease(t / 1.3), b = Math.max(0, Math.min(1, (t - 1.3) / 2.0));
+        if (t < 1.3) { o.position.lerpVectors(p0, SEAT, a); o.quaternion.slerpQuaternions(q0, qF, a); }            // into the chair, facing the window
+        else { o.quaternion.copy(qF); o.position.set(0, 1.3 + 0.3 * b, SEAT.z - 6.8 * b * b); }                     // then through the window
+        warpK = 1 + 9 * b * b; cam3.fov = fov0 + 30 * b * b; cam3.updateProjectionMatrix();
+        jump.style.opacity = Math.max(0, (t - 2.3) / 1.0);
+        if (t < 3.35) requestAnimationFrame(step);
+        else { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=bridge'; }
+      }());
+    }
+    chair.addEventListener('click', engage);
+    // arriving from Flight Mode: already in the seat, streaks racing, the flash fading as the ship drops out of warp
+    if (document.documentElement.classList.contains('from-flight')) {
+      warpK = 10;
+      var land = function () {
+        var r = camRig(); if (!r) return setTimeout(land, 50); freeze(r, true);
+        PLAYER.object3D.position.set(0, 0, 0); r.cam.object3D.position.copy(SEAT); r.cam.object3D.rotation.set(0, 0, 0);
+        if (r.lc) { r.lc.yawObject.rotation.y = 0; r.lc.pitchObject.rotation.x = 0; }
+        jump.style.transition = 'opacity 1.2s ease-out';
+        requestAnimationFrame(function () { document.documentElement.classList.remove('from-flight'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); });
+        var t0 = performance.now();
+        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else freeze(r, false); }());
+      };
+      if (sc.hasLoaded) land(); else sc.addEventListener('loaded', land);
+    }
   }());
   </script>
 
