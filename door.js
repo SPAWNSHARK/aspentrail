@@ -132,27 +132,30 @@
     var base = (document.currentScript && document.currentScript.src || '').replace(/[^\/]*$/, '');
     new FontFace('Michroma', 'url(' + base + 'fonts/michroma.woff2)').load().then(function (f) { document.fonts.add(f); PLATES.forEach(function (p) { p.draw(); p.tex.needsUpdate = true; }); }).catch(function () {});
   }
+  // the plaque itself (user, Nov 25): the oxblood leather + gold-filigree panel from their book (images/nameplate.png, the
+  // 'MENU' plaque with its lettering removed); our gold Michroma lettering + logo wings sit on it, inside the corner leaves.
+  var PLAQUE = new Image(); PLAQUE.src = (document.currentScript && document.currentScript.src || '').replace(/[^\/]*$/, '') + 'images/nameplate.png?v=1';
+  PLAQUE.onload = function () { PLATES.forEach(function (p) { p.draw(); p.tex.needsUpdate = true; }); };
   function plate(text, w, h) {
     var c = cv(w, h), x = c.getContext('2d'), t = new THREE.CanvasTexture(c);
     function draw() {
       x.clearRect(0, 0, w, h);
-      var bg = x.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#0c0a08'); bg.addColorStop(1, '#050403'); x.fillStyle = bg; x.fillRect(0, 0, w, h);
-      x.strokeStyle = '#7a5530'; x.lineWidth = 4; x.strokeRect(3, 3, w - 6, h - 6);
-      var gold = x.createLinearGradient(0, h * 0.25, 0, h * 0.78); gold.addColorStop(0, '#fff1c8'); gold.addColorStop(0.45, '#e0b064'); gold.addColorStop(0.55, '#b07a34'); gold.addColorStop(1, '#f0cc80');
+      if (PLAQUE.complete && PLAQUE.naturalWidth) x.drawImage(PLAQUE, 0, 0, w, h);
+      else { x.fillStyle = '#5a1414'; x.fillRect(w * 0.02, h * 0.06, w * 0.96, h * 0.88); }
+      var gold = x.createLinearGradient(0, h * 0.3, 0, h * 0.72); gold.addColorStop(0, '#fff1c8'); gold.addColorStop(0.45, '#e8bc70'); gold.addColorStop(0.55, '#b07a34'); gold.addColorStop(1, '#f6d690');
       x.textAlign = 'center'; x.textBaseline = 'middle';
-      var wing = w * 0.13, room = w - wing * 2 - 40, fs = Math.min(h * 0.42, room / (text.length * 0.92));
+      var cy = h * 0.5, inner = w * 0.66, wing = w * 0.055, room = inner - wing * 2 - 30, fs = Math.min(h * 0.26, room / (text.length * 0.92));
       x.font = '400 ' + fs + 'px ' + FONT; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.06) + 'px';
       var tw = x.measureText(text).width;
       if (tw > room) { fs *= room / tw; x.font = '400 ' + fs + 'px ' + FONT; if (x.letterSpacing !== undefined) x.letterSpacing = (fs * 0.06) + 'px'; tw = x.measureText(text).width; }
-      x.fillStyle = 'rgba(0,0,0,0.6)'; x.fillText(text, w / 2 + 2, h / 2 + 3);
-      x.fillStyle = gold; x.fillText(text, w / 2, h / 2 + 1);
-      // wings: three tapering bars and an arrow tip, mirrored
-      [-1, 1].forEach(function (sd) {
-        var inner = w / 2 + sd * (tw / 2 + 18), outer = inner + sd * wing;
+      x.fillStyle = 'rgba(20,4,2,0.75)'; x.fillText(text, w / 2 + 2, cy + 3);          // pressed into the leather
+      x.fillStyle = gold; x.fillText(text, w / 2, cy + 1);
+      [-1, 1].forEach(function (sd) {                                                    // small logo wings, clear of the corner leaves
+        var st = w / 2 + sd * (tw / 2 + 14);
         for (var k = 0; k < 3; k++) {
-          var y = h / 2 - h * 0.13 + k * h * 0.13, len = wing * (1 - k * 0.18), th = h * 0.055;
+          var y = cy - h * 0.075 + k * h * 0.075, len = wing * (1 - k * 0.2), th = h * 0.032;
           x.fillStyle = gold; x.beginPath();
-          x.moveTo(inner, y - th / 2); x.lineTo(inner + sd * len * 0.82, y - th / 2); x.lineTo(inner + sd * len, y); x.lineTo(inner + sd * len * 0.82, y + th / 2); x.lineTo(inner, y + th / 2); x.closePath(); x.fill();
+          x.moveTo(st, y - th / 2); x.lineTo(st + sd * len * 0.82, y - th / 2); x.lineTo(st + sd * len, y); x.lineTo(st + sd * len * 0.82, y + th / 2); x.lineTo(st, y + th / 2); x.closePath(); x.fill();
         }
       });
     }
@@ -227,7 +230,7 @@
     g.userData.noCollide = true;   // doorways stay walkable (mobile.js obstacle scan skips this subtree)
     var depth = o.depth || 0.1;
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
-    var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.244), new THREE.MeshBasicMaterial({ map: plate(o.name, 900, 200), fog: false, toneMapped: false }));
+    var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.12, 0.36), new THREE.MeshBasicMaterial({ map: plate(o.name, 1024, 330), transparent: true, alphaTest: 0.02, fog: false, toneMapped: false }));
     nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);
     if (depth > 0.2 && !o.noPockets) {  // free-standing (room) door: threshold, plus pocket housings the leaves slide into
       var th = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W, 0.02, depth), R.side); th.position.set(0, 0.01, 0.12 - depth / 2); g.add(th);

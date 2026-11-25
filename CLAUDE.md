@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125t).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125u).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -256,7 +256,9 @@ Rules drawn from them:
 ## core-inspiration.jpg, bridge-combat-concept.jpg, lcars-ui.jpg, alien-bioship.jpg, logo-wordmark.jpg)
 Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] Holodeck console buttons cut by the bronze rim (fixed)
-- [x] Door nameplates in the logo style: Michroma (fonts/michroma.woff2, OFL) gold on black + triple-bar wings (door.js)
+- [x] Door nameplates: gold Michroma lettering + small triple-bar wings (door.js `plate`) on the user's OXBLOOD LEATHER plaque with
+  gold filigree corners (Nov 25, from their book: images/nameplate.png = the 'MENU' plaque with the lettering painted out;
+  full UI sheet in reference/oxblood-ui-assets.png — other frames/buttons there are candidates for menus). Mesh 1.12×0.36.
 - [x] No lettering across the top of the screen (#hud hidden everywhere)
 - [x] LCARS-style animated panels: shared `lcars.js` (`WAYFARER.lcars({w,h,seed,layout:'readout'|'graph'|'keys',label})`,
   redraws ~8 fps). On the Bridge's 8 console screens + 4 key panels (screens were hidden inside their frames before — fixed).
