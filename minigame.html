@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125d"></script>
+  <script src="shipskin.js?v=20261125e"></script>
   <script>if (/[?&]from=bridge/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -161,7 +161,7 @@
     <div class="sub">SS WAYFARER</div>
     <h1>FLIGHT MODE</h1>
     <div class="inst">ARROWS / WASD — FLY</div>
-    <div class="inst">SPACE / CLICK — FIRE</div>
+    <div class="inst">TAP / CLICK AN ENEMY — LOCK ON &amp; FIRE</div>
     <div class="inst">ESC — RETURN TO BRIDGE</div>
     <div class="blink">[ PRESS SPACE, CLICK OR TAP FIRE TO LAUNCH ]</div>
     <button class="btn" onclick="event.stopPropagation(); window.location.href='hangar.html'">VIEW THE WAYFARER</button>
@@ -180,7 +180,7 @@
   <div id="fm-bar">
     <div id="fm-stick"><i><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></i></div>
     <div id="fm-midcol" style="display:flex;flex-direction:column;gap:14px;align-items:center">
-      <div id="fm-auto" class="on" style="white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif;padding:8px 10px;border-radius:18px"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Auto-fire</span></div>
+      <div id="fm-auto" style="display:none !important;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif;padding:8px 10px;border-radius:18px"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Auto-fire</span></div>
       <div id="fm-mid"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span>Bridge</span></div>
     </div>
     <div id="fm-fire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg><span>Fire</span></div>
@@ -685,7 +685,7 @@ document.getElementById('nav-prev').addEventListener('click', () => { navIndex =
 document.getElementById('nav-next').addEventListener('click', () => { navIndex = (navIndex + 1) % planets.length; navLabel(); });
 document.getElementById('nav-warp').addEventListener('click', () => startWarp());
 addEventListener('keydown', e => { if (e.code === 'KeyN') { navIndex = (navIndex + 1) % planets.length; navLabel(); } if (e.code === 'KeyJ') startWarp(); });
-const TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0; let autoFire = TOUCH;
+const TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0; let autoFire = false;   // user, Nov 25: no auto-fire — tap an enemy to shoot it
 if (TOUCH) document.documentElement.classList.add('touch');
 if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) document.documentElement.classList.add('standalone');
 (function () {
@@ -724,9 +724,24 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('click', () => {
   if (state === 'title')    startGame();
-  else if (state === 'playing')  tryShoot();
   else if (state === 'gameover') restartGame();
 });
+// ── TAP TO SHOOT (user, Nov 25): tap/click on an enemy anywhere on screen → lock on and fire at it, wherever the ship points.
+//    Tap empty space → a shot goes where you tapped. The lock sticks (Fire / Space keep hitting it) until it dies or you tap
+//    somewhere else.
+let lockTarget = null;
+const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
+function tapShoot(cx, cy) {
+  if (state !== 'playing' || (warp && !warp.arrive)) return;
+  const r = renderer.domElement.getBoundingClientRect(), touchR = TOUCH ? 70 : 45; let best = null, bd = 1e9;
+  enemies.forEach(e => { const t = toScreen(e.mesh.position); if (t.z >= 1) return; const pad = e.kind === 'carrier' ? touchR * 2.2 : e.kind === 'brute' ? touchR * 1.3 : touchR;
+    const d = Math.hypot(t.x + r.left - cx, t.y + r.top - cy); if (d < pad && d < bd) { bd = d; best = e; } });
+  if (best) { lockTarget = best; shootCD = 0; tryShoot(best); return; }
+  lockTarget = null;
+  _ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); camera.updateMatrixWorld(); _ray.setFromCamera(_ndc, camera);
+  shootCD = 0; tryShoot(null, _ray.ray.direction.clone());
+}
+addEventListener('pointerdown', e => { if (state !== 'playing' || (e.target.closest && e.target.closest('#fm-bar,#nav,button,.overlay'))) return; tapShoot(e.clientX, e.clientY); });   // HUD layers sit over the canvas, so listen on the window
 
 // ----------------------------------------------------------------
 //  FUNCTIONS
@@ -780,8 +795,9 @@ function updateReticle() {
   const ret = document.getElementById('reticle'), lk = document.getElementById('lock');
   const aim = shipPos.clone().add(new THREE.Vector3(0, 0, -60).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'))), a = toScreen(aim);
   ret.style.left = a.x + 'px'; ret.style.top = a.y + 'px'; ret.style.display = state === 'playing' ? '' : 'none';
-  ret.classList.toggle('hot', !!aimTarget);
-  if (aimTarget && state === 'playing') { const t = toScreen(aimTarget.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 32) + 'px,' + (t.y - 32) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
+  const shown = (lockTarget && enemies.includes(lockTarget)) ? lockTarget : aimTarget;
+  ret.classList.toggle('hot', !!shown);
+  if (shown && state === 'playing') { const t = toScreen(shown.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 32) + 'px,' + (t.y - 32) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
   else lk.style.display = 'none';
 }
 // laser bolts: long glowing beams (white core, teal glow) from the two engine pods in turn
@@ -789,7 +805,7 @@ const BOLT = { core: new THREE.CylinderGeometry(0.09, 0.09, 1, 6, 1, true), glow
   coreM: new THREE.MeshBasicMaterial({ color: 0xffffff }), glowM: new THREE.MeshBasicMaterial({ color: 0x3fffd0, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }) };
 BOLT.core.rotateX(Math.PI / 2); BOLT.glow.rotateX(Math.PI / 2);
 let gunSide = 1;
-function tryShoot() {
+function tryShoot(target, aimDir) {
   if (shootCD > 0 || state !== 'playing') return;
   shootCD = SHOOT_DELAY;
   const dir = new THREE.Vector3(0, 0, -1)
@@ -803,9 +819,12 @@ function tryShoot() {
   const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x6fffe0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.position.copy(gun); flash.scale.set(2.2, 2.2, 1); scene.add(flash);
   setTimeout(() => scene.remove(flash), 70);
   scene.add(mesh);
-  if (aimTarget) dir.copy(aimTarget.mesh.position.clone().sub(shipPos).normalize());   // aim assist
+  if (lockTarget && !enemies.includes(lockTarget)) lockTarget = null;
+  const tgt = target || lockTarget || aimTarget;
+  if (aimDir) dir.copy(aimDir).normalize();
+  else if (tgt) dir.copy(tgt.mesh.position.clone().sub(gun).normalize());                // locked / tapped / aim-assisted
   mesh.lookAt(gun.clone().add(dir)); mesh.position.addScaledVector(dir, len / 2 + 0.5);
-  bullets.push({ mesh, vel: dir.multiplyScalar(BULLET_SPD * 1.4), life: 2.6 });
+  bullets.push({ mesh, vel: dir.multiplyScalar(BULLET_SPD * 1.4), life: 2.6, target: aimDir ? null : (target || lockTarget) });   // locked shots home in
 }
 
 function spawnEnemy() {
@@ -927,6 +946,10 @@ if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge
     // --- BULLETS ---
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
+      if (b.target && enemies.includes(b.target)) {                     // homing: turn hard toward the locked enemy
+        const want = b.target.mesh.position.clone().sub(b.mesh.position).normalize().multiplyScalar(b.vel.length());
+        b.vel.lerp(want, Math.min(1, dt * 9)); b.mesh.lookAt(b.mesh.position.clone().add(b.vel));
+      }
       b.mesh.position.addScaledVector(b.vel, dt);
       b.life -= dt;
       let dead = b.life <= 0;
