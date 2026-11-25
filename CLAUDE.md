@@ -26,7 +26,8 @@ functional workspace. A-Frame (WebXR), so it runs in a browser, on iPhone, and i
 | `exterior-views.jpg` | Hull shape, engines, dome (orthographic sheet) — authority for anything exterior |
 | `exterior-hero.jpg` | Hull materials and mood |
 | `ship-topdown-interior.jpg` | Top-down exterior + cutaway (Nov 25): Bridge is a POINTED, guitar-pick room in the nose; consoles along the front window |
-| `app-icon-source.jpg` | Source of the app icon (icons/ use it with the neon frame removed) |
+| `app-icon-source-v2.png` | CURRENT app icon source (Nov 25, user's new art; neon frame cropped off, 64 px inset) → icons/ 1024/512/192/180 + favicon |
+| `app-icon-source.jpg` | Old icon source (superseded) |
 
 Rules drawn from them:
 - **Hull:** worn copper/bronze plating with rivets; engine glow and dome glass teal/cyan; deep navy space.
@@ -217,7 +218,8 @@ Rules drawn from them:
   runs). Three console buttons: FIT SCENE (step back to view), RESET (close programs), SIM LIBRARY (HTML menu → Star
   Garden). HOUSE PLANNER is its own wall terminal on the port wall (x=−9): live blueprint preview, tap → 2D planner
   (user, Nov 24). Furniture placements are NOT saved between visits yet. The 2D blueprint planner and Star Garden code are unchanged.
-- **Icons** — frameless ship icon (from `reference/app-icon-source.jpg`) at 180/192/512 + favicon; share image.
+- **Icons** — Nov 25: the user's new SS WAYFARER art (reference/app-icon-source-v2.png, frame cropped) at 1024/512/192/180 + favicon,
+  linked with ?v=2 to beat icon caches; share image unchanged.
 
 ## What's next (agreed order: restyle room by room to the reference)
 1. Media Nexus live channels — needs a YouTube Data API key from the user (a key in a Pages site is public:
