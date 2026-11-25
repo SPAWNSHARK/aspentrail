@@ -49,6 +49,21 @@
     walk: '<svg viewBox="0 0 24 24"><path d="M12 4l3 3H9zM12 20l3-3H9zM4 12l3-3v6zM20 12l-3-3v6z" fill="currentColor"/></svg>',
     look: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>'
   };
+  // point-in-polygon + push back inside by `pad` (returns null when already fine). Shared with avatar.js via WAYFARER.clampPoly.
+  function clampPoly(B, x, z, pad) {
+    var inside = false, best = 1e9, bx = 0, bz = 0, nx = 0, nz = 0;
+    for (var i = 0, j = B.length - 1; i < B.length; j = i++) {
+      var xi = B[i][0], zi = B[i][1], xj = B[j][0], zj = B[j][1];
+      if (((zi > z) !== (zj > z)) && (x < (xj - xi) * (z - zi) / (zj - zi) + xi)) inside = !inside;
+      var ex = xi - xj, ez = zi - zj, L = ex * ex + ez * ez || 1, t = Math.max(0, Math.min(1, ((x - xj) * ex + (z - zj) * ez) / L)), px = xj + ex * t, pz = zj + ez * t, d = Math.hypot(x - px, z - pz);
+      if (d < best) { best = d; bx = px; bz = pz; var l = Math.sqrt(L); nx = -ez / l; nz = ex / l; }
+    }
+    if (inside && best >= pad) return null;
+    var cx = 0, cz = 0; B.forEach(function (q) { cx += q[0]; cz += q[1]; }); cx /= B.length; cz /= B.length;
+    if (nx * (cx - bx) + nz * (cz - bz) < 0) { nx = -nx; nz = -nz; }            // normal pointing into the room
+    return [bx + nx * pad, bz + nz * pad];
+  }
+  window.WAYFARER.clampPoly = clampPoly;
   AFRAME.registerComponent('wayfarer-mobile', {
     schema: { speed: { default: 2.6 }, radius: { default: 0 }, collide: { default: true } },
 
@@ -278,7 +293,11 @@
         if (lp.x < 1e8 && Math.abs(m.position.x - lp.x) + Math.abs(m.position.z - lp.z) > 1e-5) this.collide(m, lp);   // only while moving
         lp.copy(m.position);
       }
-      if (this.data.radius > 0) {                           // keep keyboard + stick inside the room
+      var B = window.WAYFARER && window.WAYFARER.bounds;
+      if (B && B.length > 2) {                              // a shaped room (the Bridge's guitar pick): stay 0.35 m inside its outline
+        m.getWorldPosition(this.wp); var q = clampPoly(B, this.wp.x, this.wp.z, 0.35);
+        if (q) { m.position.x += q[0] - this.wp.x; m.position.z += q[1] - this.wp.z; }
+      } else if (this.data.radius > 0) {                    // keep keyboard + stick inside the room
         m.getWorldPosition(this.wp);
         var r = Math.sqrt(this.wp.x * this.wp.x + this.wp.z * this.wp.z);
         if (r > this.data.radius) {

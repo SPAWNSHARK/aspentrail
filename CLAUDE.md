@@ -25,6 +25,7 @@ functional workspace. A-Frame (WebXR), so it runs in a browser, on iPhone, and i
 | `cutaway-layout.jpg` | Floor plan: which room sits where. Its near engine is misplaced — ignore it for the exterior |
 | `exterior-views.jpg` | Hull shape, engines, dome (orthographic sheet) — authority for anything exterior |
 | `exterior-hero.jpg` | Hull materials and mood |
+| `ship-topdown-interior.jpg` | Top-down exterior + cutaway (Nov 25): Bridge is a POINTED, guitar-pick room in the nose; consoles along the front window |
 | `app-icon-source.jpg` | Source of the app icon (icons/ use it with the neon frame removed) |
 
 Rules drawn from them:
@@ -56,7 +57,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125j).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125k).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick; bottom-centre two round glass buttons, icons only: Gyro = VR headset, Level = spirit level. Real glassmorphism (dark
@@ -113,7 +114,12 @@ Rules drawn from them:
   - **Regenerate the photos whenever a room or the corridor changes:** `python3 -m http.server 8765` in the repo,
     then `node tools/capture-portals.js` (env: `AF=<local aframe-v1.5.0.min.js>` in cloud sessions,
     `ONLY=lounge,media` to redo some, `SKIP_CORRIDOR=1`). Stale photos = the preview won't match the room.
-- **Command Bridge** (`bridge.html`) — ALL METAL (user, Nov 25: "looks like a 1970s wooden trailer"): NO wood anywhere — brushed
+- **Command Bridge** (`bridge.html`) — GUITAR-PICK ROOM (Nov 25, user + reference/ship-topdown-interior.jpg): outline = closed
+  centripetal CatmullRom through CP (tip z −10.4, back edge z 8.3, max half-width 8.6), walls/window/floor/ceiling/cove built
+  from it (`strip`, `tube`, `fan` helpers; fan = tessellated rings, never one big fan). Window = outline points with z < −2.2,
+  wrapping the tip; the 4 consoles sit 1.7 m inside it (`__SPOTS`) facing the glass. Movement uses `WAYFARER.bounds` (polygon,
+  mobile.js `clampPoly`, 0.35 m pad; wayfarer-mobile radius 0) — avatar 3rd-person camera respects it too. Droids are polished
+  GOLD (M.shell) with dark bronze joints. ALL METAL (user, Nov 25: "looks like a 1970s wooden trailer"): NO wood anywhere — brushed
   copper (bronzeTexture), riveted copper wall plates, copper ceiling, polished ribbed-copper captain's chair (M.leather name kept),
   copper shelves (M.wood name kept), and the shared exit door re-tinted to copper on this page only. RESTYLED Nov 24 to the reference, all procedural three.js: round room r 8.2;
   panoramic curved window across the bow (−Z, 140°, eight panes, bronze mullions, sill + header) showing light speed

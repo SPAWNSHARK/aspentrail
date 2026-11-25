@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125j"></script>
-  <script src="avatar.js?v=20261125j"></script>
-  <script src="door.js?v=20261125j"></script>
-  <script src="hyperspace.js?v=20261125j"></script>
-  <script src="lcars.js?v=20261125j"></script>
+  <script src="mobile.js?v=20261125k"></script>
+  <script src="avatar.js?v=20261125k"></script>
+  <script src="door.js?v=20261125k"></script>
+  <script src="hyperspace.js?v=20261125k"></script>
+  <script src="lcars.js?v=20261125k"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -65,7 +65,7 @@
   <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
        Round room (r 8.2): panoramic window across the bow (−Z) showing light speed, amber ceiling ring, raised dais with the
        captain's chair, blue orb on a brass stand, four robots at consoles. Exit (shared door.js) at +Z. -->
-  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 7.5" wf-bridge light="defaultLightsEnabled: false"
+  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 0" wf-bridge light="defaultLightsEnabled: false"
     background="color: #02040c"
     vr-mode-ui="enabled: true"
     renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
@@ -170,8 +170,8 @@
         amber:  new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }),
         lamp:   new THREE.MeshBasicMaterial({ color: 0xffb468, toneMapped: false }),
         leather:new THREE.MeshStandardMaterial({ map: leatherTexture(), roughness: 0.24, metalness: 0.92 }),   // the chair: copper, not leather
-        shell:  new THREE.MeshStandardMaterial({ color: 0xe6e7ea, roughness: 0.28, metalness: 0.25 }),
-        joint:  new THREE.MeshStandardMaterial({ color: 0x2a2c31, roughness: 0.4, metalness: 0.6 }),
+        shell:  new THREE.MeshStandardMaterial({ color: 0xe0b050, roughness: 0.22, metalness: 0.95 }),   // polished gold droids (user: match the metal Bridge)
+        joint:  new THREE.MeshStandardMaterial({ color: 0x4a3218, roughness: 0.35, metalness: 0.85 }),
         wood:   new THREE.MeshStandardMaterial({ color: 0xb87048, roughness: 0.32, metalness: 0.9 }),   // shelves: copper sheet (name kept)
         leaf:   new THREE.MeshStandardMaterial({ color: 0x3f6b2e, roughness: 0.8, side: THREE.DoubleSide }),
         pot:    new THREE.MeshStandardMaterial({ color: 0x8a4a2a, roughness: 0.8 })
@@ -179,51 +179,80 @@
       var add = function (tx, col, op) { return new THREE.MeshBasicMaterial({ map: tx, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }); };
       var dot = dotTex(), back = Math.PI * 2 - WIN_ARC;
 
-      // ── shell: solid walls round the back, sill + header round the bow, the window between ──
-      var wall = new THREE.CylinderGeometry(R, R, WALL_H, 96, 1, true, Math.PI + WIN_ARC / 2, back);
-      M.wall.map.repeat.set(Math.round(back * R / 1.3), 1); mesh(wall, M.wall, root, 0, WALL_H / 2, 0);
-      var low = new THREE.CylinderGeometry(R, R, WIN_Y0, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC), lowM = M.wall.clone(); lowM.map = M.wall.map.clone(); lowM.map.repeat.set(16, WIN_Y0 / WALL_H); lowM.map.needsUpdate = true;
-      mesh(low, lowM, root, 0, WIN_Y0 / 2, 0);
-      var hi = new THREE.CylinderGeometry(R, R, WALL_H - WIN_Y1, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC); mesh(hi, M.dark, root, 0, (WALL_H + WIN_Y1) / 2, 0).material = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.7, metalness: 0.2, side: THREE.BackSide });
-      var glass = new THREE.CylinderGeometry(R - 0.04, R - 0.04, WIN_Y1 - WIN_Y0, 64, 1, true, Math.PI - WIN_ARC / 2, WIN_ARC);
-      mesh(glass, new THREE.MeshBasicMaterial({ color: 0x8fb8ff, transparent: true, opacity: 0.06, depthWrite: false, side: THREE.DoubleSide }), root, 0, (WIN_Y0 + WIN_Y1) / 2, 0);
-      // sill shelf and header beam (bronze), mullions between eight panes
-      var sill = new THREE.RingGeometry(R - 0.42, R, 64, 1, Math.PI / 2 - WIN_ARC / 2 - 0.02, WIN_ARC + 0.04); var sm = mesh(sill, M.bronze, root, 0, WIN_Y0, 0); sm.rotation.x = -Math.PI / 2;
-      [WIN_Y0 + 0.02, WIN_Y1].forEach(function (y, i) { var t = mesh(new THREE.TorusGeometry(R - 0.08, i ? 0.11 : 0.06, 10, 96, WIN_ARC + 0.04), M.bronze, root, 0, y, 0); t.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - WIN_ARC / 2 - 0.02); });
-      var mull = soft(rrect(0.14, WIN_Y1 - WIN_Y0, 0.05), 0.16, 0.025);
-      for (var k = 0; k <= 8; k++) { var th = -WIN_ARC / 2 + k * WIN_ARC / 8, p = polar(th, R - 0.12, (WIN_Y0 + WIN_Y1) / 2), m = mesh(mull, M.bronze, root, p.x, p.y, p.z); m.rotation.y = -th; }
-      // console ledge glow under the window
-      var sg = mesh(new THREE.TorusGeometry(R - 0.42, 0.012, 6, 96, WIN_ARC), M.amber, root, 0, WIN_Y0 - 0.02, 0); sg.rotation.set(-Math.PI / 2, 0, Math.PI / 2 - WIN_ARC / 2);
-
-      // back wall: ribs, sconces, plant shelves either side
-      var leg = soft(rrect(0.2, WALL_H - 0.4, 0.05), 0.1, 0.03), sc0 = soft(rrect(0.2, 0.3, 0.04), 0.02, 0.01), scL = soft(rrect(0.13, 0.2, 0.03), 0.035, 0.01);
-      for (var d = 85; d <= 275; d += 22) {
-        var th2 = d * Math.PI / 180; if (Math.abs(d - 180) < 16) continue;
-        var pl = polar(th2, R - 0.06, (WALL_H - 0.4) / 2), lg = mesh(leg, M.bronze, root, pl.x, pl.y, pl.z); lg.rotation.y = -th2 + Math.PI;
-        var mid = th2 + 11 * Math.PI / 180; if (d + 11 > 275 || Math.abs(d + 11 - 180) < 22 || Math.abs(d + 11 - 125) < 9 || Math.abs(d + 11 - 235) < 9) continue;
-        var ps = polar(mid, R - 0.02, 2.55), b1 = mesh(sc0, M.bronze, root, ps.x, ps.y, ps.z); b1.rotation.y = -mid + Math.PI;
-        var pl2 = polar(mid, R - 0.05, 2.54), b2 = mesh(scL, M.lamp, root, pl2.x, pl2.y, pl2.z); b2.rotation.y = -mid + Math.PI;
-        var gp = polar(mid, R - 0.01, 2.55), gl = mesh(new THREE.PlaneGeometry(1.2, 1.2), add(dot, 0xff9a3c, 0.4), root, gp.x, gp.y, gp.z); gl.rotation.y = -mid;
+      // ── the room is a GUITAR PICK (user, Nov 25 + reference/ship-topdown-interior.jpg): the ship's nose is a rounded triangle,
+      //    so the Bridge narrows to a point at the bow (−Z) with the window wrapped round the point and a wide back edge (door).
+      var CP = [[0, 8.3], [5.2, 7.6], [8.1, 4.6], [8.6, 0.5], [7.3, -3.8], [4.8, -7.2], [2.0, -9.6], [0, -10.4], [-2.0, -9.6], [-4.8, -7.2], [-7.3, -3.8], [-8.6, 0.5], [-8.1, 4.6], [-5.2, 7.6]];
+      var curve = new THREE.CatmullRomCurve3(CP.map(function (q) { return new THREE.Vector3(q[0], 0, q[1]); }), true, 'centripetal');
+      var NP = 220, P = curve.getSpacedPoints(NP).slice(0, NP), Nrm = [], arc = [0];
+      for (var i = 0; i < NP; i++) { var a0 = P[(i + NP - 1) % NP], a1 = P[(i + 1) % NP], tx = a1.x - a0.x, tz = a1.z - a0.z, n = new THREE.Vector3(-tz, 0, tx).normalize(); if (n.x * (0 - P[i].x) + n.z * (-0.6 - P[i].z) < 0) n.negate(); Nrm.push(n); if (i) arc.push(arc[i - 1] + P[i].distanceTo(P[i - 1])); }
+      var LEN = arc[NP - 1] + P[NP - 1].distanceTo(P[0]);
+      window.WAYFARER.bounds = P.map(function (q) { return [q.x, q.z]; });              // mobile.js + avatar.js keep you (and the lens) inside this
+      function isWin(i) { return P[i].z < -2.2; }
+      function strip(idx, y0, y1, mat, inset, uvFn, closed) {                           // a vertical ribbon along outline points
+        var pos = [], uv = [], ind = [], SEG = 6, L = idx.length;
+        idx.forEach(function (i, k) { for (var j = 0; j <= SEG; j++) { var y = y0 + (y1 - y0) * j / SEG, q = P[i].clone().addScaledVector(Nrm[i], inset || 0); pos.push(q.x, y, q.z); var u = uvFn ? uvFn(i, y) : [arc[i] / 1.3, y / WALL_H]; uv.push(u[0], u[1]); } });
+        for (var k = 0; k < L - 1 + (closed ? 1 : 0); k++) for (var j = 0; j < SEG; j++) { var a = k * (SEG + 1) + j, b = ((k + 1) % L) * (SEG + 1) + j; ind.push(a, b, a + 1, a + 1, b, b + 1); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(ind); g.computeVertexNormals();
+        var m = mat.clone ? mat : mat; var o = new THREE.Mesh(g, m); root.add(o); return o;
       }
-      [125, 235].forEach(function (dg) { plantShelf(dg * Math.PI / 180); });
+      function tube(idx, y, inset, r, mat, closed) { var pts = idx.map(function (i) { var q = P[i].clone().addScaledVector(Nrm[i], inset); q.y = y; return q; }); return mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, !!closed), Math.max(8, pts.length * 2), r, 6, !!closed), mat, root); }
+      function fan(y, mat, flip) {                                                        // floor/ceiling: tessellated rings from the middle out (no long thin fan triangles)
+        var C = new THREE.Vector3(0, y, -0.6), RS = 14, pos = [], uv = [], ind = [];
+        for (var i = 0; i < NP; i++) for (var k = 0; k <= RS; k++) { var t = k / RS, x = C.x + (P[i].x - C.x) * t, z = C.z + (P[i].z - C.z) * t; pos.push(x, y, z); uv.push(x / 16.4 + 0.5, z / 16.4 + 0.5); }
+        for (i = 0; i < NP; i++) for (k = 0; k < RS; k++) { var a = i * (RS + 1) + k, b = ((i + 1) % NP) * (RS + 1) + k; if (flip) ind.push(a, a + 1, b, a + 1, b + 1, b); else ind.push(a, b, a + 1, a + 1, b, b + 1); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(ind); g.computeVertexNormals(); return mesh(g, mat, root);
+      }
+      var all = [], winI = [], wallRuns = [], run = null;
+      for (i = 0; i < NP; i++) { all.push(i); if (isWin(i)) winI.push(i); }
+      // window indices are contiguous round the tip; walk from the first non-window point so runs don't wrap
+      var start = 0; while (isWin(start)) start++; for (k = 0; k < NP; k++) { i = (start + k) % NP; if (!isWin(i)) { if (!run) { run = []; wallRuns.push(run); } run.push(i); } else run = null; }
+      var wi = winI.slice().sort(function (a, b) { return P[a].x - P[b].x; });   // window run ordered port → starboard
+      wi = []; for (k = 0; k < NP; k++) { i = (start + k) % NP; if (isWin(i)) wi.push(i); }
+      wi.unshift((wi[0] + NP - 1) % NP); wi.push((wi[wi.length - 1] + 1) % NP);  // overlap one point into the walls
+      M.wall.side = THREE.DoubleSide; M.wall.map.repeat.set(1, 1);
+      wallRuns.forEach(function (r2) { var ext = [(r2[0] + NP - 1) % NP].concat(r2, [(r2[r2.length - 1] + 1) % NP]); strip(ext, 0, WALL_H, M.wall); });
+      var lowM = M.wall.clone(); strip(wi, 0, WIN_Y0, lowM);
+      strip(wi, WIN_Y1, WALL_H, new THREE.MeshStandardMaterial({ color: 0x3a2216, roughness: 0.4, metalness: 0.75, side: THREE.DoubleSide }));
+      strip(wi, WIN_Y0, WIN_Y1, new THREE.MeshBasicMaterial({ color: 0x8fb8ff, transparent: true, opacity: 0.06, depthWrite: false, side: THREE.DoubleSide }), -0.02);
+      tube(wi, WIN_Y0 + 0.02, 0.08, 0.07, M.bronze); tube(wi, WIN_Y1, 0.06, 0.11, M.bronze);                   // sill + header
+      tube(wi, WIN_Y0 - 0.03, 0.4, 0.014, M.amber);                                                           // ledge glow
+      var ledge = strip(wi, WIN_Y0 - 0.06, WIN_Y0, M.bronze, 0.2);
+      var mull = soft(rrect(0.14, WIN_Y1 - WIN_Y0, 0.05), 0.16, 0.025), nextM = 0;
+      wi.forEach(function (i2) { if (arc[i2] < nextM && Math.abs(arc[i2] - nextM) < LEN / 2) return; nextM = arc[i2] + 1.55; var q = P[i2].clone().addScaledVector(Nrm[i2], 0.1), mm = mesh(mull, M.bronze, root, q.x, (WIN_Y0 + WIN_Y1) / 2, q.z); mm.rotation.y = Math.atan2(Nrm[i2].x, Nrm[i2].z); });
 
-      // ── ceiling: dark coffers, the big amber ring, a perimeter cove ──
-      var ce = mesh(new THREE.CircleGeometry(R, 96), M.ceil, root, 0, WALL_H, 0); ce.rotation.x = Math.PI / 2;
+      // walls: ribs, sconces, plant shelves; nothing over the door (+Z, |x| < 1.7)
+      var leg = soft(rrect(0.2, WALL_H - 0.4, 0.05), 0.1, 0.03), sc0 = soft(rrect(0.2, 0.3, 0.04), 0.02, 0.01), scL = soft(rrect(0.13, 0.2, 0.03), 0.035, 0.01), lastRib = -9;
+      var shelfAt = [];
+      wallRuns.forEach(function (r2) { r2.forEach(function (i2, k2) {
+        if (P[i2].z > 6.9 && Math.abs(P[i2].x) < 1.9) return;
+        if (Math.abs(arc[i2] - lastRib) < 2.3) return; lastRib = arc[i2];
+        var q = P[i2].clone().addScaledVector(Nrm[i2], 0.06), ry = Math.atan2(Nrm[i2].x, Nrm[i2].z), lg = mesh(leg, M.bronze, root, q.x, (WALL_H - 0.4) / 2, q.z); lg.rotation.y = ry;
+        var j2 = r2[Math.min(r2.length - 1, k2 + Math.round(r2.length > 12 ? 9 : 4))]; if (P[j2].z > 6.9 && Math.abs(P[j2].x) < 2.2) return;
+        var qs = P[j2].clone().addScaledVector(Nrm[j2], 0.03), ry2 = Math.atan2(Nrm[j2].x, Nrm[j2].z);
+        if (Math.abs(P[j2].x) > 5.6 && Math.abs(P[j2].x) < 7.6 && P[j2].z > 3 && shelfAt.length < 2 && !shelfAt.some(function (z) { return Math.sign(z) === Math.sign(P[j2].x); })) { shelfAt.push(P[j2].x); plantShelfAt(P[j2], Nrm[j2]); return; }
+        var b1 = mesh(sc0, M.bronze, root, qs.x, 2.55, qs.z); b1.rotation.y = ry2;
+        var q2 = P[j2].clone().addScaledVector(Nrm[j2], 0.05), b2 = mesh(scL, M.lamp, root, q2.x, 2.54, q2.z); b2.rotation.y = ry2;
+        var gq = P[j2].clone().addScaledVector(Nrm[j2], 0.01), gl = mesh(new THREE.PlaneGeometry(1.2, 1.2), add(dot, 0xff9a3c, 0.4), root, gq.x, 2.55, gq.z); gl.rotation.y = ry2;
+      }); });
+
+      // ── ceiling: dark coffers, the big amber ring, a cove that follows the pick outline ──
+      fan(WALL_H, M.ceil, true);
       var ring = mesh(new THREE.TorusGeometry(3.6, 0.13, 12, 128), new THREE.MeshBasicMaterial({ color: 0xffb060, toneMapped: false }), root, 0, WALL_H - 0.16, 0); ring.rotation.x = Math.PI / 2;
       [3.25, 3.95].forEach(function (rr) { var t = mesh(new THREE.TorusGeometry(rr, 0.07, 10, 128), M.bronze, root, 0, WALL_H - 0.12, 0); t.rotation.x = Math.PI / 2; });
       var halo = mesh(new THREE.RingGeometry(2.4, 4.9, 96, 1), add(radialRing(), 0xff9a40, 0.55), root, 0, WALL_H - 0.02, 0); halo.rotation.x = Math.PI / 2;
       var inner = mesh(new THREE.CircleGeometry(3.2, 64), new THREE.MeshStandardMaterial({ color: 0x120d0a, roughness: 0.6, metalness: 0.3, side: THREE.DoubleSide }), root, 0, WALL_H - 0.08, 0); inner.rotation.x = Math.PI / 2;
       var core = mesh(new THREE.TorusGeometry(0.7, 0.04, 8, 64), M.amber, root, 0, WALL_H - 0.1, 0); core.rotation.x = Math.PI / 2;
-      var cove = mesh(new THREE.TorusGeometry(R - 0.12, 0.035, 6, 160), M.amber, root, 0, WALL_H - 0.18, 0); cove.rotation.x = Math.PI / 2;
-      var coveW = mesh(new THREE.CylinderGeometry(R - 0.02, R - 0.02, 1.3, 96, 1, true), add(rampTex(false), 0xff9a40, 0.35), root, 0, WALL_H - 0.85, 0); coveW.material.side = THREE.BackSide;
-      coveW.material.map.rotation = Math.PI / 2; coveW.material.map.center.set(0.5, 0.5);
-      var crn = mesh(new THREE.TorusGeometry(R - 0.1, 0.09, 8, 160), M.bronze, root, 0, WALL_H - 0.08, 0); crn.rotation.x = Math.PI / 2;
+      tube(all, WALL_H - 0.18, 0.12, 0.035, M.amber, true); tube(all, WALL_H - 0.08, 0.1, 0.09, M.bronze, true);
+      strip(all.concat([0]), WALL_H - 1.5, WALL_H - 0.2, add(rampTex(false), 0xff9a40, 0.35), 0.02, function (i2, y) { return [(WALL_H - 0.2 - y) / 1.3, arc[i2] / 4]; });
 
-      // ── floor: polished deck, amber inlay rings, radial bronze lines ──
-      var fl = mesh(new THREE.CircleGeometry(R, 96), M.floor, root); fl.rotation.x = -Math.PI / 2;
-      [[DAIS_R + 0.45, 0.025, M.amber], [4.6, 0.02, M.amber], [R - 0.55, 0.03, M.amber], [3.3, 0.015, M.bronze]].forEach(function (q) { var t = mesh(new THREE.RingGeometry(q[0] - q[1], q[0] + q[1], 128), q[2], root, 0, 0.004, 0); t.rotation.x = -Math.PI / 2; });
-      for (var a = 0; a < 12; a++) { var ang = a / 12 * Math.PI * 2, ln = mesh(new THREE.PlaneGeometry(0.02, R - 0.7 - 2.6), M.bronze, root); var mp = polar(ang, (2.6 + R - 0.7) / 2, 0.004); ln.position.copy(mp); ln.rotation.set(-Math.PI / 2, 0, -ang); }
-      [4.6, R - 0.55].forEach(function (rr) { var gr = mesh(new THREE.RingGeometry(rr - 0.35, rr + 0.35, 128), add(radialRing(), 0xff8a30, 0.22), root, 0, 0.005, 0); gr.rotation.x = -Math.PI / 2; });
+      // ── floor: polished deck in the pick shape, amber inlay following the walls, rings round the dais ──
+      fan(0, M.floor, true);
+      [[DAIS_R + 0.45, 0.025, M.amber], [4.6, 0.02, M.amber], [3.3, 0.015, M.bronze]].forEach(function (q) { var t = mesh(new THREE.RingGeometry(q[0] - q[1], q[0] + q[1], 128), q[2], root, 0, 0.004, 0); t.rotation.x = -Math.PI / 2; });
+      tube(all, 0.006, 0.55, 0.03, M.amber, true);
+      var gr = mesh(new THREE.RingGeometry(4.25, 4.95, 128), add(radialRing(), 0xff8a30, 0.22), root, 0, 0.005, 0); gr.rotation.x = -Math.PI / 2;
+      // console row: four stations spaced along the window, set back from the glass and facing it
+      var SPOTS = [0.16, 0.38, 0.62, 0.84].map(function (f) { var i2 = wi[Math.round(1 + f * (wi.length - 3))], q = P[i2].clone().addScaledVector(Nrm[i2], 1.7); return { pos: q, ry: Math.atan2(Nrm[i2].x, Nrm[i2].z) }; });
+      window.__SPOTS = SPOTS;
 
       buildDais(add, dot); buildOrb(add, dot); buildStations(add, dot);
 
@@ -241,8 +270,8 @@
     function radialRing() { var c = cv(256, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); var t = new THREE.CanvasTexture(c); return t; }
 
     // ── wall-hung shelf with plants and a few books ──
-    function plantShelf(th) {
-      var g = new THREE.Group(), p = polar(th, R - 0.2, 0); g.position.copy(p); g.rotation.y = -th; root.add(g);   // local +z faces the room
+    function plantShelfAt(pt, nr) {
+      var th = Math.atan2(pt.x, -pt.z), g = new THREE.Group(), p = pt.clone().addScaledVector(nr, 0.2); p.y = 0; g.position.copy(p); g.rotation.y = Math.atan2(nr.x, nr.z); root.add(g);   // local +z faces the room
       mesh(new THREE.BoxGeometry(1.5, 2.3, 0.04), M.wood, g, 0, 1.75, -0.16);
       var r = rng(Math.round(th * 100));
       [0.9, 1.6, 2.3].forEach(function (y, row) {
@@ -306,8 +335,8 @@
     // ── four robots at curved consoles, facing the window ──
     function buildStations(add, dot) {
       var desk = soft(rrect(1.5, 0.6, 0.12), 0.8, 0.04), top = soft(rrect(1.56, 0.08, 0.03), 0.84, 0.02);
-      [-58, -22, 22, 58].forEach(function (deg, si) {
-        var th = deg * Math.PI / 180, g = new THREE.Group(); g.position.copy(polar(th, 6.0, 0)); g.rotation.y = -th; root.add(g);   // local −Z = toward the window
+      window.__SPOTS.forEach(function (sp, si) {
+        var g = new THREE.Group(); g.position.copy(sp.pos); g.position.y = 0; g.rotation.y = sp.ry; root.add(g);   // local −Z = toward the window
         var dk = mesh(desk, M.dark, g, 0, 0.42, 0); dk.scale.y = 1.4;
         mesh(top, M.bronze, g, 0, 0.86, 0);
         var strip = mesh(new THREE.BoxGeometry(1.5, 0.015, 0.015), M.amber, g, 0, 0.82, 0.43);

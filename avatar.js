@@ -115,7 +115,7 @@
         back = 2.4; up = 0.45; var R = 0, mob = this.el.components['wayfarer-mobile']; if (mob) R = mob.data.radius;
         var fx = Math.sin(e.y), fz = Math.cos(e.y);                // camera's backward direction in XZ
         for (var i = 0; i < 12; i++) {
-          var cx = wp.x + fx * back, cz = wp.z + fz * back, ok = R > 0 ? Math.hypot(cx, cz) < R - 0.35 : (Math.abs(cx) < 2.3 && Math.abs(cz) < 12.3);
+          var cx = wp.x + fx * back, cz = wp.z + fz * back, BB = window.WAYFARER.bounds, ok = BB ? !window.WAYFARER.clampPoly(BB, cx, cz, 0.35) : R > 0 ? Math.hypot(cx, cz) < R - 0.35 : (Math.abs(cx) < 2.3 && Math.abs(cz) < 12.3);
           if (ok) break; back *= 0.8;
         }
         if (back < 1.1) { back = 0; up = 0; third = false; J.root.visible = false; }   // no room behind you (doorways, walls): drop to 1st person
