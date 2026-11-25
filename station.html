@@ -9,8 +9,9 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125g"></script>
-  <script src="lcars.js?v=20261125g"></script>
+  <script src="mobile.js?v=20261125h"></script>
+  <script src="lcars.js?v=20261125h"></script>
+  <script src="missions.js?v=20261125h"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -23,6 +24,8 @@
     .panel p { color:#e8d8f0; font-size:13px; line-height:1.45; margin-bottom:12px; text-align:center; }
     .panel button { display:block; width:100%; margin:8px 0 0; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.08); color:#fff; font:600 14px -apple-system,system-ui,sans-serif; text-align:left; }
     .panel button small { display:block; color:#d8c0e8; font-weight:400; font-size:12px; margin-top:2px; }
+    .panel button.done { opacity:.45; } .panel button.cur { border-color:#ffc070; background:rgba(255,180,90,.18); }
+    #toast { position:fixed; left:50%; top:calc(20px + env(safe-area-inset-top,0px)); transform:translateX(-50%); z-index:58; padding:10px 16px; border-radius:16px; background:rgba(20,30,20,.6); border:1px solid rgba(140,255,170,.4); color:#c8ffd8; font:600 13px -apple-system,system-ui,sans-serif; opacity:0; transition:opacity .5s; pointer-events:none; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); text-align:center; max-width:88vw; }
     .panel button.close { text-align:center; background:none; border-color:rgba(255,255,255,.12); color:#ccc; }
     canvas.a-canvas { transition: filter 1.5s; }
     body.tipsy canvas.a-canvas { animation: tipsy 6s ease-in-out infinite; }
@@ -31,6 +34,7 @@
 </head>
 <body>
 <div id="jump"></div>
+<div id="toast"></div>
 <div class="panel" id="bar-menu">
   <h2>EMBER ROOM BAR</h2>
   <p>"What'll it be, Captain? First round's on the house."</p>
@@ -41,8 +45,9 @@
 </div>
 <div class="panel" id="job-board">
   <h2>ARGO JOB BOARD</h2>
-  <p id="job-text">Contracts are being posted. Check back soon, Captain.</p>
-  <button class="close">Close</button>
+  <p id="job-head"></p>
+  <div id="job-list"></div>
+  <button class="close" id="job-close">Close</button>
 </div>
 
 <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 11.2" wf-station light="defaultLightsEnabled: false"
@@ -220,17 +225,34 @@
   document.querySelectorAll('#bar-menu button').forEach(function (b) { b.addEventListener('click', function () {
     close('bar-menu'); var d = b.getAttribute('data-d'); if (!d) return;
     document.body.classList.add('tipsy'); clearTimeout(window.__tipsy); window.__tipsy = setTimeout(function () { document.body.classList.remove('tipsy'); }, d === 'horizon' ? 30000 : 16000); }); });
-  document.querySelector('#job-board button').addEventListener('click', function () { close('job-board'); });
+  document.getElementById('job-close').addEventListener('click', function () { close('job-board'); });
+  function toast(t) { var e = document.getElementById('toast'); e.innerHTML = t; e.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(function () { e.style.opacity = 0; }, 5000); }
+  // job board: credits + rank, the active contract (abandon), or today's three offers (accept one)
+  function renderJobs() {
+    var M = window.WF_MISSIONS, c = M.credits(), rk = M.rank(c), act = M.active(), list = document.getElementById('job-list'); list.innerHTML = '';
+    document.getElementById('job-head').innerHTML = '<b>' + rk.name + '</b> · ' + c + ' credits' + (rk.next ? '<br><small>' + (rk.next[0] - c) + ' cr to ' + rk.next[1] + '</small>' : '');
+    if (act) {
+      var b = document.createElement('button'); b.className = 'cur'; b.innerHTML = act.title + '<small>' + act.text + '<br>Now: ' + M.status(act) + '<br>Reward ' + act.reward + ' cr</small>'; list.appendChild(b);
+      var ab = document.createElement('button'); ab.className = 'close'; ab.textContent = 'Abandon contract'; ab.onclick = function () { M.abandon(); renderJobs(); }; list.appendChild(ab); return;
+    }
+    M.offers().forEach(function (o) {
+      var b = document.createElement('button'), dn = M.isDone(o.id); if (dn) b.className = 'done';
+      b.innerHTML = o.title + '<small>' + o.text + (o.need === 'combat' ? ' (Combat mode)' : '') + '<br>' + (dn ? 'Completed today' : 'Reward ' + o.reward + ' cr — tap to accept') + '</small>';
+      if (!dn) b.onclick = function () { M.accept(o); renderJobs(); toast('Contract accepted: ' + o.title + '<br><small>Undock through the airlock to begin.</small>'); };
+      list.appendChild(b);
+    });
+  }
 
   AFRAME.registerComponent('wf-station', {
     init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build);
       document.getElementById('bartender').addEventListener('click', function () { open('bar-menu'); });
-      document.getElementById('board').addEventListener('click', function () { open('job-board'); });
+      document.getElementById('board').addEventListener('click', function () { renderJobs(); open('job-board'); });
       document.getElementById('airlock').addEventListener('click', undock); },
     tick: function (t) { var s = t / 1000; anim.forEach(function (f) { f(s); });
       var c = this.el.camera; if (c && c.el) { var p = c.el.object3D.position; if (p.z > R - 1.2 && Math.abs(p.x) < 1.0) undock(); } }
   });
   // arriving from the ship: the docking flash fades into the club
+  if (/from=dock/.test(location.search) && window.WF_MISSIONS) { var res = WF_MISSIONS.progress('dock'); if (res) setTimeout(function () { toast(res.text); }, 1600); }
   if (document.documentElement.classList.contains('from-dock')) {
     var fade = function () { jump.style.transition = 'opacity 1.2s ease-out'; requestAnimationFrame(function () { document.documentElement.classList.remove('from-dock'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); }); };
     if (sc.hasLoaded) setTimeout(fade, 300); else sc.addEventListener('loaded', function () { setTimeout(fade, 300); });

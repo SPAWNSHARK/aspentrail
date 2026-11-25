@@ -17,7 +17,8 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125g"></script>
+  <script src="shipskin.js?v=20261125h"></script>
+  <script src="missions.js?v=20261125h"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -125,6 +126,7 @@
     #fm-fire.on{background:rgba(255,255,255,.32)}
     #hail { position:absolute; left:50%; transform:translateX(-50%); bottom:calc(150px + env(safe-area-inset-bottom,0px)); max-width:min(86vw,520px); padding:8px 14px; border-radius:14px; background:rgba(10,30,20,.55); border:1px solid rgba(120,255,160,.35); color:#bfffd0; font:600 12px -apple-system,system-ui,sans-serif; text-align:center; opacity:0; transition:opacity .4s; pointer-events:none; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
     #dock { position:absolute; left:50%; transform:translateX(-50%); top:calc(64px + env(safe-area-inset-top,0px)); display:none; padding:10px 22px; border-radius:22px; background:linear-gradient(140deg,rgba(255,200,120,.45),rgba(255,140,60,.3)); border:1px solid rgba(255,210,150,.8); color:#fff; font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; box-shadow:0 0 24px rgba(255,160,80,.5); }
+    #objective { position:absolute; left:50%; transform:translateX(-50%); top:calc(58px + env(safe-area-inset-top,0px)); max-width:min(90vw,460px); padding:5px 12px; border-radius:12px; background:rgba(20,14,8,.5); border:1px solid rgba(255,190,110,.35); color:#ffd8a8; font:600 11px -apple-system,system-ui,sans-serif; letter-spacing:.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:none; pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
     #fm-mode{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
     body.explore #score-display, body.explore #lives-display, body.explore #fm-fire, body.explore #reticle, body.explore #lock { display:none !important; }
     .modes { display:flex; gap:10px; justify-content:center; margin-top:14px; } .modes .btn.sel { background:rgba(255,180,90,.35); border-color:#ffc070; }
@@ -159,6 +161,7 @@
     <div id="wave-announce"></div>
     <div id="boss"><span>BIOSHIP</span><i><u id="boss-fill"></u></i></div>
     <div id="hail"></div>
+    <div id="objective"></div>
     <div id="dock">DOCK AT ARGO</div>
     <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">THALOS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
@@ -815,6 +818,11 @@ addEventListener('click', () => {
 //    somewhere else.
 let lockTarget = null;
 const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
+// ── CONTRACTS (missions.js): the objective chip under NAV; kills and planet visits report progress ──
+function showObjective() { const m = window.WF_MISSIONS && WF_MISSIONS.active(), o = document.getElementById('objective'); if (!o) return; o.style.display = m && state === 'playing' ? 'block' : 'none'; if (m) o.textContent = WF_MISSIONS.status(m); }
+function missionEvent(ev) { if (!window.WF_MISSIONS) return; const r = WF_MISSIONS.progress(ev); if (!r) return; if (r.done) { announce('CONTRACT COMPLETE'); hail('ARGO CONTROL', r.text); } else if (ev.indexOf('visit:') === 0 || ev === 'dock') hail('ARGO CONTROL', r.text); showObjective(); }
+const visited = {}; let visitT = 0;
+function checkVisits(dt) { visitT -= dt; if (visitT > 0) return; visitT = 0.5; planets.forEach(P => { const near = shipPos.distanceTo(P.group.position) < P.r * 1.8 + 80; if (near && !visited[P.name]) { visited[P.name] = true; missionEvent('visit:' + P.name); } else if (!near) visited[P.name] = false; }); }
 function hail(who, text) { const h = document.getElementById('hail'); h.innerHTML = '<b>' + who + '</b><br>' + text; h.style.opacity = 1; clearTimeout(hail.t); hail.t = setTimeout(() => h.style.opacity = 0, 4200); }
 function tapShoot(cx, cy) {
   if (state !== 'playing' || (warp && !warp.arrive)) return;
@@ -860,6 +868,7 @@ function setMode(m) {
 }
 setMode(mode);
 function startGame() {
+  setTimeout(showObjective, 50);
   document.getElementById('title-screen').style.display = 'none';
   state = 'playing';
   score = 0; lives = 3; wave = 1; waveClearing = false;
@@ -1034,7 +1043,7 @@ if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge
     const fwd = new THREE.Vector3(0,0,-1)
       .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
     shipPos.addScaledVector(fwd, SHIP_SPEED * dt);
-    collidePlanets(); updateDock();
+    collidePlanets(); updateDock(); checkVisits(dt);
     playerShip.position.copy(shipPos);
     playerShip.rotation.set(shipPitch, shipYaw, shipRoll, 'YXZ');
 
@@ -1064,6 +1073,7 @@ if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge
             if (ej.kind === 'carrier') { for (let v = 0; v < 6; v++) setTimeout(() => explode(ej.mesh.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 30)), v % 2 ? 0xff6a3a : 0xffd090), v * 160); document.getElementById('boss').style.display = 'none'; announce('BIOSHIP DESTROYED'); }
             scene.remove(ej.mesh);
             enemies.splice(j, 1);
+            missionEvent('kill:' + ej.kind);
             score += (ej.kind === 'carrier' ? 2500 : ej.kind === 'brute' ? 400 : ej.kind === 'striker' ? 200 : 100) * wave;
             hud_score();
             break;
