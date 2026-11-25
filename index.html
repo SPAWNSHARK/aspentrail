@@ -20,13 +20,13 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261125u"></script>
+  <script src="textures.js?v=20261125v"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125u"></script>
-  <script src="sound.js?v=20261125u"></script>
-  <script src="avatar.js?v=20261125u"></script>
-  <script src="door.js?v=20261125u"></script>
-  <script src="hyperspace.js?v=20261125u"></script>
+  <script src="mobile.js?v=20261125v"></script>
+  <script src="sound.js?v=20261125v"></script>
+  <script src="avatar.js?v=20261125v"></script>
+  <script src="door.js?v=20261125v"></script>
+  <script src="hyperspace.js?v=20261125v"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -459,6 +459,7 @@
 
       buildCeiling(root, M, aniso);
       buildFloor(root, M, aniso);
+      buildRugs(root, aniso);
       buildPortals(root, M);
 
       // soft light splashes on the wall around each sconce (additive, cheap)
@@ -522,6 +523,58 @@
     }
 
     // ── polished deck, woven runner with brass rods, edge glow ──
+    // ── half-round DOOR RUGS (user, Nov 25: "hard to tell which door is which until you're right next to it"): a futuristic
+    //    mosaic mandala in each door's own glass colour, laid flat-edge against the door, with a faint glowing rim so you can
+    //    pick out your room from the far end of the hall. Patterns follow the user's references (half-round mosaic door mats).
+    function rugTexture(hex, seed) {
+      var N = 1024, c = cv(N, N), x = c.getContext('2d'), r = rng(seed), C = N / 2, cy = N / 2, R = N / 2 - 6;
+      var col = new THREE.Color(hex), hsl = {}; col.getHSL(hsl);
+      function tone(l, sat) { return 'hsl(' + Math.round(hsl.h * 360) + ',' + Math.round((sat == null ? Math.min(0.85, hsl.s) : sat) * 100) + '%,' + Math.round(l * 100) + '%)'; }
+      var gold = '#d8a858', dark = tone(0.08, 0.35), deep = tone(0.17), mid = tone(0.32), lite = tone(0.55), pale = tone(0.78, 0.5);
+      x.fillStyle = 'rgba(0,0,0,0)'; x.clearRect(0, 0, N, N);
+      function ring(r0, r1, fill) { x.beginPath(); x.arc(C, cy, r1, 0, 7); x.arc(C, cy, r0, 0, 7, true); x.fillStyle = fill; x.fill('evenodd'); }
+      function line(rr, w, st) { x.beginPath(); x.arc(C, cy, rr, 0, 7); x.lineWidth = w; x.strokeStyle = st; x.stroke(); }
+      x.beginPath(); x.arc(C, cy, R, 0, 7); x.fillStyle = dark; x.fill();
+      // outer border: a circuit-trace key pattern (futuristic take on the greek key)
+      ring(R * 0.86, R, deep); line(R - 3, 6, gold); line(R * 0.86, 4, gold);
+      for (var k = 0; k < 64; k++) { var a = k / 64 * Math.PI * 2, a2 = a + Math.PI / 64, r0 = R * 0.885, r1 = R * 0.975;
+        x.strokeStyle = k % 2 ? lite : mid; x.lineWidth = 7; x.beginPath(); x.moveTo(C + Math.cos(a) * r0, cy + Math.sin(a) * r0); x.lineTo(C + Math.cos(a) * r1, cy + Math.sin(a) * r1); x.arc(C, cy, r1, a, a2); x.lineTo(C + Math.cos(a2) * (r0 + 18), cy + Math.sin(a2) * (r0 + 18)); x.stroke(); }
+      // mosaic band of rounded tiles with diamond insets
+      ring(R * 0.6, R * 0.84, mid);
+      var nT = 36; for (k = 0; k < nT; k++) { var a0 = k / nT * Math.PI * 2, a1 = (k + 1) / nT * Math.PI * 2, gap = 0.012;
+        x.beginPath(); x.arc(C, cy, R * 0.83, a0 + gap, a1 - gap); x.arc(C, cy, R * 0.615, a1 - gap, a0 + gap, true); x.closePath(); x.fillStyle = k % 2 ? deep : tone(0.24); x.fill();
+        var am = (a0 + a1) / 2, rm = R * 0.722, ds = R * 0.05; x.save(); x.translate(C + Math.cos(am) * rm, cy + Math.sin(am) * rm); x.rotate(am);
+        x.beginPath(); x.moveTo(-ds, 0); x.lineTo(0, -ds * 0.8); x.lineTo(ds, 0); x.lineTo(0, ds * 0.8); x.closePath(); x.fillStyle = k % 2 ? lite : gold; x.fill(); x.restore(); }
+      line(R * 0.6, 4, gold);
+      // radial spoke field with a glowing ring
+      ring(R * 0.34, R * 0.59, deep);
+      for (k = 0; k < 24; k++) { var aa = k / 24 * Math.PI * 2; x.strokeStyle = k % 2 ? mid : lite; x.lineWidth = 5; x.beginPath(); x.moveTo(C + Math.cos(aa) * R * 0.36, cy + Math.sin(aa) * R * 0.36); x.lineTo(C + Math.cos(aa) * R * 0.575, cy + Math.sin(aa) * R * 0.575); x.stroke(); }
+      line(R * 0.47, 10, lite); line(R * 0.34, 4, gold);
+      // the centre: a petal sunburst (the references' rosette), octagon hub to echo the door's button
+      x.save(); x.translate(C, cy);
+      for (k = 0; k < 16; k++) { x.rotate(Math.PI / 8); x.beginPath(); x.moveTo(0, R * 0.06); x.quadraticCurveTo(R * 0.09, R * 0.2, 0, R * 0.32); x.quadraticCurveTo(-R * 0.09, R * 0.2, 0, R * 0.06); x.fillStyle = k % 2 ? mid : lite; x.fill(); x.strokeStyle = dark; x.lineWidth = 3; x.stroke(); }
+      x.beginPath(); for (k = 0; k < 8; k++) { var ao = (k + 0.5) / 8 * Math.PI * 2; x[k ? 'lineTo' : 'moveTo'](Math.cos(ao) * R * 0.09, Math.sin(ao) * R * 0.09); } x.closePath(); x.fillStyle = gold; x.fill();
+      x.beginPath(); x.arc(0, 0, R * 0.04, 0, 7); x.fillStyle = pale; x.fill(); x.restore();
+      // pile: fine fibre noise so it reads as a woven mat, not a decal
+      x.globalCompositeOperation = 'source-atop';
+      for (k = 0; k < 26000; k++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.06)'; x.fillRect(r() * N, r() * N, 1 + r() * 2, 1 + r() * 2); }
+      x.globalCompositeOperation = 'source-over';
+      var t = mkTex(c); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+    }
+    function buildRugs(root, aniso) {
+      var RR = 1.3;
+      DOORS.forEach(function (d, i) {
+        var W = WALLS[d.W], tint = d.tint, g = new THREE.Group();
+        if (W.axis === 'x') g.position.set(W.s * W.base, 0, d.c); else g.position.set(d.c, 0, W.s * W.base);
+        var inward = W.axis === 'x' ? new THREE.Vector3(-W.s, 0, 0) : new THREE.Vector3(0, 0, -W.s);
+        g.rotation.y = Math.atan2(-inward.x, -inward.z); g.position.addScaledVector(inward, 0.18); root.add(g);   // clear of the door frame
+        var tex = rugTexture(tint, 31 + i * 7); tex.anisotropy = aniso;
+        var rug = new THREE.Mesh(new THREE.RingGeometry(0.001, RR, 96, 10, 0, Math.PI), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.95, metalness: 0, alphaTest: 0.05 }));
+        rug.rotation.x = -Math.PI / 2; rug.position.y = 0.012; g.add(rug);
+        var rim = new THREE.Mesh(new THREE.RingGeometry(RR - 0.03, RR + 0.05, 96, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+        rim.rotation.x = -Math.PI / 2; rim.position.y = 0.014; g.add(rim);
+      });
+    }
     function buildFloor(root, M, aniso) {
       var fm = new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.3, metalness: 0.55, color: 0xa89e92 });
       fm.map.repeat.set(5, 25); fm.map.anisotropy = aniso;

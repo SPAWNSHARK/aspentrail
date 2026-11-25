@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125u).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125v).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -102,6 +102,10 @@ Rules drawn from them:
   (pairs flank each side door), glowing arch portals at the ends (amber = Bridge, teal = Library).
   One-step-outside-the-door spawn when returning from a room; leaving the Bridge/Library you face AWAY from it (SPAWN yaw:
   0 = facing −Z, 180 = facing +Z; the old heading check read the entity +Z axis and turned every spawn round — fixed).
+  DOOR RUGS (Nov 25, user: tell the doors apart from down the hall): `buildRugs` lays a half-round mat (r 1.3, 0.18 m in from
+  the wall) flat-edge to every door, drawn by `rugTexture(tint)` in that door's own glass colour (DOORS.tint): circuit-key border,
+  mosaic tile band with diamonds, spoke ring, petal sunburst with an octagon hub; additive glowing rim. Style per the user's
+  half-round door-mat references (they rejected the two plain-printed ones).
   SKYLIGHT shows light speed (`buildSky`: animated streak quads + scrolling tunnel texture). SEVEN recessed walnut
   bookcases between ribs (`SHELVES` table; 2 columns × 6 lit shelves; ~instanced books with gilt spines, leaning/stacked
   books, vases, frames, plants, globes). Default spawn faces the Bridge (user is fine with it).
