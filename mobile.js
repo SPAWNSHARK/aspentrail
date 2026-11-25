@@ -15,7 +15,7 @@
   var root = document.documentElement;
   if (touch) root.classList.add('touch');
   if (mobile) root.classList.add('mobile');
-  if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) root.classList.add('standalone');
+  if (navigator.standalone || (window.matchMedia && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches))) root.classList.add('standalone');
 
   // ── controls (user, Nov 24 v3: "like it was in the beginning"): two floating thumbsticks in the bottom corners —
   //    left = walk (analog), right = look — plus two small round buttons (Gyro = VR headset, Level = spirit level).
