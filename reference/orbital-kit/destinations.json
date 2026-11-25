@@ -1,0 +1,254 @@
+[
+ {
+  "id": "Auralis",
+  "name": "Auralis",
+  "description": "Temperate ocean world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   64,
+   153,
+   238
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Auralis.glb",
+  "albedo": "Textures/Auralis_Albedo.png",
+  "emission": "Textures/Auralis_Emission.png",
+  "views": {
+   "Far": "Views/Auralis_Far.png",
+   "Orbit": "Views/Auralis_Orbit.png",
+   "Close": "Views/Auralis_Close.png",
+   "WindowPreview": "Views/Auralis_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Varkesh",
+  "name": "Varkesh",
+  "description": "Rust desert world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   224,
+   134,
+   76
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Varkesh.glb",
+  "albedo": "Textures/Varkesh_Albedo.png",
+  "emission": "Textures/Varkesh_Emission.png",
+  "views": {
+   "Far": "Views/Varkesh_Far.png",
+   "Orbit": "Views/Varkesh_Orbit.png",
+   "Close": "Views/Varkesh_Close.png",
+   "WindowPreview": "Views/Varkesh_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Nyxara",
+  "name": "Nyxara",
+  "description": "Violet bioluminescent world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   169,
+   70,
+   247
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Nyxara.glb",
+  "albedo": "Textures/Nyxara_Albedo.png",
+  "emission": "Textures/Nyxara_Emission.png",
+  "views": {
+   "Far": "Views/Nyxara_Far.png",
+   "Orbit": "Views/Nyxara_Orbit.png",
+   "Close": "Views/Nyxara_Close.png",
+   "WindowPreview": "Views/Nyxara_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Ferrum_Prime",
+  "name": "Ferrum Prime",
+  "description": "Machine civilization",
+  "fictional": true,
+  "atmosphere_rgb": [
+   68,
+   174,
+   255
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Ferrum_Prime.glb",
+  "albedo": "Textures/Ferrum_Prime_Albedo.png",
+  "emission": "Textures/Ferrum_Prime_Emission.png",
+  "views": {
+   "Far": "Views/Ferrum_Prime_Far.png",
+   "Orbit": "Views/Ferrum_Prime_Orbit.png",
+   "Close": "Views/Ferrum_Prime_Close.png",
+   "WindowPreview": "Views/Ferrum_Prime_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Kharon_Fracture",
+  "name": "Kharon Fracture",
+  "description": "Impact-shattered world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   255,
+   106,
+   46
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Kharon_Fracture.glb",
+  "albedo": "Textures/Kharon_Fracture_Albedo.png",
+  "emission": "Textures/Kharon_Fracture_Emission.png",
+  "views": {
+   "Far": "Views/Kharon_Fracture_Far.png",
+   "Orbit": "Views/Kharon_Fracture_Orbit.png",
+   "Close": "Views/Kharon_Fracture_Close.png",
+   "WindowPreview": "Views/Kharon_Fracture_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Cryovale",
+  "name": "Cryovale",
+  "description": "Glacial world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   81,
+   189,
+   245
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Cryovale.glb",
+  "albedo": "Textures/Cryovale_Albedo.png",
+  "emission": "Textures/Cryovale_Emission.png",
+  "views": {
+   "Far": "Views/Cryovale_Far.png",
+   "Orbit": "Views/Cryovale_Orbit.png",
+   "Close": "Views/Cryovale_Close.png",
+   "WindowPreview": "Views/Cryovale_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Thalassa",
+  "name": "Thalassa",
+  "description": "Global ocean world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   39,
+   180,
+   235
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Thalassa.glb",
+  "albedo": "Textures/Thalassa_Albedo.png",
+  "emission": "Textures/Thalassa_Emission.png",
+  "views": {
+   "Far": "Views/Thalassa_Far.png",
+   "Orbit": "Views/Thalassa_Orbit.png",
+   "Close": "Views/Thalassa_Close.png",
+   "WindowPreview": "Views/Thalassa_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Vespera",
+  "name": "Vespera",
+  "description": "Toxic sulfur world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   177,
+   210,
+   64
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Vespera.glb",
+  "albedo": "Textures/Vespera_Albedo.png",
+  "emission": "Textures/Vespera_Emission.png",
+  "views": {
+   "Far": "Views/Vespera_Far.png",
+   "Orbit": "Views/Vespera_Orbit.png",
+   "Close": "Views/Vespera_Close.png",
+   "WindowPreview": "Views/Vespera_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Orinth",
+  "name": "Orinth",
+  "description": "Ringed gas giant",
+  "fictional": true,
+  "atmosphere_rgb": [
+   198,
+   142,
+   250
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Orinth.glb",
+  "albedo": "Textures/Orinth_Albedo.png",
+  "emission": "Textures/Orinth_Emission.png",
+  "views": {
+   "Far": "Views/Orinth_Far.png",
+   "Orbit": "Views/Orinth_Orbit.png",
+   "Close": "Views/Orinth_Close.png",
+   "WindowPreview": "Views/Orinth_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Pyraxis",
+  "name": "Pyraxis",
+  "description": "Volcanic world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   245,
+   86,
+   28
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Pyraxis.glb",
+  "albedo": "Textures/Pyraxis_Albedo.png",
+  "emission": "Textures/Pyraxis_Emission.png",
+  "views": {
+   "Far": "Views/Pyraxis_Far.png",
+   "Orbit": "Views/Pyraxis_Orbit.png",
+   "Close": "Views/Pyraxis_Close.png",
+   "WindowPreview": "Views/Pyraxis_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Mycelion",
+  "name": "Mycelion",
+  "description": "Exotic forest world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   104,
+   229,
+   166
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Mycelion.glb",
+  "albedo": "Textures/Mycelion_Albedo.png",
+  "emission": "Textures/Mycelion_Emission.png",
+  "views": {
+   "Far": "Views/Mycelion_Far.png",
+   "Orbit": "Views/Mycelion_Orbit.png",
+   "Close": "Views/Mycelion_Close.png",
+   "WindowPreview": "Views/Mycelion_WindowPreview.png"
+  }
+ },
+ {
+  "id": "Selenite",
+  "name": "Selenite",
+  "description": "Crystalline mineral world",
+  "fictional": true,
+  "atmosphere_rgb": [
+   194,
+   115,
+   255
+  ],
+  "model_radius": 1,
+  "glb": "GLB/Planet_Selenite.glb",
+  "albedo": "Textures/Selenite_Albedo.png",
+  "emission": "Textures/Selenite_Emission.png",
+  "views": {
+   "Far": "Views/Selenite_Far.png",
+   "Orbit": "Views/Selenite_Orbit.png",
+   "Close": "Views/Selenite_Close.png",
+   "WindowPreview": "Views/Selenite_WindowPreview.png"
+  }
+ }
+]

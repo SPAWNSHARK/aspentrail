@@ -6,7 +6,7 @@
 //                                   'visit:<PLANET>' | 'dock'. Returns { done, text } when something changed.
 //   WF_MISSIONS.credits()  WF_MISSIONS.rank()
 (function () {
-  var PLANETS = ['KESSA', 'THALOS', 'VORRAN', 'ISSEN', 'PYRE', 'VERDANCE', 'AZURE GIANT'];
+  var PLANETS = ['VARKESH', 'AURALIS', 'ORINTH', 'CRYOVALE', 'PYRAXIS', 'MYCELION', 'NYXARA', 'FERRUM PRIME', 'THALASSA', 'VESPERA', 'SELENITE', 'KHARON FRACTURE'];
   var RANKS = [[0, 'Ensign'], [600, 'Lieutenant'], [1800, 'Lt. Commander'], [4000, 'Commander'], [8000, 'Captain'], [15000, 'Commodore']];
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }

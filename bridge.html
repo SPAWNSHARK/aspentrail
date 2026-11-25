@@ -21,12 +21,12 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125s"></script>
-  <script src="sound.js?v=20261125s"></script>
-  <script src="avatar.js?v=20261125s"></script>
-  <script src="door.js?v=20261125s"></script>
-  <script src="hyperspace.js?v=20261125s"></script>
-  <script src="lcars.js?v=20261125s"></script>
+  <script src="mobile.js?v=20261125t"></script>
+  <script src="sound.js?v=20261125t"></script>
+  <script src="avatar.js?v=20261125t"></script>
+  <script src="door.js?v=20261125t"></script>
+  <script src="hyperspace.js?v=20261125t"></script>
+  <script src="lcars.js?v=20261125t"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -173,10 +173,13 @@
     function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
 
     window.WF_STARS = [   // must match minigame.html SYSTEM names (+ the Argo)
-      { name: 'KESSA', col: 0xc8784a, size: 0.012, note: 'Terracotta desert world' }, { name: 'THALOS', col: 0x4a8ad8, size: 0.015, note: 'Ocean world, two moons' },
-      { name: 'VORRAN', col: 0xe0b070, size: 0.022, note: 'Ringed gas giant' }, { name: 'ISSEN', col: 0xd8ecff, size: 0.013, note: 'Ice world' },
-      { name: 'PYRE', col: 0xff6a20, size: 0.011, note: 'Lava world' }, { name: 'VERDANCE', col: 0x8adf5a, size: 0.014, note: 'Toxic jungle' },
-      { name: 'AZURE GIANT', col: 0x6a9ae0, size: 0.026, note: 'Ringed blue giant' }, { name: 'ARGO WAYSTATION', col: 0xffb060, size: 0.008, note: 'Station · the Ember Room' } ];
+      { name: 'VARKESH', col: 0xe0864c, size: 0.012, note: 'Rust desert world' }, { name: 'AURALIS', col: 0x4099ee, size: 0.014, note: 'Temperate ocean world' },
+      { name: 'ORINTH', col: 0xc8a0ff, size: 0.024, note: 'Ringed gas giant' }, { name: 'CRYOVALE', col: 0x9fdcff, size: 0.012, note: 'Glacial world' },
+      { name: 'PYRAXIS', col: 0xff6a2e, size: 0.010, note: 'Volcanic world' }, { name: 'MYCELION', col: 0x8aff9a, size: 0.013, note: 'Exotic forest world' },
+      { name: 'NYXARA', col: 0xa946f7, size: 0.014, note: 'Violet bioluminescent world' }, { name: 'FERRUM PRIME', col: 0x44aeff, size: 0.016, note: 'Machine civilization' },
+      { name: 'THALASSA', col: 0x27b4eb, size: 0.017, note: 'Global ocean world' }, { name: 'VESPERA', col: 0xd8d040, size: 0.013, note: 'Toxic sulfur world' },
+      { name: 'SELENITE', col: 0xb48aff, size: 0.011, note: 'Crystalline mineral world' }, { name: 'KHARON FRACTURE', col: 0xff6a2e, size: 0.013, note: 'Impact-shattered world' },
+      { name: 'ARGO WAYSTATION', col: 0xffb060, size: 0.008, note: 'Orbital station · the Ember Room' } ];
     var root, M, anim = [], hyper, hyperT = 0, warpK = 1;   // warpK speeds the light-speed streaks up for the jump
     function build() {
       root = new THREE.Group(); sc.object3D.add(root);
@@ -328,7 +331,7 @@
 
     // ── the PLANET SELECTOR (kit): a holographic globe on a copper plinth at the commander's right. Its six planets are
     //    tappable and mapped to our worlds; tapping the plinth or hologram anywhere else opens the full STAR CHART. ──
-    var PLANET_MAP = { Planet_01_Terrestrial: 'THALOS', Planet_02_Red: 'KESSA', Planet_03_GasGiant: 'VORRAN', Planet_04_Ice: 'ISSEN', Planet_05_Ringed: 'AZURE GIANT', Planet_06_Green: 'VERDANCE' };
+    var PLANET_MAP = { Planet_01_Terrestrial: 'AURALIS', Planet_02_Red: 'VARKESH', Planet_03_GasGiant: 'VESPERA', Planet_04_Ice: 'CRYOVALE', Planet_05_Ringed: 'ORINTH', Planet_06_Green: 'MYCELION' };
     function buildOrb(add, dot) {
       var e = kitModel('Planet_Selector.glb', [1.62, DAIS_H, -0.55], 180, 'Hologram_Rotation');
       e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb');
@@ -454,7 +457,7 @@
     var chart = document.getElementById('star-chart');
     window.WF_launch = function (dest) { engage(dest); };
     window.WF_openChart = function () {
-      var near = ''; try { near = localStorage.getItem('wf-near') || 'KESSA'; } catch (e) {}
+      var near = ''; try { near = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {}
       var list = document.getElementById('chart-list'); list.innerHTML = '';
       window.WF_STARS.forEach(function (w) { var b2 = document.createElement('button'), hex = '#' + ('00000' + w.col.toString(16)).slice(-6);
         b2.innerHTML = '<i style="background:' + hex + ';box-shadow:0 0 10px ' + hex + '"></i>' + w.name + (w.name === near ? '  · here' : '') + '<small>' + w.note + '</small>';

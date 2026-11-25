@@ -22,9 +22,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125s"></script>
-  <script src="missions.js?v=20261125s"></script>
-  <script src="sound.js?v=20261125s"></script>
+  <script src="shipskin.js?v=20261125t"></script>
+  <script src="missions.js?v=20261125t"></script>
+  <script src="sound.js?v=20261125t"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -170,7 +170,7 @@
     <div id="hail"></div>
     <div id="objective"></div>
     <div id="dock">DOCK AT ARGO</div>
-    <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">THALOS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
+    <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">AURALIS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
   </div>
 
@@ -319,25 +319,39 @@ function planetMat(kind, c1, c2, c3, atm, seed) {
     c1: { value: new THREE.Color(c1) }, c2: { value: new THREE.Color(c2) }, c3: { value: new THREE.Color(c3) }, atm: { value: new THREE.Color(atm) } } });
 }
 // name, biome (0 terran 1 desert/clay 2 gas 3 ice 4 lava 5 toxic), radius, position, colours, moons, rings
+// THE GALAXY (user's orbital kit, Nov 25): twelve textured worlds (images/planets/<id>.jpg + optional _glow.jpg emission).
+// Names must match bridge.html WF_STARS, missions.js PLANETS and hyperspace.js (window views).
 const SYSTEM = [
-  { name: 'KESSA',       kind: 1, r: 170,  at: [90, -260, -300],      c: [0x7a2c1c, 0xc88a5a, 0x5a1a10], atm: 0xff9a60, moons: 1 },                // the terracotta world you start beside
-  { name: 'THALOS',      kind: 0, r: 320,  at: [-2600, 400, -4200],   c: [0x0d3a78, 0x4a7a3a, 0x9a8a5a], atm: 0x5aa0ff, moons: 2 },
-  { name: 'VORRAN',      kind: 2, r: 900,  at: [5200, -800, -9000],   c: [0xd8a060, 0x8a5a3a, 0xf0e0c0], atm: 0xffd0a0, moons: 3, rings: true },
-  { name: 'ISSEN',       kind: 3, r: 220,  at: [-6000, 1600, 2500],   c: [0xd8e8ff, 0x8ab0e0, 0x3a6aa0], atm: 0xa0d0ff, moons: 0 },
-  { name: 'PYRE',        kind: 4, r: 140,  at: [3000, 600, 3800],     c: [0x2a1a14, 0x4a2a1a, 0xff7a20], atm: 0xff5a20, moons: 1 },
-  { name: 'VERDANCE',    kind: 5, r: 260,  at: [-1500, -1200, 9000],  c: [0x2a5a1a, 0xa0b02a, 0x6aff9a], atm: 0x9aff7a, moons: 1 },
-  { name: 'AZURE GIANT', kind: 2, r: 1400, at: [-12000, -2500, -16000], c: [0x2a4aa0, 0x6a9ae0, 0xe0f0ff], atm: 0x8ab8ff, moons: 2, rings: true }
+  { name: 'VARKESH',   id: 'varkesh',   r: 170,  at: [90, -260, -300],        atm: 0xe0864c, moons: 1, note: 'Rust desert world' },   // you start beside it
+  { name: 'AURALIS',   id: 'auralis',   r: 320,  at: [-2600, 400, -4200],     atm: 0x4099ee, moons: 2, note: 'Temperate ocean world' },
+  { name: 'ORINTH',    id: 'orinth',    r: 900,  at: [5200, -800, -9000],     atm: 0xc8a0ff, moons: 3, rings: 0xc8a8d8, note: 'Ringed gas giant' },
+  { name: 'CRYOVALE',  id: 'cryovale',  r: 220,  at: [-6000, 1600, 2500],     atm: 0x51bdf5, moons: 0, note: 'Glacial world' },
+  { name: 'PYRAXIS',   id: 'pyraxis',   r: 140,  at: [3000, 600, 3800],       atm: 0xff6a2e, moons: 1, glow: 1, note: 'Volcanic world' },
+  { name: 'MYCELION',  id: 'mycelion',  r: 260,  at: [-1500, -1200, 9000],    atm: 0x8aff9a, moons: 1, glow: 1, note: 'Exotic forest world' },
+  { name: 'NYXARA',    id: 'nyxara',    r: 300,  at: [7000, 1500, 6000],      atm: 0xa946f7, moons: 1, glow: 1, note: 'Violet bioluminescent world' },
+  { name: 'FERRUM PRIME', id: 'ferrum_prime', r: 380, at: [-9000, -600, -3000], atm: 0x44aeff, moons: 2, glow: 1, note: 'Machine civilization' },
+  { name: 'THALASSA',  id: 'thalassa',  r: 420,  at: [2500, 2500, -14000],    atm: 0x27b4eb, moons: 1, note: 'Global ocean world' },
+  { name: 'VESPERA',   id: 'vespera',   r: 240,  at: [10500, -1800, -2500],   atm: 0xd8d040, moons: 0, note: 'Toxic sulfur world' },
+  { name: 'SELENITE',  id: 'selenite',  r: 180,  at: [-4200, -2600, 12500],   atm: 0xb48aff, moons: 1, glow: 1, note: 'Crystalline mineral world' },
+  { name: 'KHARON FRACTURE', id: 'kharon_fracture', r: 260, at: [-12000, -2500, -16000], atm: 0xff6a2e, moons: 2, glow: 1, note: 'Impact-shattered world' }
 ];
 const planets = [];
 SYSTEM.forEach((P, i) => {
   const g = new THREE.Group(); g.position.fromArray(P.at); scene.add(g);
-  const m = new THREE.Mesh(new THREE.SphereGeometry(P.r, 96, 64), planetMat(P.kind, P.c[0], P.c[1], P.c[2], P.atm, i * 3.7)); m.rotation.z = 0.3 + i * 0.4; g.add(m);
+  // lit in the shader from SUN_DIR (scene lights don't reach this far): day side, a soft terminator, city/lava glow on the
+  // night side, and an atmosphere rim in the world's colour. Textures are sampled as-is (sRGB in, sRGB out).
+  const TL = new THREE.TextureLoader(), alb = TL.load('images/planets/' + P.id + '.jpg'), glw = P.glow ? TL.load('images/planets/' + P.id + '_glow.jpg') : alb;
+  alb.anisotropy = 4;
+  const pmat = new THREE.ShaderMaterial({ uniforms: { map: { value: alb }, glow: { value: glw }, hasGlow: { value: P.glow ? 1 : 0 }, atm: { value: new THREE.Color(P.atm).convertLinearToSRGB() }, sun: { value: SUN_DIR } },
+    vertexShader: 'varying vec2 vU; varying vec3 vN, vW, vV; void main(){ vU = uv; vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vV = normalize(cameraPosition - w.xyz); gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: 'uniform sampler2D map, glow; uniform float hasGlow; uniform vec3 atm, sun; varying vec2 vU; varying vec3 vN, vV; void main(){ vec3 c = texture2D(map, vU).rgb; float ndl = dot(normalize(vN), sun), d = smoothstep(-0.15, 0.6, ndl); float rim = pow(1.0 - max(0.0, dot(normalize(vN), vV)), 3.5); vec3 g = hasGlow > 0.5 ? texture2D(glow, vU).rgb * (1.0 - d) * 1.3 : vec3(0.0); vec3 col = c * (0.07 + 1.05 * d) + g + atm * rim * (0.15 + 0.85 * smoothstep(-0.3, 0.5, ndl)); gl_FragColor = vec4(col, 1.0); }' });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(P.r, 96, 64), pmat); m.rotation.z = 0.2 + i * 0.13; g.add(m);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: P.atm, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false })); halo.scale.set(P.r * 2.9, P.r * 2.9, 1); g.add(halo);
   if (P.rings) {
     const rc = cvs(512, 8), rx = rc.getContext('2d'); for (let k = 0; k < 512; k++) { const a = Math.max(0, Math.sin(k * 0.09) * 0.5 + Math.sin(k * 0.031) * 0.4 + 0.3) * (k > 40 && k < 490 ? 1 : 0); rx.fillStyle = 'rgba(230,210,180,' + Math.min(0.85, a) + ')'; rx.fillRect(k, 0, 1, 8); }
     const rg = new THREE.RingGeometry(P.r * 1.35, P.r * 2.3, 128, 1), uv = rg.attributes.uv, pp = rg.attributes.position;
     for (let k = 0; k < uv.count; k++) { const rr = Math.hypot(pp.getX(k), pp.getY(k)); uv.setXY(k, (rr - P.r * 1.35) / (P.r * 0.95), 0.5); }
-    const ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rc), transparent: true, side: THREE.DoubleSide, depthWrite: false, color: 0xbfa88a }));
+    const ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rc), transparent: true, side: THREE.DoubleSide, depthWrite: false, color: P.rings }));
     ring.rotation.x = Math.PI / 2 - 0.35; ring.rotation.y = 0.2; g.add(ring);
   }
   const moons = [];
@@ -387,6 +401,13 @@ const STATION = (() => {
   }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xffa050, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(150, 150, 1); g.add(glow);
   fixColors(g);
+  // the user's ORBITAL STATION model (orbital kit, Nov 25): a wheel station (hub dome, six spokes, ring with module pods),
+  // ~185 m across → scaled to ~150 m. Replaces the procedural build once loaded (that stays as the fallback). No PMREM on r128 GLBs.
+  if (THREE.GLTFLoader) new THREE.GLTFLoader().load('models/station/orbital_station.glb?v=1', gl => {
+    const m = gl.scene; m.scale.setScalar(0.8); m.rotation.x = 0.18;
+    m.traverse(o => { if (o.isMesh) { [].concat(o.material).forEach(mt => { if (mt.metalness !== undefined) { mt.metalness = Math.min(mt.metalness, 0.45); mt.roughness = Math.max(mt.roughness, 0.4); } if (/Glass|Amber|Cyan|Light/i.test(mt.name) && mt.emissive) { mt.emissive.copy(mt.color); mt.emissiveIntensity = 0.8; } }); } });
+    g.children.slice().forEach(c => { if (!c.isLight && c !== glow) c.visible = false; }); g.add(m);
+  });
   return { name: 'ARGO WAYSTATION', group: g, r: 30, isStation: true };
 })();
 const NAV = planets.concat([STATION]);
@@ -417,7 +438,7 @@ function updateFriendlies(dt, t) {
 }
 function updateSystem(t) {
   updateFriendlies(1 / 60, t);
-  planets.forEach(P => { P.mesh.material.uniforms.time.value = t; P.mesh.rotation.y = t * 0.01; P.moons.forEach(M => { const a = M.ph + t * M.sp; M.mesh.position.set(Math.cos(a) * M.d, Math.sin(a) * M.d * M.tilt, Math.sin(a) * M.d); M.mesh.material.uniforms.time.value = t; }); });
+  planets.forEach(P => { if (P.mesh.material.uniforms && P.mesh.material.uniforms.time) P.mesh.material.uniforms.time.value = t; P.mesh.rotation.y = t * 0.01; P.moons.forEach(M => { const a = M.ph + t * M.sp; M.mesh.position.set(Math.cos(a) * M.d, Math.sin(a) * M.d * M.tilt, Math.sin(a) * M.d); M.mesh.material.uniforms.time.value = t; }); });
   skyMesh.rotation.y = t * 0.0015;                                            // the Milky Way turns, slowly
 }
 

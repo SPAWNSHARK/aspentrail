@@ -93,19 +93,16 @@
         var m = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntex, color: q[0], transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false }));
         var d = new THREE.Vector3().fromArray(q[1]).normalize().multiplyScalar(190); m.position.set(cx0 + d.x, cy0 + d.y, d.z); m.scale.set(170, 170, 1); m.renderOrder = -9; space.add(m); });
       // the nearby planet
-      var near = 'KESSA'; try { near = localStorage.getItem('wf-near') || 'KESSA'; } catch (e) {}
-      var PAL = { KESSA: [1, '#7a2c1c', '#c88a5a', '#ff9a60'], THALOS: [0, '#0d3a78', '#4a7a3a', '#5aa0ff'], VORRAN: [2, '#d8a060', '#8a5a3a', '#ffd0a0'], ISSEN: [3, '#d8e8ff', '#8ab0e0', '#a0d0ff'],
-        PYRE: [4, '#2a1a14', '#ff7a20', '#ff5a20'], VERDANCE: [5, '#2a5a1a', '#a0b02a', '#9aff7a'], 'AZURE GIANT': [2, '#2a4aa0', '#e0f0ff', '#8ab8ff'], 'ARGO WAYSTATION': [1, '#7a2c1c', '#c88a5a', '#ff9a60'] }, P = PAL[near] || PAL.KESSA;
-      var pc = document.createElement('canvas'); pc.width = 512; pc.height = 256; var px = pc.getContext('2d'); px.fillStyle = P[1]; px.fillRect(0, 0, 512, 256);
-      for (k = 0; k < (P[0] === 2 ? 40 : 900); k++) {
-        if (P[0] === 2) { var yb = rr() * 256; px.fillStyle = rr() < 0.5 ? P[2] : P[1]; px.globalAlpha = 0.25 + rr() * 0.4; px.fillRect(0, yb, 512, 3 + rr() * 16); continue; }
-        var bx = rr() * 512, by = rr() * 256, br = 3 + rr() * (P[0] === 4 ? 6 : 26); px.globalAlpha = 0.2 + rr() * 0.4; px.fillStyle = rr() < 0.55 ? P[2] : P[1]; px.beginPath(); px.arc(bx, by, br, 0, 7); px.fill();
-        if (P[0] === 0 && rr() < 0.25) { px.fillStyle = 'rgba(255,255,255,0.5)'; px.fillRect(bx, by, 30 + rr() * 60, 3); }
-      }
-      px.globalAlpha = 1; var ptex = new THREE.CanvasTexture(pc); ptex.colorSpace = THREE.SRGBColorSpace || ptex.colorSpace;
-      var pm = new THREE.ShaderMaterial({ uniforms: { map: { value: ptex }, atm: { value: new THREE.Color(P[3]) }, sun: { value: new THREE.Vector3(-0.6, 0.5, 0.6).normalize() }, op: { value: 1 } }, transparent: true, depthWrite: false, fog: false, toneMapped: false,
+      // the nearby world, painted with the orbital kit's texture (images/planets/<id>.jpg; matches Flight Mode)
+      var W = { VARKESH: ['varkesh', '#e0864c'], AURALIS: ['auralis', '#4099ee'], ORINTH: ['orinth', '#c8a0ff'], CRYOVALE: ['cryovale', '#51bdf5'], PYRAXIS: ['pyraxis', '#ff6a2e', 1],
+        MYCELION: ['mycelion', '#8aff9a', 1], NYXARA: ['nyxara', '#a946f7', 1], 'FERRUM PRIME': ['ferrum_prime', '#44aeff', 1], THALASSA: ['thalassa', '#27b4eb'], VESPERA: ['vespera', '#d8d040'],
+        SELENITE: ['selenite', '#b48aff', 1], 'KHARON FRACTURE': ['kharon_fracture', '#ff6a2e', 1], 'ARGO WAYSTATION': ['varkesh', '#e0864c'] };
+      var near = 'VARKESH'; try { near = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {}
+      var P = W[near] || W.VARKESH, TL = new THREE.TextureLoader(), ptex = TL.load('images/planets/' + P[0] + '.jpg'); if (THREE.SRGBColorSpace) ptex.colorSpace = THREE.SRGBColorSpace;
+      var gtex = P[2] ? TL.load('images/planets/' + P[0] + '_glow.jpg') : ptex;
+      var pm = new THREE.ShaderMaterial({ uniforms: { map: { value: ptex }, glow: { value: gtex }, hasGlow: { value: P[2] ? 1 : 0 }, atm: { value: new THREE.Color(P[1]) }, sun: { value: new THREE.Vector3(-0.6, 0.5, 0.6).normalize() }, op: { value: 1 } }, transparent: true, depthWrite: false, fog: false, toneMapped: false,
         vertexShader: 'varying vec2 vU; varying vec3 vN, vV; void main(){ vU = uv; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-        fragmentShader: 'uniform sampler2D map; uniform vec3 atm, sun; uniform float op; varying vec2 vU; varying vec3 vN, vV; void main(){ vec3 c = texture2D(map, vU).rgb; vec3 L = normalize((viewMatrix * vec4(sun, 0.0)).xyz); float d = max(0.0, dot(vN, L)); float rim = pow(1.0 - max(0.0, dot(vN, vV)), 3.0); gl_FragColor = vec4(c * (0.05 + 1.1 * d) + atm * rim * (0.3 + d), op); }' });
+        fragmentShader: 'uniform sampler2D map, glow; uniform float hasGlow; uniform vec3 atm, sun; uniform float op; varying vec2 vU; varying vec3 vN, vV; void main(){ vec3 c = texture2D(map, vU).rgb; vec3 L = normalize((viewMatrix * vec4(sun, 0.0)).xyz); float d = max(0.0, dot(vN, L)); float rim = pow(1.0 - max(0.0, dot(vN, vV)), 3.0); vec3 g = hasGlow > 0.5 ? texture2D(glow, vU).rgb * (1.0 - d * 0.7) : vec3(0.0); gl_FragColor = vec4(c * (0.04 + 1.1 * d) + g + atm * rim * (0.3 + d), op); }' });
       var dir = new THREE.Vector3().fromArray(o.planetDir || [0.45, 0.75, -0.5]).normalize(), pl = new THREE.Mesh(new THREE.SphereGeometry(34, 48, 32), pm);
       pl.position.set(cx0 + dir.x * 170, cy0 + dir.y * 170, dir.z * 170); pl.rotation.z = 0.4; pl.renderOrder = -8; space.add(pl); space.userData.planet = pl; space.userData.pm = pm;
     }());
