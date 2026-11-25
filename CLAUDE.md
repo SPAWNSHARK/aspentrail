@@ -219,7 +219,8 @@ Rules drawn from them:
   Garden). HOUSE PLANNER is its own wall terminal on the port wall (x=−9): live blueprint preview, tap → 2D planner
   (user, Nov 24). Furniture placements are NOT saved between visits yet. The 2D blueprint planner and Star Garden code are unchanged.
 - **Icons** — Nov 25: the user's new SS WAYFARER art (reference/app-icon-source-v2.png, frame cropped) at 1024/512/192/180 + favicon,
-  linked with ?v=2 to beat icon caches; share image unchanged.
+  linked with ?v=2 to beat icon caches. Share image (Nov 25): user's new art (reference/share-image-source.jpg) cropped to
+  images/wayfarer-share.jpg 1200×630, og:image ?v=2.
 
 ## What's next (agreed order: restyle room by room to the reference)
 1. Media Nexus live channels — needs a YouTube Data API key from the user (a key in a Pages site is public:
