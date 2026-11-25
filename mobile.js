@@ -26,16 +26,21 @@
   var css = document.createElement('style');
   css.textContent =
     '.wf-ctl,.wf-ctl *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none}' +
-    '#wf-joy,#wf-stick,#wf-btns{position:fixed;z-index:15;display:none;transition:opacity .25s}' +
-    'html.touch #wf-joy,html.touch #wf-stick,html.touch #wf-btns{display:block}' +
+    '#wf-joy,#wf-stick{position:fixed;z-index:15;display:none;transition:opacity .25s}' +
+    'html.touch #wf-joy,html.touch #wf-stick{display:block}' +
     '#wf-joy,#wf-stick{bottom:calc(18px + env(safe-area-inset-bottom,0px));width:118px;height:118px;border-radius:50%;' + GLASS + '}' +
     '#wf-joy{left:calc(18px + env(safe-area-inset-left,0px))}#wf-stick{right:calc(18px + env(safe-area-inset-right,0px))}' +
     '#wf-joy i,#wf-stick i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;pointer-events:none;display:flex;align-items:center;justify-content:center;' +
     'background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.7)}' +
     '#wf-joy.on i,#wf-stick.on i{background:linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,.32))}' +
-    '#wf-btns{left:50%;transform:translateX(-50%);bottom:calc(28px + env(safe-area-inset-bottom,0px));white-space:nowrap}' +
-    '#wf-btns b{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0 6px;border-radius:50%;' + GLASS + '}' +
-    '#wf-btns b.sel{background:rgba(255,180,90,.42);border-color:rgba(255,210,150,.8)}#wf-btns b.on{transform:scale(.92)}' +
+    // the small buttons live in a slim Mac-style MENU BAR across the top (user, Nov 25): ship icon left, status-style icons right
+    '#wf-btns{position:fixed;z-index:16;left:0;right:0;top:0;display:flex;align-items:center;justify-content:flex-end;gap:2px;box-sizing:border-box;' +
+    'height:calc(30px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) calc(10px + env(safe-area-inset-right,0px)) 0 calc(10px + env(safe-area-inset-left,0px));' +
+    'background:rgba(24,20,22,.42);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.12);transition:opacity .25s}' +
+    '#wf-btns:before{content:"";width:18px;height:18px;border-radius:5px;margin-right:auto;background:url(icons/icon-192.png?v=2) center/cover;box-shadow:0 0 0 1px rgba(255,255,255,.15)}' +
+    '#wf-btns b{display:inline-flex;align-items:center;justify-content:center;width:34px;height:26px;border-radius:7px;cursor:pointer;background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}' +
+    '#wf-btns b svg{width:18px!important;height:18px!important}' +
+    '#wf-btns b.sel{background:rgba(255,180,90,.35)}#wf-btns b.on,#wf-btns b:active{background:rgba(255,255,255,.22)}' +
     '.wf-ctl svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}' +
     '#wf-joy svg,#wf-stick svg{width:20px;height:20px;stroke:rgba(20,20,26,.75);color:rgba(20,20,26,.75)}' +
     '#hud,#controls-hint,#hint-shoot{display:none!important}' +                 // no labels across the screen (user)
@@ -64,6 +69,12 @@
     return [bx + nx * pad, bz + nz * pad];
   }
   window.WAYFARER.clampPoly = clampPoly;
+  function menuBar() {
+    var b = document.getElementById('wf-btns'); if (b) return b;
+    b = document.createElement('div'); b.id = 'wf-btns'; b.className = 'wf-ctl';
+    ['contextmenu', 'selectstart', 'dragstart'].forEach(function (n) { b.addEventListener(n, function (e) { e.preventDefault(); }); });
+    (document.body || document.documentElement).appendChild(b); return b;
+  }
   AFRAME.registerComponent('wayfarer-mobile', {
     schema: { speed: { default: 2.6 }, radius: { default: 0 }, collide: { default: true } },
 
@@ -73,6 +84,7 @@
       this.dir = new AFRAME.THREE.Vector3();
       this.wp = new AFRAME.THREE.Vector3();
       this.mover = null;
+      if (!touch) menuBar();
       if (!touch) {                                         // desktop: the gaze fuse would auto-click whatever you look at (TV, doors); use it in VR only
         sc.addEventListener('loaded', function () {
           var cur = sc.querySelector('a-cursor'); if (!cur) return;
@@ -127,7 +139,7 @@
       stick.addEventListener('touchend', function () { lookEnd(); }); stick.addEventListener('touchcancel', function () { lookEnd(); });
 
       // ── bottom centre: Gyro and Level. They fire only on a deliberate tap (press and release on the same button) ──
-      var top = ctl(document.createElement('div')); top.id = 'wf-btns'; document.body.appendChild(top); document.body.appendChild(stick);
+      var top = menuBar(); document.body.appendChild(stick);
       var gy = document.createElement('b'), lv = document.createElement('b'); gy.innerHTML = ICON.gyro; lv.innerHTML = ICON.level; gy.setAttribute('aria-label', 'Gyro'); lv.setAttribute('aria-label', 'Level'); ctl(gy); ctl(lv); top.appendChild(gy); top.appendChild(lv);
       this.gyro = false;
       function tap(btn, fn) {
