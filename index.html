@@ -15,11 +15,11 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261125a"></script>
+  <script src="textures.js?v=20261125b"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125a"></script>
-  <script src="door.js?v=20261125a"></script>
-  <script src="hyperspace.js?v=20261125a"></script>
+  <script src="mobile.js?v=20261125b"></script>
+  <script src="door.js?v=20261125b"></script>
+  <script src="hyperspace.js?v=20261125b"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -594,7 +594,7 @@
 
     // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
     var navigating = false, fade = document.getElementById('wf-fade');
-    function goto(d) { if (navigating) return; navigating = true; fade.style.transition = 'opacity .25s'; fade.style.opacity = '1'; setTimeout(function () { window.location.href = d.page; }, 260); }
+    function goto(d) { if (navigating) return; navigating = true; window.WAYFARER.door.leave(d.page, 'images/portals/room-' + d.id + '.jpg', 0); }   // no black fade: the room's photo carries you in (door.js)
     AFRAME.registerComponent('wf-corr', {
       init: function () { this.cam = document.getElementById('cam'); this.t0 = 0; var self = this; if (sc.hasLoaded) this.start(); else sc.addEventListener('loaded', function () { self.start(); }); },
       start: function () { build(); applySpawn(); },

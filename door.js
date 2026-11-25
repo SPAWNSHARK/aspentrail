@@ -307,8 +307,7 @@
     var P = PORTALS[id], sc = document.querySelector('a-scene');
     function go() {
       var f = document.getElementById('wf-door-fade');
-      if (!f) { f = document.createElement('div'); f.id = 'wf-door-fade'; f.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;transition:opacity .25s;z-index:40;pointer-events:none'; document.body.appendChild(f); }
-      requestAnimationFrame(function () { f.style.opacity = '1'; }); setTimeout(function () { location.href = 'index.html'; }, 260);
+      leave('index.html', 'images/portals/corr-' + id + '.jpg', CORR_YAW[id]);
     }
     function start() {
       var fromCorr = false;
@@ -361,6 +360,50 @@
     return out.toDataURL('image/jpeg', 0.84);
   }
 
-  window.WAYFARER.door = { create: create, roomExit: roomExit, capture: capture, PORTALS: PORTALS, CORRIDOR: CORRIDOR, frameMatrix: frameMatrix,
+  // ───────── seamless doorways (roadmap: no black screens) ─────────
+  // Leaving: remember which 360° photo shows the other side + which way you'll face, and go straight away (no black fade).
+  // Arriving: before the heavy room has built, a tiny second renderer shows that photo at your arrival heading, then
+  // crossfades into the live scene. You see the destination the whole time.
+  var CORR_YAW = { bridge: 0, library: 180, holodeck: 180, lounge: 180, media: 180 };   // corridor SPAWN headings (0 = facing −Z)
+  function leave(page, img, yaw) {
+    try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
+    document.documentElement.style.background = '#120c08'; location.href = page;
+  }
+  (function arrive() {
+    var rec = null; try { rec = JSON.parse(sessionStorage.getItem('wf-arrive') || 'null'); sessionStorage.removeItem('wf-arrive'); } catch (e) {}
+    if (!rec || Date.now() - rec.t > 20000) return;
+    document.documentElement.style.background = '#120c08';
+    function start() {
+      var c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:55;pointer-events:none;transition:opacity .5s ease-out';
+      document.body.appendChild(c);
+      var r; try { r = new THREE.WebGLRenderer({ canvas: c, antialias: false }); } catch (e) { c.remove(); return; }
+      r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); r.setSize(innerWidth, innerHeight, false);
+      var scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(80, innerWidth / innerHeight, 0.1, 100); cam.rotation.y = (rec.yaw || 0) * Math.PI / 180;
+      var mat = new THREE.ShaderMaterial({ uniforms: { map: { value: null } }, side: THREE.BackSide, depthWrite: false,
+        vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: 'uniform sampler2D map; varying vec3 vP; void main(){ vec3 s = normalize(vP); vec2 uv = vec2(atan(s.x, -s.z) / 6.2831853 + 0.5, 0.5 + asin(clamp(s.y, -1.0, 1.0)) / 3.1415927); gl_FragColor = vec4(texture2D(map, uv).rgb, 1.0); }' });
+      scene.add(new THREE.Mesh(new THREE.SphereGeometry(10, 48, 32), mat));
+      var alive = true, born = performance.now();
+      new THREE.TextureLoader().load(rec.img, function (t) { t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; mat.uniforms.map.value = t; });
+      (function draw() { if (!alive) return; if (mat.uniforms.map.value) r.render(scene, cam); requestAnimationFrame(draw); }());
+      var sc = document.querySelector('a-scene'), loadedAt = 0, frames = 0;
+      function ready() {
+        if (!sc || !sc.hasLoaded) return false; if (!loadedAt) loadedAt = performance.now(); frames++;
+        var f = document.getElementById('wf-fade'), fo = f ? parseFloat(getComputedStyle(f).opacity) : 0;   // the corridor's own spawn fade
+        return frames > 8 && fo < 0.05 && performance.now() - loadedAt > 500;
+      }
+      (function wait() {
+        if (ready() || performance.now() - born > 9000) {
+          document.documentElement.style.background = ''; c.style.opacity = '0';
+          setTimeout(function () { alive = false; c.remove(); try { mat.dispose(); r.dispose(); r.forceContextLoss(); } catch (e) {} }, 600);
+          return;
+        }
+        requestAnimationFrame(wait);
+      }());
+    }
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  }());
+
+  window.WAYFARER.door = { leave: leave, create: create, roomExit: roomExit, capture: capture, PORTALS: PORTALS, CORRIDOR: CORRIDOR, frameMatrix: frameMatrix,
     dims: { DOOR_W: DOOR_W, DOOR_H: DOOR_H, FR_X: FR_X, FR_TOP: FR_TOP, HUB_Y: HUB_Y, PORTAL_Z: PORTAL_Z } };
 }());
