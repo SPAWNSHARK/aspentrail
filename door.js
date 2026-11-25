@@ -317,7 +317,7 @@
         autoPass: true, onPass: go, startOpen: fromCorr, holdMs: fromCorr ? 900 : 8000, say: opts.say });
       window.WAYFARER.roomDoor = D;
       var cam = sc.camera, wp = new THREE.Vector3();
-      AFRAME.registerComponent('wf-door-tick-' + id, { tick: function (t, dt) { if (!sc.camera) return; sc.camera.getWorldPosition(wp); D.update(dt, wp); } });
+      AFRAME.registerComponent('wf-door-tick-' + id, { tick: function (t, dt) { if (!sc.camera) return; /* the player, not the 3rd-person lens */ (sc.camera.el ? sc.camera.el.object3D : sc.camera).getWorldPosition(wp); D.update(dt, wp); } });
       sc.setAttribute('wf-door-tick-' + id, '');
     }
     if (sc.hasLoaded) start(); else sc.addEventListener('loaded', start);

@@ -56,7 +56,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125h).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125j).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick; bottom-centre two round glass buttons, icons only: Gyro = VR headset, Level = spirit level. Real glassmorphism (dark
@@ -64,6 +64,13 @@ Rules drawn from them:
   DeviceOrientationEvent.requestPermission so only Apple's prompt shows; every a-scene has device-orientation-permission-ui=
   "enabled: false". NO labels or hint text anywhere (#hud, #controls-hint, #hint-shoot hidden). Door button = symbol only (◀▶).
   The user has changed their mind on this several times — keep it simple and ask before redesigning again, `brain.js`, `cats.js`, `stargarden.js`
+- AVATAR + VIEW (Nov 25, `avatar.js`, every A-Frame page, auto-attaches `wf-avatar` to the scene): original captain figure (navy
+  coat, copper trim/epaulettes/belt/cuffs, boots) with jointed hips/knees/shoulders/elbows and a procedural walk cycle driven by
+  real movement speed (stride, knee bend, arm swing, bob, lean, idle breathing); faces the walk direction. 1st/3rd person toggle =
+  person button in #wf-btns (touch) or bottom-right glass button (desktop) or key V; localStorage 'wf-view'. 3rd person offsets
+  the THREE camera inside the a-camera (back 2.4, up 0.45), shortened to stay inside the room (radius / corridor box) and drops
+  to 1st person when < 1.1 m of room. Avatar is noCollide + wfPortal (hidden in portal captures). `WAYFARER.avatar.hide(bool)`
+  (Bridge chair sequence). door.js roomExit now measures the PLAYER (camera entity), not the lens.
 - FURNITURE COLLISION (Nov 25, mobile.js, every room; corridor has `wayfarer-mobile="collide: false"` and its own clamps):
   scans meshes at body height into XZ boxes (skips top < 0.45 m, bottom > 1.4 m, footprint > 12 m², invisible/transparent,
   instanced, `userData.noCollide` subtrees = door.js doors, the rig); rescans 8× while GLBs load; player circle r 0.28,
