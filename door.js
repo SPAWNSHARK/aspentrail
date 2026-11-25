@@ -270,8 +270,8 @@
     tap.addEventListener('loaded', function () { g.add(tap.object3D); });
 
     var D = { g: g, lL: lL, lR: lR, p: 0, target: 0, openAt: 0, flash: 0, face: face, glow: glow, holder: holder, portal: portal, mats: [leafM].concat(R.mats), passed: false, opts: o };
-    D.open = function (silent) { if (D.target === 1) return; D.target = 1; D.openAt = performance.now(); loadImg(); if (!silent) { beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); o.say && o.say('OPENING — ' + o.name); } };
-    D.close = function () { if (D.target === 0) return; D.target = 0; beep(520, 0.12, 'triangle'); };
+    D.open = function (silent) { if (D.target === 1) return; D.target = 1; D.openAt = performance.now(); loadImg(); if (!silent) { if (window.WF_SOUND) WF_SOUND.door(); else { beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); } o.say && o.say('OPENING — ' + o.name); } };
+    D.close = function () { if (D.target === 0) return; D.target = 0; if (window.WF_SOUND) WF_SOUND.door(); else beep(520, 0.12, 'triangle'); };
     D.pass = function () { if (D.passed || !o.onPass) return; D.passed = true; o.onPass(); };
     ent.addEventListener('click', function () {
       if (D.p > 0.25) return; D.flash = 0.22; face.material.map = R.faces.press;

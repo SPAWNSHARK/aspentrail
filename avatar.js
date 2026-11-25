@@ -99,7 +99,8 @@
       var df = Math.atan2(Math.sin(want - this.yaw), Math.cos(want - this.yaw)); this.yaw += df * Math.min(1, s * 9);
       J.root.position.set(wp.x, wp.y - 1.6, wp.z); J.root.rotation.y = this.yaw;
       // walk cycle
-      var k = Math.min(1, this.speed / 2.6); this.phase += s * (2.2 + this.speed * 2.4);
+      var k = Math.min(1, this.speed / 2.6), ph0 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4);
+      if (this.speed > 0.6 && Math.floor(this.phase) !== ph0 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step();   // a footfall each half stride
       var ph = this.phase * Math.PI, sw = Math.sin(ph), cw = Math.cos(ph);
       J.lL.hp.rotation.x = sw * 0.55 * k; J.lR.hp.rotation.x = -sw * 0.55 * k;
       J.lL.kn.rotation.x = Math.max(0, -cw) * 0.9 * k + 0.04; J.lR.kn.rotation.x = Math.max(0, cw) * 0.9 * k + 0.04;

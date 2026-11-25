@@ -132,6 +132,7 @@
         if (mode === 'schedule' && (Math.floor(ts) % 2 === 0)) warpWant = scheduled() ? 1 : 0;
         if (warpCur !== warpWant) { warpCur += Math.sign(warpWant - warpCur) * Math.min(Math.abs(warpWant - warpCur), dt / 2.5); applyWarp(); }
         space.rotation.y = ts * 0.002;
+        if (window.WF_SOUND && Math.floor(ts * 4) !== this._sk) { this._sk = Math.floor(ts * 4); WF_SOUND.warp(warpCur); }
         if (spills.length) { var wk = warpCur; var k = Math.floor(ts * 4), f = ts * 4 - k, burst = hsh(k) * (1 - f) + hsh(k + 1) * f;   // smooth random surges as bright streaks pass
           var m = 0.72 + 0.1 * Math.sin(ts * 7.3) + 0.06 * Math.sin(ts * 13.7 + 1.3) + 0.35 * burst * burst;
           spills.forEach(function (e, j) { e[0].intensity = e[1] * (0.25 + 0.75 * wk) * (wk > 0.01 ? (m + 0.05 * Math.sin(ts * 9.1 + j * 2.1)) : 0.7); }); }

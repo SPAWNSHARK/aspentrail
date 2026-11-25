@@ -17,8 +17,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125m"></script>
-  <script src="missions.js?v=20261125m"></script>
+  <script src="shipskin.js?v=20261125n"></script>
+  <script src="missions.js?v=20261125n"></script>
+  <script src="sound.js?v=20261125n"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -432,7 +433,7 @@ function toBridge() {
   if (warp && warp.depart) return;
   const fwd = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
   document.getElementById('warp-flash').style.transition = 'opacity .1s';
-  warp = { t: 0, from: shipPos.clone(), to: shipPos.clone().addScaledVector(fwd, 2500), depart: true };
+  warp = { t: 0, from: shipPos.clone(), to: shipPos.clone().addScaledVector(fwd, 2500), depart: true }; if (window.WF_SOUND) WF_SOUND.warpRise();
 }
 // DOCKING: in range of the Argo → the DOCK button; docking flashes straight into the station's club (no black screen).
 let docking = false;
@@ -470,7 +471,7 @@ function startWarp() {
   shipYaw = Math.atan2(-dir.x, -dir.z); shipPitch = Math.asin(Math.max(-0.9, Math.min(0.9, dir.y)));
   warp = { t: 0, from: shipPos.clone(), to: P.group.position.clone().sub(dir.multiplyScalar(P.r * 3.2 + 60)) };
   enemies.forEach(e => scene.remove(e.mesh)); enemies.length = 0; enemyBolts.forEach(b => scene.remove(b.mesh)); enemyBolts.length = 0;
-  announce('WARP — ' + P.name);
+  announce('WARP — ' + P.name); if (window.WF_SOUND) WF_SOUND.warpRise();
 }
 function updateWarp(dt) {
   if (!warp) { warpLines.line.material.opacity = 0; return false; }
@@ -867,6 +868,7 @@ function announce(text) {
 let mode = 'combat'; try { mode = localStorage.getItem('wf-mode') === 'explore' ? 'explore' : 'combat'; } catch (e) {}
 function setMode(m) {
   mode = m; try { localStorage.setItem('wf-mode', m); } catch (e) {}
+  if (window.WF_SOUND && state === 'playing') WF_SOUND.music(m);
   document.body.classList.toggle('explore', m === 'explore');
   const mb = document.querySelector('#fm-mode span'); if (mb) mb.textContent = m === 'explore' ? 'Combat' : 'Explore';
   ['combat', 'explore'].forEach(k => { const b = document.getElementById('go-' + k); if (b) b.classList.toggle('sel', k === m); });
@@ -877,6 +879,7 @@ function setMode(m) {
 setMode(mode);
 function startGame() {
   setTimeout(showObjective, 50);
+  if (window.WF_SOUND) { WF_SOUND.engine(true); WF_SOUND.music(mode); }
   document.getElementById('title-screen').style.display = 'none';
   state = 'playing';
   score = 0; lives = 3; wave = 1; waveClearing = false;
@@ -924,7 +927,7 @@ BOLT.core.rotateX(Math.PI / 2); BOLT.glow.rotateX(Math.PI / 2);
 let gunSide = 1;
 function tryShoot(target, aimDir) {
   if (shootCD > 0 || state !== 'playing' || mode === 'explore') return;
-  shootCD = SHOOT_DELAY;
+  shootCD = SHOOT_DELAY; if (window.WF_SOUND) WF_SOUND.laser();
   const dir = new THREE.Vector3(0, 0, -1)
     .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
   const mesh = new THREE.Group(), len = 11;
@@ -964,7 +967,9 @@ function spawnEnemy() {
 // ── enemy fire: red-magenta plasma bolts, aimed ahead of where you're flying ──
 const enemyBolts = [];
 let shake = 0, shieldFlash = null;
+function panOf(p) { const v = p.clone().project(camera); return Math.max(-1, Math.min(1, v.x)); }
 function enemyShoot(from, spread) {
+  if (window.WF_SOUND) WF_SOUND.enemyLaser(panOf(from) * 0.8);
   const lead = shipPos.clone().add(new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')).multiplyScalar(SHIP_SPEED * from.distanceTo(shipPos) / 38));
   const base = lead.sub(from).normalize();
   (spread ? [-0.09, 0, 0.09] : [0]).forEach(a => {
@@ -986,6 +991,7 @@ function spawnCarrier() {
   announce('BIOSHIP INBOUND'); document.getElementById('boss').style.display = 'block';
 }
 function explode(pos, color) {
+  if (window.WF_SOUND) WF_SOUND.boom(color === 0xffd090 || color === 0xff6a3a, panOf(pos) * 0.8);
   const mesh = new THREE.Group(); mesh.position.copy(pos); scene.add(mesh);
   const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xfff0d0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.scale.set(3, 3, 1); mesh.add(flash);
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(5, 5, 1); mesh.add(glow);
@@ -1023,6 +1029,10 @@ const clock = new THREE.Clock();
 function lerp(a, b, t) { return a + (b - a) * t; }
 
 if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge();
+// mute toggle: in the touch bar, or a small glass button bottom-right on desktop (key M everywhere)
+if (window.WF_SOUND) { const mc = document.getElementById('fm-midcol');
+  if (TOUCH && mc) { const b = WF_SOUND.button(mc); b.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:8px'; }
+  else WF_SOUND.button(document.body, 'position:fixed;z-index:20;right:16px;bottom:16px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(22,22,28,.45);border:1px solid rgba(255,255,255,.24);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)'); }
 (function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -1052,6 +1062,7 @@ if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge
       .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
     shipPos.addScaledVector(fwd, SHIP_SPEED * dt);
     collidePlanets(); updateDock(); checkVisits(dt);
+    if (window.WF_SOUND) { [[enemies, true], [friendlies, false]].forEach(([L, alien]) => L.forEach(e => { const d = e.mesh.position.distanceTo(shipPos); if (d < 22 && !e._fb) { e._fb = true; WF_SOUND.flyby(panOf(e.mesh.position), alien); } else if (d > 40) e._fb = false; })); }
     playerShip.position.copy(shipPos);
     playerShip.rotation.set(shipPitch, shipYaw, shipRoll, 'YXZ');
 

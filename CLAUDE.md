@@ -59,7 +59,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125m).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125n).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick; bottom-centre two round glass buttons, icons only: Gyro = VR headset, Level = spirit level. Real glassmorphism (dark
@@ -250,7 +250,12 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] Visible warp jump (Flight Mode NAV → WARP). [x] missions/contracts, rewards, rank (missions.js). [ ] ship upgrades, crew
 - [ ] Interactive objects in rooms; real-time planetary window views; upgraded Holodeck visuals
 - [ ] Reduce floor glare / better ambient shadows; adjustable mobile controls (size, opacity)
-- [ ] Sounds: footsteps, engine hum, doors, weapons, ambience
+- [x] Sounds (Nov 25): `sound.js` (WF_SOUND, all WebAudio synthesis, no files; unlocks on first touch/key; mute = speaker button
+  in #wf-btns / Flight bar / desktop corner, key M, localStorage 'wf-mute'). Interior: ship hum bed, light-speed whoosh layer
+  (hyperspace.js calls WF_SOUND.warp), door hiss+thunk (door.js), footsteps from the avatar walk cycle, droid chatter (Bridge),
+  cat meows (Lounge, every 12–38 s), crowd murmur (club). Flight: engine, blaster, enemy fire, explosions (big for Bioship),
+  alien/friendly fly-bys, warp rise. MUSIC only in Flight Mode + the chair-jump / arrival scenes (generative: explore = pads +
+  arpeggio, combat adds bass/kick/hats; follows the mode). iOS: a page reached by navigation stays silent until the first tap.
 - [ ] Interactive ship blueprint (deck map, room indicators, quick navigation)
 - [ ] Performance pass for mobile + VR
 

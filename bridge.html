@@ -16,11 +16,12 @@
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125m"></script>
-  <script src="avatar.js?v=20261125m"></script>
-  <script src="door.js?v=20261125m"></script>
-  <script src="hyperspace.js?v=20261125m"></script>
-  <script src="lcars.js?v=20261125m"></script>
+  <script src="mobile.js?v=20261125n"></script>
+  <script src="sound.js?v=20261125n"></script>
+  <script src="avatar.js?v=20261125n"></script>
+  <script src="door.js?v=20261125n"></script>
+  <script src="hyperspace.js?v=20261125n"></script>
+  <script src="lcars.js?v=20261125n"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -420,7 +421,7 @@
 
     AFRAME.registerComponent('wf-bridge', {
       init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build); },
-      tick: function (t, dt) { var s = t / 1000; hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
+      tick: function (t, dt) { var s = t / 1000; if (window.WF_SOUND && s > (this._chat || 0)) { this._chat = s + 2.5 + Math.random() * 5; WF_SOUND.beep((Math.random() - 0.5) * 1.4); } /* droids chatter */ hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
     });
 
     // captain's chair → Flight Mode
@@ -440,6 +441,7 @@
       var r = camRig(); if (busy || !r) return; busy = true; freeze(r, true); prompt.style.opacity = '0';
       if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
       if (hyper) hyper.setWarp(true);   // light speed only when you head into flight (user)
+      if (window.WF_SOUND) { WF_SOUND.music(localStorage.getItem('wf-mode') === 'combat' ? 'combat' : 'explore'); WF_SOUND.warpRise(); }   // music only for flight + its cut scenes
       var o = r.cam.object3D, p0 = new T3.Vector3(), q0 = new T3.Quaternion(); o.getWorldPosition(p0); o.getWorldQuaternion(q0);
       PLAYER.object3D.position.set(0, 0, 0); PLAYER.object3D.rotation.set(0, 0, 0); o.position.copy(p0); o.quaternion.copy(q0);
       var cam3 = r.cam.getObject3D('camera'), fov0 = cam3.fov, t0 = performance.now(), qF = new T3.Quaternion();
@@ -467,6 +469,7 @@
     document.getElementById('chart-close').onclick = function () { chart.style.display = 'none'; document.body.classList.remove('reading'); };
     // arriving from Flight Mode: already in the seat, streaks racing, the flash fading as the ship drops out of warp
     if (document.documentElement.classList.contains('from-flight')) {
+      if (window.WF_SOUND) WF_SOUND.music('explore');
       warpK = 10; var warpOnArrival = function () { if (hyper) { hyper.setWarp(true, true); } else setTimeout(warpOnArrival, 50); }; warpOnArrival();
       var land = function () {
         var r = camRig(); if (!r) return setTimeout(land, 50); freeze(r, true); if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
@@ -475,7 +478,7 @@
         jump.style.transition = 'opacity 1.2s ease-out';
         requestAnimationFrame(function () { document.documentElement.classList.remove('from-flight'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); });
         var t0 = performance.now();
-        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else { freeze(r, false); if (hyper) hyper.setWarp(false); if (WAYFARER.avatar) WAYFARER.avatar.hide(false); } }());
+        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else { freeze(r, false); if (hyper) hyper.setWarp(false); if (window.WF_SOUND) WF_SOUND.music(null); if (WAYFARER.avatar) WAYFARER.avatar.hide(false); } }());
       };
       if (sc.hasLoaded) land(); else sc.addEventListener('loaded', land);
     }
