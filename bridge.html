@@ -21,12 +21,12 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125p"></script>
-  <script src="sound.js?v=20261125p"></script>
-  <script src="avatar.js?v=20261125p"></script>
-  <script src="door.js?v=20261125p"></script>
-  <script src="hyperspace.js?v=20261125p"></script>
-  <script src="lcars.js?v=20261125p"></script>
+  <script src="mobile.js?v=20261125r"></script>
+  <script src="sound.js?v=20261125r"></script>
+  <script src="avatar.js?v=20261125r"></script>
+  <script src="door.js?v=20261125r"></script>
+  <script src="hyperspace.js?v=20261125r"></script>
+  <script src="lcars.js?v=20261125r"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -322,65 +322,53 @@
       gl.material.map = (function () { var c = cv(256, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); return new THREE.CanvasTexture(c); }());
       var ring2 = mesh(new THREE.TorusGeometry(1.2, 0.012, 6, 96), M.amber, root, 0, DAIS_H + 0.003, 0); ring2.rotation.x = Math.PI / 2;
 
-      var ch = new THREE.Group(); ch.position.set(0, DAIS_H, 0.2); root.add(ch);
-      mesh(lathe([[0, 0], [0.42, 0], [0.44, 0.03], [0.3, 0.07], [0.09, 0.12], [0.08, 0.4], [0.16, 0.45], [0, 0.46]], 32), M.bronze, ch);
-      var seat = mesh(soft(rrect(0.78, 0.66, 0.16), 0.12, 0.06), M.leather, ch, 0, 0.55, 0); seat.rotation.x = -Math.PI / 2;
-      var backG = soft(rrect(0.82, 1.2, 0.26), 0.16, 0.06), bk = mesh(backG, M.leather, ch, 0, 1.17, 0.34); bk.rotation.x = 0.13;
-      var bshell = mesh(soft(rrect(0.86, 1.24, 0.28), 0.05, 0.02), M.bronze, ch, 0, 1.17, 0.46); bshell.rotation.x = 0.13;
-      var hd = mesh(soft(rrect(0.5, 0.3, 0.13), 0.14, 0.05), M.leather, ch, 0, 1.92, 0.44); hd.rotation.x = 0.13;
-      var star = mesh(new THREE.CircleGeometry(0.05, 4), new THREE.MeshBasicMaterial({ color: 0xe8c070, toneMapped: false }), ch, 0, 1.6, 0.25); star.rotation.x = 0.13;
-      [-1, 1].forEach(function (s) {
-        var arm = mesh(soft(rrect(0.16, 0.7, 0.07), 0.1, 0.04), M.leather, ch, s * 0.5, 0.82, -0.02); arm.rotation.x = -Math.PI / 2;
-        mesh(new THREE.BoxGeometry(0.06, 0.28, 0.5), M.bronze, ch, s * 0.5, 0.65, 0.0);
-        var pad = mesh(new THREE.PlaneGeometry(0.12, 0.22), new THREE.MeshBasicMaterial({ map: screenTexture(30 + s, '#ffc070'), toneMapped: false }), ch, s * 0.5, 0.885, -0.18); pad.rotation.x = -Math.PI / 2 + 0.25;
-      });
+      // the COMMANDER'S CHAIR from the user's command-deck kit (models/deck, bow = +Z there, so turned 180°)
+      kitModel('Commander_Chair.glb', [0, DAIS_H, 0.25], 180);
     }
 
-    // ── the blue orb on its brass stand, beside the chair ──
+    // ── the PLANET SELECTOR (kit): a holographic globe on a copper plinth at the commander's right. Its six planets are
+    //    tappable and mapped to our worlds; tapping the plinth or hologram anywhere else opens the full STAR CHART. ──
+    var PLANET_MAP = { Planet_01_Terrestrial: 'THALOS', Planet_02_Red: 'KESSA', Planet_03_GasGiant: 'VORRAN', Planet_04_Ice: 'ISSEN', Planet_05_Ringed: 'AZURE GIANT', Planet_06_Green: 'VERDANCE' };
     function buildOrb(add, dot) {
-      var g = new THREE.Group(); g.position.set(1.4, DAIS_H, -0.35); root.add(g);
-      mesh(lathe([[0, 0], [0.26, 0], [0.27, 0.04], [0.2, 0.07], [0.07, 0.14], [0.05, 0.3], [0.045, 1.05], [0.07, 1.1], [0.16, 1.16], [0.2, 1.22], [0.19, 1.24], [0.12, 1.18], [0, 1.17]], 32), M.bronze, g);
-      // the NAVIGATION ORB (user, Nov 25): a glass sphere holding a tiny live model of the star system — a sun and the seven
-      // worlds (+ the Argo) on their orbits. Tap it → the STAR CHART; pick a world → you launch and arrive beside it.
-      var OC = new THREE.Vector3(0, 1.46, 0), sys = new THREE.Group(); sys.position.copy(OC); sys.rotation.x = 0.35; g.add(sys);
-      mesh(new THREE.SphereGeometry(0.03, 16, 10), new THREE.MeshBasicMaterial({ color: 0xffd890, toneMapped: false }), sys);
-      var sunG = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0xffb060, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); sunG.scale.set(0.16, 0.16, 1); sys.add(sunG);
-      var worlds = [];
-      window.WF_STARS.forEach(function (w, k) {
-        var rr = 0.06 + k * 0.022, ring = mesh(new THREE.RingGeometry(rr - 0.0015, rr + 0.0015, 64), new THREE.MeshBasicMaterial({ color: 0x6aa8ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, toneMapped: false }), sys); ring.rotation.x = -Math.PI / 2;
-        var pm = mesh(new THREE.SphereGeometry(w.size, 14, 10), new THREE.MeshBasicMaterial({ color: w.col, toneMapped: false }), sys); worlds.push({ m: pm, r: rr, sp: 0.5 / (1 + k * 0.6), ph: k * 1.7 });
+      var e = kitModel('Planet_Selector.glb', [1.62, DAIS_H, -0.55], 180, 'Hologram_Rotation');
+      e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb');
+      e.addEventListener('click', function (ev) {
+        var o = ev.detail && ev.detail.intersection && ev.detail.intersection.object, dest = null;
+        for (var q = o; q && !dest; q = q.parent) dest = PLANET_MAP[q.name] || null;
+        if (dest && window.WF_launch) window.WF_launch(dest); else if (window.WF_openChart) window.WF_openChart();
       });
-      var shell = mesh(new THREE.SphereGeometry(0.245, 32, 20), add(null, 0x6aa8ff, 0.12), g, 0, 1.46, 0);
-      var glass = mesh(new THREE.SphereGeometry(0.25, 32, 20), new THREE.MeshStandardMaterial({ color: 0x9fc8ff, transparent: true, opacity: 0.12, roughness: 0.05, metalness: 0.2, depthWrite: false }), g, 0, 1.46, 0);
-      var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x4a8cff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.1, 1.1, 1); halo.position.copy(OC); g.add(halo);
-      var l = new THREE.PointLight(0x4a7dff, 1.0, 5, 2); l.position.copy(OC); g.add(l);
-      anim.push(function (t) { worlds.forEach(function (w) { var a = w.ph + t * w.sp; w.m.position.set(Math.cos(a) * w.r, 0, Math.sin(a) * w.r); }); sys.rotation.y = t * 0.05; halo.material.opacity = 0.45 + 0.12 * Math.sin(t * 2.2); });
-      // generous tap target round the orb
-      var hit = document.createElement('a-entity'); hit.setAttribute('id', 'nav-orb'); hit.setAttribute('class', 'interactive');
-      hit.setAttribute('geometry', 'primitive: sphere; radius: 0.42'); hit.setAttribute('material', 'opacity: 0; transparent: true; depthWrite: false');
-      var wp = new THREE.Vector3(); g.updateMatrixWorld(true); wp.copy(OC).applyMatrix4(g.matrixWorld); hit.setAttribute('position', wp.x + ' ' + wp.y + ' ' + wp.z); sc.appendChild(hit);
-      hit.addEventListener('click', function () { if (window.WF_openChart) window.WF_openChart(); });
+      var l = new THREE.PointLight(0x4a9cff, 1.1, 5, 2); l.position.set(1.62, DAIS_H + 1.7, -0.55); root.add(l);
     }
 
-    // ── four robots at curved consoles, facing the window ──
+    // ── SIX STATIONS from the kit (console + operator chair + seated droid playing Console_Operate), in the kit's own
+    //    arrangement (from Command_Deck_Assembled.glb): three a side, Navigation/Sensors toward the bow. Kit bow = +Z, ours = −Z,
+    //    so everything turns 180°; the layout is spread ×1.45 to fill our larger room (each console keeps its distance to its chair).
+    var KIT = [ ['Navigation', [-2.27, 1.78], [-2.97, 2.24], -57], ['Engineering', [-3.41, -0.33], [-4.19, -0.02], -68], ['Science', [-4.02, -2.64], [-4.85, -2.52], -82],
+                ['Sensors', [2.27, 1.78], [2.97, 2.24], 57], ['Communications', [3.41, -0.33], [4.19, -0.02], 68], ['Tactical', [4.02, -2.64], [4.85, -2.52], 82] ];
     function buildStations(add, dot) {
-      var desk = soft(rrect(1.5, 0.6, 0.12), 0.8, 0.04), top = soft(rrect(1.56, 0.08, 0.03), 0.84, 0.02);
-      window.__SPOTS.forEach(function (sp, si) {
-        var g = new THREE.Group(); g.position.copy(sp.pos); g.position.y = 0; g.rotation.y = sp.ry; root.add(g);   // local −Z = toward the window
-        var dk = mesh(desk, M.dark, g, 0, 0.42, 0); dk.scale.y = 1.4;
-        mesh(top, M.bronze, g, 0, 0.86, 0);
-        var strip = mesh(new THREE.BoxGeometry(1.5, 0.015, 0.015), M.amber, g, 0, 0.82, 0.43);
-        [-0.37, 0.37].forEach(function (sx, j) {
-          var lc = WAYFARER.lcars({ w: 512, h: 330, seed: si * 2 + j + 1, layout: ['readout', 'graph'][(si + j) % 2], label: ['HELM', 'NAV', 'OPS', 'TAC', 'SCI', 'ENG', 'COMM', 'AUX'][si * 2 + j] }); anim.push(lc.update);
-          var scr = mesh(new THREE.PlaneGeometry(0.62, 0.4), new THREE.MeshBasicMaterial({ map: lc.texture, toneMapped: false }), g, sx, 1.185, -0.085); scr.rotation.x = -0.45;   // in front of the frame's face (the extruded frame used to cover it)
-          var fr = mesh(soft(rrect(0.68, 0.46, 0.04), 0.03, 0.01), M.bronze, g, sx, 1.16, -0.135); fr.rotation.x = -0.45;
-          var arm2 = mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.25, 8), M.bronze, g, sx, 0.98, -0.2);
+      var K = 1.45;
+      KIT.forEach(function (st, si) {
+        var cx = -st[1][0] * K, cz = -st[1][1] * K, dx = -(st[2][0] - st[1][0]), dz = -(st[2][1] - st[1][1]), yaw = st[3] + 180;
+        kitModel('Operator_Chair.glb', [cx, 0, cz], yaw);
+        kitModel('Droid_' + st[0] + '_Seated.glb', [cx, 0, cz], yaw, 'Console_Operate', si * 0.7);
+        var con = kitModel('Console_' + st[0] + '.glb', [cx + dx, 0, cz + dz], yaw);
+        con.addEventListener('model-loaded', function () {          // the console screens run our animated LCARS panels
+          var lc = WAYFARER.lcars({ w: 512, h: 256, seed: si * 3 + 1, layout: ['readout', 'graph', 'keys'][si % 3], label: st[0].slice(0, 4).toUpperCase() }); anim.push(lc.update);
+          con.getObject3D('mesh').traverse(function (o) { if (!o.isMesh) return; [].concat(o.material).forEach(function (m) { if (m && /Screen/i.test(m.name)) { m.map = lc.texture; m.emissiveMap = lc.texture; m.emissive && m.emissive.setRGB(1, 1, 1); m.emissiveIntensity = 1.0; m.needsUpdate = true; } }); });
         });
-        var kl = WAYFARER.lcars({ w: 512, h: 121, seed: si + 11, layout: 'keys', label: 'INPUT' }); anim.push(kl.update);
-        var keys = mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: kl.texture, toneMapped: false, transparent: true, opacity: 0.95 }), g, 0, 0.95, 0.18); keys.rotation.x = -Math.PI / 2;
-        var sg = mesh(new THREE.PlaneGeometry(1.6, 0.9), add(dot, 0x3fd8d0, 0.25), g, 0, 1.2, -0.2); sg.rotation.x = -0.45;
-        robot(g, si);
       });
+    }
+    // load a kit GLB as an A-Frame entity at a floor position + yaw (deg); optionally loop one animation clip
+    var mixers = [];
+    function kitModel(file, pos, yawDeg, clip, offset) {
+      var e = document.createElement('a-entity');
+      e.setAttribute('gltf-model', 'models/deck/' + file + '?v=1'); e.setAttribute('position', pos.join(' ')); e.setAttribute('rotation', '0 ' + (yawDeg || 0) + ' 0');
+      e.addEventListener('model-loaded', function () {
+        var m = e.getObject3D('mesh'); m.traverse(function (o) { if (o.isMesh) { o.frustumCulled = true; [].concat(o.material).forEach(function (mt) { if (mt && mt.envMapIntensity !== undefined) mt.envMapIntensity = 0.9; }); } });
+        var clips = m.animations || (e.components['gltf-model'] && e.components['gltf-model'].model && e.components['gltf-model'].model.animations) || [];
+        if (clip) { var c = THREE.AnimationClip.findByName(clips, clip); if (c) { var mx = new THREE.AnimationMixer(m), a = mx.clipAction(c); a.play(); mx.setTime(offset || 0); mixers.push(mx); } }
+      });
+      sc.appendChild(e); return e;
     }
     function robot(station, si) {
       var g = new THREE.Group(); g.position.set(0, 0, 0.95); station.add(g);           // seated just behind the console, facing −Z
@@ -419,6 +407,7 @@
         root.position.set(0, -1.6, 0); root.updateMatrixWorld(true);
         var rt = pm.fromScene(sc.object3D, 0.02, 0.1, 1000);
         root.position.set(0, 0, 0); root.updateMatrixWorld(true); rig.visible = v; M.amber.color.copy(lc);
+        sc.object3D.environment = rt.texture;   // kit GLBs (copper/steel PBR) reflect the room too
         [[M.floor, 1.0], [M.bronze, 0.6], [M.shell, 0.8], [M.leather, 0.9], [M.wall, 0.5], [M.wood, 0.6], [M.ceil, 0.35], [M.dark, 0.4]].forEach(function (q) { q[0].envMap = rt.texture; q[0].envMapIntensity = q[1]; q[0].needsUpdate = true; });
         pm.dispose();
       } catch (e) { root.position.set(0, 0, 0); }
@@ -426,7 +415,7 @@
 
     AFRAME.registerComponent('wf-bridge', {
       init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build); },
-      tick: function (t, dt) { var s = t / 1000; if (window.WF_SOUND && s > (this._chat || 0)) { this._chat = s + 2.5 + Math.random() * 5; WF_SOUND.beep((Math.random() - 0.5) * 1.4); } /* droids chatter */ hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
+      tick: function (t, dt) { var s = t / 1000; for (var mi = 0; mi < mixers.length; mi++) mixers[mi].update(Math.min(dt || 16, 50) / 1000); if (window.WF_SOUND && s > (this._chat || 0)) { this._chat = s + 2.5 + Math.random() * 5; WF_SOUND.beep((Math.random() - 0.5) * 1.4); } /* droids chatter */ hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
     });
 
     // captain's chair → Flight Mode
@@ -463,6 +452,7 @@
     chair.addEventListener('click', function () { engage(); });
     // the STAR CHART: tap a world → launch straight to it (Flight Mode arrives beside it, mid-warp)
     var chart = document.getElementById('star-chart');
+    window.WF_launch = function (dest) { engage(dest); };
     window.WF_openChart = function () {
       var near = ''; try { near = localStorage.getItem('wf-near') || 'KESSA'; } catch (e) {}
       var list = document.getElementById('chart-list'); list.innerHTML = '';

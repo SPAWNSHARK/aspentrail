@@ -1,0 +1,29 @@
+file,triangles,nodes,materials,animations,bytes
+Console_Navigation.glb,1744,2,13,None,93268
+Console_Engineering.glb,1744,2,13,None,90980
+Console_Science.glb,1744,2,13,None,91348
+Console_Communications.glb,1744,2,13,None,91388
+Console_Tactical.glb,1744,2,13,None,93428
+Console_Sensors.glb,1744,2,12,None,79960
+Commander_Chair.glb,2920,4,10,"Swivel_Demo, Recline_Demo",100312
+Operator_Chair.glb,2864,4,9,None,83224
+Planet_Selector.glb,26976,9,16,Hologram_Rotation,678152
+Droid_Navigation.glb,13016,17,9,"Idle, Walk_InPlace",366500
+Droid_Navigation_Seated.glb,13016,17,9,Console_Operate,363916
+Droid_Engineering.glb,13016,17,10,"Idle, Walk_InPlace",367248
+Droid_Engineering_Seated.glb,13016,17,10,Console_Operate,364664
+Droid_Science.glb,13016,17,9,"Idle, Walk_InPlace",366500
+Droid_Science_Seated.glb,13016,17,9,Console_Operate,363916
+Droid_Communications.glb,13016,17,9,"Idle, Walk_InPlace",366504
+Droid_Communications_Seated.glb,13016,17,9,Console_Operate,363920
+Droid_Tactical.glb,13016,17,10,"Idle, Walk_InPlace",367252
+Droid_Tactical_Seated.glb,13016,17,10,Console_Operate,364668
+Droid_Sensors.glb,13016,17,9,"Idle, Walk_InPlace",366496
+Droid_Sensors_Seated.glb,13016,17,9,Console_Operate,363912
+Bridge_Shell.glb,11340,2,11,None,290620
+Bridge_Ceiling.glb,4992,2,8,None,127876
+Wall_Panel.glb,442,2,7,None,27168
+Floor_Tile.glb,264,2,3,None,9300
+Ceiling_Light.glb,220,2,4,None,8976
+Command_Deck_Assembled.glb,151972,135,30,"Hologram_Rotation, Navigation_Console_Operate, Engineering_Console_Operate, Science_Console_Operate, Communications_Console_Operate, Tactical_Console_Operate, Sensors_Console_Operate",4243488
+Explorer_Player.glb,29588,17,10,"Idle, Walk_InPlace",1105708

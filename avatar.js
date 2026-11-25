@@ -61,6 +61,18 @@
       var self = this, sc = this.el;
       this.J = buildBody(); this.J.root.userData.noCollide = true; this.J.root.userData.wfPortal = true;   // not solid, not in portal photos
       sc.object3D.add(this.J.root);
+      // the user's EXPLORER suit (models/player/explorer.glb, skinned, Idle + Walk_InPlace) replaces the procedural figure once
+      // it loads; walk/idle blend by real speed. Model forward = +Z, ours = −Z → turned 180°. Falls back to the procedural body.
+      var self2 = this, holder = document.createElement('a-entity'); holder.setAttribute('gltf-model', 'models/player/explorer.glb?v=1');
+      holder.addEventListener('model-loaded', function () {
+        var m = holder.getObject3D('mesh'), clips = m.animations || [];
+        var box = new THREE.Group(); box.rotation.y = Math.PI; box.add(m); m.traverse(function (o) { if (o.isMesh) o.frustumCulled = false; });
+        self2.J.hips.visible = false; self2.J.root.add(box);
+        var mx = new THREE.AnimationMixer(m), idle = THREE.AnimationClip.findByName(clips, 'Idle'), walk = THREE.AnimationClip.findByName(clips, 'Walk_InPlace');
+        self2.kit = { mx: mx, idle: idle && mx.clipAction(idle), walk: walk && mx.clipAction(walk) };
+        [self2.kit.idle, self2.kit.walk].forEach(function (a) { if (a) { a.play(); a.setEffectiveWeight(0); } });
+      });
+      sc.appendChild(holder);
       this.phase = 0; this.speed = 0; this.yaw = 0; this.last = null; this.hidden = false; this.dist = 0;
       var v = 'first'; try { v = localStorage.getItem('wf-view') || 'first'; } catch (e) {} this.view = v;
       // the toggle: in the touch button row if there is one, else its own small glass button
@@ -98,6 +110,11 @@
       if (this.speed > 0.3 && d > 1e-4) want = Math.atan2(-dx, -dz);
       var df = Math.atan2(Math.sin(want - this.yaw), Math.cos(want - this.yaw)); this.yaw += df * Math.min(1, s * 9);
       J.root.position.set(wp.x, wp.y - 1.6, wp.z); J.root.rotation.y = this.yaw;
+      if (this.kit) {                                       // kit avatar: blend idle → walk, stride rate follows speed
+        var kw = Math.min(1, this.speed / 1.6); if (this.kit.walk) { this.kit.walk.setEffectiveWeight(kw); this.kit.walk.setEffectiveTimeScale(0.6 + this.speed * 0.45); }
+        if (this.kit.idle) this.kit.idle.setEffectiveWeight(1 - kw); this.kit.mx.update(s);
+        var ph1 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4); if (this.speed > 0.6 && Math.floor(this.phase) !== ph1 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step();
+      } else {
       // walk cycle
       var k = Math.min(1, this.speed / 2.6), ph0 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4);
       if (this.speed > 0.6 && Math.floor(this.phase) !== ph0 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step();   // a footfall each half stride
@@ -110,6 +127,7 @@
       var breathe = Math.sin(t / 1000 * 1.6) * 0.008;
       J.hips.position.y = 0.95 - Math.abs(cw) * 0.035 * k + breathe; J.spine.rotation.x = 0.07 * k; J.spine.rotation.y = sw * 0.08 * k;
       J.head.rotation.x = -e.x * 0.5; J.head.rotation.y = Math.atan2(Math.sin(e.y - this.yaw), Math.cos(e.y - this.yaw)) * 0.6;
+      }
       // camera: over the shoulder in 3rd person, shortened so it stays inside the room
       var back = 0, up = 0;
       if (third) {

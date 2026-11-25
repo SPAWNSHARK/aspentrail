@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125p).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125r).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -183,6 +183,14 @@ Rules drawn from them:
   land; a rotating lock bracket marks the aim-assist target); lasers = long teal beam bolts alternating from the pods.
   Control bars everywhere are compact & centred (max ~420 px); in LANDSCAPE phones they split into corner pads. r128 GOTCHA: hex colours are linear there — run
   `fixColors()` on new objects or they render washed out (dark copper came out cream).
+- **Command-deck kit (user, Nov 25)** — `models/deck/` (from Command_Deck.zip; catalog + manifest in reference/command-deck-kit/):
+  Commander_Chair, Planet_Selector (Hologram_Rotation; tappable Planet_01..06 → PLANET_MAP in bridge.html → launch), Operator_Chair,
+  6 Console_* (their 'ControlScreen' materials get live LCARS textures), 6 Droid_*_Seated (rigid node rigs, Console_Operate loops).
+  Placed by `kitModel()` in bridge.html using the kit's own arrangement (Command_Deck_Assembled positions, ×1.45 spread, kit bow
+  is +Z so everything is turned 180°). Kit shell/ceiling/floor pieces and the 152k-tri assembled GLB are NOT used (our
+  guitar-pick shell stays; too heavy for phones). `models/player/explorer.glb` (= the user's Me.glb) is the avatar: skinned,
+  Idle/Walk_InPlace blended by speed in avatar.js (procedural figure is the fallback). Old procedural Bridge robots/consoles/orb
+  code (`robot`, SPOTS, plantShelf) is now unused.
 - **User asset kit (ChatGPT, Nov 24)** — 62 GLBs; most interior pieces are graphite/cyan low-poly and CLASH with the style
   guide, so only these are used (in `models/`): `ship/wayfarer_mobile.glb` (25k tris, Flight Mode player ship — replaces the
   hand-built hull once loaded; that hull stays as the fallback), `ship/wayfarer_high.glb` (75k tris, Ship View), and
