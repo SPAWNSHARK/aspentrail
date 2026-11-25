@@ -16,11 +16,11 @@
   <meta property="og:image:alt" content="The bronze SS Wayfarer in orbit above a sunlit planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125k"></script>
-  <script src="avatar.js?v=20261125k"></script>
-  <script src="door.js?v=20261125k"></script>
-  <script src="hyperspace.js?v=20261125k"></script>
-  <script src="lcars.js?v=20261125k"></script>
+  <script src="mobile.js?v=20261125m"></script>
+  <script src="avatar.js?v=20261125m"></script>
+  <script src="door.js?v=20261125m"></script>
+  <script src="hyperspace.js?v=20261125m"></script>
+  <script src="lcars.js?v=20261125m"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -48,6 +48,13 @@
       font-size: 10px; letter-spacing: 2px; pointer-events: none; z-index: 10;
     }
     #jump { position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0; background:radial-gradient(circle,#ffffff,#dff0ff 45%,#9fc4ff); }
+    .chart { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:50; display:none; width:min(88vw,360px); max-height:82vh; overflow:auto; padding:16px; border-radius:22px;
+      background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(10,18,34,.55); -webkit-backdrop-filter:blur(22px) saturate(180%); backdrop-filter:blur(22px) saturate(180%);
+      border:1px solid rgba(160,200,255,.3); box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 16px 40px rgba(0,0,0,.5); color:#fff; font:500 14px -apple-system,system-ui,sans-serif; }
+    .chart h2 { font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#9fd0ff; text-align:center; } .chart p { text-align:center; color:#cfe0ff; font-size:12px; margin:6px 0 8px; }
+    .chart button { display:block; width:100%; margin:7px 0 0; padding:11px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); color:#fff; font:600 14px -apple-system,system-ui,sans-serif; text-align:left; }
+    .chart button i { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:10px; vertical-align:-1px; } .chart button small { display:block; color:#b8c8e8; font-weight:400; font-size:12px; margin:2px 0 0 22px; }
+    .chart button.close { text-align:center; background:none; color:#ccc; }
     html.from-flight, html.from-flight body { background:#dff0ff; } html.from-flight #jump { opacity:1; }
   </style>
 </head>
@@ -60,6 +67,7 @@
   </div>
   <div id="room-prompt"></div>
   <div id="jump"></div>
+  <div id="star-chart" class="chart"><h2>STAR CHART</h2><p>Choose a destination, Captain.</p><div id="chart-list"></div><button id="chart-close" class="close">Close</button></div>
   <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
   <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
@@ -158,6 +166,11 @@
     function rampTex(sym) { var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0); if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c); }
     function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
 
+    window.WF_STARS = [   // must match minigame.html SYSTEM names (+ the Argo)
+      { name: 'KESSA', col: 0xc8784a, size: 0.012, note: 'Terracotta desert world' }, { name: 'THALOS', col: 0x4a8ad8, size: 0.015, note: 'Ocean world, two moons' },
+      { name: 'VORRAN', col: 0xe0b070, size: 0.022, note: 'Ringed gas giant' }, { name: 'ISSEN', col: 0xd8ecff, size: 0.013, note: 'Ice world' },
+      { name: 'PYRE', col: 0xff6a20, size: 0.011, note: 'Lava world' }, { name: 'VERDANCE', col: 0x8adf5a, size: 0.014, note: 'Toxic jungle' },
+      { name: 'AZURE GIANT', col: 0x6a9ae0, size: 0.026, note: 'Ringed blue giant' }, { name: 'ARGO WAYSTATION', col: 0xffb060, size: 0.008, note: 'Station · the Ember Room' } ];
     var root, M, anim = [], hyper, hyperT = 0, warpK = 1;   // warpK speeds the light-speed streaks up for the jump
     function build() {
       root = new THREE.Group(); sc.object3D.add(root);
@@ -263,7 +276,7 @@
       [-1, 1].forEach(function (s) { var tl = new THREE.PointLight(0x3fd8d0, 0.6, 4.5, 2); tl.position.copy(polar(s * 0.7, 5.3, 1.3)); root.add(tl); });
 
       // light speed through the window: the ship flies bow-first (−Z here), streaks rush toward you
-      hyper = window.WAYFARER.hyperspace(root, { fwd: -1, arc: [-180, 180], count: MOB ? 1100 : 1900, core: true, seed: 101, minR: 14, center: [0, 2.3], lights: [win], spill: [{ p: [-4.5, 2.6, -4.5], i: 0.6, d: 9 }, { p: [4.5, 2.6, -4.5], i: 0.6, d: 9 }] });
+      hyper = window.WAYFARER.hyperspace(root, { fwd: -1, arc: [-180, 180], count: MOB ? 1100 : 1900, core: true, seed: 101, minR: 14, center: [0, 2.3], mode: 'manual', warp: false, planetDir: [0.35, 0.1, -1], lights: [win], spill: [{ p: [-4.5, 2.6, -4.5], i: 0.6, d: 9 }, { p: [4.5, 2.6, -4.5], i: 0.6, d: 9 }] });
 
       bake();
     }
@@ -321,15 +334,26 @@
     function buildOrb(add, dot) {
       var g = new THREE.Group(); g.position.set(1.4, DAIS_H, -0.35); root.add(g);
       mesh(lathe([[0, 0], [0.26, 0], [0.27, 0.04], [0.2, 0.07], [0.07, 0.14], [0.05, 0.3], [0.045, 1.05], [0.07, 1.1], [0.16, 1.16], [0.2, 1.22], [0.19, 1.24], [0.12, 1.18], [0, 1.17]], 32), M.bronze, g);
-      var c = cv(256, 128), x = c.getContext('2d'), r = rng(4);
-      x.fillStyle = '#0a2a8a'; x.fillRect(0, 0, 256, 128);
-      for (var i = 0; i < 260; i++) { x.strokeStyle = 'rgba(' + Math.floor(120 + r() * 120) + ',' + Math.floor(180 + r() * 75) + ',255,' + (0.15 + r() * 0.5) + ')'; x.lineWidth = 1 + r() * 3; x.beginPath(); var y0 = r() * 128; x.moveTo(0, y0); for (var u = 0; u <= 256; u += 16) x.lineTo(u, y0 + Math.sin(u * 0.05 + i) * 10); x.stroke(); }
-      var ot = new THREE.CanvasTexture(c); ot.colorSpace = THREE.SRGBColorSpace; ot.wrapS = THREE.RepeatWrapping;
-      var orb = mesh(new THREE.SphereGeometry(0.22, 32, 20), new THREE.MeshBasicMaterial({ map: ot, toneMapped: false }), g, 0, 1.46, 0);
-      var shell = mesh(new THREE.SphereGeometry(0.245, 32, 20), add(null, 0x6aa8ff, 0.18), g, 0, 1.46, 0);
-      var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x4a8cff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.3, 1.3, 1); halo.position.set(0, 1.46, 0); g.add(halo);
-      var l = new THREE.PointLight(0x4a7dff, 1.3, 5, 2); l.position.set(0, 1.46, 0); g.add(l);
-      anim.push(function (t) { orb.rotation.y = t * 0.6; ot.offset.x = t * 0.05; halo.material.opacity = 0.6 + 0.15 * Math.sin(t * 2.2); l.intensity = 1.2 + 0.2 * Math.sin(t * 2.2); });
+      // the NAVIGATION ORB (user, Nov 25): a glass sphere holding a tiny live model of the star system — a sun and the seven
+      // worlds (+ the Argo) on their orbits. Tap it → the STAR CHART; pick a world → you launch and arrive beside it.
+      var OC = new THREE.Vector3(0, 1.46, 0), sys = new THREE.Group(); sys.position.copy(OC); sys.rotation.x = 0.35; g.add(sys);
+      mesh(new THREE.SphereGeometry(0.03, 16, 10), new THREE.MeshBasicMaterial({ color: 0xffd890, toneMapped: false }), sys);
+      var sunG = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0xffb060, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); sunG.scale.set(0.16, 0.16, 1); sys.add(sunG);
+      var worlds = [];
+      window.WF_STARS.forEach(function (w, k) {
+        var rr = 0.06 + k * 0.022, ring = mesh(new THREE.RingGeometry(rr - 0.0015, rr + 0.0015, 64), new THREE.MeshBasicMaterial({ color: 0x6aa8ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, toneMapped: false }), sys); ring.rotation.x = -Math.PI / 2;
+        var pm = mesh(new THREE.SphereGeometry(w.size, 14, 10), new THREE.MeshBasicMaterial({ color: w.col, toneMapped: false }), sys); worlds.push({ m: pm, r: rr, sp: 0.5 / (1 + k * 0.6), ph: k * 1.7 });
+      });
+      var shell = mesh(new THREE.SphereGeometry(0.245, 32, 20), add(null, 0x6aa8ff, 0.12), g, 0, 1.46, 0);
+      var glass = mesh(new THREE.SphereGeometry(0.25, 32, 20), new THREE.MeshStandardMaterial({ color: 0x9fc8ff, transparent: true, opacity: 0.12, roughness: 0.05, metalness: 0.2, depthWrite: false }), g, 0, 1.46, 0);
+      var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x4a8cff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.1, 1.1, 1); halo.position.copy(OC); g.add(halo);
+      var l = new THREE.PointLight(0x4a7dff, 1.0, 5, 2); l.position.copy(OC); g.add(l);
+      anim.push(function (t) { worlds.forEach(function (w) { var a = w.ph + t * w.sp; w.m.position.set(Math.cos(a) * w.r, 0, Math.sin(a) * w.r); }); sys.rotation.y = t * 0.05; halo.material.opacity = 0.45 + 0.12 * Math.sin(t * 2.2); });
+      // generous tap target round the orb
+      var hit = document.createElement('a-entity'); hit.setAttribute('id', 'nav-orb'); hit.setAttribute('class', 'interactive');
+      hit.setAttribute('geometry', 'primitive: sphere; radius: 0.42'); hit.setAttribute('material', 'opacity: 0; transparent: true; depthWrite: false');
+      var wp = new THREE.Vector3(); g.updateMatrixWorld(true); wp.copy(OC).applyMatrix4(g.matrixWorld); hit.setAttribute('position', wp.x + ' ' + wp.y + ' ' + wp.z); sc.appendChild(hit);
+      hit.addEventListener('click', function () { if (window.WF_openChart) window.WF_openChart(); });
     }
 
     // ── four robots at curved consoles, facing the window ──
@@ -412,9 +436,10 @@
     function freeze(r, on) { r.cam.setAttribute('look-controls', 'enabled', !on); r.cam.setAttribute('wasd-controls', 'enabled', !on); }
     function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
     var SEAT = new T3.Vector3(0, 1.3, 0.5), PLAYER = document.getElementById('player');
-    function engage() {
+    function engage(dest) {
       var r = camRig(); if (busy || !r) return; busy = true; freeze(r, true); prompt.style.opacity = '0';
       if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
+      if (hyper) hyper.setWarp(true);   // light speed only when you head into flight (user)
       var o = r.cam.object3D, p0 = new T3.Vector3(), q0 = new T3.Quaternion(); o.getWorldPosition(p0); o.getWorldQuaternion(q0);
       PLAYER.object3D.position.set(0, 0, 0); PLAYER.object3D.rotation.set(0, 0, 0); o.position.copy(p0); o.quaternion.copy(q0);
       var cam3 = r.cam.getObject3D('camera'), fov0 = cam3.fov, t0 = performance.now(), qF = new T3.Quaternion();
@@ -425,13 +450,24 @@
         warpK = 1 + 9 * b * b; cam3.fov = fov0 + 30 * b * b; cam3.updateProjectionMatrix();
         jump.style.opacity = Math.max(0, (t - 2.3) / 1.0);
         if (t < 3.35) requestAnimationFrame(step);
-        else { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=bridge'; }
+        else { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=bridge' + (dest ? '&dest=' + encodeURIComponent(dest) : ''); }
       }());
     }
-    chair.addEventListener('click', engage);
+    chair.addEventListener('click', function () { engage(); });
+    // the STAR CHART: tap a world → launch straight to it (Flight Mode arrives beside it, mid-warp)
+    var chart = document.getElementById('star-chart');
+    window.WF_openChart = function () {
+      var near = ''; try { near = localStorage.getItem('wf-near') || 'KESSA'; } catch (e) {}
+      var list = document.getElementById('chart-list'); list.innerHTML = '';
+      window.WF_STARS.forEach(function (w) { var b2 = document.createElement('button'), hex = '#' + ('00000' + w.col.toString(16)).slice(-6);
+        b2.innerHTML = '<i style="background:' + hex + ';box-shadow:0 0 10px ' + hex + '"></i>' + w.name + (w.name === near ? '  · here' : '') + '<small>' + w.note + '</small>';
+        b2.onclick = function () { chart.style.display = 'none'; document.body.classList.remove('reading'); engage(w.name); }; list.appendChild(b2); });
+      chart.style.display = 'block'; document.body.classList.add('reading');
+    };
+    document.getElementById('chart-close').onclick = function () { chart.style.display = 'none'; document.body.classList.remove('reading'); };
     // arriving from Flight Mode: already in the seat, streaks racing, the flash fading as the ship drops out of warp
     if (document.documentElement.classList.contains('from-flight')) {
-      warpK = 10;
+      warpK = 10; var warpOnArrival = function () { if (hyper) { hyper.setWarp(true, true); } else setTimeout(warpOnArrival, 50); }; warpOnArrival();
       var land = function () {
         var r = camRig(); if (!r) return setTimeout(land, 50); freeze(r, true); if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
         PLAYER.object3D.position.set(0, 0, 0); r.cam.object3D.position.copy(SEAT); r.cam.object3D.rotation.set(0, 0, 0);
@@ -439,7 +475,7 @@
         jump.style.transition = 'opacity 1.2s ease-out';
         requestAnimationFrame(function () { document.documentElement.classList.remove('from-flight'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); });
         var t0 = performance.now();
-        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else { freeze(r, false); if (WAYFARER.avatar) WAYFARER.avatar.hide(false); } }());
+        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else { freeze(r, false); if (hyper) hyper.setWarp(false); if (WAYFARER.avatar) WAYFARER.avatar.hide(false); } }());
       };
       if (sc.hasLoaded) land(); else sc.addEventListener('loaded', land);
     }

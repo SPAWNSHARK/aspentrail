@@ -31,7 +31,7 @@
     var g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(base, 3)); g.setAttribute('aCorner', new THREE.BufferAttribute(corner, 2));
     g.setAttribute('aInfo', new THREE.BufferAttribute(info, 3)); g.setAttribute('aCol', new THREE.BufferAttribute(col, 3)); g.setIndex(idx);
-    var sm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSpan: { value: SPAN }, uFwd: { value: fwd } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false, side: THREE.DoubleSide,   // billboards can face away (seen from below)
+    var sm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSpan: { value: SPAN }, uFwd: { value: fwd }, uWarp: { value: 1 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false, side: THREE.DoubleSide,   // billboards can face away (seen from below)
       vertexShader: [
         'attribute vec2 aCorner; attribute vec3 aInfo, aCol; uniform float uT, uSpan, uFwd; varying vec2 vC; varying vec3 vCol;',
         'void main(){ vec3 b = position; b.z = mod(b.z - uFwd * uT * aInfo.z + uSpan * 0.5, uSpan) - uSpan * 0.5;',
@@ -40,7 +40,7 @@
         ' vec3 p = wb + ax * (uFwd * aCorner.x * aInfo.x) + side * aCorner.y * aInfo.y;',      // head leads aft, tail trails toward the bow
         ' vC = aCorner; vCol = aCol; gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }'].join('\n'),
       // soft round head + tapered body: the old head was a flat full-width bar, so wide far streaks showed as hard-edged blocks (user video, Nov 24)
-      fragmentShader: 'varying vec2 vC; varying vec3 vCol; void main(){ float y2 = vC.y * vC.y; float a = pow(1.0 - vC.x, 2.2) * smoothstep(0.0, 0.05, vC.x) * (1.0 - y2) * (1.0 - y2); a += 1.4 * pow(max(0.0, 1.0 - length(vec2(vC.x * 14.0, vC.y))), 2.0); gl_FragColor = vec4(vCol * a, 1.0); }' });
+      fragmentShader: 'uniform float uWarp; varying vec2 vC; varying vec3 vCol; void main(){ float y2 = vC.y * vC.y; float a = pow(1.0 - vC.x, 2.2) * smoothstep(0.0, 0.05, vC.x) * (1.0 - y2) * (1.0 - y2); a += 1.4 * pow(max(0.0, 1.0 - length(vec2(vC.x * 14.0, vC.y))), 2.0); gl_FragColor = vec4(vCol * a * uWarp, 1.0); }' });
     var streaks = new THREE.Mesh(g, sm); streaks.frustumCulled = false; streaks.renderOrder = -9; root.add(streaks);
 
     // the tunnel: faint streaked walls far out, scrolling aft
@@ -55,6 +55,7 @@
     var tt = new THREE.CanvasTexture(c); tt.wrapS = tt.wrapT = THREE.RepeatWrapping; tt.repeat.set(6, 1.5); tt.anisotropy = 4;
     var tun = new THREE.Mesh(new THREE.CylinderGeometry(260, 260, 1400, 48, 1, true), new THREE.MeshBasicMaterial({ map: tt, color: 0x9fc0ff, transparent: true, opacity: o.tunnel == null ? 0.85 : o.tunnel, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, fog: false, toneMapped: false }));
     tun.rotation.x = fwd * Math.PI / 2; tun.renderOrder = -10; root.add(tun);   // texture v runs toward the bow; the bright end of each streak leads aft
+    var hazeCol = new THREE.Color(0x0a1630), spaceCol = new THREE.Color(0x010208);
     var haze = new THREE.Mesh(new THREE.CylinderGeometry(250, 250, 1400, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x0a1630, side: THREE.BackSide, fog: false, depthWrite: false }));
     haze.rotation.x = Math.PI / 2; haze.renderOrder = -11; root.add(haze);
 
@@ -72,11 +73,68 @@
     (o.spill || []).forEach(function (q) { var l = new THREE.PointLight(0x8fb2ff, q.i, q.d || 12, q.decay == null ? 1.3 : q.decay); l.position.set(q.p[0], q.p[1], q.p[2]); (o.spillRoot || root).add(l); spills.push([l, q.i]); });
     (o.lights || []).forEach(function (l) { spills.push([l, l.intensity]); });
     function hsh(n) { n = Math.sin(n * 91.7) * 43758.5; return n - Math.floor(n); }
+    // ── NORMAL SPACE (user, Nov 25): when the ship isn't at light speed the windows show where you are — a still starfield,
+    //    soft nebulae and the planet you were last near (Flight Mode stores it in localStorage 'wf-near').
+    //    o.mode: 'schedule' (back rooms: light speed for ~75 s at random ~10-minute intervals, shared across pages through
+    //    localStorage) or 'manual' (the Bridge: only when you head into flight). o.planetDir: where the planet hangs.
+    var space = new THREE.Group(); space.renderOrder = -10; root.add(space);
+    (function () {
+      var N = 2600, sp = new Float32Array(N * 3), sc = new Float32Array(N * 3), rr = rng(911);
+      for (var i = 0; i < N; i++) { var u = rr() * 2 - 1, th = rr() * 6.2832, q = Math.sqrt(1 - u * u), R = 200; sp.set([cx0 + q * Math.cos(th) * R, cy0 + u * R, q * Math.sin(th) * R], i * 3);
+        var b = 0.35 + Math.pow(rr(), 3) * 0.9, t = rr(); sc.set(t < 0.15 ? [b, b * 0.85, b * 0.7] : t < 0.3 ? [b * 0.75, b * 0.85, b] : [b, b, b], i * 3); }
+      var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(sp, 3)); g.setAttribute('color', new THREE.BufferAttribute(sc, 3));
+      var st = new THREE.Points(g, new THREE.PointsMaterial({ size: 2.2, sizeAttenuation: false, vertexColors: true, transparent: true, depthWrite: false, fog: false, toneMapped: false }));
+      st.frustumCulled = false; st.renderOrder = -9; space.add(st); space.userData.stars = st;
+      // nebula clouds
+      var nc = document.createElement('canvas'); nc.width = nc.height = 256; var nx = nc.getContext('2d');
+      for (var k = 0; k < 60; k++) { var x = 128 + (rr() - 0.5) * 150, y = 128 + (rr() - 0.5) * 150, r = 20 + rr() * 70, gr = nx.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,' + (0.05 + rr() * 0.07) + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)'); nx.fillStyle = gr; nx.fillRect(0, 0, 256, 256); }
+      var ntex = new THREE.CanvasTexture(nc);
+      [[0x7a3aff, [0.6, 0.5, -0.6]], [0x2ab0c0, [-0.7, 0.6, 0.2]], [0xff6a8a, [0.1, 0.9, 0.5]], [0x5a7aff, [-0.3, 0.2, -0.95]]].forEach(function (q, k) {
+        var m = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntex, color: q[0], transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, toneMapped: false }));
+        var d = new THREE.Vector3().fromArray(q[1]).normalize().multiplyScalar(190); m.position.set(cx0 + d.x, cy0 + d.y, d.z); m.scale.set(170, 170, 1); m.renderOrder = -9; space.add(m); });
+      // the nearby planet
+      var near = 'KESSA'; try { near = localStorage.getItem('wf-near') || 'KESSA'; } catch (e) {}
+      var PAL = { KESSA: [1, '#7a2c1c', '#c88a5a', '#ff9a60'], THALOS: [0, '#0d3a78', '#4a7a3a', '#5aa0ff'], VORRAN: [2, '#d8a060', '#8a5a3a', '#ffd0a0'], ISSEN: [3, '#d8e8ff', '#8ab0e0', '#a0d0ff'],
+        PYRE: [4, '#2a1a14', '#ff7a20', '#ff5a20'], VERDANCE: [5, '#2a5a1a', '#a0b02a', '#9aff7a'], 'AZURE GIANT': [2, '#2a4aa0', '#e0f0ff', '#8ab8ff'], 'ARGO WAYSTATION': [1, '#7a2c1c', '#c88a5a', '#ff9a60'] }, P = PAL[near] || PAL.KESSA;
+      var pc = document.createElement('canvas'); pc.width = 512; pc.height = 256; var px = pc.getContext('2d'); px.fillStyle = P[1]; px.fillRect(0, 0, 512, 256);
+      for (k = 0; k < (P[0] === 2 ? 40 : 900); k++) {
+        if (P[0] === 2) { var yb = rr() * 256; px.fillStyle = rr() < 0.5 ? P[2] : P[1]; px.globalAlpha = 0.25 + rr() * 0.4; px.fillRect(0, yb, 512, 3 + rr() * 16); continue; }
+        var bx = rr() * 512, by = rr() * 256, br = 3 + rr() * (P[0] === 4 ? 6 : 26); px.globalAlpha = 0.2 + rr() * 0.4; px.fillStyle = rr() < 0.55 ? P[2] : P[1]; px.beginPath(); px.arc(bx, by, br, 0, 7); px.fill();
+        if (P[0] === 0 && rr() < 0.25) { px.fillStyle = 'rgba(255,255,255,0.5)'; px.fillRect(bx, by, 30 + rr() * 60, 3); }
+      }
+      px.globalAlpha = 1; var ptex = new THREE.CanvasTexture(pc); ptex.colorSpace = THREE.SRGBColorSpace || ptex.colorSpace;
+      var pm = new THREE.ShaderMaterial({ uniforms: { map: { value: ptex }, atm: { value: new THREE.Color(P[3]) }, sun: { value: new THREE.Vector3(-0.6, 0.5, 0.6).normalize() }, op: { value: 1 } }, transparent: true, depthWrite: false, fog: false, toneMapped: false,
+        vertexShader: 'varying vec2 vU; varying vec3 vN, vV; void main(){ vU = uv; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+        fragmentShader: 'uniform sampler2D map; uniform vec3 atm, sun; uniform float op; varying vec2 vU; varying vec3 vN, vV; void main(){ vec3 c = texture2D(map, vU).rgb; vec3 L = normalize((viewMatrix * vec4(sun, 0.0)).xyz); float d = max(0.0, dot(vN, L)); float rim = pow(1.0 - max(0.0, dot(vN, vV)), 3.0); gl_FragColor = vec4(c * (0.05 + 1.1 * d) + atm * rim * (0.3 + d), op); }' });
+      var dir = new THREE.Vector3().fromArray(o.planetDir || [0.45, 0.75, -0.5]).normalize(), pl = new THREE.Mesh(new THREE.SphereGeometry(34, 48, 32), pm);
+      pl.position.set(cx0 + dir.x * 170, cy0 + dir.y * 170, dir.z * 170); pl.rotation.z = 0.4; pl.renderOrder = -8; space.add(pl); space.userData.planet = pl; space.userData.pm = pm;
+    }());
+    var warpCur = 1, warpWant = 1, mode = o.mode || 'schedule', lastT = null;
+    function scheduled() {                                  // shared across pages: { until, next } in localStorage
+      var now = Date.now(), w = null; try { w = JSON.parse(localStorage.getItem('wf-warp') || 'null'); } catch (e) {}
+      if (!w) { w = { until: 0, next: now + (4 + Math.random() * 8) * 60000 }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
+      if (now > w.next) { w = { until: now + 75000, next: now + (7 + Math.random() * 6) * 60000 }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
+      return now < w.until;
+    }
+    if (mode === 'schedule') warpCur = warpWant = scheduled() ? 1 : 0; else warpCur = warpWant = o.warp ? 1 : 0;
+    var tunOp = tun.material.opacity;
+    function applyWarp() {
+      var w = warpCur; sm.uniforms.uWarp.value = w; tun.material.opacity = tunOp * w; tun.visible = streaks.visible = w > 0.002;
+      haze.material.color.copy(spaceCol).lerp(hazeCol, w); if (coreS) coreS.visible = w > 0.01;
+      space.visible = w < 0.998; space.children.forEach(function (c) { if (c.material) { if (c.material.uniforms) c.material.uniforms.op.value = 1 - w; else c.material.opacity = (c.isPoints ? 1 : 0.55) * (1 - w); } });
+    }
+    applyWarp();
     return {
+      setWarp: function (on, instant) { warpWant = on ? 1 : 0; if (instant) { warpCur = warpWant; applyWarp(); } },
+      isWarp: function () { return warpWant > 0.5; },
       update: function (ts) {
-        if (spills.length) { var k = Math.floor(ts * 4), f = ts * 4 - k, burst = hsh(k) * (1 - f) + hsh(k + 1) * f;   // smooth random surges as bright streaks pass
+        var dt = lastT == null ? 0 : Math.min(0.1, Math.max(0, ts - lastT)); lastT = ts;
+        if (mode === 'schedule' && (Math.floor(ts) % 2 === 0)) warpWant = scheduled() ? 1 : 0;
+        if (warpCur !== warpWant) { warpCur += Math.sign(warpWant - warpCur) * Math.min(Math.abs(warpWant - warpCur), dt / 2.5); applyWarp(); }
+        space.rotation.y = ts * 0.002;
+        if (spills.length) { var wk = warpCur; var k = Math.floor(ts * 4), f = ts * 4 - k, burst = hsh(k) * (1 - f) + hsh(k + 1) * f;   // smooth random surges as bright streaks pass
           var m = 0.72 + 0.1 * Math.sin(ts * 7.3) + 0.06 * Math.sin(ts * 13.7 + 1.3) + 0.35 * burst * burst;
-          spills.forEach(function (e, j) { e[0].intensity = e[1] * (m + 0.05 * Math.sin(ts * 9.1 + j * 2.1)); }); }
+          spills.forEach(function (e, j) { e[0].intensity = e[1] * (0.25 + 0.75 * wk) * (wk > 0.01 ? (m + 0.05 * Math.sin(ts * 9.1 + j * 2.1)) : 0.7); }); }
         sm.uniforms.uT.value = ts; tt.offset.y = (ts * 0.9) % 1; if (coreS) coreS.material.opacity = 0.85 + 0.15 * Math.sin(ts * 3.1); },
       objects: [streaks, tun, haze].concat(coreS ? [coreS] : []), spills: spills
     };

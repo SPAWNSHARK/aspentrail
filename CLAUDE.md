@@ -35,8 +35,10 @@ Rules drawn from them:
 - **Colour:** amber is the default light. Teal = Library electrogel / dome. Blue-purple = holograms only
   (Holodeck galaxy, Bridge orb). Nothing grey or white-lit (the pre-Nov-2026 rooms were grey; that look is retired).
 - **Lived-in:** plants, bookshelves, brass fittings — in rooms AND the corridor (user, Nov 24: inset bookshelves in the hall).
-- **Outside the ship = light speed** (user, Nov 24): star streaks rushing aft over a streaked blue tunnel, not a static
-  starfield. Ship flies toward the Bridge (+Z), so streaks move toward −Z. Any window/viewport should show the same.
+- **Outside the ship** (user, Nov 25 — supersedes Nov 24): windows normally show NORMAL SPACE — still stars, soft nebulae and the
+  planet you were last near (localStorage 'wf-near', saved by Flight Mode). LIGHT SPEED (streaks rushing aft, toward −Z) only
+  runs in bursts: back rooms on a shared random schedule (~75 s every 7–13 min, localStorage 'wf-warp'), the Bridge ONLY when
+  you launch into flight / arrive back (`mode: 'manual'`, `hs.setWarp(on, instant)`). Light spill dims when not warping.
 - **Fidelity:** the images are paintings. Match layout, palette, light mood and silhouettes; fake glow/gloss with
   emissive strips, additive gradient planes and a one-off PMREM reflection bake. No post-processing bloom (phone cost).
 
@@ -57,7 +59,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125k).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261125m).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick; bottom-centre two round glass buttons, icons only: Gyro = VR headset, Level = spirit level. Real glassmorphism (dark
@@ -119,7 +121,9 @@ Rules drawn from them:
   from it (`strip`, `tube`, `fan` helpers; fan = tessellated rings, never one big fan). Window = outline points with z < −2.2,
   wrapping the tip; the 4 consoles sit 1.7 m inside it (`__SPOTS`) facing the glass. Movement uses `WAYFARER.bounds` (polygon,
   mobile.js `clampPoly`, 0.35 m pad; wayfarer-mobile radius 0) — avatar 3rd-person camera respects it too. Droids are polished
-  GOLD (M.shell) with dark bronze joints. ALL METAL (user, Nov 25: "looks like a 1970s wooden trailer"): NO wood anywhere — brushed
+  GOLD (M.shell) with dark bronze joints. NAVIGATION ORB (Nov 25): the glass orb holds a live mini star system (WF_STARS, must
+  match minigame SYSTEM names + the Argo); tap → STAR CHART glass panel → pick a world → chair jump → `minigame.html?from=bridge&
+  dest=NAME` arrives beside it on the sunlit side, mid-warp. ALL METAL (user, Nov 25: "looks like a 1970s wooden trailer"): NO wood anywhere — brushed
   copper (bronzeTexture), riveted copper wall plates, copper ceiling, polished ribbed-copper captain's chair (M.leather name kept),
   copper shelves (M.wood name kept), and the shared exit door re-tinted to copper on this page only. RESTYLED Nov 24 to the reference, all procedural three.js: round room r 8.2;
   panoramic curved window across the bow (−Z, 140°, eight panes, bronze mullions, sill + header) showing light speed
