@@ -22,9 +22,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125r"></script>
-  <script src="missions.js?v=20261125r"></script>
-  <script src="sound.js?v=20261125r"></script>
+  <script src="shipskin.js?v=20261125s"></script>
+  <script src="missions.js?v=20261125s"></script>
+  <script src="sound.js?v=20261125s"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -60,14 +60,14 @@
     #hint-shoot { display:none !important; }
     #warp-flash { position:fixed; inset:0; background:radial-gradient(circle,#ffffff,#dff0ff 45%,#9fc4ff); opacity:0; pointer-events:none; z-index:9; transition:opacity .08s; }
     html.from-bridge, html.from-bridge body { background:#dff0ff; } html.from-bridge #title-screen { display:none; } html.from-bridge #warp-flash { opacity:1; }
-    #reticle { position:absolute; left:50%; top:50%; width:min(62vmin,420px); height:min(62vmin,420px); transform:translate(-50%,-50%); overflow:visible; pointer-events:none; }
+    #reticle { position:absolute; left:50%; top:50%; width:min(24vmin,130px); height:min(24vmin,130px); opacity:.75; transform:translate(-50%,-50%); overflow:visible; pointer-events:none; }
     #reticle * { fill:none; stroke-linecap:round; }
     #reticle .r-faint { stroke:rgba(150,230,220,.18); stroke-width:1; }
     #reticle .r-arc { stroke:rgba(230,240,220,.85); stroke-width:2.4; } #reticle .r-arc.dim { stroke:rgba(120,220,210,.6); }
     #reticle .r-tick { stroke:rgba(120,230,215,.75); stroke-width:1.6; }
     #reticle .r-in { stroke:rgba(255,200,120,.9); stroke-width:1.6; } #reticle .r-dot { fill:#ffb060; stroke:none; }
     #reticle.hot .r-in { stroke:#ff6a4a; } #reticle.hot .r-dot { fill:#ff6a4a; }
-    #lock { position:absolute; left:0; top:0; width:64px; height:64px; overflow:visible; pointer-events:none; display:none; transition:opacity .15s; }
+    #lock { position:absolute; left:0; top:0; width:36px; height:36px; overflow:visible; pointer-events:none; display:none; transition:opacity .15s; }
     #lock path { fill:none; stroke:#ff6a4a; stroke-width:4; stroke-linecap:round; } #lock circle { fill:#ff6a4a; }
     #crosshair {
       position: absolute; top: 50%; left: 50%;
@@ -118,15 +118,15 @@
     .overlay .btn:hover { border-color: #ff6600; color: #ffcc66; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
       /* touch: one frosted-glass bar at the bottom (same as the ship's rooms): steer stick left, FIRE right */
-    #fm-bar{position:fixed;z-index:25;display:none;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),400px);box-sizing:border-box;
-      bottom:calc(8px + env(safe-area-inset-bottom,0px));border-radius:30px;padding:10px 12px;align-items:center;justify-content:space-between;
+    #fm-bar{position:fixed;z-index:25;display:none;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),300px);box-sizing:border-box;
+      bottom:calc(8px + env(safe-area-inset-bottom,0px));border-radius:24px;padding:6px 8px;align-items:center;justify-content:space-between;
       background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
       border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.28);touch-action:none;-webkit-user-select:none;user-select:none}
     html.touch #fm-bar{display:flex}
-    html.touch:not(.standalone) #fm-bar{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+    html.touch:not(.standalone) #fm-bar{bottom:calc(6px + env(safe-area-inset-bottom,0px))}
     #fm-auto.on{background:rgba(255,255,255,.22)}
     html.touch #hint-shoot{display:none}
-    #fm-stick,#fm-fire{position:relative;width:min(22vh,26vw,108px);height:min(22vh,26vw,108px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+    #fm-stick,#fm-fire{position:relative;width:min(16vh,20vw,74px);height:min(16vh,20vw,74px);border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
     #fm-stick i{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;pointer-events:none}
     #fm-fire{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#fff;font:600 12px -apple-system,system-ui,sans-serif}
     #fm-fire.on{background:rgba(255,255,255,.32)}
@@ -137,12 +137,13 @@
     body.explore #score-display, body.explore #lives-display, body.explore #fm-fire, body.explore #reticle, body.explore #lock { display:none !important; }
     .modes { display:flex; gap:10px; justify-content:center; margin-top:14px; } .modes .btn.sel { background:rgba(255,180,90,.35); border-color:#ffc070; }
     #fm-mid{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
-    #fm-bar svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    #fm-mode span,#fm-mid span,#fm-fire span{display:none} #fm-midcol{flex-direction:row!important;gap:2px!important} #fm-mode,#fm-mid{padding:5px}
+    #fm-bar svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     /* landscape phones: no slab — each pad in its own glass in a bottom corner, small buttons between, centre left clear */
     @media (orientation:landscape) and (max-height:520px){
       #fm-bar{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;align-items:flex-end;pointer-events:none}
       html.touch:not(.standalone) #fm-bar{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
-      #fm-stick,#fm-fire{pointer-events:auto;width:min(30vh,112px);height:min(30vh,112px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+      #fm-stick,#fm-fire{pointer-events:auto;width:min(22vh,80px);height:min(22vh,80px);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 6px 24px rgba(0,0,0,.4)}
       #fm-midcol{flex-direction:row!important;gap:8px!important;pointer-events:auto;padding:6px 10px;border-radius:22px;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:10px}
       #fm-midcol svg{width:22px!important;height:22px!important}
     }
@@ -762,7 +763,8 @@ const shipPos = new THREE.Vector3();
 
 // camera follow
 const camPos    = new THREE.Vector3(0, 2.5, 10);
-const CAM_OFFSET = new THREE.Vector3(0, 3.4, 15.5);   // pulled back: the ship sits small, low in the reticle (Starfield-style)
+const CAM_OFFSET = new THREE.Vector3(0, 5.2, 26);   // zoomed out (user, Nov 25): small ship, lots of space; portrait pulls back further (camK)
+let camK = 1; function fitCam() { const a = innerWidth / innerHeight; camK = a < 1 ? 1 + (1 - a) * 0.9 : 1; } fitCam(); addEventListener('resize', fitCam);   // pulled back: the ship sits small, low in the reticle (Starfield-style)
 
 const enemies    = [];
 const bullets    = [];
@@ -870,9 +872,9 @@ function announce(text) {
 
 // ── MODES (user, Nov 25): COMBAT (waves, boss) or EXPLORE (no enemies — fly, warp between worlds). Remembered between visits,
 //    so the Bridge chair jump lands you in whichever you used last. Toggle in flight: the compass button or E.
-let mode = 'combat'; try { mode = localStorage.getItem('wf-mode') === 'explore' ? 'explore' : 'combat'; } catch (e) {}
+let mode = 'explore'; try { mode = localStorage.getItem('wf-mode2') === 'combat' ? 'combat' : 'explore'; } catch (e) {}   // EXPLORE is the default (user, Nov 25)
 function setMode(m) {
-  mode = m; try { localStorage.setItem('wf-mode', m); } catch (e) {}
+  mode = m; try { localStorage.setItem('wf-mode2', m); } catch (e) {}
   if (window.WF_SOUND && state === 'playing') WF_SOUND.music(m);
   document.body.classList.toggle('explore', m === 'explore');
   const mb = document.querySelector('#fm-mode span'); if (mb) mb.textContent = m === 'explore' ? 'Combat' : 'Explore';
@@ -922,7 +924,7 @@ function updateReticle() {
   ret.style.left = a.x + 'px'; ret.style.top = a.y + 'px'; ret.style.display = state === 'playing' ? '' : 'none';
   const shown = (lockTarget && enemies.includes(lockTarget)) ? lockTarget : aimTarget;
   ret.classList.toggle('hot', !!shown);
-  if (shown && state === 'playing') { const t = toScreen(shown.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 32) + 'px,' + (t.y - 32) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
+  if (shown && state === 'playing') { const t = toScreen(shown.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 18) + 'px,' + (t.y - 18) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
   else lk.style.display = 'none';
 }
 // laser bolts: long glowing beams (white core, teal glow) from the two engine pods in turn
@@ -1176,7 +1178,7 @@ if (window.WF_SOUND) { const mc = document.getElementById('fm-midcol');
   }
 
   // --- CAMERA ---
-  const worldOff = CAM_OFFSET.clone()
+  const worldOff = CAM_OFFSET.clone().multiplyScalar(camK)
     .applyEuler(new THREE.Euler(shipPitch * 0.5, shipYaw, 0, 'YXZ'));
   camPos.lerp(shipPos.clone().add(worldOff), dt * 6);
   camera.position.copy(camPos);
