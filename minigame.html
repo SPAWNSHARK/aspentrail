@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261125e"></script>
+  <script src="shipskin.js?v=20261125f"></script>
   <script>if (/[?&]from=bridge/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -123,6 +123,9 @@
     #fm-stick i{position:absolute;left:30%;top:30%;width:40%;height:40%;border-radius:50%;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;pointer-events:none}
     #fm-fire{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#fff;font:600 12px -apple-system,system-ui,sans-serif}
     #fm-fire.on{background:rgba(255,255,255,.32)}
+    #fm-mode{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
+    body.explore #score-display, body.explore #lives-display, body.explore #fm-fire, body.explore #reticle, body.explore #lock { display:none !important; }
+    .modes { display:flex; gap:10px; justify-content:center; margin-top:14px; } .modes .btn.sel { background:rgba(255,180,90,.35); border-color:#ffc070; }
     #fm-mid{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
     #fm-bar svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     /* landscape phones: no slab — each pad in its own glass in a bottom corner, small buttons between, centre left clear */
@@ -163,7 +166,8 @@
     <div class="inst">ARROWS / WASD — FLY</div>
     <div class="inst">TAP / CLICK AN ENEMY — LOCK ON &amp; FIRE</div>
     <div class="inst">ESC — RETURN TO BRIDGE</div>
-    <div class="blink">[ PRESS SPACE, CLICK OR TAP FIRE TO LAUNCH ]</div>
+    <div class="modes"><button class="btn" id="go-combat" onclick="event.stopPropagation(); setMode('combat'); startGame()">COMBAT</button><button class="btn" id="go-explore" onclick="event.stopPropagation(); setMode('explore'); startGame()">EXPLORE</button></div>
+    <div class="inst">E — SWITCH MODE IN FLIGHT</div>
     <button class="btn" onclick="event.stopPropagation(); window.location.href='hangar.html'">VIEW THE WAYFARER</button>
     <button class="btn" onclick="event.stopPropagation(); toBridge()">← RETURN TO BRIDGE</button>
   </div>
@@ -181,6 +185,7 @@
     <div id="fm-stick"><i><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></i></div>
     <div id="fm-midcol" style="display:flex;flex-direction:column;gap:14px;align-items:center">
       <div id="fm-auto" style="display:none !important;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif;padding:8px 10px;border-radius:18px"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Auto-fire</span></div>
+      <div id="fm-mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Explore</span></div>
       <div id="fm-mid"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span>Bridge</span></div>
     </div>
     <div id="fm-fire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg><span>Fire</span></div>
@@ -701,6 +706,7 @@ if (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: sta
   fire.addEventListener('pointerdown', e => { fire.classList.add('on'); keys['Space'] = true; if (state === 'title') startGame(); else if (state === 'gameover') restartGame(); else tryShoot(); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => fire.addEventListener(n, () => { fire.classList.remove('on'); keys['Space'] = false; }));
   document.getElementById('fm-mid').addEventListener('pointerup', () => { toBridge(); });
+  document.getElementById('fm-mode').addEventListener('pointerup', () => { if (state === 'playing') setMode(mode === 'explore' ? 'combat' : 'explore'); });
   // keep the ship and crosshair in the clear space above the bar: render the scene shifted up by the bar's height
   function frameAboveBar() {
     const land = innerWidth > innerHeight && innerHeight <= 520, r = bar.getBoundingClientRect(), d = TOUCH && r.height && !land ? Math.round(innerHeight - r.top) : 0, ch = document.getElementById('crosshair');
@@ -720,6 +726,7 @@ addEventListener('keydown', e => {
   }
   if (e.code === 'KeyR' && state === 'gameover') restartGame();
   if (e.code === 'Escape') toBridge();
+  if (e.code === 'KeyE' && state === 'playing') setMode(mode === 'explore' ? 'combat' : 'explore');
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('click', () => {
@@ -759,6 +766,19 @@ function announce(text) {
   setTimeout(() => el.style.opacity = '0', 2000);
 }
 
+// ── MODES (user, Nov 25): COMBAT (waves, boss) or EXPLORE (no enemies — fly, warp between worlds). Remembered between visits,
+//    so the Bridge chair jump lands you in whichever you used last. Toggle in flight: the compass button or E.
+let mode = 'combat'; try { mode = localStorage.getItem('wf-mode') === 'explore' ? 'explore' : 'combat'; } catch (e) {}
+function setMode(m) {
+  mode = m; try { localStorage.setItem('wf-mode', m); } catch (e) {}
+  document.body.classList.toggle('explore', m === 'explore');
+  const mb = document.querySelector('#fm-mode span'); if (mb) mb.textContent = m === 'explore' ? 'Combat' : 'Explore';
+  ['combat', 'explore'].forEach(k => { const b = document.getElementById('go-' + k); if (b) b.classList.toggle('sel', k === m); });
+  if (state !== 'playing') return;
+  if (m === 'explore') { enemies.forEach(e => scene.remove(e.mesh)); enemies.length = 0; enemyBolts.forEach(b => scene.remove(b.mesh)); enemyBolts.length = 0; waveLeft = 0; lockTarget = null; document.getElementById('boss').style.display = 'none'; announce('EXPLORE MODE'); }
+  else { wave = Math.max(1, wave); launchWave(); }
+}
+setMode(mode);
 function startGame() {
   document.getElementById('title-screen').style.display = 'none';
   state = 'playing';
@@ -767,7 +787,7 @@ function startGame() {
   shipYaw = 0; shipPitch = 0; shipRoll = 0;
   invincible = 0; shootCD = 0;
   hud_score(); hud_lives();
-  launchWave();
+  if (mode === 'combat') launchWave(); else { waveLeft = 0; announce('EXPLORE MODE'); }
 }
 
 function restartGame() {
@@ -1028,12 +1048,12 @@ if (document.documentElement.classList.contains('from-bridge')) arriveFromBridge
     }
 
     // --- WAVE MANAGEMENT ---
-    if (!waveClearing && enemies.length === 0 && waveLeft === 0) {
+    if (mode === 'combat' && !waveClearing && enemies.length === 0 && waveLeft === 0) {
       waveClearing = true;
       score += 500;
       hud_score();
       wave++;
-      setTimeout(() => { launchWave(); waveClearing = false; }, 2800);
+      setTimeout(() => { if (mode === 'combat') launchWave(); waveClearing = false; }, 2800);
     }
     if (waveLeft > 0) {
       spawnTimer -= dt;
