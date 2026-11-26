@@ -22,10 +22,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126y"></script>
-  <script src="missions.js?v=20261126y"></script>
-  <script src="sound.js?v=20261126y"></script>
-  <script src="life.js?v=20261126y"></script>
+  <script src="shipskin.js?v=20261126z"></script>
+  <script src="missions.js?v=20261126z"></script>
+  <script src="sound.js?v=20261126z"></script>
+  <script src="life.js?v=20261126z"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -136,6 +136,10 @@
     #objective { position:absolute; left:50%; transform:translateX(-50%); top:calc(58px + env(safe-area-inset-top,0px)); max-width:min(90vw,460px); padding:5px 12px; border-radius:12px; background:rgba(20,14,8,.5); border:1px solid rgba(255,190,110,.35); color:#ffd8a8; font:600 11px -apple-system,system-ui,sans-serif; letter-spacing:.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:none; pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
     #fm-mode{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
     #scan { position:absolute; left:50%; transform:translateX(-50%); top:calc(108px + env(safe-area-inset-top,0px)); display:none; padding:9px 20px; border-radius:20px; background:linear-gradient(140deg,rgba(80,230,220,.4),rgba(60,120,255,.3)); border:1px solid rgba(140,240,255,.8); color:#fff; font:700 12.5px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; box-shadow:0 0 24px rgba(80,220,255,.45); }
+    #zoom-fade { position:fixed; inset:0; z-index:58; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 50%, #ffb060 0%, #5a2a0c 45%, #120804 100%); }
+    #exit-x { position:fixed; left:calc(12px + env(safe-area-inset-left,0px)); top:calc(12px + env(safe-area-inset-top,0px)); z-index:40; width:36px; height:36px; border-radius:50%; padding:0;
+      border:1px solid rgba(255,255,255,.35); background:rgba(20,16,22,.45); -webkit-backdrop-filter:blur(16px) saturate(170%); backdrop-filter:blur(16px) saturate(170%); color:#fff; font:600 17px/34px -apple-system,system-ui,sans-serif; text-align:center; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.35); }
+    #exit-x:active { background:rgba(255,255,255,.25); } body.docking #exit-x { display:none; } #fm-mid { display:none !important; }
     #dock-skip { position:absolute; left:50%; transform:translateX(-50%); bottom:calc(28px + env(safe-area-inset-bottom,0px)); display:none; padding:9px 18px; border-radius:18px; background:rgba(20,14,10,.45); border:1px solid rgba(255,210,150,.5); color:#ffe2bf; font:700 12px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); z-index:30; }
     body.docking #hud > *:not(#dock-skip):not(#hail), body.docking #fm-bar, body.docking #wf-btns-fm { display:none !important; }
     body.explore #score-display, body.explore #lives-display, body.explore #fm-fire, body.explore #reticle, body.explore #lock { display:none !important; }
@@ -201,6 +205,8 @@
   </div>
 
 <div id="warp-flash"></div>
+<div id="zoom-fade"></div>
+<button id="exit-x" aria-label="Back to the ship">✕</button>
   <div id="fm-bar">
     <div id="fm-stick"><i><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></i></div>
     <div id="fm-midcol" style="display:flex;flex-direction:column;gap:14px;align-items:center">
@@ -468,11 +474,26 @@ function navLabel() {
 }
 // ── ONE CONTINUOUS TRIP (roadmap #1): the Bridge chair pushes you through its window into light speed and lands you here,
 // already dropping out of warp; leaving does the reverse (a warp-out flash straight into the Bridge seat). No black screens.
+// LEAVING (user, Nov 26: "it doesn't need to go to light speed — just zoom back into the ship, and show him getting out of the chair"):
+// the camera swoops in onto the Wayfarer and through the bridge windows (1.5 s), the screen dims to amber, and the Bridge opens with
+// you in the captain's chair standing up (bridge.html?from=fly).
+let exiting = null;
 function toBridge() {
-  if (warp && warp.depart) return;
-  const fwd = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
-  document.getElementById('warp-flash').style.transition = 'opacity .1s';
-  warp = { t: 0, from: shipPos.clone(), to: shipPos.clone().addScaledVector(fwd, 2500), depart: true }; if (window.WF_SOUND) WF_SOUND.warpRise();
+  if (exiting || (warp && warp.depart)) return;
+  exiting = { t: 0, p0: camera.position.clone(), q0: camera.quaternion.clone(), fov0: camera.fov }; state = state === 'playing' ? 'playing' : state;
+  document.getElementById('exit-x').style.display = 'none'; document.getElementById('fm-bar') && (document.getElementById('fm-bar').style.opacity = 0);
+  const z = document.getElementById('zoom-fade'); z.style.transition = 'opacity 1.1s ease-in .45s'; requestAnimationFrame(() => { z.style.opacity = 1; });
+  if (window.WF_SOUND) { WF_SOUND.music(null); WF_SOUND.engine && WF_SOUND.engine(false); WF_SOUND.droid('affirm', 0, 0.5); }
+}
+function updateExit(dt) {
+  if (!exiting) return false; exiting.t += dt; const k = Math.min(1, exiting.t / 1.5), e = k * k * (3 - 2 * k);
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
+  const nose = new THREE.Vector3(0, 0.35, -1.2).applyQuaternion(q).add(shipPos);           // the bridge windows at the bow
+  camera.position.copy(exiting.p0).lerp(nose, e); const look = shipPos.clone().add(new THREE.Vector3(0, 0, -6).applyQuaternion(q));
+  const m = new THREE.Matrix4().lookAt(camera.position, look, new THREE.Vector3(0, 1, 0)); camera.quaternion.copy(exiting.q0).slerp(new THREE.Quaternion().setFromRotationMatrix(m), e);
+  camera.fov = exiting.fov0 - 18 * e; camera.updateProjectionMatrix();
+  if (exiting.t > 1.6 && !exiting.gone) { exiting.gone = true; document.documentElement.style.background = document.body.style.background = '#1a0e06'; location.href = 'bridge.html?from=fly'; }
+  return true;
 }
 // DOCKING CUTSCENE (user, Nov 26: "1" from the Hiveport list) — the exterior pack's scripted docking controller
 // (the exterior pack's systems/docking.mjs) ported inline: station-local metres, ship +Z bow with yaw π ⇒ our −Z nose points into the
@@ -530,6 +551,8 @@ function dockCam() {                                                  // three c
 document.getElementById('dock').addEventListener('click', e => { e.stopPropagation(); dockAt(); });
 ['pointerdown', 'touchstart'].forEach(n => document.getElementById('dock').addEventListener(n, e => e.stopPropagation()));
 document.getElementById('dock-skip').addEventListener('click', e => { e.stopPropagation(); if (dockSeq) dockSeq.skip = true; });
+['pointerdown', 'touchstart'].forEach(n => document.getElementById('exit-x').addEventListener(n, e => e.stopPropagation(), { passive: true }));
+document.getElementById('exit-x').addEventListener('click', e => { e.stopPropagation(); toBridge(); });
 ['pointerdown', 'touchstart'].forEach(n => document.getElementById('dock-skip').addEventListener(n, e => e.stopPropagation()));
 addEventListener('keydown', e => { if (e.code === 'KeyF' && document.getElementById('dock').style.display === 'block') dockAt(); if (dockSeq && (e.code === 'Escape' || e.code === 'Space')) dockSeq.skip = true; });
 // ── SCIENCE SCANS (user, Nov 26: "Vesper sends you to scan planets/anomalies; results show up as discoveries in the Library") ──
@@ -1100,24 +1123,42 @@ function updateReticle() {
   if (shown && state === 'playing') { const t = toScreen(shown.mesh.position); if (t.z < 1) { lk.style.display = 'block'; lk.style.transform = 'translate(' + (t.x - 18) + 'px,' + (t.y - 18) + 'px) rotate(' + (performance.now() / 12 % 90) + 'deg)'; } else lk.style.display = 'none'; }
   else lk.style.display = 'none';
 }
-// laser bolts: long glowing beams (white core, teal glow) from the two engine pods in turn
-const BOLT = { core: new THREE.CylinderGeometry(0.09, 0.09, 1, 6, 1, true), glow: new THREE.CylinderGeometry(0.4, 0.4, 1, 8, 1, true),
-  coreM: new THREE.MeshBasicMaterial({ color: 0xffffff }), glowM: new THREE.MeshBasicMaterial({ color: 0x3fffd0, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }) };
-BOLT.core.rotateX(Math.PI / 2); BOLT.glow.rotateX(Math.PI / 2);
+// LASERS (user, Nov 26: "the lasers need work animation-wise"): each bolt = a tapered white-hot core inside a cyan inner glow and a
+// soft teal outer glow, a pulsing head flare and a fading tracer trail; muzzle flash + expanding ring at the pod; spark burst +
+// flash where it hits (impactFX). All additive, shared geometry/materials (cheap on a phone).
+const BOLT = { core: new THREE.CylinderGeometry(0.035, 0.075, 1, 8, 1, true), inner: new THREE.CylinderGeometry(0.17, 0.17, 1, 10, 1, true), outer: new THREE.CylinderGeometry(0.42, 0.42, 1, 10, 1, true),
+  coreM: new THREE.MeshBasicMaterial({ color: 0xffffff }), innerM: new THREE.MeshBasicMaterial({ color: 0x7ffcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }),
+  outerM: new THREE.MeshBasicMaterial({ color: 0x20d8c0, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false }),
+  ring: new THREE.RingGeometry(0.4, 0.62, 32) };
+[BOLT.core, BOLT.inner, BOLT.outer].forEach(g => g.rotateX(Math.PI / 2));
+const fxList = [];   // short-lived effects: { obj, life, max, fn }
+function fx(obj, life, fn) { scene.add(obj); fxList.push({ obj, life, max: life, fn }); }
+function updateFX(dt) { for (let i = fxList.length - 1; i >= 0; i--) { const f = fxList[i]; f.life -= dt; const k = 1 - Math.max(0, f.life) / f.max; f.fn(k); if (f.life <= 0) { scene.remove(f.obj); fxList.splice(i, 1); } } }
+function impactFX(pos, col) {
+  const fl = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); fl.position.copy(pos);
+  fx(fl, 0.18, k => { fl.scale.setScalar(1 + k * 5); fl.material.opacity = 1 - k; });
+  for (let i = 0; i < 9; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: col || 0x9ffff0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })), v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(10 + Math.random() * 14);
+    sp.position.copy(pos); fx(sp, 0.35, k => { sp.position.addScaledVector(v, 1 / 60 * (1 - k)); sp.scale.setScalar(0.6 * (1 - k)); sp.material.opacity = 1 - k; }); }
+}
 let gunSide = 1;
 function tryShoot(target, aimDir) {
   if (shootCD > 0 || state !== 'playing' || mode === 'explore') return;
   shootCD = SHOOT_DELAY * Math.pow(0.8, UPG.gun || 0); if (window.WF_SOUND) WF_SOUND.laser();
   const dir = new THREE.Vector3(0, 0, -1)
     .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
-  const mesh = new THREE.Group(), len = 11;
-  const core = new THREE.Mesh(BOLT.core, BOLT.coreM), glow = new THREE.Mesh(BOLT.glow, BOLT.glowM); core.scale.z = glow.scale.z = len; mesh.add(core); mesh.add(glow);
-  const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x9ffff0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); head.position.z = -len / 2; head.scale.set(2.2, 2.2, 1); mesh.add(head);
+  const mesh = new THREE.Group(), len = 7;
+  const core = new THREE.Mesh(BOLT.core, BOLT.coreM), inner = new THREE.Mesh(BOLT.inner, BOLT.innerM), outer = new THREE.Mesh(BOLT.outer, BOLT.outerM);
+  core.scale.z = len; inner.scale.z = len * 0.92; outer.scale.z = len * 0.75; mesh.add(core); mesh.add(inner); mesh.add(outer);
+  const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xbffff8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); head.position.z = -len / 2; head.scale.set(2.4, 2.4, 1); mesh.add(head);
+  const trail = []; for (let k = 1; k <= 5; k++) { const t = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x40e8d0, transparent: true, opacity: 0.5 * (1 - k / 6), blending: THREE.AdditiveBlending, depthWrite: false })); t.position.z = len / 2 + k * 1.4; t.scale.setScalar(1.4 * (1 - k / 7)); mesh.add(t); trail.push(t); }
+  mesh.userData = { head, inner, outer, age: 0 };
   gunSide = -gunSide;
   const gun = new THREE.Vector3(gunSide * 1.07, 0.08, 0.2).applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ')).add(shipPos);
   mesh.position.copy(gun);
-  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x6fffe0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.position.copy(gun); flash.scale.set(2.2, 2.2, 1); scene.add(flash);
-  setTimeout(() => scene.remove(flash), 70);
+  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x9ffff0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); flash.position.copy(gun);
+  fx(flash, 0.12, k => { flash.scale.setScalar(3.2 * (1 - k * 0.6)); flash.material.opacity = 1 - k; });
+  const ring = new THREE.Mesh(BOLT.ring, new THREE.MeshBasicMaterial({ color: 0x7ffcff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); ring.position.copy(gun); ring.lookAt(camera.position);
+  fx(ring, 0.22, k => { ring.scale.setScalar(1 + k * 4); ring.material.opacity = 0.9 * (1 - k); });
   scene.add(mesh);
   if (lockTarget && !enemies.includes(lockTarget)) lockTarget = null;
   const tgt = target || lockTarget || aimTarget;
@@ -1260,13 +1301,13 @@ if (window.WF_SOUND) { const mc = document.getElementById('fm-midcol');
         b.vel.lerp(want, Math.min(1, dt * 9)); b.mesh.lookAt(b.mesh.position.clone().add(b.vel));
       }
       b.mesh.position.addScaledVector(b.vel, dt);
-      b.life -= dt;
+      b.life -= dt; const bu = b.mesh.userData; if (bu && bu.head) { bu.age += dt; const pz = 0.85 + 0.3 * Math.sin(bu.age * 40); bu.head.scale.set(2.4 * pz, 2.4 * pz, 1); bu.inner.material && (bu.inner.scale.x = bu.inner.scale.y = pz); }
       let dead = b.life <= 0;
       if (!dead) {
         for (let j = enemies.length - 1; j >= 0; j--) {
           const ej = enemies[j];
           if (b.mesh.position.distanceTo(ej.mesh.position) < (ej.kind === 'carrier' ? 11 : ej.kind === 'brute' ? 3.2 : 1.9)) {
-            dead = true; ej.hp--;
+            dead = true; ej.hp--; impactFX(b.mesh.position.clone(), ej.mesh.userData.color || 0x9ffff0);
             if (ej.hp > 0) { hitFlash(ej); break; }
             explode(ej.mesh.position.clone(), ej.mesh.userData.color || 0xff6600);
             if (ej.kind === 'brute') { explode(ej.mesh.position.clone().add(new THREE.Vector3(1, 0.5, 0)), 0xffa040); }
@@ -1366,6 +1407,7 @@ if (window.WF_SOUND) { const mc = document.getElementById('fm-midcol');
   updateReticle();
   if (warping) { playerShip.position.copy(shipPos); playerShip.rotation.set(shipPitch, shipYaw, 0, 'YXZ'); }
 
+  updateFX(dt); updateExit(dt);
   if (window.__camOverride) window.__camOverride();       // test hook: lets a screenshot script park the camera
   far.position.copy(camera.position); updateDust(camera.position);
   if (state === 'playing' && (!window.__navT || clock.elapsedTime - window.__navT > 0.25)) { window.__navT = clock.elapsedTime; navLabel(); }

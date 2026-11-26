@@ -21,20 +21,21 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126y"></script>
-  <script src="life.js?v=20261126y"></script>
-  <script src="manual.js?v=20261126y"></script>
-  <script src="menubar.js?v=20261126y"></script>
-  <script src="ai.js?v=20261126y"></script>
-  <script src="sound.js?v=20261126y"></script>
-  <script src="avatar.js?v=20261126y"></script>
-  <script src="door.js?v=20261126y"></script>
-  <script src="hyperspace.js?v=20261126y"></script>
-  <script src="shipskin.js?v=20261126y"></script>
-  <script src="lcars.js?v=20261126y"></script>
-  <script src="crew.js?v=20261126y"></script>
-  <script src="repairs.js?v=20261126y"></script>
-  <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
+  <script src="mobile.js?v=20261126z"></script>
+  <script src="life.js?v=20261126z"></script>
+  <script src="manual.js?v=20261126z"></script>
+  <script src="menubar.js?v=20261126z"></script>
+  <script src="ai.js?v=20261126z"></script>
+  <script src="sound.js?v=20261126z"></script>
+  <script src="avatar.js?v=20261126z"></script>
+  <script src="door.js?v=20261126z"></script>
+  <script src="hyperspace.js?v=20261126z"></script>
+  <script src="shipskin.js?v=20261126z"></script>
+  <script src="lcars.js?v=20261126z"></script>
+  <script src="crew.js?v=20261126z"></script>
+  <script src="repairs.js?v=20261126z"></script>
+  <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight'; if (/[?&]from=fly/.test(location.search)) document.documentElement.className += ' from-fly';</script>
+  <style>html.from-fly, html.from-fly body { background:#1a0e06; } #fly-fade { position:fixed; inset:0; z-index:59; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 50%, #ffb060 0%, #5a2a0c 45%, #120804 100%); } html.from-fly #fly-fade { opacity:1; }</style>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -86,6 +87,7 @@
   </div>
   <div id="room-prompt"></div>
   <div id="jump"></div>
+  <div id="fly-fade"></div>
   <div id="cmd-hud" class="wf-ctl"><button id="cmd-cruise"><svg viewBox="0 0 24 24"><path d="M3 15c3-4 6-6 9-6s6 2 9 6"/><circle cx="12" cy="9" r="2"/></svg><span>Cruising</span></button><button id="cmd-hunt"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span>Hunting</span></button><button id="cmd-inspect"><svg viewBox="0 0 24 24"><path d="M12 3l4 8-4 10-4-10z"/><circle cx="12" cy="11" r="1.6"/></svg><span>Ship</span></button><button id="cmd-nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Navigate</span></button><button id="cmd-stand"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 22l4-7 4 7M7 11h10"/></svg><span>Stand</span></button></div>
   <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
@@ -706,6 +708,18 @@
           else { if (hyper) hyper.setWarp(false); if (window.WF_SOUND) WF_SOUND.music(null); snd('arrival'); lookTo(e.yaw, -0.05); controls({ walk: false, look: true }); setMode('seated'); } }());
       };
       if (sc.hasLoaded) land(); else sc.addEventListener('loaded', land);
+    }
+    // back from Flight Mode by the ✕ (user, Nov 26): no light speed — the amber fade clears with you in the chair, then you get up
+    if (document.documentElement.classList.contains('from-fly')) {
+      var landFly = function () {
+        var r = camRig(); if (!r || !chairNodes()) return setTimeout(landFly, 60);
+        side = 1; entry = V3(wpos(window.__chairEl.object3D).x + 1.15, DAIS_H, wpos(window.__chairEl.object3D).z);
+        controls({ walk: false, look: false }); var e = eyePose(); putCam(e.p, yawQ(e.yaw, -0.05)); setMode('seated'); hud.style.display = 'none';
+        var ff = document.getElementById('fly-fade'); ff.style.transition = 'opacity 1.3s ease-out';
+        requestAnimationFrame(function () { document.documentElement.classList.remove('from-fly'); ff.style.opacity = '1'; requestAnimationFrame(function () { ff.style.opacity = '0'; }); });
+        snd('arrival'); setTimeout(function () { controls({ walk: false, look: true }); setMode('seated'); setTimeout(function () { stand(); }, 700); }, 1300);
+      };
+      if (sc.hasLoaded) landFly(); else sc.addEventListener('loaded', landFly);
     }
   }());
   </script>

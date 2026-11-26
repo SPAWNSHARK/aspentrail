@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126y).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126z).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -377,7 +377,7 @@ Record of everything asked for; tick items off as they ship.
 - [x] SHIP AI = HALCYON (`ai.js`, every ship page): eye icon in #wf-btns, key I, tap the Library brain; offline answers from live state (status, crew whereabouts, advice, next jump, credits, goals), commands (take me to X, open manual/map, red alert on the Bridge), manual search fallback; speechSynthesis voice ('wf-ai-voice'); brain.js flickers while it talks (window.__aiTalk); event 'ai'
 - [x] Library console (Vesper's Science console) = the user's WordPress site sonsofnaphtali.wordpress.com (`wp-console.js`): #wf-wp panel, LIVE SITE iframe by default (its own scrolling/animations) + READER tab (public-api.wordpress.com v1.1 posts?type=any, cards fade/slide in via IntersectionObserver, full articles, scroll progress bar), ↗ opens the site; the console's 3D screen shows the masthead + latest title. Site had 0 posts on Nov 26 (pages-based). Science log stays in the ship log SCIENCE tab. [ ] other consoles
 - [~] Library tank: fewer bubbles (120), lightning every 10–24 s and dimmer, EELS (brain.js gel-tank: InstancedMesh tapered segments placed by arc length along each eel's path history, glowing eyes) [x]; partly see-through down to the below deck [ ] (with Phase D)
-- [ ] Flight Mode EXIT: no light speed — camera zooms back into the ship, Bridge arrival shows the captain getting up out of the chair; exit = small round ✕ top-left (not the arrow); LASERS need much better animation
+- [x] Flight Mode EXIT (minigame toBridge/updateExit): no light speed — 1.5 s camera swoop onto the bow + FOV narrowing + amber #zoom-fade → bridge.html?from=fly (html.from-fly: amber #fly-fade clears with you seated, then WF_CMD stand() plays the get-up sequence). Exit control = round glass ✕ (#exit-x) top-left; the bar's back arrow (#fm-mid) is hidden. LASERS: tapered white core + cyan inner + teal outer glow, pulsing head, 5-sprite tracer, muzzle flash + expanding ring, impactFX spark burst on hits; fx()/updateFX() short-lived effect list
 - [ ] Ship View model: the front windows are painted wrong
 - [~] Flight Mode: ZOOM (wheel / pinch / Z X, 0.4–2.6×, 'wf-zoom') [x]; far more space traffic, more ship types, ships fighting each other [ ]
 - [ ] A cast of ALIEN RACES, each with a home planet; the Hiveport has all of them; Hiveport much more crowded and detailed ("feel like a damn club")
