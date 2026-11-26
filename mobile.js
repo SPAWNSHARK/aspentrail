@@ -45,6 +45,7 @@
     '#wf-joy svg,#wf-stick svg{width:20px;height:20px;stroke:rgba(20,20,26,.75);color:rgba(20,20,26,.75)}' +
     '#hud,#controls-hint,#hint-shoot{display:none!important}' +                 // no labels across the screen (user)
     'body.reading .wf-ctl,body.wf-vr .wf-ctl{opacity:0;pointer-events:none}' +
+    'body.wf-seated #wf-joy,body.wf-cine .wf-ctl{opacity:0;pointer-events:none}' +
     '.a-modal,.a-dialog{display:none!important}';                         // no A-Frame motion-permission box: Gyro asks iOS directly
   document.head.appendChild(css);
 
@@ -288,7 +289,7 @@
           else if (lk.level) { P.x *= Math.max(0, 1 - 6 * s); if (Math.abs(P.x) < 0.004) { P.x = 0; lk.level = false; } }
         }
       }
-      if (v.x || v.y) {
+      if ((v.x || v.y) && !window.WAYFARER.frozen) {   // frozen = seated in the command chair / a cut scene
         var cam = this.el.camera;
         if (cam) {
           cam.getWorldDirection(this.dir);
@@ -302,11 +303,11 @@
         if (!this.scanAt) { this.scanAt = t + 1500; this.scans = 0; }
         if (t > this.scanAt && this.scans < 8) { this.scanSolids(); this.scans++; this.scanAt = t + 2000; }   // props stream in for a while
         var lp = this._lp || (this._lp = new AFRAME.THREE.Vector3(1e9, 0, 0));
-        if (lp.x < 1e8 && Math.abs(m.position.x - lp.x) + Math.abs(m.position.z - lp.z) > 1e-5) this.collide(m, lp);   // only while moving
+        if (!window.WAYFARER.frozen && lp.x < 1e8 && Math.abs(m.position.x - lp.x) + Math.abs(m.position.z - lp.z) > 1e-5) this.collide(m, lp);   // only while moving
         lp.copy(m.position);
       }
       var B = window.WAYFARER && window.WAYFARER.bounds;
-      if (B && B.length > 2) {                              // a shaped room (the Bridge's guitar pick): stay 0.35 m inside its outline
+      if (window.WAYFARER.frozen) {} else if (B && B.length > 2) {                              // a shaped room (the Bridge's guitar pick): stay 0.35 m inside its outline
         m.getWorldPosition(this.wp); var q = clampPoly(B, this.wp.x, this.wp.z, 0.35);
         if (q) { m.position.x += q[0] - this.wp.x; m.position.z += q[1] - this.wp.z; }
       } else if (this.data.radius > 0) {                    // keep keyboard + stick inside the room

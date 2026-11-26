@@ -1,0 +1,420 @@
+{
+ "version": 1,
+ "units": "fictional light years",
+ "canonStatus": "proposed new map; existing destination IDs preserved",
+ "initialDestination": "Auralis",
+ "systems": [
+  {
+   "id": "SYS_01",
+   "name": "Auralis Reach",
+   "position": [
+    -24,
+    2,
+    19
+   ],
+   "faction": "Free Survey",
+   "starColor": "#b9e7ff",
+   "destinations": [
+    "Auralis",
+    "Thalassa"
+   ]
+  },
+  {
+   "id": "SYS_02",
+   "name": "Varkesh Expanse",
+   "position": [
+    22,
+    -1,
+    31
+   ],
+   "faction": "Independent",
+   "starColor": "#ffb571",
+   "destinations": [
+    "Varkesh",
+    "Pyraxis"
+   ]
+  },
+  {
+   "id": "SYS_03",
+   "name": "Nyxara Veil",
+   "position": [
+    -45,
+    6,
+    -21
+   ],
+   "faction": "Uncharted",
+   "starColor": "#bfafff",
+   "destinations": [
+    "Nyxara",
+    "Mycelion"
+   ]
+  },
+  {
+   "id": "SYS_04",
+   "name": "Ferrum Nexus",
+   "position": [
+    48,
+    -3,
+    -22
+   ],
+   "faction": "Machine Collective",
+   "starColor": "#a3ecff",
+   "destinations": [
+    "Ferrum_Prime",
+    "Selenite"
+   ]
+  },
+  {
+   "id": "SYS_05",
+   "name": "Kharon Rift",
+   "position": [
+    12,
+    5,
+    -48
+   ],
+   "faction": "Restricted",
+   "starColor": "#ffb998",
+   "destinations": [
+    "Kharon_Fracture",
+    "Cryovale"
+   ]
+  },
+  {
+   "id": "SYS_06",
+   "name": "Orinth Belt",
+   "position": [
+    -19,
+    -4,
+    -7
+   ],
+   "faction": "Independent",
+   "starColor": "#f5d5a2",
+   "destinations": [
+    "Orinth",
+    "Vespera"
+   ]
+  },
+  {
+   "id": "SYS_07",
+   "name": "Veskaris System",
+   "position": [
+    42,
+    2,
+    12
+   ],
+   "faction": "K\u2019Vetar Confederation",
+   "starColor": "#a2ffc6",
+   "destinations": [
+    "Argo_Hiveport"
+   ]
+  },
+  {
+   "id": "UNK_1",
+   "name": "Unknown 01",
+   "position": [
+    -55,
+    3,
+    31
+   ],
+   "faction": "Uncharted",
+   "starColor": "#8799ae",
+   "destinations": []
+  },
+  {
+   "id": "UNK_2",
+   "name": "Unknown 02",
+   "position": [
+    5,
+    7,
+    49
+   ],
+   "faction": "Uncharted",
+   "starColor": "#8799ae",
+   "destinations": []
+  },
+  {
+   "id": "UNK_3",
+   "name": "Unknown 03",
+   "position": [
+    62,
+    -2,
+    4
+   ],
+   "faction": "Uncharted",
+   "starColor": "#8799ae",
+   "destinations": []
+  },
+  {
+   "id": "UNK_4",
+   "name": "Unknown 04",
+   "position": [
+    -35,
+    -5,
+    -48
+   ],
+   "faction": "Uncharted",
+   "starColor": "#8799ae",
+   "destinations": []
+  }
+ ],
+ "destinations": [
+  {
+   "id": "Auralis",
+   "name": "Auralis",
+   "description": "Temperate ocean world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    64,
+    153,
+    238
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_01",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 0.0,
+   "discovered": true,
+   "texture": "images/planets/auralis.jpg"
+  },
+  {
+   "id": "Varkesh",
+   "name": "Varkesh",
+   "description": "Rust desert world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    224,
+    134,
+    76
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_02",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 1.7,
+   "discovered": true,
+   "texture": "images/planets/varkesh.jpg"
+  },
+  {
+   "id": "Nyxara",
+   "name": "Nyxara",
+   "description": "Violet bioluminescent world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    169,
+    70,
+    247
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_03",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 3.4,
+   "discovered": true,
+   "texture": "images/planets/nyxara.jpg"
+  },
+  {
+   "id": "Ferrum_Prime",
+   "name": "Ferrum Prime",
+   "description": "Machine civilization",
+   "fictional": true,
+   "atmosphere_rgb": [
+    68,
+    174,
+    255
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_04",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 5.1,
+   "discovered": true,
+   "texture": "images/planets/ferrum_prime.jpg"
+  },
+  {
+   "id": "Kharon_Fracture",
+   "name": "Kharon Fracture",
+   "description": "Impact-shattered world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    255,
+    106,
+    46
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_05",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 0.5199999999999996,
+   "discovered": true,
+   "texture": "images/planets/kharon_fracture.jpg"
+  },
+  {
+   "id": "Cryovale",
+   "name": "Cryovale",
+   "description": "Glacial world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    81,
+    189,
+    245
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_05",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 2.919999999999999,
+   "discovered": true,
+   "texture": "images/planets/cryovale.jpg"
+  },
+  {
+   "id": "Thalassa",
+   "name": "Thalassa",
+   "description": "Global ocean world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    39,
+    180,
+    235
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_01",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 2.4,
+   "discovered": true,
+   "texture": "images/planets/thalassa.jpg"
+  },
+  {
+   "id": "Vespera",
+   "name": "Vespera",
+   "description": "Toxic sulfur world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    177,
+    210,
+    64
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_06",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 4.62,
+   "discovered": true,
+   "texture": "images/planets/vespera.jpg"
+  },
+  {
+   "id": "Orinth",
+   "name": "Orinth",
+   "description": "Ringed gas giant",
+   "fictional": true,
+   "atmosphere_rgb": [
+    198,
+    142,
+    250
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_06",
+   "kind": "planet",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 2.2199999999999998,
+   "discovered": true,
+   "texture": "images/planets/orinth.jpg"
+  },
+  {
+   "id": "Pyraxis",
+   "name": "Pyraxis",
+   "description": "Volcanic world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    245,
+    86,
+    28
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_02",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 4.1,
+   "discovered": true,
+   "texture": "images/planets/pyraxis.jpg"
+  },
+  {
+   "id": "Mycelion",
+   "name": "Mycelion",
+   "description": "Exotic forest world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    104,
+    229,
+    166
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_03",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 5.8,
+   "discovered": true,
+   "texture": "images/planets/mycelion.jpg"
+  },
+  {
+   "id": "Selenite",
+   "name": "Selenite",
+   "description": "Crystalline mineral world",
+   "fictional": true,
+   "atmosphere_rgb": [
+    194,
+    115,
+    255
+   ],
+   "model_radius": 1,
+   "glb": null,
+   "systemId": "SYS_04",
+   "kind": "planet",
+   "orbitRadius": 5.7,
+   "orbitPeriod": 25,
+   "orbitPhase": 1.2199999999999998,
+   "discovered": true,
+   "texture": "images/planets/selenite.jpg"
+  },
+  {
+   "id": "Argo_Hiveport",
+   "name": "Hiveport",
+   "description": "K\u2019Vetar trade station \u00b7 Argo Station / Hiveport",
+   "fictional": true,
+   "kind": "station",
+   "glb": null,
+   "atmosphere_rgb": [
+    104,
+    229,
+    166
+   ],
+   "systemId": "SYS_07",
+   "orbitRadius": 3.0,
+   "orbitPeriod": 16,
+   "orbitPhase": 3.919999999999999,
+   "discovered": true
+  }
+ ]
+}

@@ -63,13 +63,13 @@
       sc.object3D.add(this.J.root);
       // the user's EXPLORER suit (models/player/explorer.glb, skinned, Idle + Walk_InPlace) replaces the procedural figure once
       // it loads; walk/idle blend by real speed. Model forward = +Z, ours = −Z → turned 180°. Falls back to the procedural body.
-      var self2 = this, holder = document.createElement('a-entity'); holder.setAttribute('gltf-model', 'models/player/explorer.glb?v=1');
+      var self2 = this, holder = document.createElement('a-entity'); holder.setAttribute('gltf-model', 'models/player/explorer_command.glb?v=1');   // + Sit_Down, Stand_Up, Seated_Idle (navigation kit)
       holder.addEventListener('model-loaded', function () {
         var m = holder.getObject3D('mesh'), clips = m.animations || [];
         var box = new THREE.Group(); box.rotation.y = Math.PI; box.add(m); m.traverse(function (o) { if (o.isMesh) o.frustumCulled = false; });
         self2.J.hips.visible = false; self2.J.root.add(box);
         var mx = new THREE.AnimationMixer(m), idle = THREE.AnimationClip.findByName(clips, 'Idle'), walk = THREE.AnimationClip.findByName(clips, 'Walk_InPlace');
-        self2.kit = { mx: mx, idle: idle && mx.clipAction(idle), walk: walk && mx.clipAction(walk) };
+        self2.kit = { mx: mx, idle: idle && mx.clipAction(idle), walk: walk && mx.clipAction(walk), clips: clips, acts: {} };
         [self2.kit.idle, self2.kit.walk].forEach(function (a) { if (a) { a.play(); a.setEffectiveWeight(0); } });
       });
       sc.appendChild(holder);
@@ -90,7 +90,13 @@
       b.addEventListener('pointerup', function (e) { e.stopPropagation(); self.toggle(); });
       addEventListener('keydown', function (e) { if (e.code === 'KeyV') self.toggle(); });
       this.btn = b; this.apply();
-      window.WAYFARER.avatar = { hide: function (h) { self.hidden = h; self.apply(); }, view: function () { return self.view; }, toggle: function () { self.toggle(); } };
+      window.WAYFARER.avatar = { hide: function (h) { self.hidden = h; self.apply(); }, view: function () { return self.view; }, toggle: function () { self.toggle(); },
+        // SCRIPTED POSE (Bridge command chair): s = { x, y, z (feet), yaw (0 = facing −Z), clip: 'Walk_InPlace'|'Sit_Down'|
+        // 'Stand_Up'|'Seated_Idle'|'Idle', time (seconds into the clip), show (force the body visible), cam: 'free'|'owned' }.
+        // 'owned' = the caller writes the camera entity's world pose itself (cinematics): no 3rd-person lens offset.
+        // 'free' = the caller places the camera entity (e.g. at the eye anchor) and the normal 1st/3rd view rules apply.
+        script: function (st) { self.scripted = st || null; },
+        ready: function () { return !!self.kit; } };
     },
     toggle: function () { this.view = this.view === 'third' ? 'first' : 'third'; try { localStorage.setItem('wf-view', this.view); } catch (e) {} this.apply(); },
     apply: function () { if (this.btn) this.btn.classList.toggle('sel', this.view === 'third'); },
@@ -101,6 +107,19 @@
       o.getWorldPosition(wp);
       var third = this.view === 'third' && !this.hidden && !this.el.is('vr-mode');
       J.root.visible = third;
+      var SC = this.scripted;
+      if (SC) {                                             // the Bridge is driving: pose from the script, not from movement
+        J.root.position.set(SC.x, SC.y, SC.z); J.root.rotation.y = SC.yaw; this.yaw = SC.yaw; this.last = null; this.speed = 0;
+        J.root.visible = !!SC.show || (third && SC.cam !== 'owned');
+        if (this.kit) {
+          var K = this.kit, nm = SC.clip || 'Idle';
+          if (K.cur !== nm) { K.mx.stopAllAction(); var c = THREE.AnimationClip.findByName(K.clips, nm); K.act = c ? K.mx.clipAction(c) : null; if (K.act) { K.act.reset(); K.act.setLoop(THREE.LoopRepeat); K.act.setEffectiveWeight(1); K.act.play(); } K.cur = nm; }
+          if (K.act) { var D = K.act.getClip().duration; K.act.time = nm === 'Walk_InPlace' || nm === 'Seated_Idle' || nm === 'Idle' ? (SC.time || 0) % D : Math.min(SC.time || 0, D - 0.0001); K.mx.update(0); }
+        }
+        if (SC.cam === 'owned') { this.dist = 0; cam3.position.set(0, 0, 0); return; }
+      } else if (this.kit && this.kit.cur) {               // script just ended: back to the idle/walk blend
+        this.kit.mx.stopAllAction(); this.kit.cur = null; [this.kit.idle, this.kit.walk].forEach(function (a) { if (a) { a.reset(); a.play(); a.setEffectiveWeight(0); } });
+      }
       // speed from how far the player actually moved this frame
       if (!this.last) this.last = wp.clone();
       var dx = wp.x - this.last.x, dz = wp.z - this.last.z, d = Math.hypot(dx, dz); this.last.copy(wp);
@@ -109,8 +128,8 @@
       var e = new THREE.Euler().setFromQuaternion(o.getWorldQuaternion(this._q || (this._q = new THREE.Quaternion())), 'YXZ'), want = e.y;
       if (this.speed > 0.3 && d > 1e-4) want = Math.atan2(-dx, -dz);
       var df = Math.atan2(Math.sin(want - this.yaw), Math.cos(want - this.yaw)); this.yaw += df * Math.min(1, s * 9);
-      J.root.position.set(wp.x, wp.y - 1.6, wp.z); J.root.rotation.y = this.yaw;
-      if (this.kit) {                                       // kit avatar: blend idle → walk, stride rate follows speed
+      if (!SC) { J.root.position.set(wp.x, wp.y - 1.6, wp.z); J.root.rotation.y = this.yaw; }
+      if (SC) {} else if (this.kit) {                                       // kit avatar: blend idle → walk, stride rate follows speed
         var kw = Math.min(1, this.speed / 1.6); if (this.kit.walk) { this.kit.walk.setEffectiveWeight(kw); this.kit.walk.setEffectiveTimeScale(0.6 + this.speed * 0.45); }
         if (this.kit.idle) this.kit.idle.setEffectiveWeight(1 - kw); this.kit.mx.update(s);
         var ph1 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4); if (this.speed > 0.6 && Math.floor(this.phase) !== ph1 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step();
@@ -131,7 +150,7 @@
       // camera: over the shoulder in 3rd person, shortened so it stays inside the room
       var back = 0, up = 0;
       if (third) {
-        back = 2.4; up = 0.45; var R = 0, mob = this.el.components['wayfarer-mobile']; if (mob) R = mob.data.radius;
+        back = 2.4; up = SC && SC.up ? SC.up : 0.45;   /* seated: lift the lens so you see over the chair back */ var R = 0, mob = this.el.components['wayfarer-mobile']; if (mob) R = mob.data.radius;
         var fx = Math.sin(e.y), fz = Math.cos(e.y);                // camera's backward direction in XZ
         for (var i = 0; i < 12; i++) {
           var cx = wp.x + fx * back, cz = wp.z + fz * back, BB = window.WAYFARER.bounds, ok = BB ? !window.WAYFARER.clampPoly(BB, cx, cz, 0.35) : R > 0 ? Math.hypot(cx, cz) < R - 0.35 : (Math.abs(cx) < 2.3 && Math.abs(cz) < 12.3);

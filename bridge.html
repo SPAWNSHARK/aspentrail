@@ -21,12 +21,12 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126a"></script>
-  <script src="sound.js?v=20261126a"></script>
-  <script src="avatar.js?v=20261126a"></script>
-  <script src="door.js?v=20261126a"></script>
-  <script src="hyperspace.js?v=20261126a"></script>
-  <script src="lcars.js?v=20261126a"></script>
+  <script src="mobile.js?v=20261126c"></script>
+  <script src="sound.js?v=20261126c"></script>
+  <script src="avatar.js?v=20261126c"></script>
+  <script src="door.js?v=20261126c"></script>
+  <script src="hyperspace.js?v=20261126c"></script>
+  <script src="lcars.js?v=20261126c"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -61,6 +61,12 @@
     .chart button { display:block; width:100%; margin:7px 0 0; padding:11px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); color:#fff; font:600 14px -apple-system,system-ui,sans-serif; text-align:left; }
     .chart button i { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:10px; vertical-align:-1px; } .chart button small { display:block; color:#b8c8e8; font-weight:400; font-size:12px; margin:2px 0 0 22px; }
     .chart button.close { text-align:center; background:none; color:#ccc; }
+    body.wf-cine #room-prompt { opacity:0 !important; }
+    #cmd-hud { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom,0px)); z-index:30; display:none; gap:8px; padding:6px;
+      border-radius:22px; background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 48%,rgba(255,255,255,.07)),rgba(22,22,28,.4); -webkit-backdrop-filter:blur(22px) saturate(185%); backdrop-filter:blur(22px) saturate(185%);
+      border:1px solid rgba(255,255,255,.24); box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.45); }
+    #cmd-hud button { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:72px; padding:8px 10px; border:0; border-radius:16px; background:rgba(255,255,255,.06); color:#fff; font:600 11px -apple-system,system-ui,sans-serif; }
+    #cmd-hud button:active { background:rgba(255,180,90,.35); } #cmd-hud svg { width:22px; height:22px; fill:none; stroke:#fff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     html.from-flight, html.from-flight body { background:#dff0ff; } html.from-flight #jump { opacity:1; }
   </style>
 </head>
@@ -73,7 +79,7 @@
   </div>
   <div id="room-prompt"></div>
   <div id="jump"></div>
-  <div id="star-chart" class="chart"><h2>STAR CHART</h2><p>Choose a destination, Captain.</p><div id="chart-list"></div><button id="chart-close" class="close">Close</button></div>
+  <div id="cmd-hud" class="wf-ctl"><button id="cmd-nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Navigation</span></button><button id="cmd-fly"><svg viewBox="0 0 24 24"><path d="M12 3l4 8-4 10-4-10z"/><path d="M8 13l-3 3M16 13l3 3"/></svg><span>Launch</span></button><button id="cmd-stand"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 22l4-7 4 7M7 11h10"/></svg><span>Stand</span></button></div>
   <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
   <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
@@ -94,7 +100,7 @@
     </a-entity>
 
     <!-- tap target for the captain's chair (geometry is built in the script) -->
-    <a-box id="captains-chair" class="interactive" position="0 1.0 0.2" width="1.1" height="1.6" depth="1.0"
+    <a-box id="captains-chair" class="interactive" position="0 1.0 0.65" width="1.1" height="1.6" depth="1.0"
       material="opacity: 0; transparent: true; depthWrite: false"></a-box>
   </a-scene>
 
@@ -102,7 +108,7 @@
   (function () {
     var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
     var MOB = window.WAYFARER && window.WAYFARER.mobile;
-    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22;
+    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22, CHAIR_Z = 0.65, ORB_Z = -1.3;
 
     // ───────── helpers ─────────
     function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
@@ -326,22 +332,25 @@
       var ring2 = mesh(new THREE.TorusGeometry(1.2, 0.012, 6, 96), M.amber, root, 0, DAIS_H + 0.003, 0); ring2.rotation.x = Math.PI / 2;
 
       // the COMMANDER'S CHAIR from the user's command-deck kit (models/deck, bow = +Z there, so turned 180°)
-      kitModel('Commander_Chair.glb', [0, DAIS_H, 0.25], 180);
+      // the ANIMATED commander's chair (navigation kit): swivel + armrest nodes driven by the command sequence below
+      var ce = kitModel('Commander_Chair_Animated.glb', [0, DAIS_H, CHAIR_Z], 180); ce.setAttribute('id', 'cmd-chair'); window.__chairEl = ce;
     }
 
-    // ── the PLANET SELECTOR (kit): a holographic globe on a copper plinth at the commander's right. Its six planets are
-    //    tappable and mapped to our worlds; tapping the plinth or hologram anywhere else opens the full STAR CHART. ──
-    var PLANET_MAP = { Planet_01_Terrestrial: 'AURALIS', Planet_02_Red: 'VARKESH', Planet_03_GasGiant: 'VESPERA', Planet_04_Ice: 'CRYOVALE', Planet_05_Ringed: 'ORINTH', Planet_06_Green: 'MYCELION' };
+    // ── the NAVIGATOR (navigation kit's animated planet selector) stands IN FRONT of the commander's chair (user, Nov 26),
+    //    between the chair and the window. Tapping it opens the GALACTIC MAP. Hologram_Rotation + Galaxy_Spin loop; Orb_Open /
+    //    Orb_Close play when the map opens and closes.
+    var PLANET_MAP = { Planet_01_Terrestrial: 'Auralis', Planet_02_Red: 'Varkesh', Planet_03_GasGiant: 'Vespera', Planet_04_Ice: 'Cryovale', Planet_05_Ringed: 'Orinth', Planet_06_Green: 'Mycelion' };
     function buildOrb(add, dot) {
-      var e = kitModel('Planet_Selector.glb', [1.62, DAIS_H, -0.55], 180, 'Hologram_Rotation');
-      e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb');
-      e.addEventListener('click', function (ev) {
-        var o = ev.detail && ev.detail.intersection && ev.detail.intersection.object, dest = null;
-        for (var q = o; q && !dest; q = q.parent) dest = PLANET_MAP[q.name] || null;
-        if (dest && window.WF_launch) window.WF_launch(dest); else if (window.WF_openChart) window.WF_openChart();
+      var e = kitModel('Planet_Selector_Animated.glb', [0, DAIS_H, ORB_Z], 180); e.setAttribute('scale', '0.72 0.72 0.72'); /* hologram sits just below seated eye level, so you look over it to the window */ e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb'); window.__orbEl = e;
+      e.addEventListener('model-loaded', function () {
+        var m = e.getObject3D('mesh'), clips = (e.components['gltf-model'].model || m).animations || [], mx = new THREE.AnimationMixer(m); mixers.push(mx);
+        ['Hologram_Rotation', 'Galaxy_Spin'].forEach(function (n) { var c = THREE.AnimationClip.findByName(clips, n); if (c) mx.clipAction(c).play(); });
+        window.__orbAnim = { mx: mx, clips: clips };
       });
-      var l = new THREE.PointLight(0x4a9cff, 1.1, 5, 2); l.position.set(1.62, DAIS_H + 1.7, -0.55); root.add(l);
+      e.addEventListener('click', function () { if (window.WF_CMD) window.WF_CMD.openNav('orb'); });
+      var l = new THREE.PointLight(0x4a9cff, 1.1, 5, 2); l.position.set(0, DAIS_H + 1.25, ORB_Z); root.add(l);
     }
+
 
     // ── SIX STATIONS from the kit (console + operator chair + seated droid playing Console_Operate), in the kit's own
     //    arrangement (from Command_Deck_Assembled.glb): three a side, Navigation/Sensors toward the bow. Kit bow = +Z, ours = −Z,
@@ -425,58 +434,217 @@
     var prompt = document.getElementById('room-prompt');
     function showPrompt(text) { prompt.textContent = text; prompt.style.opacity = '1'; }
     var chair = document.getElementById('captains-chair');
-    chair.addEventListener('mouseenter', function () { showPrompt('[ ENGAGE FLIGHT MODE ]'); });
+    chair.addEventListener('mouseenter', function () { showPrompt('[ TAKE THE COMMAND CHAIR ]'); });
     chair.addEventListener('mouseleave', function () { prompt.style.opacity = '0'; });
-    // ── ONE CONTINUOUS TRIP (roadmap #1): sit in the chair, the camera pushes through the window as light speed builds,
-    //    a blue-white flash carries straight into Flight Mode (which opens mid-warp). Coming back runs it in reverse.
-    var T3 = AFRAME.THREE, jump = document.getElementById('jump'), busy = false;
-    function camRig() { var cam = sc.camera && sc.camera.el; return cam ? { cam: cam, lc: cam.components['look-controls'] } : null; }
-    function freeze(r, on) { r.cam.setAttribute('look-controls', 'enabled', !on); r.cam.setAttribute('wasd-controls', 'enabled', !on); }
+    // ══ COMMAND SYSTEM (navigation kit, Nov 26) ══════════════════════════════════════════════════════════════════════
+    // Tap the chair: your avatar walks round to the side of the chair, the chair swivels to meet you with its armrests up,
+    // you turn, sit back into it (Sit_Down), and the chair carries you round to face the bow (Seated_Idle) while the camera
+    // settles into your eyes (or over your shoulder in 3rd person). Seated controls: NAVIGATION (galactic map), LAUNCH (fly
+    // free) and STAND (the whole thing in reverse). The NAVIGATOR in front of the chair opens the same galactic map when you're
+    // standing; confirming a destination from it walks you to the chair, seats you and launches. Confirmed travel = the
+    // chair jump into Flight Mode, which arrives beside that world (or the Hiveport).
+    var T3 = AFRAME.THREE, jump = document.getElementById('jump'), PLAYER = document.getElementById('player');
+    var V3 = function (x, y, z) { return new T3.Vector3(x, y, z); }, AXZ = V3(0, 0, 1), AXX = V3(1, 0, 0), BASIS = new T3.Quaternion().setFromAxisAngle(AXX, Math.PI / 2);
     function ease(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
-    var SEAT = new T3.Vector3(0, 1.3, 0.5), PLAYER = document.getElementById('player');
-    function engage(dest) {
-      var r = camRig(); if (busy || !r) return; busy = true; freeze(r, true); prompt.style.opacity = '0';
-      if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
-      if (hyper) hyper.setWarp(true);   // light speed only when you head into flight (user)
-      if (window.WF_SOUND) { WF_SOUND.music(localStorage.getItem('wf-mode2') === 'combat' ? 'combat' : 'explore'); WF_SOUND.warpRise(); }   // music only for flight + its cut scenes
-      var o = r.cam.object3D, p0 = new T3.Vector3(), q0 = new T3.Quaternion(); o.getWorldPosition(p0); o.getWorldQuaternion(q0);
-      PLAYER.object3D.position.set(0, 0, 0); PLAYER.object3D.rotation.set(0, 0, 0); o.position.copy(p0); o.quaternion.copy(q0);
-      var cam3 = r.cam.getObject3D('camera'), fov0 = cam3.fov, t0 = performance.now(), qF = new T3.Quaternion();
-      (function step() {
-        var t = (performance.now() - t0) / 1000, a = ease(t / 1.3), b = Math.max(0, Math.min(1, (t - 1.3) / 2.0));
-        if (t < 1.3) { o.position.lerpVectors(p0, SEAT, a); o.quaternion.slerpQuaternions(q0, qF, a); }            // into the chair, facing the window
-        else { o.quaternion.copy(qF); o.position.set(0, 1.3 + 0.3 * b, SEAT.z - 6.8 * b * b); }                     // then through the window
-        warpK = 1 + 9 * b * b; cam3.fov = fov0 + 30 * b * b; cam3.updateProjectionMatrix();
-        jump.style.opacity = Math.max(0, (t - 2.3) / 1.0);
-        if (t < 3.35) requestAnimationFrame(step);
-        else { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=bridge' + (dest ? '&dest=' + encodeURIComponent(dest) : ''); }
-      }());
+    function camRig() { var cam = sc.camera && sc.camera.el; return cam ? { cam: cam, lc: cam.components['look-controls'], o: cam.object3D } : null; }
+    function controls(on) {                                   // walking + looking on/off (look stays on while seated)
+      var r = camRig(); if (!r) return; window.WAYFARER.frozen = !on.walk;
+      r.cam.setAttribute('wasd-controls', 'enabled', !!on.walk); r.cam.setAttribute('look-controls', 'enabled', !!on.look);
+      document.body.classList.toggle('wf-cine', !on.look); document.body.classList.toggle('wf-seated', !!on.look && !on.walk);
     }
-    chair.addEventListener('click', function () { engage(); });
-    // the STAR CHART: tap a world → launch straight to it (Flight Mode arrives beside it, mid-warp)
-    var chart = document.getElementById('star-chart');
-    window.WF_launch = function (dest) { engage(dest); };
-    window.WF_openChart = function () {
-      var near = ''; try { near = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {}
-      var list = document.getElementById('chart-list'); list.innerHTML = '';
-      window.WF_STARS.forEach(function (w) { var b2 = document.createElement('button'), hex = '#' + ('00000' + w.col.toString(16)).slice(-6);
-        b2.innerHTML = '<i style="background:' + hex + ';box-shadow:0 0 10px ' + hex + '"></i>' + w.name + (w.name === near ? '  · here' : '') + '<small>' + w.note + '</small>';
-        b2.onclick = function () { chart.style.display = 'none'; document.body.classList.remove('reading'); engage(w.name); }; list.appendChild(b2); });
-      chart.style.display = 'block'; document.body.classList.add('reading');
-    };
-    document.getElementById('chart-close').onclick = function () { chart.style.display = 'none'; document.body.classList.remove('reading'); };
-    // arriving from Flight Mode: already in the seat, streaks racing, the flash fading as the ship drops out of warp
+    function lookTo(yaw, pitch) { var r = camRig(); if (r && r.lc && r.lc.yawObject) { r.lc.yawObject.rotation.y = yaw; r.lc.pitchObject.rotation.x = pitch || 0; } }
+    function snd(n) { try { if (window.WF_SOUND && WF_SOUND.muted()) return; var a = new Audio('audio/nav/' + n + '.m4a'); a.volume = 0.6; a.play().catch(function () {}); } catch (e) {} }
+    function wpos(o) { return o.getWorldPosition(V3()); }
+    function wquat(o) { return o.getWorldQuaternion(new T3.Quaternion()); }
+    // chair nodes (Z-up inside the GLB): Swivel turns about its local Z; armrests lift about local X
+    var CH = null;
+    function chairNodes() {
+      if (CH) return CH; var e = window.__chairEl, m = e && e.getObject3D('mesh'); if (!m) return null;
+      var g = function (n) { return m.getObjectByName(n); };
+      CH = { root: m, swivel: g('Swivel'), arms: [g('Armrest_L'), g('Armrest_R')], seat: g('Seat_Anchor'), eye: g('Eye_Anchor') };
+      if (!CH.swivel || !CH.seat) { CH = null; return null; }
+      return CH;
+    }
+    function chairPose(yaw, raise) { var c = chairNodes(); if (!c) return; c.swivel.quaternion.setFromAxisAngle(AXZ, yaw); c.arms.forEach(function (a) { if (a) a.quaternion.setFromAxisAngle(AXX, -raise); }); c.root.updateMatrixWorld(true); }
+    function seatXform() {                                     // where the avatar's feet go, and which way it faces, for the current swivel
+      var c = chairNodes(), q = wquat(c.swivel).multiply(BASIS), f = V3(0, 0, 1).applyQuaternion(q);
+      return { p: wpos(c.seat).sub(V3(0, 0.86, -0.13).applyQuaternion(q)), yaw: Math.atan2(-f.x, -f.z), f: f };
+    }
+    function eyePose() {                                       // seated eye: the chair's Eye_Anchor, looking where the chair looks
+      var c = chairNodes(), x = seatXform(); return { p: wpos(c.eye).add(x.f.clone().multiplyScalar(0.12)).add(V3(0, 0.08, 0)), yaw: x.yaw };
+    }
+    function yawQ(yaw, pitch) { return new T3.Quaternion().setFromEuler(new T3.Euler(pitch || 0, yaw, 0, 'YXZ')); }
+    var swSign = 0;                                           // which swivel direction turns the chair toward +X (worked out once)
+    function sideYaw(side) {
+      if (!swSign) { chairPose(Math.PI / 2, 0); swSign = seatXform().f.x > 0 ? 1 : -1; chairPose(0, 0); }
+      return swSign * side * Math.PI / 2;
+    }
+    var mode = 'standing', ph = 0, side = 1, path = [], entry = null, saved = null, cine = null, after = null, navFrom = null, navSaved = null, preMode = null;
+    var hud = document.getElementById('cmd-hud');
+    function setMode(m) { mode = m; ph = 0; hud.style.display = m === 'seated' ? 'flex' : 'none'; }
+    function camPose() { var r = camRig(); return { p: wpos(r.o), q: wquat(r.o) }; }
+    function putCam(p, q) { var r = camRig(); PLAYER.object3D.position.set(0, 0, 0); PLAYER.object3D.rotation.set(0, 0, 0); r.o.position.copy(p); r.o.quaternion.copy(q); }
+    function cinePose() {                                      // front-side view of the chair: you see yourself walk up and sit
+      var C = wpos(window.__chairEl.object3D), p = C.clone().add(V3(side * 2.5, 1.7, -2.4)), t = C.clone().add(V3(0, 0.95, 0));
+      return { p: p, q: new T3.Quaternion().setFromRotationMatrix(new T3.Matrix4().lookAt(p, t, V3(0, 1, 0))) };
+    }
+    function avatar(st) { if (WAYFARER.avatar && WAYFARER.avatar.script) WAYFARER.avatar.script(st); }
+
+    function sit(then) {
+      if (mode !== 'standing' || !chairNodes() || !camRig()) return false;
+      prompt.style.opacity = '0'; after = then || null;
+      var me = camPose(), C = wpos(window.__chairEl.object3D);
+      side = me.p.x >= C.x ? 1 : -1;
+      var feet = V3(me.p.x, 0, me.p.z); entry = V3(C.x + side * 1.15, DAIS_H, C.z);
+      path = [feet]; if (me.p.z < C.z + 0.2 || Math.abs(me.p.x - C.x) < 1.0) path.push(V3(C.x + side * 1.75, 0, C.z + 0.35));
+      path.push(entry);
+      saved = me; cine = cinePose(); controls({ walk: false, look: false }); setMode('approach'); snd('chair_servo');
+      return true;
+    }
+    function stand() {
+      if (mode !== 'seated') return false; saved = camPose(); cine = cinePose(); controls({ walk: false, look: false }); setMode('unlock'); snd('chair_servo'); return true;
+    }
+    function launch(dest) {                                    // seated → push through the window into Flight Mode
+      if (mode !== 'seated') return false; controls({ walk: false, look: false }); setMode('launch');
+      saved = camPose(); after = dest || null;
+      if (hyper) hyper.setWarp(true);
+      if (window.WF_SOUND) { WF_SOUND.music(localStorage.getItem('wf-mode2') === 'combat' ? 'combat' : 'explore'); WF_SOUND.warpRise(); }
+      snd('jump_charge'); return true;
+    }
+
+    // ── the galactic map (navigation kit's galaxy-map.mjs, its own lightweight renderer, opened over the Bridge) ──
+    var MAP = null, mapLoading = null;
+    function nearId() { var n = 'VARKESH'; try { n = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {} if (/HIVEPORT|ARGO/.test(n)) return 'Argo_Hiveport'; return n.toLowerCase().split(' ').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join('_'); }
+    function loadMap() {
+      if (mapLoading) return mapLoading;
+      mapLoading = Promise.all([import('./nav/galaxy-map.mjs?v=1'), fetch('nav/galaxy.json?v=1').then(function (r) { return r.json(); })]).then(function (res) {
+        MAP = res[0].createGalaxyMap({ THREE: T3, GLTFLoader: T3.GLTFLoader || function () {}, galaxy: res[1], assetBase: '', initialDestination: nearId(),
+          sound: snd, save: function () {},
+          onClose: function () { closeNav(); },
+          onTravel: function (d) { travel(d.id); return new Promise(function () {}); } });
+        return MAP;
+      });
+      return mapLoading;
+    }
+    function openNav(from) {
+      if (navFrom || (mode !== 'standing' && mode !== 'seated')) return false;
+      navFrom = from; preMode = mode; navSaved = camPose(); controls({ walk: false, look: false }); setMode('nav-open'); snd('orb_open');
+      orbClip('Orb_Open'); loadMap(); return true;
+    }
+    function closeNav() { if (mode !== 'nav') return; setMode('nav-close'); snd('orb_close'); orbClip('Orb_Close'); }
+    function orbClip(n) { var A = window.__orbAnim; if (!A) return; var c = T3.AnimationClip.findByName(A.clips, n); if (!c) return; ['Orb_Open', 'Orb_Close'].forEach(function (k) { var cc = T3.AnimationClip.findByName(A.clips, k); if (cc) A.mx.clipAction(cc).stop(); }); var a = A.mx.clipAction(c); a.reset(); a.setLoop(T3.LoopOnce, 1); a.clampWhenFinished = true; a.play(); }
+    function navCam(k) {                                       // lean the view in toward the hologram above the navigator
+      var o = wpos(window.__orbEl.object3D).add(V3(0, 1.1, 0)), p = navSaved.p.clone().lerp(o, 0.22);
+      var q = new T3.Quaternion().setFromRotationMatrix(new T3.Matrix4().lookAt(p, o, V3(0, 1, 0)));
+      putCam(navSaved.p.clone().lerp(p, k), navSaved.q.clone().slerp(q, k));
+    }
+    function travel(id) {                                      // confirmed in the map: hide it, then seat (if needed) and launch
+      var root = document.querySelector('section[aria-label="Wayfarer galactic navigation"]'); if (root) { root.style.transition = 'opacity .5s'; root.style.opacity = '0'; setTimeout(function () { root.style.display = 'none'; }, 520); }
+      var wasFrom = navFrom; navFrom = null; snd('jump_release');
+      var r = camRig(); if (navSaved) putCam(navSaved.p, navSaved.q);
+      if (preMode === 'seated') { setMode('seated'); launch(id); }
+      else { setMode('standing'); controls({ walk: true, look: true }); avatar(null); sit(function () { launch(id); }); }
+    }
+
+    AFRAME.registerComponent('wf-cmd', {
+      tick: function (t, dtm) {
+        var dt = Math.min(dtm || 16, 60) / 1000; ph += dt; if (MAP && MAP.isOpen) MAP.update(dt);
+        if (mode === 'standing') return;
+        var r = camRig(); if (!r || !chairNodes()) return;
+        if (mode === 'approach') {                             // walk to the chair's side; camera eases out to the cinematic view
+          var a = path[0], b = path[1], seg = a.distanceTo(b), k = Math.min(1, ph * 1.45 / Math.max(seg, 0.01)), p = a.clone().lerp(b, ease(k));
+          var dir = b.clone().sub(a); avatar({ x: p.x, y: p.y, z: p.z, yaw: Math.atan2(-dir.x, -dir.z), clip: 'Walk_InPlace', time: ph * 1.3, show: true, cam: 'owned' });
+          var ck = ease(Math.min(1, this._ct = (this._ct || 0) + dt / 1.0)); putCam(saved.p.clone().lerp(cine.p, ck), saved.q.clone().slerp(cine.q, ck));
+          if (k >= 1) { path.shift(); ph = 0; if (path.length < 2) { this._ct = 0; setMode('turn'); this._y0 = Math.atan2(-dir.x, -dir.z); } }
+          return;
+        }
+        if (mode === 'turn') {                                 // chair swivels to meet you, armrests lift; you turn your back to it
+          var k2 = ease(ph / 0.7); chairPose(sideYaw(side) * k2, 1.36 * k2);
+          var sx = seatXform(), dy = Math.atan2(Math.sin(sx.yaw - this._y0), Math.cos(sx.yaw - this._y0));
+          avatar({ x: entry.x, y: entry.y, z: entry.z, yaw: this._y0 + dy * k2, clip: 'Idle', time: ph, show: true, cam: 'owned' }); putCam(cine.p, cine.q);
+          if (ph >= 0.7) setMode('sit');
+          return;
+        }
+        if (mode === 'sit') {                                  // Sit_Down while sliding back into the seat
+          var sx2 = seatXform(), k3 = ease(ph / 1.3), p3 = entry.clone().lerp(sx2.p, k3);
+          avatar({ x: p3.x, y: p3.y, z: p3.z, yaw: sx2.yaw, clip: 'Sit_Down', time: ph, show: true, cam: 'owned' }); putCam(cine.p, cine.q);
+          if (ph >= 1.3) { setMode('lock'); snd('chair_lock'); }
+          return;
+        }
+        if (mode === 'lock' || mode === 'settle') {            // chair carries you round to face the bow; camera settles into the seat
+          var k4 = mode === 'lock' ? ease(ph / 0.75) : 1; chairPose(sideYaw(side) * (1 - k4), 1.36 * (1 - k4));
+          var sx3 = seatXform(); avatar({ x: sx3.p.x, y: sx3.p.y, z: sx3.p.z, yaw: sx3.yaw, clip: 'Seated_Idle', time: ph, show: true, cam: 'owned' });
+          if (mode === 'lock') { putCam(cine.p, cine.q); if (ph >= 0.75) setMode('settle'); return; }
+          var e = eyePose(), k5 = ease(ph / 0.9); putCam(cine.p.clone().lerp(e.p, k5), cine.q.clone().slerp(yawQ(e.yaw, -0.05), k5));
+          if (ph >= 0.9) { setMode('seated'); lookTo(e.yaw, -0.05); controls({ walk: false, look: true }); var f = after; after = null; if (f) f(); }
+          return;
+        }
+        if (mode === 'seated') {                               // keep the camera at the eye; you can still look around
+          var sx4 = seatXform(), e2 = eyePose(); avatar({ x: sx4.p.x, y: sx4.p.y, z: sx4.p.z, yaw: sx4.yaw, clip: 'Seated_Idle', time: ph, cam: 'free', up: 1.15 });
+          PLAYER.object3D.position.set(0, 0, 0); r.o.position.copy(e2.p); return;
+        }
+        if (mode === 'unlock') {                               // reverse: swivel out, armrests up
+          var k6 = ease(ph / 0.7); chairPose(sideYaw(side) * k6, 1.36 * k6);
+          var sx5 = seatXform(); avatar({ x: sx5.p.x, y: sx5.p.y, z: sx5.p.z, yaw: sx5.yaw, clip: 'Seated_Idle', time: ph, show: true, cam: 'owned' });
+          putCam(saved.p.clone().lerp(cine.p, k6), saved.q.clone().slerp(cine.q, k6));
+          if (ph >= 0.7) setMode('rise');
+          return;
+        }
+        if (mode === 'rise') {                                 // Stand_Up, stepping forward off the seat
+          var sx6 = seatXform(), k7 = ease(ph / 1.3), p7 = sx6.p.clone().lerp(entry, k7);
+          avatar({ x: p7.x, y: p7.y, z: p7.z, yaw: sx6.yaw, clip: 'Stand_Up', time: ph, show: true, cam: 'owned' }); putCam(cine.p, cine.q);
+          if (ph >= 1.3) { setMode('release'); this._yawOut = sx6.yaw; }
+          return;
+        }
+        if (mode === 'release') {                              // chair swings home; the camera comes back to your eyes
+          var k8 = ease(ph / 0.9); chairPose(sideYaw(side) * (1 - k8), 1.36 * (1 - k8));
+          avatar({ x: entry.x, y: entry.y, z: entry.z, yaw: this._yawOut, clip: 'Idle', time: ph, show: true, cam: 'owned' });
+          var ep = V3(entry.x, 1.6, entry.z); putCam(cine.p.clone().lerp(ep, k8), cine.q.clone().slerp(yawQ(this._yawOut, 0), k8));
+          if (ph >= 0.9) { avatar(null); lookTo(this._yawOut, 0); setMode('standing'); controls({ walk: true, look: true }); }
+          return;
+        }
+        if (mode === 'nav-open' || mode === 'nav' || mode === 'nav-close') {
+          if (preMode === 'seated') { var sx7 = seatXform(); avatar({ x: sx7.p.x, y: sx7.p.y, z: sx7.p.z, yaw: sx7.yaw, clip: 'Seated_Idle', time: ph, cam: 'owned' }); }
+          if (mode === 'nav-open') { navCam(ease(ph / 1.4)); if (ph >= 1.4 && MAP) { MAP.show(); setMode('nav'); } return; }
+          if (mode === 'nav') { navCam(1); return; }
+          navCam(1 - ease(ph / 1.4));
+          if (ph >= 1.4) { navFrom = null; if (preMode === 'seated') { setMode('seated'); controls({ walk: false, look: true }); } else { setMode('standing'); avatar(null); controls({ walk: true, look: true }); } }
+          return;
+        }
+        if (mode === 'launch') {                               // push through the window as light speed builds, flash, Flight Mode
+          var b2 = ease(ph / 2.0), cam3 = r.cam.getObject3D('camera'); if (!this._fov) this._fov = cam3.fov;
+          if (ph > 0.25 && WAYFARER.avatar) WAYFARER.avatar.hide(true);
+          var fw = V3(0, 0, -1).applyQuaternion(saved.q); fw.y = 0; fw.normalize();
+          putCam(saved.p.clone().add(fw.multiplyScalar(7.5 * b2 * b2)).add(V3(0, 0.3 * b2, 0)), saved.q);
+          warpK = 1 + 9 * b2 * b2; cam3.fov = this._fov + 30 * b2 * b2; cam3.updateProjectionMatrix();
+          jump.style.opacity = Math.max(0, (ph - 1.4) / 0.9);
+          if (ph >= 2.35 && !this._gone) { this._gone = true; document.documentElement.style.background = document.body.style.background = '#dff0ff';
+            location.href = 'minigame.html?from=bridge' + (after ? '&dest=' + encodeURIComponent(after) : ''); }
+        }
+      }
+    });
+    sc.setAttribute('wf-cmd', '');
+    chair.addEventListener('click', function () { if (mode === 'standing') sit(); });
+    document.getElementById('cmd-nav').addEventListener('click', function (e) { e.stopPropagation(); openNav('chair'); });
+    document.getElementById('cmd-fly').addEventListener('click', function (e) { e.stopPropagation(); launch(null); });
+    document.getElementById('cmd-stand').addEventListener('click', function (e) { e.stopPropagation(); stand(); });
+    ['pointerdown', 'touchstart'].forEach(function (n) { hud.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); });
+    addEventListener('keydown', function (e) { if (mode !== 'seated') return; if (e.code === 'KeyN') openNav('chair'); else if (e.code === 'KeyL') launch(null); else if (e.code === 'KeyX' || e.code === 'Escape') stand(); });
+    window.WF_CMD = { sit: sit, stand: stand, launch: launch, openNav: openNav, state: function () { return mode; } };
+
+    // arriving from Flight Mode: already seated, streaks racing, the flash fading as the ship drops out of warp
     if (document.documentElement.classList.contains('from-flight')) {
       if (window.WF_SOUND) WF_SOUND.music('explore');
       warpK = 10; var warpOnArrival = function () { if (hyper) { hyper.setWarp(true, true); } else setTimeout(warpOnArrival, 50); }; warpOnArrival();
       var land = function () {
-        var r = camRig(); if (!r) return setTimeout(land, 50); freeze(r, true); if (WAYFARER.avatar) WAYFARER.avatar.hide(true);
-        PLAYER.object3D.position.set(0, 0, 0); r.cam.object3D.position.copy(SEAT); r.cam.object3D.rotation.set(0, 0, 0);
-        if (r.lc) { r.lc.yawObject.rotation.y = 0; r.lc.pitchObject.rotation.x = 0; }
+        var r = camRig(); if (!r || !chairNodes()) return setTimeout(land, 60);
+        side = 1; entry = V3(wpos(window.__chairEl.object3D).x + 1.15, DAIS_H, wpos(window.__chairEl.object3D).z);
+        controls({ walk: false, look: false }); var e = eyePose(); putCam(e.p, yawQ(e.yaw, -0.05)); setMode('seated'); hud.style.display = 'none';
         jump.style.transition = 'opacity 1.2s ease-out';
         requestAnimationFrame(function () { document.documentElement.classList.remove('from-flight'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); });
         var t0 = performance.now();
-        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow); else { freeze(r, false); if (hyper) hyper.setWarp(false); if (window.WF_SOUND) WF_SOUND.music(null); if (WAYFARER.avatar) WAYFARER.avatar.hide(false); } }());
+        (function slow() { var k = Math.min(1, (performance.now() - t0) / 2600); warpK = 1 + 9 * (1 - ease(k)); if (k < 1) requestAnimationFrame(slow);
+          else { if (hyper) hyper.setWarp(false); if (window.WF_SOUND) WF_SOUND.music(null); snd('arrival'); lookTo(e.yaw, -0.05); controls({ walk: false, look: true }); setMode('seated'); } }());
       };
       if (sc.hasLoaded) land(); else sc.addEventListener('loaded', land);
     }

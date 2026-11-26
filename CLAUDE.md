@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126a).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126c).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -202,6 +202,20 @@ Rules drawn from them:
   (1–1.8 MB each; same textures), station interior modules (Observation Lounge, Research Lab, Engineering, Crew Quarters,
   Command Ops, Hangar, Transfer Corridor) + props, Views/*.png renders, Window_Frame_Overlay — candidates for walkable
   station rooms later.
+- **COMMAND SYSTEM (Nov 26, navigation kit = SS_Wayfarer_Galactic_Navigation_Command_Systems.zip; README/guide in
+  reference/navigation-kit/)** — bridge.html `wf-cmd` component + window.WF_CMD {sit, stand, launch, openNav, state}. Models:
+  models/deck/Commander_Chair_Animated.glb (Swivel/Armrest/Seat_Anchor/Eye_Anchor nodes, Z-up inside; BASIS = rotX +90° → Y-up),
+  Planet_Selector_Animated.glb = the NAVIGATOR, placed IN FRONT of the chair (user: CHAIR_Z 0.65, ORB_Z −1.3, scale 0.72) with
+  Hologram_Rotation + Galaxy_Spin looping, Orb_Open/Orb_Close on use; models/player/explorer_command.glb = avatar (+ Sit_Down,
+  Stand_Up, Seated_Idle). SIT: approach (avatar walks via waypoints to the chair's side, cinematic front-side camera) → turn (chair
+  swivels toward you, armrests up) → Sit_Down sliding into seatXform() → lock (chair carries you to face the bow) → settle (camera
+  into Eye_Anchor or, 3rd person, a raised lens). SEATED: look stays on, walking frozen (WAYFARER.frozen; mobile.js skips movement/
+  collision/bounds), glass #cmd-hud: Navigation / Launch / Stand (keys N / L / X|Esc). STAND = reverse. avatar.js
+  WAYFARER.avatar.script({x,y,z,yaw,clip,time,show,cam:'owned'|'free',up}). GALACTIC MAP = vendored nav/galaxy-map.mjs (+
+  navigation-core.mjs, nav/galaxy.json patched: planet previews use images/planets textures, glb null; Argo_Hiveport named
+  'Hiveport'); dynamic import(); its own renderer overlay. Confirm → travel(id): seated → launch(id); standing (from the
+  navigator) → walks to the chair, sits, launches. minigame `?dest=` accepts map ids (Ferrum_Prime, Argo_Hiveport). Sounds:
+  audio/nav/*.m4a (kit WAVs transcoded). The kit's own command-system.mjs is NOT used (its rig/camera assumptions don't fit A-Frame).
 - **Command-deck kit (user, Nov 25)** — `models/deck/` (from Command_Deck.zip; catalog + manifest in reference/command-deck-kit/):
   Commander_Chair, Planet_Selector (Hologram_Rotation; tappable Planet_01..06 → PLANET_MAP in bridge.html → launch), Operator_Chair,
   6 Console_* (their 'ControlScreen' materials get live LCARS textures), 6 Droid_*_Seated (rigid node rigs, Console_Operate loops).
