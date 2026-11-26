@@ -180,7 +180,53 @@
   var OFFR = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
   function mapPt(room, lx, lz) { var R = ROOMS[room], q = R.m(lx, lz), k = room === 'corridor' ? KC : SR; return [R.c[0] + q[0] * k, R.c[1] + q[1] * k]; }
   var mapTimer = null;
+  // HIVEPORT MAP (user, Nov 26: "I'm at the Hiveport so this map is wrong"): on station.html the MAP tab shows the station deck
+  // (hiveport/layout.json: zones, walls, obstacles), the bar, holo stage, shops, bounty broker, airlock with the Wayfarer docked
+  // beyond it, every K'Vetar live (red = today's WANTED) and you. Long axis runs down the phone: v = west→east, u = north→south.
+  function renderHiveMap() {
+    var go = function (LY) {
+      if (!box || tab !== 'map') return;
+      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 300 600'); svg.setAttribute('class', 'map');
+      function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
+      var K = 5.3, P = function (x, z) { return [150 + z * K, 290 + x * K]; };
+      function rect(x0, z0, x1, z1, at, g) { var a = P(x0, z0), b = P(x1, z1); return add('rect', Object.assign({ x: Math.min(a[0], b[0]), y: Math.min(a[1], b[1]), width: Math.abs(b[0] - a[0]), height: Math.abs(b[1] - a[1]) }, at), g); }
+      var defs = add('defs', {}), pat = add('pattern', { id: 'hvgrid', width: 12, height: 12, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M12 0H0V12', fill: 'none', stroke: 'rgba(200,140,255,.07)', 'stroke-width': 1 }, pat);
+      add('rect', { x: 0, y: 0, width: 300, height: 600, fill: 'url(#hvgrid)' });
+      var ZC = { nexus: 'rgba(160,80,255,.10)', gaming: 'rgba(80,200,255,.08)', detox: 'rgba(120,255,180,.07)', trade_lounge: 'rgba(255,190,80,.08)', dining: 'rgba(255,150,90,.07)' };
+      (LY.rooms || []).forEach(function (r) { var b = r.bounds; rect(b[0], b[1], b[2], b[3], { fill: ZC[r.id] || 'rgba(255,255,255,.04)', stroke: 'rgba(210,160,255,.55)', 'stroke-width': 1.4 });
+        var SHORT = { nexus: 'CENTRAL NEXUS', private_suites: '🛏 SUITES', trade_lounge: '🛒 TRADE LOUNGE', lounge_pods: '🛋 LOUNGE PODS', dining: '🍽 DINING HALL', service: '🛡 SECURITY', detox: '⚕ MEDICAL / DETOX', gaming: '🎲 GAMING ARENA', quiet_lounge: '🌙 QUIET LOUNGE' };
+        var c = P((b[0] + b[2]) / 2, (b[1] + b[3]) / 2), side = r.id !== 'nexus', ty = side ? c[1] : c[1] - 112;
+        var t = add('text', { x: c[0], y: ty, 'text-anchor': 'middle', fill: '#f2e6ff', 'font-size': side ? 8 : 9, 'font-weight': 800, 'letter-spacing': 0.8, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.2, 'paint-order': 'stroke', transform: side ? 'rotate(-90 ' + c[0] + ' ' + ty + ')' : '' }); t.textContent = SHORT[r.id] || r.label.toUpperCase(); });
+      (LY.obstacles || []).forEach(function (o) { rect(o.min[0], o.min[1], o.max[0], o.max[1], { fill: 'rgba(230,200,255,.38)' }); });
+      add('circle', { cx: P(0, -15)[0], cy: P(0, -15)[1], r: 4 * K, fill: 'rgba(170,90,255,.2)', stroke: 'rgba(200,140,255,.8)', 'stroke-dasharray': '3 2' });                                     // holo stage
+      rect(-6, -9, 6, -2.5, { fill: 'rgba(255,80,220,.12)', stroke: 'rgba(255,120,230,.5)', 'stroke-width': 0.8 });                                                                                   // dance floor
+      rect(-6.5, 12.6, 6.5, 14.8, { fill: 'rgba(255,170,60,.35)', stroke: '#ffb050', 'stroke-width': 1, rx: 4 });                                                                                     // the Resin Spire bar
+      var lab = function (x, z, txt, col) { var q = P(x, z), t = add('text', { x: q[0], y: q[1], 'text-anchor': 'middle', fill: col || '#ffe2b0', 'font-size': 7.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.65)', 'stroke-width': 2.2, 'paint-order': 'stroke' }); t.textContent = txt; };
+      lab(0, -15, '✨ HOLO STAGE', '#e8c8ff'); lab(0, -5.5, '🪩 DANCE FLOOR', '#ffc0f0'); lab(0, 11.8, '🍸 RESIN SPIRE BAR'); lab(4.2, 19.4, '🎯 BOUNTIES', '#ff9a8a'); 
+      var al = P(0, 22); add('rect', { x: al[0] - 2, y: al[1] - 16, width: 10, height: 32, rx: 3, fill: 'rgba(120,230,255,.5)', stroke: '#8ff', 'stroke-width': 1 });
+      var sh = P(0, 27); add('path', { d: 'M' + (sh[0] + 22) + ' ' + sh[1] + ' C' + (sh[0] + 4) + ' ' + (sh[1] - 16) + ' ' + (sh[0] - 6) + ' ' + (sh[1] - 12) + ' ' + (sh[0] - 6) + ' ' + sh[1] + ' C' + (sh[0] - 6) + ' ' + (sh[1] + 12) + ' ' + (sh[0] + 4) + ' ' + (sh[1] + 16) + ' ' + (sh[0] + 22) + ' ' + sh[1] + ' Z', fill: 'rgba(220,130,70,.45)', stroke: '#ffb070', 'stroke-width': 1 });
+      var ts = add('text', { x: sh[0] + 4, y: sh[1] + 30, 'text-anchor': 'middle', fill: '#ffd0a0', 'font-size': 7, 'font-weight': 800 }); ts.textContent = 'AIRLOCK → WAYFARER';
+      var live = add('g', {});
+      box.appendChild(el('p', 'sub', '📍 You are aboard the K’Vetar <b>Hiveport</b> · <span style="color:#6ff">▲</span> you · <span style="color:#d8b8ff">●</span> K’Vetar · <span style="color:#ff6a5a">●</span> WANTED · the Wayfarer is docked at the airlock'));
+      box.appendChild(svg);
+      var back = el('button', 'wide', '🚀 Back to the Wayfarer'); back.style.cssText = 'display:block;margin:8px auto 0;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font:700 13px -apple-system,system-ui,sans-serif';
+      back.onclick = function () { close(); toast('Undocking…'); setTimeout(function () { location.href = 'minigame.html?from=station'; }, 250); }; box.appendChild(back);
+      function drawLive() {
+        while (live.firstChild) live.removeChild(live.firstChild);
+        var H = window.HIVE, N = (H && H.NPCS) || [];
+        N.forEach(function (e) { if (!e.a || !e.a.p) return; var q = P(e.a.p[0], e.a.p[1]); add('circle', { cx: q[0], cy: q[1], r: e.bounty ? 4.5 : 3, fill: e.bounty ? '#ff6a5a' : '#d8b8ff', stroke: '#140a1e', 'stroke-width': 1 }, live); });
+        var sc = document.querySelector('a-scene'); if (sc && sc.camera) {
+          var cam = sc.camera, cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); cam.getWorldPosition(cp); cam.getWorldDirection(cd);
+          var p0 = P(cp.x, cp.z), p1 = P(cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
+          add('circle', { cx: p0[0], cy: p0[1], r: 10 + 3 * Math.sin(Date.now() / 250), fill: 'rgba(100,255,255,.18)' }, live);
+          add('path', { d: 'M0 -8 L5.5 5.5 L0 2.7 L-5.5 5.5 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.1, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); }
+      }
+      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+    };
+    if (window.HIVE && HIVE.LAYOUT) go(HIVE.LAYOUT); else fetch('hiveport/layout.json').then(function (r) { return r.json(); }).then(go).catch(function () {});
+  }
   function renderMap() {
+    if (PAGE === 'hiveport') return renderHiveMap();
     deckData(function (D) {
       if (!box || tab !== 'map') return;
       var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '40 80 520 860'); svg.setAttribute('class', 'map');

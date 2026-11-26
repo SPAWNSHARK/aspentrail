@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127a).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127b).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -378,7 +378,10 @@ Record of everything asked for; tick items off as they ship.
 - [x] Library console (Vesper's Science console) = the user's WordPress site sonsofnaphtali.wordpress.com (`wp-console.js`): #wf-wp panel, LIVE SITE iframe by default (its own scrolling/animations) + READER tab (public-api.wordpress.com v1.1 posts?type=any, cards fade/slide in via IntersectionObserver, full articles, scroll progress bar), ↗ opens the site; the console's 3D screen shows the masthead + latest title. Site had 0 posts on Nov 26 (pages-based). Science log stays in the ship log SCIENCE tab. [ ] other consoles
 - [~] Library tank: fewer bubbles (120), lightning every 10–24 s and dimmer, EELS (brain.js gel-tank: InstancedMesh tapered segments placed by arc length along each eel's path history, glowing eyes) [x]; partly see-through down to the below deck [ ] (with Phase D)
 - [x] Flight Mode EXIT (minigame toBridge/updateExit): no light speed — 1.5 s camera swoop onto the bow + FOV narrowing + amber #zoom-fade → bridge.html?from=fly (html.from-fly: amber #fly-fade clears with you seated, then WF_CMD stand() plays the get-up sequence). Exit control = round glass ✕ (#exit-x) top-left; the bar's back arrow (#fm-mid) is hidden. LASERS: tapered white core + cyan inner + teal outer glow, pulsing head, 5-sprite tracer, muzzle flash + expanding ring, impactFX spark burst on hits; fx()/updateFX() short-lived effect list
-- [ ] Ship View model: the front windows are painted wrong
+- [x] Ship View model windows (shipskin.js, Nov 26): the flat teal slab across the nose is gone — nine dark-glass panes in bronze frames in a U following the nose (upper slope only), faint amber/teal glow + reflection streak; the flank recesses get lit cabin glass via an `aInset` vertex attribute (depth inside the hull's side envelope). Ship View's back link → bridge.html?from=fly&seat=1 = you arrive SEATED (no stand-up)
+- [x] Hiveport: talk + fight panels are bottom sheets (2-column answers) and `faceOff(e)` hides your avatar and turns the view to the K'Vetar so their reactions are visible; ship-log MAP on station.html = live Hiveport map (renderHiveMap: zones, obstacles, bar, stage, dance floor, bounties, airlock + docked Wayfarer, every K'Vetar, WANTED in red, you) + "Back to the Wayfarer"
+- [x] Flight Mode: shooting works in EXPLORE too (Fire + reticle shown; no enemies, friendlies are never hit)
+- [x] Library: 5 painted bookshelf variants (shelfTexture: coloured spines, gilt bands, stacks, leaning books, ornaments)
 - [~] Flight Mode: ZOOM (wheel / pinch / Z X, 0.4–2.6×, 'wf-zoom') [x]; far more space traffic, more ship types, ships fighting each other [ ]
 - [ ] A cast of ALIEN RACES, each with a home planet; the Hiveport has all of them; Hiveport much more crowded and detailed ("feel like a damn club")
 - [ ] PLANET LANDINGS: cruiser docked below deck flies down (mothership stays in orbit animation); planets: desert traders, ice world with giant monsters, tropical world with friendly monkey aliens, dead cyber wasteland, lava world with huge monsters; enter/exit animations; on foot with a gun + ammo, red screen edges when hit, pass-out scene (never die) → wake in the MEDBAY with a droid

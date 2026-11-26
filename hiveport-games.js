@@ -28,10 +28,10 @@
     '#hg-dance .n{position:absolute;top:30px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:radial-gradient(circle,#fff,#ff7ad0 60%,#8a4cff);box-shadow:0 0 12px #ff7ad0}' +
     '#hg-dance .j{position:absolute;left:20%;top:-14px;transform:translateX(-50%);font:900 20px -apple-system,system-ui,sans-serif;color:#fff;text-shadow:0 0 14px #ff7ad0;letter-spacing:2px}' +
     '#hg-dance .s{position:absolute;right:8%;top:-14px;font:800 14px -apple-system,system-ui,sans-serif;color:#ffd6f0;letter-spacing:1.5px}' +
-    '#hg-fight{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:62;display:none;width:min(92vw,380px);padding:16px;border-radius:22px;box-sizing:border-box;text-align:center;' +
+    '#hg-fight{position:fixed;left:50%;top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:62;display:none;width:min(92vw,380px);padding:16px;border-radius:22px;box-sizing:border-box;text-align:center;' +
       'background:linear-gradient(140deg,rgba(255,255,255,.12),rgba(255,255,255,.03)),rgba(40,10,10,.62);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,120,90,.45);color:#fff;font:600 13px -apple-system,system-ui,sans-serif}' +
     '#hg-fight h3{margin:0 0 8px;font:800 12px -apple-system,system-ui,sans-serif;letter-spacing:3px;color:#ffb09a}#hg-fight .hp{display:flex;gap:10px;justify-content:space-between;margin:6px 0;font-size:12px}#hg-fight .hp i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;align-self:center}#hg-fight .hp u{display:block;height:100%;background:linear-gradient(90deg,#ff5a3a,#ffc070)}' +
-    '#hg-fight .st{font:900 34px -apple-system,system-ui,sans-serif;letter-spacing:3px;margin:12px 0;min-height:42px}#hg-fight .row{display:flex;gap:10px}#hg-fight .row button{flex:1;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font:900 16px -apple-system,system-ui,sans-serif;letter-spacing:2px}' +
+    '#hg-fight .st{font:900 26px -apple-system,system-ui,sans-serif;letter-spacing:3px;margin:6px 0;min-height:32px}#hg-fight .row{display:flex;gap:10px}#hg-fight .row button{flex:1;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font:900 16px -apple-system,system-ui,sans-serif;letter-spacing:2px}' +
     '#hg-fight .row button:active{background:rgba(255,160,120,.35)}#hg-fight p{margin:6px 0 0;color:#f0d0c8;font-size:12px}' +
     '#hg-den .dice{font:900 38px -apple-system,system-ui,sans-serif;letter-spacing:6px;margin:8px 0}#hg-den .bets{display:flex;gap:6px;margin:8px 0}#hg-den .bets button{flex:1;text-align:center}#hg-den .bets button.on{border-color:#ffd27a;background:rgba(255,200,100,.2)}' +
     '#hg-den .wheel{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px 0}#hg-den .wheel span{height:26px;border-radius:7px;opacity:.55;transition:all .08s}#hg-den .wheel span.on{opacity:1;transform:scale(1.15);box-shadow:0 0 12px #fff}' +
@@ -137,7 +137,7 @@
     el.innerHTML = '<h3>' + (opts.title || 'BAR FIGHT') + '</h3><div class="hp"><span>YOU</span><i><u class="me"></u></i></div><div class="hp"><span>' + (opts.name || 'K’VETAR') + '</span><i><u class="th"></u></i></div>' +
       '<div class="st">GUARD</div><div class="row"><button class="pu">👊 PUNCH</button><button class="bl">🛡 BLOCK</button></div><p>Punch when they’re OPEN · Block when they SWING</p>';
     el.querySelector('.pu').onclick = function () { act('punch'); }; el.querySelector('.bl').onclick = function () { act('block'); };
-    W().frozen = true; drawFight(); H.alienSay(e.a.p[0], e.a.p[1], 'growl', true);
+    W().frozen = true; drawFight(); H.alienSay(e.a.p[0], e.a.p[1], 'growl', true); if (H.faceOff) H.faceOff(e);
   }
   function W() { return window.WAYFARER; }
   function drawFight() { var f = fight; f.el.querySelector('.me').style.width = (f.me / 5 * 100) + '%'; f.el.querySelector('.th').style.width = (f.them / f.max * 100) + '%';
@@ -157,7 +157,7 @@
     if (f.stance === 'guard' && f.t > f.next) { f.stance = Math.random() < 0.5 ? 'open' : 'swing'; f.swingAt = f.t; f.e.a.state = f.stance === 'swing' ? 'Brawl_Shove' : 'Idle'; drawFight(); }
   }
   function checkEnd() {
-    var f = fight; if (!f || (f.me > 0 && f.them > 0)) return; var won = f.them <= 0; fight = null; f.el.style.display = 'none'; document.body.classList.remove('reading'); W().frozen = false;
+    var f = fight; if (!f || (f.me > 0 && f.them > 0)) return; var won = f.them <= 0; fight = null; f.el.style.display = 'none'; document.body.classList.remove('reading'); W().frozen = false; if (H.faceOff) H.faceOff(null);
     f.e.a.wait = 1 + Math.random(); f.e.a.state = won ? 'Deescalate' : 'Toast';
     if (f.opts.onEnd) f.opts.onEnd(won);
     else if (won) { L().add(50, 'Won the bar fight'); L().event('brawlwin'); } else { var lose = Math.min(30, L().credits()); if (lose) L().spend(lose, 'Medical bay fee — you lost the fight'); else L().toast('You lost the fight'); }

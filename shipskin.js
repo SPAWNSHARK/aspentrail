@@ -3,7 +3,7 @@
 // throws it away and paints the hull in the shader from the model's own shape (object space, model length = 1, nose −Z):
 //   copper plates with dark seams, rivet rows and per-plate tone, light verdigris and grime;
 //   the Library dome (centre x 0, z 0.31, r ≈ 0.135, top of hull) as dark teal glass with bronze ribs and an inner glow;
-//   a lit window strip down the spine and a U-shaped bridge window band round the nose.
+//   a lit window strip down the spine, nine framed bridge panes in a U round the nose, lit glass in the flank recesses.
 // It also smooths the shading normals (not the shape) so the crumpled sculpt reads as panels instead of foil.
 // Usage (three r128):  WAYFARER_SHIPSKIN(gltf.scene)
 (function () {
@@ -45,9 +45,9 @@
   function skinMaterial(THREE) {
     var m = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.55, roughness: 0.5 });
     m.onBeforeCompile = function (sh) {
-      sh.vertexShader = VERT_DECL + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vOP = position; vON = normal;');
+      sh.vertexShader = VERT_DECL + 'attribute float aInset; varying float vIn;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vOP = position; vON = normal; vIn = aInset;');
       var P = PAINTS[paintName()] || PAINTS.copper; sh.uniforms.uPaintA = { value: new THREE.Vector3(P[0], P[1], P[2]) }; sh.uniforms.uPaintB = { value: new THREE.Vector3(P[3], P[4], P[5]) };
-      sh.fragmentShader = 'uniform vec3 uPaintA; uniform vec3 uPaintB;\n' + FRAG + '\n' + sh.fragmentShader
+      sh.fragmentShader = 'uniform vec3 uPaintA; uniform vec3 uPaintB; varying float vIn;\n' + FRAG + '\n' + sh.fragmentShader
         .replace('#include <map_fragment>', [
           'vec3 P = vOP, An = abs(normalize(vON)); An = pow(An, vec3(4.0)); An /= (An.x + An.y + An.z);',
           'vec4 pt = plates(P.zx) * An.y + plates(P.zy * vec2(1.0, 2.0)) * An.x + plates(P.xy * vec2(2.0, 2.0)) * An.z;',
@@ -63,16 +63,34 @@
           'float frame = max(max(ribs, rings), hub); float rim = smoothstep(0.112, 0.12, dr) * dome;',
           'vec3 glass = mix(vec3(0.005, 0.03, 0.03), vec3(0.015, 0.08, 0.075), 1.0 - dr / 0.135);',
           'vec3 col = mix(cu, mix(glass, vec3(0.5, 0.28, 0.12), max(frame, rim)), dome);',
-          // spine window strip and the bridge window band round the nose
+          // spine window strip
           'float spine = step(abs(P.x), 0.02) * step(-0.24, P.z) * step(P.z, 0.165) * step(0.05, P.y);',
           'float pane = step(0.18, fract((P.z + 0.24) * 26.0)) * step(abs(P.x), 0.015);',
-          'float nose = step(-0.36, P.z) * step(P.z, -0.315) * step(-0.01, P.y) * (1.0 - dome);',
-          'col = mix(col, mix(vec3(0.35, 0.2, 0.08), vec3(0.02, 0.06, 0.06), pane), spine); col = mix(col, vec3(0.02, 0.06, 0.07), nose);',
+          // BRIDGE WINDOWS (user, Nov 26: the old flat teal slab across the nose "fucked up"): a U of nine separate rounded panes
+          // that follows the nose outline seen from above, on the upper slope only, in bronze frames — the guitar-pick Bridge's view
+          'vec2 q = vec2(P.x / 0.088, (P.z + 0.30) / 0.092); float e = length(q), phi = atan(q.x, -q.y);',
+          'float upper = smoothstep(0.15, 0.45, normalize(vON).y) * step(P.z, -0.30) * step(-0.02, P.y);',
+          'float cellA = phi / 3.14159 * 9.0 + 4.5, ci = floor(cellA), ca = fract(cellA);',
+          'float inBand = step(1.0, e) * step(e, 1.3) * step(0.0, ci) * step(ci, 8.0) * upper;',
+          'float pe = min(min(ca, 1.0 - ca) * 2.2, min(e - 1.0, 1.3 - e) / 0.3 * 1.0);',
+          'float nose = inBand * smoothstep(0.08, 0.16, pe);',                       // the glass
+          'float noseFrame = inBand * (1.0 - smoothstep(0.08, 0.16, pe));',            // bronze mullions + sill
+          // SIDE WINDOWS: the sculpt's recessed openings along the flanks were painted copper and read as holes — their back faces
+          // (inset from the hull envelope, facing sideways: aInset from WAYFARER_SHIPSKIN) are now lit cabin glass
+          'float side = smoothstep(0.005, 0.011, vIn) * (1.0 - smoothstep(0.05, 0.07, vIn)) * smoothstep(0.55, 0.8, abs(normalize(vON).x)) * step(abs(P.y), 0.065) * step(-0.33, P.z) * step(P.z, 0.15);',
+          'float sMull = step(0.12, fract(P.z * 70.0));',
+          'vec3 glassC = mix(vec3(0.006, 0.014, 0.022), vec3(0.03, 0.07, 0.085), smoothstep(-0.02, 0.06, P.y));',
+          'col = mix(col, mix(vec3(0.35, 0.2, 0.08), vec3(0.02, 0.06, 0.06), pane), spine);',
+          'col = mix(col, vec3(0.5, 0.29, 0.13), max(noseFrame, side * (1.0 - sMull)));',
+          'col = mix(col, glassC, max(nose, side * sMull));',
           'diffuseColor.rgb *= col;',
-          'vec3 shipEmit = vec3(1.0, 0.62, 0.28) * pane * spine * 2.4 + vec3(0.1, 0.55, 0.5) * nose * (0.4 + 0.6 * step(0.5, fract(P.x * 40.0))) * 0.6',
+          'vec3 shipEmit = vec3(1.0, 0.62, 0.28) * pane * spine * 2.4',
+          '              + nose * (vec3(0.95, 0.5, 0.18) * 0.05 * smoothstep(1.05, 1.3, e) + vec3(0.04, 0.2, 0.24) * 0.05 * (1.0 - smoothstep(1.0, 1.2, e)) + vec3(0.25, 0.5, 0.6) * 0.06 * (1.0 - smoothstep(0.0, 0.05, abs(ca - 0.35 - (e - 1.0)))))',
+          '              + side * sMull * vec3(1.0, 0.6, 0.26) * (0.08 + 0.12 * step(0.5, h21(vec2(floor(P.z * 70.0), sign(P.x)))))',
           '              + vec3(0.02, 0.16, 0.15) * dome * (1.0 - max(frame, rim)) * (0.35 + 0.65 * (1.0 - dr / 0.135));',
-          'float shipRough = mix(mix(0.5, 0.8, seam), 0.08, max(dome * (1.0 - max(frame, rim)), max(nose, spine * pane)));',
-          'float shipMetal = mix(0.5, 0.15, max(dome * (1.0 - frame), max(nose, spine)));'
+          'float glassK = max(nose, side * sMull);',
+          'float shipRough = mix(mix(mix(0.5, 0.8, seam), 0.08, max(dome * (1.0 - max(frame, rim)), max(glassK, spine * pane))), 0.3, noseFrame);',
+          'float shipMetal = mix(mix(0.5, 0.15, max(dome * (1.0 - frame), max(glassK, spine))), 0.85, noseFrame);'
         ].join('\n'))
         .replace('#include <roughnessmap_fragment>', 'float roughnessFactor = shipRough;')
         .replace('#include <metalnessmap_fragment>', 'float metalnessFactor = shipMetal;')
@@ -81,11 +99,24 @@
     return m;
   }
 
+  // how far each vertex sits INSIDE the hull's side envelope (max |x| over a z×y grid, dilated one cell): > 0 on the back faces of
+  // the sculpt's recessed openings, ≈ 0 on the outer skin
+  function insetAttr(THREE, geo) {
+    var p = geo.attributes.position, N = p.count, NZ = 220, NY = 50, Z0 = -0.52, ZS = 1.04 / NZ, Y0 = -0.11, YS = 0.22 / NY, env = new Float32Array(NZ * NY), out = new Float32Array(N), i, a, b;
+    var cz = function (z) { return Math.max(0, Math.min(NZ - 1, Math.floor((z - Z0) / ZS))); }, cy = function (y) { return Math.max(0, Math.min(NY - 1, Math.floor((y - Y0) / YS))); };
+    for (i = 0; i < N; i++) { var k = cz(p.getZ(i)) * NY + cy(p.getY(i)), ax = Math.abs(p.getX(i)); if (ax > env[k]) env[k] = ax; }
+    var d = new Float32Array(env.length);
+    for (a = 0; a < NZ; a++) for (b = 0; b < NY; b++) { var m = 0; for (var u = -1; u <= 1; u++) for (var v = -1; v <= 1; v++) { var A = a + u, B = b + v; if (A >= 0 && A < NZ && B >= 0 && B < NY) m = Math.max(m, env[A * NY + B]); } d[a * NY + b] = m; }
+    for (i = 0; i < N; i++) out[i] = d[cz(p.getZ(i)) * NY + cy(p.getY(i))] - Math.abs(p.getX(i));
+    return new THREE.BufferAttribute(out, 1);
+  }
+
   window.WAYFARER_SHIPSKIN = function (root) {
     var THREE = window.THREE || (window.AFRAME && AFRAME.THREE), mat = skinMaterial(THREE);
     root.traverse(function (o) {
       if (!o.isMesh) return;
       if (o.geometry.attributes.normal) smoothNormals(o.geometry, 3);
+      if (!o.geometry.attributes.aInset) o.geometry.setAttribute('aInset', insetAttr(THREE, o.geometry));
       o.material = mat;
     });
     return root;

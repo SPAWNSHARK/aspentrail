@@ -48,7 +48,7 @@
       'Ask for a status report, where everyone is, what to do next, or the next light-speed jump. Or say "take me to the Lounge" and it walks you there. It also searches this manual. The brain flickers while it talks.',
       'It speaks aloud (🔊 to mute it). Ask it about the eels.']],
     ['🚀 Flight Mode (the captain’s chair)', [
-      'Explore (peaceful) or Combat. Steer with the stick / WASD. Zoom: pinch, mouse wheel, or Z / X. Leave with the round ✕ (top left) or Esc: the camera swoops back into the ship and you get up from the captain’s chair.',
+      'Explore (peaceful — no enemies, but you can still fire the lasers for fun) or Combat. Steer with the stick / WASD. Zoom: pinch, mouse wheel, or Z / X. Leave with the round ✕ (top left) or Esc: the camera swoops back into the ship and you get up from the captain’s chair.',
       'NAV chip: ‹ › pick a destination, WARP to jump there. Fly near the Hiveport → DOCK AT HIVEPORT (F) plays the docking sequence (SKIP to cut it short).',
       'SCAN (G): fly close to a planet you haven’t scanned, or one of today’s three anomalies (glowing rings near random planets). Planets 80 cr once, anomalies 150 cr. Results: Ship Log → SCIENCE, or Vesper’s console in the Library.',
       'Combat: tap an enemy to lock on and fire homing shots. Drones, Strikers, Brutes; every third wave a BIOSHIP carrier boss.',

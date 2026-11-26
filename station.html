@@ -14,14 +14,14 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261127a"></script>
-  <script src="life.js?v=20261127a"></script>
-  <script src="manual.js?v=20261127a"></script>
-  <script src="menubar.js?v=20261127a"></script>
-  <script src="sound.js?v=20261127a"></script>
-  <script src="avatar.js?v=20261127a"></script>
-  <script src="lcars.js?v=20261127a"></script>
-  <script src="missions.js?v=20261127a"></script>
+  <script src="mobile.js?v=20261127b"></script>
+  <script src="life.js?v=20261127b"></script>
+  <script src="manual.js?v=20261127b"></script>
+  <script src="menubar.js?v=20261127b"></script>
+  <script src="sound.js?v=20261127b"></script>
+  <script src="avatar.js?v=20261127b"></script>
+  <script src="lcars.js?v=20261127b"></script>
+  <script src="missions.js?v=20261127b"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -33,6 +33,10 @@
     .panel h2 { font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#b8ffcc; margin-bottom:10px; text-align:center; }
     .panel p { color:#e0f0e4; font-size:13px; line-height:1.45; margin-bottom:12px; text-align:center; }
     .panel p.say { font-size:15px; color:#fff; font-style:italic; }
+    /* talk = a bottom sheet (user, Nov 26: the panel hid the alien's reactions): short, two-column answers, the K'Vetar stays in view */
+    #talk { top:auto; bottom:calc(10px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); width:min(94vw,520px); max-height:44vh; padding:12px 12px 10px; }
+    #talk p.say { font-size:14px; margin-bottom:6px; } #talk h2 { margin-bottom:4px; }
+    #talk-list { display:grid; grid-template-columns:1fr 1fr; gap:6px; } #talk-list button { margin:0; padding:9px 10px; font-size:12.5px; border-radius:12px; }
     .panel button { display:block; width:100%; margin:8px 0 0; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.08); color:#fff; font:600 14px -apple-system,system-ui,sans-serif; text-align:left; }
     .panel button small { display:block; color:#cfe8d6; font-weight:400; font-size:12px; margin-top:2px; }
     .panel button.done { opacity:.45; } .panel button.cur { border-color:#9fffb8; background:rgba(120,255,160,.15); }
@@ -323,7 +327,14 @@
   // ── talking to the K'Vetar (dialogue.json) ──
   var talking = null;
   function openP(id) { document.getElementById(id).style.display = 'block'; document.body.classList.add('reading'); }
-  function closeP(id) { document.getElementById(id).style.display = 'none'; if (!document.querySelector('.panel[style*="block"]')) document.body.classList.remove('reading'); }
+  function closeP(id) { document.getElementById(id).style.display = 'none'; if (id === 'talk') faceOff(null); if (!document.querySelector('.panel[style*="block"]')) document.body.classList.remove('reading'); }
+  // FACE-OFF (user, Nov 26: "can't see the dude"): while you talk to or fight a K'Vetar, your own avatar is hidden and the view
+  // turns to look them in the eye, so their reactions (Talk / Brawl_Shove / Recoil) play in full view above the bottom sheet
+  function faceOff(e) {
+    var A = window.WAYFARER && WAYFARER.avatar; if (A && A.hide) A.hide(!!e); if (!e) return;
+    var cam = sc.camera && sc.camera.el, lc = cam && cam.components['look-controls'], cp = cam.object3D.getWorldPosition(new THREE.Vector3());
+    if (lc && lc.yawObject) { lc.yawObject.rotation.y = Math.atan2(-(e.a.p[0] - cp.x), -(e.a.p[1] - cp.z)); lc.pitchObject.rotation.x = 0.06; }
+  }
   function talkTo(e) {
     if (window.WF_LIFE) WF_LIFE.event('kvetar');
     if (!DLG) return; talking = e; var cam = sc.camera.el.object3D.position;
@@ -334,7 +345,7 @@
     var list = document.getElementById('talk-list'); list.innerHTML = '';
     DLG.playerPrompts.forEach(function (q) { var b = document.createElement('button'); b.textContent = q; b.onclick = function () { answer(q); }; list.appendChild(b); });
     if (window.HIVE_GAMES && HIVE_GAMES.talkHook) HIVE_GAMES.talkHook(e, list);    /* bounty target / pick a fight */
-    openP('talk');
+    openP('talk'); faceOff(e);
   }
   function answer(q) {
     var e = talking; if (!e) return; e.a.wait = 6; sfx('mandible_click', 0.45); alienSay(e.a.p[0], e.a.p[1], ['chitter', 'hum', 'click', 'trill', 'query'][Math.floor(Math.random() * 5)], true);
@@ -389,7 +400,7 @@
     _vp.set(x, 1.7, z).project(c); WF_SOUND.alien(kind || null, Math.max(-1, Math.min(1, _vp.x)) * 0.8, (loud ? 1.2 : 0.9) / (1 + d / 5));
   }
   // shared with hiveport-games.js (dance floor, gambling den, brawls, bounties)
-  window.HIVE = { get NPCS() { return NPCS; }, get CROWD() { return CROWD; }, get LAYOUT() { return LAYOUT; }, get AUD() { return AUD; }, get BAR() { return BAR; },
+  window.HIVE = { faceOff: function (e) { faceOff(e); }, get NPCS() { return NPCS; }, get CROWD() { return CROWD; }, get LAYOUT() { return LAYOUT; }, get AUD() { return AUD; }, get BAR() { return BAR; },
     play: play, talkTo: function (e) { talkTo(e); }, alienSay: alienSay, toast: toast, openP: openP, closeP: closeP, sfx: sfx, makeActor: makeActor, invisibleBox: invisibleBox, sc: sc, talking: function () { return talking; } };
   var DRINK_STATES = ['Drink_Sip', 'Serve_Drink', 'Reach_Grab', 'Toast'], P2 = [0, 0], tmp = new THREE.Vector3();
   AFRAME.registerComponent('wf-hive', {
@@ -430,6 +441,6 @@
   }
 }());
 </script>
-<script src="hiveport-games.js?v=20261127a"></script>
+<script src="hiveport-games.js?v=20261127b"></script>
 </body>
 </html>
