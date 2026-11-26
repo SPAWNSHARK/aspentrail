@@ -1,0 +1,14 @@
+{
+  "tone": "K’Vetar are peaceful, logical, restrained and indifferent rather than overtly angry.",
+  "greetings": ["State your purpose. Social interaction is optional.", "You may occupy this seat. It is presently unclaimed.", "Your species appears unusually enthusiastic. Is this typical?", "Welcome to Hiveport. I assume you require something.", "The station is functioning within tolerances. A satisfactory evening."],
+  "civilian": ["I trade in thermal regulators. Emotional investments are less predictable.", "My transport leaves in seven cycles. I find waiting inefficient.", "Which system issued your navigation credentials?", "A discussion of engineering would be preferable to small talk.", "Your vessel is remarkably compact. Intentional?"],
+  "soldier": ["The yellow crest denotes service. It is not an invitation to duel.", "Leave your grievances at the entrance. Security will appreciate it.", "Our station protocols are uncomplicated. Follow them."],
+  "commander": ["Order is not synonymous with hostility.", "I am off duty. Unless the station is on fire, this conversation is unnecessary."],
+  "general": ["You may speak. Be concise.", "A productive alliance is preferable to a costly dispute."],
+  "female": ["Your curiosity is apparent. What precisely do you wish to know?", "The music is tolerable. The crowd is somewhat less so."],
+  "bartender": ["Select a beverage. I will assess its compatibility with your species.", "Amber resin is the customary choice. It is not a recommendation.", "Your drink. No further ceremony is required.", "You appear to have finished. Shall I prepare another?"],
+  "hologram": ["I am a projection, not a patron. Enjoy the performance.", "The next performance begins shortly. Emotional responses are permitted."],
+  "fight": ["Your behavior has become statistically inconvenient.", "Withdraw. This dispute serves no purpose.", "Security has been notified. Further escalation is illogical."],
+  "playerPrompts": ["Where are you from?", "Tell me about your crest.", "What are you drinking?", "Can you get me a drink?", "What do you know about Argo Station?", "Any work available?", "I'll leave you to it."],
+  "drinkMenu": [{"id":"amber_resin","name":"Amber Resin Ale"},{"id":"voidfruit","name":"Voidfruit Tonic"},{"id":"neural_mist","name":"Neural Mist"},{"id":"crimson_spore","name":"Crimson Spore"},{"id":"luminous_brew","name":"Luminous Brew"},{"id":"quorum_blend","name":"Quorum Blend"}]
+}

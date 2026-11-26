@@ -248,7 +248,7 @@
         if (skip(o)) return;
         out.push([bb.min.x, bb.min.z, bb.max.x, bb.max.z]);
       });
-      this.solids = out;
+      this.solids = out.concat(window.WAYFARER.extraSolids || []);   // pages can add footprint boxes (Hiveport walls/props from layout.json)
     },
     collide: function (m, lp) {
       if (!this.solids || !this.solids.length) return;

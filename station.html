@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>SS Wayfarer — Argo Waystation</title>
+  <title>SS Wayfarer — Hiveport</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,54 +14,60 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126d"></script>
-  <script src="sound.js?v=20261126d"></script>
-  <script src="avatar.js?v=20261126d"></script>
-  <script src="lcars.js?v=20261126d"></script>
-  <script src="missions.js?v=20261126d"></script>
+  <script src="mobile.js?v=20261126e"></script>
+  <script src="sound.js?v=20261126e"></script>
+  <script src="avatar.js?v=20261126e"></script>
+  <script src="lcars.js?v=20261126e"></script>
+  <script src="missions.js?v=20261126e"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
     #jump { position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0; background:radial-gradient(circle,#ffffff,#dff0ff 45%,#9fc4ff); }
     html.from-dock, html.from-dock body { background:#dff0ff; } html.from-dock #jump { opacity:1; }
-    .panel { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:50; display:none; width:min(88vw,380px); padding:18px; border-radius:22px;
-      background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(22,16,26,.55); -webkit-backdrop-filter:blur(22px) saturate(180%); backdrop-filter:blur(22px) saturate(180%);
-      border:1px solid rgba(255,255,255,.25); box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 16px 40px rgba(0,0,0,.5); color:#fff; font:500 14px -apple-system,system-ui,sans-serif; }
-    .panel h2 { font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#ffc890; margin-bottom:10px; text-align:center; }
-    .panel p { color:#e8d8f0; font-size:13px; line-height:1.45; margin-bottom:12px; text-align:center; }
+    .panel { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:50; display:none; width:min(88vw,380px); max-height:84vh; overflow:auto; padding:18px; border-radius:22px;
+      background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),rgba(10,24,14,.6); -webkit-backdrop-filter:blur(22px) saturate(180%); backdrop-filter:blur(22px) saturate(180%);
+      border:1px solid rgba(170,255,190,.25); box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 16px 40px rgba(0,0,0,.5); color:#fff; font:500 14px -apple-system,system-ui,sans-serif; }
+    .panel h2 { font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:3px; color:#b8ffcc; margin-bottom:10px; text-align:center; }
+    .panel p { color:#e0f0e4; font-size:13px; line-height:1.45; margin-bottom:12px; text-align:center; }
+    .panel p.say { font-size:15px; color:#fff; font-style:italic; }
     .panel button { display:block; width:100%; margin:8px 0 0; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.08); color:#fff; font:600 14px -apple-system,system-ui,sans-serif; text-align:left; }
-    .panel button small { display:block; color:#d8c0e8; font-weight:400; font-size:12px; margin-top:2px; }
-    .panel button.done { opacity:.45; } .panel button.cur { border-color:#ffc070; background:rgba(255,180,90,.18); }
-    #toast { position:fixed; left:50%; top:calc(20px + env(safe-area-inset-top,0px)); transform:translateX(-50%); z-index:58; padding:10px 16px; border-radius:16px; background:rgba(20,30,20,.6); border:1px solid rgba(140,255,170,.4); color:#c8ffd8; font:600 13px -apple-system,system-ui,sans-serif; opacity:0; transition:opacity .5s; pointer-events:none; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); text-align:center; max-width:88vw; }
+    .panel button small { display:block; color:#cfe8d6; font-weight:400; font-size:12px; margin-top:2px; }
+    .panel button.done { opacity:.45; } .panel button.cur { border-color:#9fffb8; background:rgba(120,255,160,.15); }
     .panel button.close { text-align:center; background:none; border-color:rgba(255,255,255,.12); color:#ccc; }
+    #toast { position:fixed; left:50%; top:calc(40px + env(safe-area-inset-top,0px)); transform:translateX(-50%); z-index:58; padding:10px 16px; border-radius:16px; background:rgba(20,30,20,.6); border:1px solid rgba(140,255,170,.4); color:#c8ffd8; font:600 13px -apple-system,system-ui,sans-serif; opacity:0; transition:opacity .5s; pointer-events:none; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); text-align:center; max-width:88vw; }
     canvas.a-canvas { transition: filter 1.5s; }
     body.tipsy canvas.a-canvas { animation: tipsy 6s ease-in-out infinite; }
     @keyframes tipsy { 0%,100% { filter: hue-rotate(0deg) saturate(1.2); transform: rotate(0deg) scale(1.02); } 50% { filter: hue-rotate(40deg) saturate(1.6) blur(.6px); transform: rotate(.6deg) scale(1.03); } }
+    #loading { position:fixed; left:50%; bottom:calc(120px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:40; color:#b8ffcc; font:600 12px -apple-system,system-ui,sans-serif; letter-spacing:2px; opacity:.85; transition:opacity .6s; pointer-events:none; }
   </style>
 </head>
 <body>
 <div id="jump"></div>
 <div id="toast"></div>
+<div id="loading">THE HIVEPORT IS WAKING…</div>
 <div class="panel" id="bar-menu">
-  <h2>EMBER ROOM BAR</h2>
-  <p>"What'll it be, Captain? First round's on the house."</p>
-  <button data-d="fizz">Nebula Fizz<small>Violet, sparkling, tastes like static</small></button>
-  <button data-d="mule">Copper Mule<small>Ginger, lime and a hint of hull plating</small></button>
-  <button data-d="horizon">Event Horizon<small>Nothing escapes it. Including you.</small></button>
+  <h2>THE RESIN SPIRE</h2>
+  <p class="say" id="bar-line"></p>
+  <div id="bar-list"></div>
   <button class="close" data-d="">Maybe later</button>
 </div>
+<div class="panel" id="talk">
+  <h2 id="talk-who">K'VETAR</h2>
+  <p class="say" id="talk-line"></p>
+  <div id="talk-list"></div>
+</div>
 <div class="panel" id="job-board">
-  <h2>ARGO JOB BOARD</h2>
+  <h2>HIVEPORT JOB BOARD</h2>
   <p id="job-head"></p>
   <div id="job-list"></div>
   <button class="close" id="job-close">Close</button>
 </div>
 
-<a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 11.2" wf-station light="defaultLightsEnabled: false"
-  background="color: #05020a" vr-mode-ui="enabled: true" renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.15">
+<a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 0" wf-hive light="defaultLightsEnabled: false"
+  background="color: #020604" vr-mode-ui="enabled: true" renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
   <a-entity id="player" position="0 0 0">
-    <a-camera id="cam" fov="80" near="0.05" wasd-controls="acceleration: 20; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 9">
-      <a-cursor color="#ff9ad0" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .clickable"></a-cursor>
+    <a-camera id="cam" fov="80" near="0.05" far="400" wasd-controls="acceleration: 20; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 19.2">
+      <a-cursor color="#9fffb8" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .clickable"></a-cursor>
     </a-camera>
   </a-entity>
   <a-entity id="bartender" class="clickable"></a-entity>
@@ -70,171 +76,183 @@
 </a-scene>
 
 <script>
-// THE ARGO WAYSTATION — "The Ember Room" (user, Nov 25: a station you dock at and hang out in, in the spirit of Mass Effect's
-// Afterlife club — an ORIGINAL venue). Round club: LED dance floor with dancers, DJ booth with a hologram waveform, curved
-// bar with a robot bartender (tap → drinks), booths, sweeping light beams, a job board, and the AIRLOCK back to the ship.
+// THE HIVEPORT (user, Nov 26) — Argo Station's K'Vetar trade venue, from the user's Hiveport_Argo_Station_Prototype pack:
+// the 96 × 44 m deck (central nexus with the Resin Spire bar and holo stage, plus eight side zones), rigged K'Vetar crowd
+// (male + female rigs, one load each, cloned per NPC with their KHR_materials_variants caste/body/eye colours), the pack's
+// grid-A* crowd (hiveport/systems/crowd.mjs) walking between its 42 drink/dance/social/game targets and steering round you,
+// a bartender behind the bar (tap → drinks, Serve_Drink with the glass in hand), a dancing violet hologram on the stage,
+// K'Vetar small talk from dialogue.json, the contracts job board, and the airlock home. Collision = layout.json obstacles.
+// No music here (user: music only in Flight Mode) — the crowd wash, station hum and bar sounds are the soundtrack.
 (function () {
-  var THREE = AFRAME.THREE, sc = document.querySelector('a-scene'), anim = [], R = 12, H = 5.6;
-  var MOB = window.WAYFARER && window.WAYFARER.mobile;
-  function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-  function tex(c, rx, ry) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx || 1, ry || 1); t.anisotropy = 4; return t; }
-  function mesh(g, m, parent, x, y, z) { var o = new THREE.Mesh(g, m); o.position.set(x || 0, y || 0, z || 0); (parent || root).add(o); return o; }
-  function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
-  function add(t, col, op) { return new THREE.MeshBasicMaterial({ map: t || null, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }); }
-  var root;
+  var THREE = AFRAME.THREE, sc = document.querySelector('a-scene'), MOB = window.WAYFARER && window.WAYFARER.mobile;
+  var LOADER = new THREE.GLTFLoader(), NPCS = [], BAR = null, HOLO = null, CROWD = null, LAYOUT = null, DLG = null, DRINKS = {}, AUD = {}, ANIM = [];
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function load(u) { return new Promise(function (res, rej) { LOADER.load(u, res, undefined, rej); }); }
+  function toast(t) { var e = document.getElementById('toast'); e.innerHTML = t; e.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(function () { e.style.opacity = 0; }, 5000); }
+
+  // ── sound: the pack's loops + one-shots (transcoded to m4a for iOS); start on the first tap, honour the mute ──
+  function sfx(n, v) { try { if (window.WF_SOUND && WF_SOUND.muted()) return; var a = new Audio('hiveport/audio/' + n + '.m4a'); a.volume = v || 0.6; a.play().catch(function () {}); } catch (e) {} }
+  function loops() {
+    if (AUD.on) return; AUD.on = true;
+    [['crowd_wash_loop', 0.35], ['station_hum_loop', 0.25]].forEach(function (q) { var a = new Audio('hiveport/audio/' + q[0] + '.m4a'); a.loop = true; a.volume = q[1]; AUD[q[0]] = a; a.play().catch(function () { AUD.on = false; }); });
+    if (!AUD.iv) AUD.iv = setInterval(function () { var m = window.WF_SOUND && WF_SOUND.muted(); ['crowd_wash_loop', 'station_hum_loop'].forEach(function (k) { if (AUD[k]) AUD[k].muted = !!m; }); }, 500);
+  }
+  ['pointerdown', 'keydown', 'touchend'].forEach(function (n) { addEventListener(n, loops, { passive: true }); });
+  if (window.WF_SOUND) WF_SOUND.hum(false);
+
+  // ── SkeletonUtils.clone (not bundled with A-Frame): each NPC gets its own bones ──
+  function parallel(a, b, f) { f(a, b); for (var i = 0; i < a.children.length; i++) parallel(a.children[i], b.children[i], f); }
+  function cloneSkinned(src) {
+    var srcOf = new Map(), cloneOf = new Map(), c = src.clone();
+    parallel(src, c, function (a, b) { srcOf.set(b, a); cloneOf.set(a, b); });
+    c.traverse(function (n) { if (!n.isSkinnedMesh) return; var s = srcOf.get(n); n.skeleton = s.skeleton.clone(); n.bindMatrix.copy(s.bindMatrix); n.skeleton.bones = s.skeleton.bones.map(function (b) { return cloneOf.get(b); }); n.bind(n.skeleton, n.bindMatrix); });
+    return c;
+  }
+  // ── KHR_materials_variants: per-mesh-name mappings, materials resolved through the loader's parser ──
+  function variantKit(gltf) {
+    var json = gltf.parser.json, names = json.extensions.KHR_materials_variants.variants.map(function (v) { return v.name; }), map = {}, need = {};
+    json.nodes.forEach(function (n) { if (n.mesh == null) return; var pr = json.meshes[n.mesh].primitives[0], ext = pr.extensions && pr.extensions.KHR_materials_variants; if (!ext) return; map[n.name] = ext.mappings; ext.mappings.forEach(function (m) { need[m.material] = 1; }); });
+    var mats = {};
+    return Promise.all(Object.keys(need).map(function (i) { return gltf.parser.getDependency('material', +i).then(function (m) { mats[i] = m; }); })).then(function () {
+      return { names: names, apply: function (root, vi) { root.traverse(function (o) { if (!o.isMesh) return; var mm = map[o.name]; if (!mm) return; for (var k = 0; k < mm.length; k++) if (mm[k].variants.indexOf(vi) >= 0) { o.material = mats[mm[k].material]; return; } }); } };
+    });
+  }
+  function chooseVariant(names, female) {                      // caste mix: mostly civilians and soldiers, few commanders, rare generals
+    var crest = female ? 'purple_female' : (function (r) { return r < 0.45 ? 'blue_civilian_male' : r < 0.75 ? 'yellow_soldier' : r < 0.93 ? 'orange_commander' : 'red_general_king'; }(Math.random()));
+    var eye = (function (r) { return r < 0.55 ? 'yellow' : r < 0.8 ? 'blue' : r < 0.93 ? 'red' : 'black'; }(Math.random()));
+    var all = names.map(function (n, i) { return [n, i]; }), opts = all.filter(function (q) { return q[0].indexOf(crest) >= 0 && q[0].indexOf(eye + ' eyes') >= 0; });
+    if (!opts.length) opts = all.filter(function (q) { return q[0].indexOf(crest) >= 0; });
+    var q = pick(opts.length ? opts : all); return { index: q[1], crest: crest };
+  }
+  var CASTE = { blue_civilian_male: ['civilian', 'K’VETAR CIVILIAN'], yellow_soldier: ['soldier', 'K’VETAR SOLDIER'], orange_commander: ['commander', 'K’VETAR COMMANDER'], red_general_king: ['general', 'K’VETAR GENERAL'], purple_female: ['female', 'K’VETAR MATRON'] };
+
+  function makeActor(base, kit, vi) {
+    var m = cloneSkinned(base.scene); if (kit) kit.apply(m, vi); m.userData.noCollide = true;
+    m.traverse(function (o) { if (o.isMesh) { o.frustumCulled = false; o.userData.noCollide = true; } });
+    var mx = new THREE.AnimationMixer(m), acts = {}; base.animations.forEach(function (c) { acts[c.name] = mx.clipAction(c); });
+    sc.object3D.add(m);
+    return { model: m, mixer: mx, actions: acts, hand: m.getObjectByName('R_hand'), current: null, drink: null };
+  }
+  function play(e, name, once) {
+    if (e.current === name) return; var act = e.actions[name] || e.actions.Idle; if (!act) return;
+    Object.keys(e.actions).forEach(function (k) { if (e.actions[k] !== act) e.actions[k].fadeOut(0.25); });
+    act.reset(); act.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity); act.clampWhenFinished = !!once; act.fadeIn(0.25).play(); e.current = name;
+  }
+  function holdDrink(e, on, id) {
+    if (on && !e.drink && e.hand) { var t = DRINKS[id] || DRINKS.amber_resin; if (!t) return; e.drink = t.clone(true); e.drink.position.set(0.015, -0.09, 0.085); e.drink.scale.setScalar(1.35); e.hand.add(e.drink); }
+    else if (!on && e.drink) { e.drink.removeFromParent(); e.drink = null; }
+  }
+  function invisibleBox(w, h, d) { return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })); }
 
   function build() {
-    root = new THREE.Group(); sc.object3D.add(root);
-    try {   // a club-coloured environment so copper and polished floor have something to reflect (metal renders black without one)
-      var es = new THREE.Scene(), sky = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide,
+    Promise.all([fetch('hiveport/layout.json').then(function (r) { return r.json(); }), fetch('hiveport/dialogue.json').then(function (r) { return r.json(); }), import('./hiveport/systems/crowd.mjs')]).then(function (R) {
+      LAYOUT = R[0]; DLG = R[1]; var Crowd = R[2].Crowd;
+      // walls/props as footprints for the player (mobile.js), the hall outline as the room bound
+      window.WAYFARER.extraSolids = LAYOUT.obstacles.map(function (o) { return [o.min[0], o.min[1], o.max[0], o.max[1]]; });
+      window.WAYFARER.bounds = [[-48, -22], [48, -22], [48, 22], [-48, 22]];
+      var mob = sc.components['wayfarer-mobile']; if (mob && mob.scanSolids) mob.scanSolids();
+      // a chitin-and-amber environment so the metal and glass have something to reflect
+      try { var es = new THREE.Scene(); es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide,
         vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: 'varying vec3 vP; void main(){ vec3 d = normalize(vP); float h = d.y; vec3 c = mix(vec3(0.06,0.02,0.06), vec3(0.9,0.45,0.2), smoothstep(-0.1, 0.8, h)); c += vec3(0.9,0.2,0.6) * pow(max(0.0, sin(atan(d.x, d.z) * 3.0)), 8.0) * 0.6 * (1.0 - abs(h)); gl_FragColor = vec4(c, 1.0); }' }));
-      es.add(sky); var pm = new THREE.PMREMGenerator(sc.renderer); sc.object3D.environment = pm.fromScene(es, 0.04).texture; pm.dispose();
-    } catch (e) {}
-    var dot = dotTex();
-    var M = {
-      floor: new THREE.MeshStandardMaterial({ color: 0x120c14, roughness: 0.22, metalness: 0.65 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0x6a4450, roughness: 0.4, metalness: 0.45, side: THREE.BackSide }),
-      copper: new THREE.MeshStandardMaterial({ color: 0xc0784a, roughness: 0.3, metalness: 0.9 }),
-      dark: new THREE.MeshStandardMaterial({ color: 0x1c1418, roughness: 0.5, metalness: 0.5 }),
-      seat: new THREE.MeshStandardMaterial({ color: 0x3a1430, roughness: 0.55, metalness: 0.2 }),
-      neonM: new THREE.MeshBasicMaterial({ color: 0xff4fb8, toneMapped: false }),
-      neonA: new THREE.MeshBasicMaterial({ color: 0xffa040, toneMapped: false }),
-      neonT: new THREE.MeshBasicMaterial({ color: 0x40e0ff, toneMapped: false })
-    };
-    // shell: floor ring, wall with neon stripes, dark ceiling with a copper truss ring
-    mesh(new THREE.RingGeometry(3.3, R, 96, 14), M.floor).rotation.x = -Math.PI / 2;
-    var wc = cv(1024, 256), wx = wc.getContext('2d'); wx.fillStyle = '#7a5a68'; wx.fillRect(0, 0, 1024, 256);
-    for (var i = 0; i < 16; i++) { wx.fillStyle = 'rgba(0,0,0,0.5)'; wx.fillRect(i * 64, 0, 3, 256); }
-    var wall = mesh(new THREE.CylinderGeometry(R, R, H, 96, 12, true), M.wall, root, 0, H / 2, 0); M.wall.map = tex(wc, 6, 1);
-    [0.9, 3.4].forEach(function (y, k) { var t = mesh(new THREE.TorusGeometry(R - 0.05, 0.035, 6, 192), k ? M.neonM : M.neonA, root, 0, y, 0); t.rotation.x = Math.PI / 2; });
-    var ceil = mesh(new THREE.CircleGeometry(R, 96), M.dark, root, 0, H, 0); ceil.rotation.x = Math.PI / 2;
-    [4.5, 8.5].forEach(function (r2) { var t = mesh(new THREE.TorusGeometry(r2, 0.12, 8, 128), M.copper, root, 0, H - 0.5, 0); t.rotation.x = Math.PI / 2; });
-
-    // LED dance floor (shader): tiles ripple magenta / amber / teal to the beat
-    var df = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } }, toneMapped: false,
-      vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: [
-        'uniform float t; varying vec2 vP;',
-        'void main(){ vec2 g = floor(vP * 1.6), f = fract(vP * 1.6); float edge = step(0.06, f.x) * step(0.06, f.y) * step(f.x, 0.94) * step(f.y, 0.94);',
-        ' float r = length(g); float beat = pow(0.5 + 0.5 * sin(t * 6.4), 6.0); float w = 0.5 + 0.5 * sin(r * 1.3 - t * 3.0 + sin(g.x * 1.7 + g.y * 2.3));',
-        ' vec3 a = vec3(1.0, 0.25, 0.7), b = vec3(1.0, 0.6, 0.15), c = vec3(0.2, 0.85, 1.0); float k = fract(t * 0.07 + (g.x + g.y) * 0.05);',
-        ' vec3 col = k < 0.33 ? mix(a, b, k * 3.0) : k < 0.66 ? mix(b, c, (k - 0.33) * 3.0) : mix(c, a, (k - 0.66) * 3.0);',
-        ' gl_FragColor = vec4(col * (0.12 + 0.9 * w * w + 0.5 * beat) * edge + vec3(0.02, 0.01, 0.03), 1.0); }'].join('\n') });
-    var dfl = mesh(new THREE.CircleGeometry(3.3, 64), df, root, 0, 0.012, 0); dfl.rotation.x = -Math.PI / 2;
-    var rim = mesh(new THREE.TorusGeometry(3.32, 0.05, 6, 96), M.copper, root, 0, 0.03, 0); rim.rotation.x = Math.PI / 2;
-    anim.push(function (s) { df.uniforms.t.value = s; });
-
-    // DJ booth at the back (−Z): copper riser, deck, hologram waveform rings
-    var dj = new THREE.Group(); dj.position.set(0, 0, -8.6); root.add(dj);
-    mesh(new THREE.CylinderGeometry(2.8, 3.0, 0.4, 48, 1, false, Math.PI * 0.5, Math.PI), M.copper, dj, 0, 0.2, 0);
-    mesh(new THREE.BoxGeometry(2.6, 1.0, 0.7), M.dark, dj, 0, 0.9, 0.9);
-    var deck = mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: (function () { var c = cv(512, 128), x = c.getContext('2d'); x.fillStyle = '#100810'; x.fillRect(0, 0, 512, 128); [96, 416].forEach(function (cx) { x.strokeStyle = '#ff4fb8'; x.lineWidth = 6; x.beginPath(); x.arc(cx, 64, 44, 0, 7); x.stroke(); x.strokeStyle = '#ffa040'; x.beginPath(); x.arc(cx, 64, 20, 0, 7); x.stroke(); }); for (var k = 0; k < 12; k++) { x.fillStyle = k % 3 ? '#40e0ff' : '#ffa040'; x.fillRect(180 + k * 13, 30 + (k * 37) % 50, 8, 18); } return tex(c); }()), toneMapped: false }), dj, 0, 1.41, 0.9); deck.rotation.x = -Math.PI / 2;
-    var bars = [];
-    for (var b = 0; b < 32; b++) { var a = b / 32 * Math.PI * 2, bm = mesh(new THREE.PlaneGeometry(0.12, 1), add(null, b % 2 ? 0xff4fb8 : 0x40e0ff, 0.75), dj, Math.cos(a) * 1.3, 3.0, Math.sin(a) * 1.3); bm.rotation.y = -a + Math.PI / 2; bars.push(bm); }
-    var holo = mesh(new THREE.SphereGeometry(0.5, 24, 16), add(dot, 0xb070ff, 0.6), dj, 0, 3.0, 0);
-    anim.push(function (s) { var beat = Math.pow(0.5 + 0.5 * Math.sin(s * 6.4), 4); bars.forEach(function (m, k) { var h = 0.2 + 1.3 * Math.abs(Math.sin(s * 3.1 + k * 0.7)) * (0.5 + beat); m.scale.y = h; m.position.y = 2.4 + h / 2; }); holo.scale.setScalar(1 + beat * 0.4); dj.children[dj.children.length - 1].rotation.y = s; });
-
-    // the bar along the starboard wall: curved copper counter, glowing bottle wall, robot bartender
-    var BA0 = Math.PI * 0.15, BAL = Math.PI * 0.5, BR = 8.6;
-    mesh(new THREE.CylinderGeometry(BR, BR, 1.08, 64, 1, true, BA0, BAL), M.copper, root, 0, 0.54, 0);
-    var top = mesh(new THREE.RingGeometry(BR - 0.05, BR + 0.55, 64, 1, BA0 - Math.PI / 2, BAL), M.copper, root, 0, 1.1, 0); top.rotation.x = -Math.PI / 2; top.rotation.z = Math.PI;
-    var strip = mesh(new THREE.TorusGeometry(BR + 0.01, 0.02, 6, 96, BAL), M.neonA, root, 0, 0.98, 0); strip.rotation.x = Math.PI / 2; strip.rotation.z = -BA0 - BAL + Math.PI / 2 - Math.PI / 2;
-    var bc = cv(1024, 256), bx = bc.getContext('2d'); bx.fillStyle = '#0c0608'; bx.fillRect(0, 0, 1024, 256);
-    for (var sh = 0; sh < 3; sh++) { bx.fillStyle = '#5a3420'; bx.fillRect(0, 70 + sh * 70, 1024, 6); for (var k = 0; k < 60; k++) { var hx = k * 17 + (sh * 7) % 17, col = ['#ff4fb8', '#ffa040', '#40e0ff', '#a0ff70', '#ffd27a'][(k + sh) % 5]; bx.fillStyle = col; bx.globalAlpha = 0.85; bx.fillRect(hx, 70 + sh * 70 - 40, 9, 40); bx.fillRect(hx + 3, 70 + sh * 70 - 52, 3, 12); } bx.globalAlpha = 1; }
-    var shelf = mesh(new THREE.CylinderGeometry(R - 0.1, R - 0.1, 2.0, 64, 1, true, BA0, BAL), new THREE.MeshBasicMaterial({ map: tex(bc), side: THREE.BackSide, toneMapped: false }), root, 0, 2.2, 0);
-    function robot(parent, x, z, ry) {
-      var g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g);
-      var S = new THREE.MeshStandardMaterial({ color: 0xd8dade, roughness: 0.28, metalness: 0.3 }), J = new THREE.MeshStandardMaterial({ color: 0x2a2c31, roughness: 0.4, metalness: 0.6 });
-      mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.8, 16), S, g, 0, 1.0, 0); mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), J, g, 0, 0.45, 0);
-      var head = mesh(new THREE.SphereGeometry(0.15, 20, 14), S, g, 0, 1.6, 0);
-      var visor = mesh(new THREE.SphereGeometry(0.148, 20, 10, Math.PI * 1.12, Math.PI * 0.76, Math.PI * 0.34, Math.PI * 0.26), new THREE.MeshStandardMaterial({ color: 0x0c0e12, roughness: 0.15, metalness: 0.6 }), g, 0, 1.6, 0);
-      [-0.05, 0.05].forEach(function (ex) { var e = mesh(new THREE.SphereGeometry(0.018, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff9ad0, toneMapped: false }), visor, ex, 0.014, -0.152); e.scale.z = 0.4; });
-      [-1, 1].forEach(function (sd) { var arm = mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.6, 8), S, g, sd * 0.27, 1.1, -0.12); arm.rotation.x = -0.6; });
-      return { g: g, head: head, visor: visor };
-    }
-    var bA = BA0 + BAL / 2, bt = robot(root, Math.sin(bA) * 10.3, -Math.cos(bA) * 10.3, 0);
-    bt.g.lookAt(0, 0, 0); bt.g.rotation.y += Math.PI;
-    anim.push(function (s) { var a = Math.sin(s * 0.6) * 0.5; bt.head.rotation.y = bt.visor.rotation.y = a; });
-    var bh = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.2, 1.4), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
-    var bte = document.getElementById('bartender'); bte.setObject3D('mesh', bh); bte.object3D.position.set(Math.sin(bA) * 9.6, 1.1, -Math.cos(bA) * 9.6);
-    for (var st = 0; st < 5; st++) { var sa = BA0 + 0.12 + st * (BAL - 0.24) / 4, stool = new THREE.Group(); stool.position.set(Math.sin(sa) * 7.6, 0, -Math.cos(sa) * 7.6); root.add(stool);   // bar stools
-      mesh(new THREE.CylinderGeometry(0.04, 0.2, 0.75, 10), M.copper, stool, 0, 0.375, 0); mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.08, 18), M.seat, stool, 0, 0.78, 0); }
-    var barL = new THREE.PointLight(0xffa860, 1.6, 9, 1.4); barL.position.set(Math.sin(bA) * 8, 3, -Math.cos(bA) * 8); root.add(barL);
-
-    // booths on the port side: curved plush sofas round small tables with lamps
-    [-0.95, -1.45, -1.95].forEach(function (ang) {
-      var g = new THREE.Group(); g.position.set(Math.sin(ang) * 9.3, 0, -Math.cos(ang) * 9.3); g.rotation.y = -ang; root.add(g);
-      var sofa = mesh(new THREE.CylinderGeometry(1.25, 1.25, 0.9, 32, 1, true, -Math.PI * 0.55, Math.PI * 1.1), new THREE.MeshStandardMaterial({ color: 0x4a1838, roughness: 0.6, side: THREE.DoubleSide }), g, 0, 0.45, 0); sofa.rotation.y = Math.PI;
-      var seatR = mesh(new THREE.RingGeometry(0.85, 1.25, 32, 1, Math.PI * 0.95, Math.PI * 1.1), M.seat, g, 0, 0.46, 0); seatR.rotation.x = -Math.PI / 2;
-      mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.05, 24), M.copper, g, 0, 0.72, 0); mesh(new THREE.CylinderGeometry(0.06, 0.12, 0.7, 10), M.dark, g, 0, 0.36, 0);
-      mesh(new THREE.SphereGeometry(0.09, 12, 8), M.neonA, g, 0, 0.84, 0);
-      var lp = new THREE.PointLight(0xff8a50, 0.6, 3, 2); lp.position.set(0, 1.0, 0); g.add(lp);
-    });
-
-    // the crowd: stylised humanoids dancing on the floor, a few at the bar and in the booths
-    var SKIN = [0x8a5a9a, 0x5a8ab0, 0xc07a5a, 0x5aa07a, 0xb05a6a, 0x9a9aa8, 0x6a5ab0, 0xc0a05a];
-    function person(x, z, ry, k, pose) {
-      var g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; root.add(g);
-      var m = new THREE.MeshStandardMaterial({ color: SKIN[k % SKIN.length], roughness: 0.55, metalness: 0.1 }), cl = new THREE.MeshStandardMaterial({ color: [0x1a1a24, 0x2a1420, 0x10202a, 0x241a10][k % 4], roughness: 0.6 });
-      var legs = mesh(new THREE.CylinderGeometry(0.16, 0.12, 0.85, 10), cl, g, 0, 0.45, 0);
-      var torso = mesh(new THREE.CylinderGeometry(0.2, 0.17, 0.62, 12), cl, g, 0, 1.18, 0);
-      var head = mesh(new THREE.SphereGeometry(0.13, 16, 12), m, g, 0, 1.66, 0); head.scale.y = 1.15;
-      var arms = [-1, 1].map(function (sd) { var p = new THREE.Group(); p.position.set(sd * 0.25, 1.42, 0); g.add(p); var a2 = mesh(new THREE.CylinderGeometry(0.05, 0.045, 0.55, 8), cl, p, 0, -0.27, 0); mesh(new THREE.SphereGeometry(0.055, 8, 6), m, p, 0, -0.57, 0); mesh(new THREE.SphereGeometry(0.075, 10, 8), cl, p, 0, 0, 0); return p; });
-      var ph = k * 1.37, sp = 0.9 + (k % 3) * 0.15;
-      anim.push(function (s) {
-        if (pose === 'dance') { var beat = Math.sin(s * 6.4 * sp * 0.5 + ph); g.position.y = Math.abs(beat) * 0.08; torso.rotation.z = Math.sin(s * 3.2 + ph) * 0.15; head.rotation.y = Math.sin(s * 1.6 + ph) * 0.5;
-          arms[0].rotation.z = -0.25 - Math.max(0, Math.sin(s * 3.2 + ph)) * 1.3; arms[1].rotation.z = 0.25 + Math.max(0, Math.sin(s * 3.2 + ph + 1.6)) * 1.3; arms[0].rotation.x = arms[1].rotation.x = -0.3 + Math.sin(s * 6.4 * 0.5 + ph) * 0.25; g.rotation.y = ry + Math.sin(s * 0.8 + ph) * 0.6; }
-        else { head.rotation.y = Math.sin(s * 0.5 + ph) * 0.4; arms[0].rotation.z = -0.15; arms[1].rotation.z = 0.15; arms[1].rotation.x = -0.9 + Math.sin(s * 0.4 + ph) * 0.3; }
+        fragmentShader: 'varying vec3 vP; void main(){ vec3 d = normalize(vP); float h = d.y; vec3 c = mix(vec3(0.03,0.05,0.03), vec3(0.75,0.5,0.22), smoothstep(-0.1, 0.8, h)); c += vec3(0.55,0.2,0.9) * pow(max(0.0, sin(atan(d.x, d.z) * 3.0)), 8.0) * 0.6 * (1.0 - abs(h)); gl_FragColor = vec4(c, 1.0); }' })));
+        var pm = new THREE.PMREMGenerator(sc.renderer); sc.object3D.environment = pm.fromScene(es, 0.04).texture; pm.dispose(); } catch (e) {}
+      sc.object3D.add(new THREE.HemisphereLight(0xcab9f0, 0x25321b, 1.0));
+      LAYOUT.lights.forEach(function (l) { var p = new THREE.PointLight(l.color, Math.min(3, l.intensity / 330), l.distance * 1.2, 1.6); p.position.fromArray(l.position); sc.object3D.add(p); });
+      // the deck itself + ceilings over the open-top cutaway rooms (dark chitin with an amber honeycomb)
+      load('hiveport/rooms/Hiveport_complete.glb?v=1').then(function (g) {
+        g.scene.traverse(function (o) { if (o.isMesh) { o.userData.noCollide = true; [].concat(o.material).forEach(function (m) { m.envMapIntensity = 0.8; }); } }); g.scene.userData.noCollide = true; sc.object3D.add(g.scene);
+        var cc = document.createElement('canvas'); cc.width = cc.height = 256; var x = cc.getContext('2d'); x.fillStyle = '#0d120c'; x.fillRect(0, 0, 256, 256);
+        for (var i = 0; i < 6; i++) for (var j = 0; j < 6; j++) { x.beginPath(); for (var k = 0; k <= 6; k++) { var a = k / 6 * Math.PI * 2; x[k ? 'lineTo' : 'moveTo'](i * 43 + 21 + Math.cos(a) * 18, j * 43 + 21 + Math.sin(a) * 18); } x.strokeStyle = 'rgba(200,150,60,0.35)'; x.lineWidth = 2; x.stroke(); }
+        LAYOUT.rooms.forEach(function (r) { var b = r.bounds, w = b[2] - b[0], d = b[3] - b[1], t = new THREE.CanvasTexture(cc); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(w / 6, d / 6);
+          var c = new THREE.Mesh(new THREE.PlaneGeometry(w, d, 4, 4), new THREE.MeshStandardMaterial({ map: t, roughness: 0.8, metalness: 0.3, side: THREE.DoubleSide, emissive: 0x2a1a06, emissiveIntensity: 0.6 }));
+          c.rotation.x = Math.PI / 2; c.position.set((b[0] + b[2]) / 2, r.height + 0.02, (b[1] + b[3]) / 2); c.userData.noCollide = true; sc.object3D.add(c); });
+        document.getElementById('loading').style.opacity = 0;
       });
-    }
-    var N = MOB ? 10 : 16;
-    for (var p2 = 0; p2 < N; p2++) { var pa = p2 / N * Math.PI * 2 + (p2 % 2) * 0.3, pr = 1.0 + (p2 % 3) * 0.85; person(Math.cos(pa) * pr, Math.sin(pa) * pr, Math.random() * 6.28, p2, 'dance'); }
-    for (var q = 0; q < 3; q++) { var qa = BA0 + 0.25 + q * 0.5; person(Math.sin(qa) * 7.3, -Math.cos(qa) * 7.3, Math.PI - qa + Math.PI, q + 3, 'stand'); }
-
-    // sweeping light beams + coloured lights
-    var beams = [];
-    [0xff4fb8, 0xffa040, 0x40e0ff, 0xb070ff, 0xff4fb8, 0x40e0ff].forEach(function (c, k) {
-      var piv = new THREE.Group(); piv.position.set(Math.cos(k / 6 * 6.28) * 6, H - 0.3, Math.sin(k / 6 * 6.28) * 6); root.add(piv);
-      var cone = new THREE.Mesh(new THREE.ConeGeometry(0.9, 7, 24, 1, true), add(null, c, 0.09)); cone.position.y = -3.5; piv.add(cone); beams.push(piv);
+      ['amber_resin', 'voidfruit', 'neural_mist', 'crimson_spore', 'luminous_brew', 'quorum_blend'].forEach(function (id) { load('hiveport/props/drink_' + id + '.glb').then(function (g) { DRINKS[id] = g.scene; }); });
+      // the crowd
+      CROWD = new Crowd(LAYOUT);
+      Promise.all([load('hiveport/characters/Kvetar_male_rigged.glb?v=1'), load('hiveport/characters/Kvetar_female_rigged.glb?v=1')]).then(function (G) {
+        return Promise.all([variantKit(G[0]), variantKit(G[1])]).then(function (K) {
+          var N = MOB ? 8 : 16, grid = [], tries = 0;
+          for (var z = -18; z < 20; z += 2.5) for (var x = -44; x < 46; x += 2.5) if (CROWD.free([x, z]) && (Math.abs(x) < 21 || Math.random() < 0.35)) grid.push([x, z]);
+          while (NPCS.length < N && grid.length && tries++ < 200) {
+            var p = grid.splice(Math.floor(Math.random() * grid.length), 1)[0], a = CROWD.add('npc' + NPCS.length, p); if (!a) continue;
+            var fem = Math.random() < 0.22, v = chooseVariant(K[fem ? 1 : 0].names, fem), e = makeActor(G[fem ? 1 : 0], K[fem ? 1 : 0], v.index);
+            e.a = a; e.caste = v.crest; e.hit = hitBox(e); NPCS.push(e);
+          }
+          // the bartender: behind the Resin Spire, facing the stools
+          var bi = K[0].names.indexOf('dark_green / blue eyes / blue_civilian_male');
+          BAR = makeActor(G[0], K[0], bi < 0 ? 3 : bi); BAR.model.position.set(0, 0, 7.9); BAR.model.rotation.y = 0; play(BAR, 'Idle');
+          var bh = document.getElementById('bartender'); bh.setObject3D('mesh', invisibleBox(1.4, 3.2, 1.2)); bh.object3D.position.set(0, 1.6, 8.2);
+        });
+      });
+      // the violet holographic performer on the stage
+      load('hiveport/characters/Kvetar_holographic_performer.glb?v=1').then(function (g) {
+        g.scene.position.fromArray(LAYOUT.hologram); g.scene.traverse(function (o) { o.userData.noCollide = true; if (o.isMesh) o.frustumCulled = false; }); sc.object3D.add(g.scene);
+        var mx = new THREE.AnimationMixer(g.scene), c = THREE.AnimationClip.findByName(g.animations, 'Dance'); if (c) mx.clipAction(c).play(); HOLO = { s: g.scene, mx: mx };
+      });
+      buildAirlockAndBoard();
     });
-    anim.push(function (s) { beams.forEach(function (b2, k) { b2.rotation.x = Math.sin(s * 0.7 + k) * 0.6; b2.rotation.z = Math.cos(s * 0.55 + k * 1.3) * 0.6; }); });
-    var cols = [0xff4fb8, 0x40e0ff, 0xffa040], pls = cols.map(function (c, k) { var l = new THREE.PointLight(c, 1.4, 12, 1.5); root.add(l); return l; });
-    anim.push(function (s) { pls.forEach(function (l, k) { var a = s * 0.6 + k * 2.1; l.position.set(Math.cos(a) * 4, 3.6, Math.sin(a) * 4); l.intensity = 1.0 + 0.8 * Math.pow(0.5 + 0.5 * Math.sin(s * 6.4 + k), 4); }); });
-    root.add(new THREE.HemisphereLight(0x8a6aa8, 0x2a1420, 1.1));
-    for (var dl = 0; dl < 8; dl++) { var da = dl / 8 * Math.PI * 2, d2 = new THREE.PointLight(dl % 2 ? 0xffb070 : 0xd070ff, 0.9, 8, 1.5); d2.position.set(Math.cos(da) * 8.5, 4.6, Math.sin(da) * 8.5); root.add(d2); }   // wall washers
-
-    // job board (LCARS panel) by the entrance, port side
-    var jb = new THREE.Group(); jb.position.set(-3.2, 0, 11.4); jb.rotation.y = Math.PI + 0.28; root.add(jb);
-    mesh(new THREE.BoxGeometry(1.7, 1.3, 0.12), M.copper, jb, 0, 1.75, 0.02);
-    var lc = WAYFARER.lcars({ w: 512, h: 380, seed: 7, layout: 'keys', label: 'JOBS' }); anim.push(lc.update);
-    mesh(new THREE.PlaneGeometry(1.56, 1.16), new THREE.MeshBasicMaterial({ map: lc.texture, toneMapped: false }), jb, 0, 1.75, -0.05).rotation.y = Math.PI;
-    var bbe = document.getElementById('board'); bbe.setObject3D('mesh', new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.4, 0.4), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }))); bbe.object3D.position.set(-3.2, 1.75, 11.3);
-
-    // the airlock home (+Z): glowing copper arch with a plate; walk into it or tap it to undock
-    var al = new THREE.Group(); al.position.set(0, 0, R - 0.3); al.rotation.y = Math.PI; root.add(al); al.userData.noCollide = true;
-    var arch = new THREE.Shape(); arch.moveTo(-1.3, 0); arch.lineTo(-1.3, 2.4); arch.absarc(0, 2.4, 1.3, Math.PI, 0, true); arch.lineTo(1.3, 0); arch.lineTo(1.0, 0); arch.lineTo(1.0, 2.4); arch.absarc(0, 2.4, 1.0, 0, Math.PI, false); arch.lineTo(-1.0, 0);
-    mesh(new THREE.ExtrudeGeometry(arch, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 }), M.copper, al, 0, 0, -0.15);
-    var glowA = mesh(new THREE.CircleGeometry(1.0, 32, 0, Math.PI), add(dot, 0xffa860, 0.5), al, 0, 2.4, 0.02); var glowB = mesh(new THREE.PlaneGeometry(2.0, 2.4), add(null, 0xff9a50, 0.18), al, 0, 1.2, 0.02);
-    var pc = cv(512, 96), px = pc.getContext('2d'); px.fillStyle = '#0a0604'; px.fillRect(0, 0, 512, 96); px.strokeStyle = '#7a5530'; px.lineWidth = 4; px.strokeRect(3, 3, 506, 90);
-    px.fillStyle = '#f0c070'; px.font = '600 40px -apple-system, Helvetica, sans-serif'; px.textAlign = 'center'; px.textBaseline = 'middle'; px.fillText('AIRLOCK  ·  WAYFARER', 256, 50);
-    mesh(new THREE.PlaneGeometry(1.8, 0.34), new THREE.MeshBasicMaterial({ map: tex(pc), toneMapped: false }), al, 0, 3.95, 0.05);
-    anim.push(function (s) { glowB.material.opacity = 0.14 + 0.06 * Math.sin(s * 2); });
-    var ale = document.getElementById('airlock'); ale.setObject3D('mesh', new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.8, 0.6), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }))); ale.object3D.position.set(0, 1.4, R - 0.4);
+  }
+  function hitBox(e) {                                          // tap target per NPC (raycasting 56k-tri skinned meshes would be too slow)
+    var h = document.createElement('a-entity'); h.setAttribute('class', 'clickable'); sc.appendChild(h);
+    h.setObject3D('mesh', invisibleBox(1.0, 3.2, 1.0)); h.addEventListener('click', function () { talkTo(e); }); return h;
   }
 
-  // ── interactions ──
-  var jump = document.getElementById('jump'), leaving = false;
-  function undock() { if (leaving) return; leaving = true; jump.style.transition = 'opacity .6s ease-in'; jump.style.opacity = 1;
-    setTimeout(function () { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=station'; }, 650); }
-  function open(id) { document.getElementById(id).style.display = 'block'; document.body.classList.add('reading'); }
-  function close(id) { document.getElementById(id).style.display = 'none'; document.body.classList.remove('reading'); }
-  document.querySelectorAll('#bar-menu button').forEach(function (b) { b.addEventListener('click', function () {
-    close('bar-menu'); var d = b.getAttribute('data-d'); if (!d) return;
-    document.body.classList.add('tipsy'); clearTimeout(window.__tipsy); window.__tipsy = setTimeout(function () { document.body.classList.remove('tipsy'); }, d === 'horizon' ? 30000 : 16000); }); });
-  document.getElementById('job-close').addEventListener('click', function () { close('job-board'); });
-  function toast(t) { var e = document.getElementById('toast'); e.innerHTML = t; e.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(function () { e.style.opacity = 0; }, 5000); }
-  // job board: credits + rank, the active contract (abandon), or today's three offers (accept one)
+  // ── airlock home + job board, at the entrance (+Z) ──
+  function buildAirlockAndBoard() {
+    var cu = new THREE.MeshStandardMaterial({ color: 0xc09048, roughness: 0.3, metalness: 0.9 }), al = new THREE.Group(); al.position.set(0, 0, 21.55); al.rotation.y = Math.PI; sc.object3D.add(al); al.userData.noCollide = true;
+    var arch = new THREE.Shape(); arch.moveTo(-1.4, 0); arch.lineTo(-1.4, 2.6); arch.absarc(0, 2.6, 1.4, Math.PI, 0, true); arch.lineTo(1.4, 0); arch.lineTo(1.1, 0); arch.lineTo(1.1, 2.6); arch.absarc(0, 2.6, 1.1, 0, Math.PI, false); arch.lineTo(-1.1, 0);
+    var am = new THREE.Mesh(new THREE.ExtrudeGeometry(arch, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 }), cu); am.position.z = -0.15; al.add(am);
+    var gl = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.6), new THREE.MeshBasicMaterial({ color: 0x8affb0, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })); gl.position.set(0, 1.3, 0.02); al.add(gl);
+    var pc = document.createElement('canvas'); pc.width = 512; pc.height = 96; var px = pc.getContext('2d'); px.fillStyle = '#06100a'; px.fillRect(0, 0, 512, 96); px.strokeStyle = '#7a5530'; px.lineWidth = 4; px.strokeRect(3, 3, 506, 90);
+    px.fillStyle = '#f0c070'; px.font = '600 38px -apple-system, Helvetica, sans-serif'; px.textAlign = 'center'; px.textBaseline = 'middle'; px.fillText('AIRLOCK  ·  SS WAYFARER', 256, 50);
+    var pt = new THREE.CanvasTexture(pc); pt.colorSpace = THREE.SRGBColorSpace; var pl = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.38), new THREE.MeshBasicMaterial({ map: pt })); pl.position.set(0, 4.25, 0.05); al.add(pl);
+    var ae = document.getElementById('airlock'); ae.setObject3D('mesh', invisibleBox(2.4, 3, 0.6)); ae.object3D.position.set(0, 1.5, 21.3);
+    var jb = new THREE.Group(); jb.position.set(-4.2, 0, 21.5); jb.rotation.y = Math.PI; sc.object3D.add(jb);
+    var fr = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.35, 0.1), cu); fr.position.set(0, 1.75, 0); jb.add(fr);
+    var lc = WAYFARER.lcars({ w: 512, h: 380, seed: 7, layout: 'keys', label: 'JOBS' }); ANIM.push(lc.update);
+    var s2 = new THREE.Mesh(new THREE.PlaneGeometry(1.64, 1.2), new THREE.MeshBasicMaterial({ map: lc.texture, toneMapped: false })); s2.position.set(0, 1.75, 0.06); jb.add(s2);
+    var be = document.getElementById('board'); be.setObject3D('mesh', invisibleBox(1.9, 1.5, 0.5)); be.object3D.position.set(-4.2, 1.75, 21.3);
+  }
+
+  // ── talking to the K'Vetar (dialogue.json) ──
+  var talking = null;
+  function openP(id) { document.getElementById(id).style.display = 'block'; document.body.classList.add('reading'); }
+  function closeP(id) { document.getElementById(id).style.display = 'none'; if (!document.querySelector('.panel[style*="block"]')) document.body.classList.remove('reading'); }
+  function talkTo(e) {
+    if (!DLG) return; talking = e; var cam = sc.camera.el.object3D.position;
+    e.a.path = []; CROWD.release(e.a); e.a.wait = 6; e.a.state = 'Talk'; e.a.heading = Math.atan2(cam.x - e.a.p[0], cam.z - e.a.p[1]);
+    sfx('mandible_click', 0.5);
+    document.getElementById('talk-who').textContent = (CASTE[e.caste] || CASTE.blue_civilian_male)[1];
+    document.getElementById('talk-line').textContent = '“' + pick(DLG.greetings) + '”';
+    var list = document.getElementById('talk-list'); list.innerHTML = '';
+    DLG.playerPrompts.forEach(function (q) { var b = document.createElement('button'); b.textContent = q; b.onclick = function () { answer(q); }; list.appendChild(b); });
+    openP('talk');
+  }
+  function answer(q) {
+    var e = talking; if (!e) return; e.a.wait = 6; sfx('mandible_click', 0.45);
+    if (/leave you/i.test(q)) { closeP('talk'); talking = null; return; }
+    if (/get me a drink/i.test(q)) { closeP('talk'); openBar(); return; }
+    if (/work/i.test(q)) { closeP('talk'); renderJobs(); openP('job-board'); return; }
+    var pool = /crest/i.test(q) ? DLG[(CASTE[e.caste] || CASTE.blue_civilian_male)[0]] : /Argo/i.test(q) ? (DLG.general || []).concat(DLG.greetings) : /drinking/i.test(q) ? (DLG.female || []).concat(DLG.bartender || []) : DLG.civilian;
+    document.getElementById('talk-line').textContent = '“' + pick(pool && pool.length ? pool : DLG.greetings) + '”';
+  }
+  // ── the bar ──
+  function openBar() {
+    if (!DLG) return; document.getElementById('bar-line').textContent = '“' + pick(DLG.bartender || ['Select a beverage.']) + '”';
+    var list = document.getElementById('bar-list'); list.innerHTML = '';
+    DLG.drinkMenu.forEach(function (d) { var b = document.createElement('button'); b.textContent = d.name; b.onclick = function () { closeP('bar-menu'); serve(d.id); }; list.appendChild(b); });
+    if (BAR) play(BAR, 'Talk'); openP('bar-menu');
+  }
+  function serve(id) {
+    if (BAR) { holdDrink(BAR, true, id); play(BAR, 'Serve_Drink', true); setTimeout(function () { holdDrink(BAR, false); play(BAR, 'Idle'); }, 2600); }
+    sfx('drink_pour', 0.6); setTimeout(function () { sfx('glass_clink', 0.6); }, 1500);
+    toast(DLG.drinkMenu.filter(function (d) { return d.id === id; })[0].name + ' — served.');
+    document.body.classList.add('tipsy'); clearTimeout(window.__tipsy); window.__tipsy = setTimeout(function () { document.body.classList.remove('tipsy'); }, /neural|crimson/.test(id) ? 30000 : 16000);
+  }
+  document.querySelector('#bar-menu .close').addEventListener('click', function () { closeP('bar-menu'); if (BAR) play(BAR, 'Idle'); });
+  document.getElementById('job-close').addEventListener('click', function () { closeP('job-board'); });
   function renderJobs() {
     var M = window.WF_MISSIONS, c = M.credits(), rk = M.rank(c), act = M.active(), list = document.getElementById('job-list'); list.innerHTML = '';
     document.getElementById('job-head').innerHTML = '<b>' + rk.name + '</b> · ' + c + ' credits' + (rk.next ? '<br><small>' + (rk.next[0] - c) + ' cr to ' + rk.next[1] + '</small>' : '');
@@ -250,19 +268,36 @@
     });
   }
 
-  if (window.WF_SOUND) WF_SOUND.murmur(true);
-  AFRAME.registerComponent('wf-station', {
-    init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build);
-      document.getElementById('bartender').addEventListener('click', function () { open('bar-menu'); });
-      document.getElementById('board').addEventListener('click', function () { renderJobs(); open('job-board'); });
+  // ── leaving / arriving ──
+  var jump = document.getElementById('jump'), leaving = false;
+  function undock() { if (leaving) return; leaving = true; sfx('door_slide', 0.6); jump.style.transition = 'opacity .6s ease-in'; jump.style.opacity = 1;
+    setTimeout(function () { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=station'; }, 650); }
+
+  var DRINK_STATES = ['Drink_Sip', 'Serve_Drink', 'Reach_Grab', 'Toast'], P2 = [0, 0], tmp = new THREE.Vector3();
+  AFRAME.registerComponent('wf-hive', {
+    init: function () { if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build);
+      document.getElementById('bartender').addEventListener('click', openBar);
+      document.getElementById('board').addEventListener('click', function () { renderJobs(); openP('job-board'); });
       document.getElementById('airlock').addEventListener('click', undock); },
-    tick: function (t) { var s = t / 1000; anim.forEach(function (f) { f(s); });
-      var c = this.el.camera; if (c && c.el) { var p = c.el.object3D.position; if (p.z > R - 1.2 && Math.abs(p.x) < 1.0) undock(); } }
+    tick: function (t, dtm) {
+      var dt = Math.min(dtm || 16, 60) / 1000, s = t / 1000; ANIM.forEach(function (f) { f(s); });
+      var cam = this.el.camera && this.el.camera.el; if (!cam) return; cam.object3D.getWorldPosition(tmp); P2[0] = tmp.x; P2[1] = tmp.z;
+      if (tmp.z > 20.6 && Math.abs(tmp.x) < 1.6) undock();
+      if (HOLO) { HOLO.mx.update(dt); HOLO.s.position.y = LAYOUT.hologram[1] + 0.055 * Math.sin(s * 2); }
+      if (BAR) BAR.mixer.update(dt);
+      if (!CROWD) return; CROWD.update(dt, P2);
+      for (var i = 0; i < NPCS.length; i++) {
+        var e = NPCS[i], a = e.a, name = a.state || 'Idle', d = Math.hypot(a.p[0] - P2[0], a.p[1] - P2[1]);
+        play(e, name, name === 'Serve_Drink'); holdDrink(e, DRINK_STATES.indexOf(name) >= 0, 'amber_resin');
+        e.model.position.set(a.p[0], 0, a.p[1]); e.model.rotation.y = a.heading; e.hit.object3D.position.set(a.p[0], 1.6, a.p[1]);
+        if (d < 32) e.mixer.update(dt); else if ((i + Math.floor(s * 10)) % 4 === 0) e.mixer.update(dt * 4);   // far NPCs animate at a quarter rate
+      }
+    }
   });
-  // arriving from the ship: the docking flash fades into the club
+  // arriving from the ship: the docking flash fades into the Hiveport; a docking contract completes here
   if (/from=dock/.test(location.search) && window.WF_MISSIONS) { var res = WF_MISSIONS.progress('dock'); if (res) setTimeout(function () { toast(res.text); }, 1600); }
   if (document.documentElement.classList.contains('from-dock')) {
-    var fade = function () { jump.style.transition = 'opacity 1.2s ease-out'; requestAnimationFrame(function () { document.documentElement.classList.remove('from-dock'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); }); };
+    var fade = function () { sfx('security_chime', 0.5); jump.style.transition = 'opacity 1.2s ease-out'; requestAnimationFrame(function () { document.documentElement.classList.remove('from-dock'); jump.style.opacity = '1'; requestAnimationFrame(function () { jump.style.opacity = '0'; }); }); };
     if (sc.hasLoaded) setTimeout(fade, 300); else sc.addEventListener('loaded', function () { setTimeout(fade, 300); });
   }
 }());

@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126d).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126e).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -207,6 +207,16 @@ Rules drawn from them:
   3.6 MB) at scale 0.45, its 'Rotor' habitation belt turning slowly; STATION.name 'HIVEPORT' (map id Argo_Hiveport); collision
   sphere 42; DOCK AT HIVEPORT. The orbital-kit wheel (models/station/orbital_station.glb) is no longer loaded. Pack's scripted
   docking controller (42 s path, bay doors/clamps clips) NOT used yet — docking is still the flash into station.html.
+- **HIVEPORT INTERIOR (Nov 26, Hiveport_Argo_Station_Prototype.zip; README + concept in reference/hiveport-interior/)** —
+  station.html is now the K'Vetar HIVEPORT (old Ember Room club kept as station-ember-room.html, unlinked). hiveport/rooms/
+  Hiveport_complete.glb (96 × 44 m deck: nexus with the Resin Spire bar + holo stage, 8 side zones; hex-pattern ceilings added per
+  layout room), hiveport/layout.json (rooms, lights, 42 crowd targets, obstacles → WAYFARER.extraSolids for mobile.js collision,
+  bounds ±48 × ±22), hiveport/systems/crowd.mjs (pack's grid-A* crowd). NPCs = Kvetar_male/female_rigged.glb cloned per NPC
+  (cloneSkinned) with KHR_materials_variants castes (civilian 45 / soldier 30 / commander 18 / general 7 %, 22 % female purple
+  crest); 8 on mobile, 16 desktop; tap → dialogue.json small talk. Bartender behind the bar → drinks menu (Serve_Drink, glass in
+  hand, tipsy wobble). Violet holographic performer dances on the stage. Job board + AIRLOCK at +Z (z 21.55) → minigame
+  ?from=station. Audio: hiveport/audio/*.m4a loops (crowd wash + station hum), NO music (user rule).
+  Kvetar_Complete_Modular_140_Variants.zip = OLD/redundant (static; same 112 male + 28 female variants live in the rigged GLBs) — unused.
 - **COMMAND SYSTEM (Nov 26, navigation kit = SS_Wayfarer_Galactic_Navigation_Command_Systems.zip; README/guide in
   reference/navigation-kit/)** — bridge.html `wf-cmd` component + window.WF_CMD {sit, stand, launch, openNav, state}. Models:
   models/deck/Commander_Chair_Animated.glb (Swivel/Armrest/Seat_Anchor/Eye_Anchor nodes, Z-up inside; BASIS = rotX +90° → Y-up),

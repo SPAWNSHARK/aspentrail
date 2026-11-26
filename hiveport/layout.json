@@ -1,0 +1,2074 @@
+{
+  "name": "Hiveport",
+  "units": "meters",
+  "axes": "Y up, +Z south / entrance",
+  "bounds": [
+    -48,
+    -22,
+    48,
+    22
+  ],
+  "floorArea": 4224,
+  "rooms": [
+    {
+      "id": "nexus",
+      "label": "Central Nexus / Bar / Stage",
+      "bounds": [
+        -22,
+        -22,
+        22,
+        22
+      ],
+      "height": 12
+    },
+    {
+      "id": "private_suites",
+      "label": "Private Suites",
+      "bounds": [
+        -48,
+        -22,
+        -22,
+        -11
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "trade_lounge",
+      "label": "Trade Lounge",
+      "bounds": [
+        -48,
+        -11,
+        -22,
+        0
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "lounge_pods",
+      "label": "Lounge Pods",
+      "bounds": [
+        -48,
+        0,
+        -22,
+        11
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "dining",
+      "label": "Dining Hall",
+      "bounds": [
+        -48,
+        11,
+        -22,
+        22
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "service",
+      "label": "Service & Security",
+      "bounds": [
+        22,
+        -22,
+        48,
+        -11
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "detox",
+      "label": "Medical / Detox",
+      "bounds": [
+        22,
+        -11,
+        48,
+        0
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "gaming",
+      "label": "Gaming & Holo Arena",
+      "bounds": [
+        22,
+        0,
+        48,
+        11
+      ],
+      "height": 6.5
+    },
+    {
+      "id": "quiet_lounge",
+      "label": "Quiet Lounge",
+      "bounds": [
+        22,
+        11,
+        48,
+        22
+      ],
+      "height": 6.5
+    }
+  ],
+  "obstacles": [
+    {
+      "id": "north",
+      "min": [
+        -22.0,
+        -22.0
+      ],
+      "max": [
+        22.0,
+        -21.6
+      ]
+    },
+    {
+      "id": "south_left",
+      "min": [
+        -22.0,
+        21.6
+      ],
+      "max": [
+        -3.0,
+        22.0
+      ]
+    },
+    {
+      "id": "south_right",
+      "min": [
+        3.0,
+        21.6
+      ],
+      "max": [
+        22.0,
+        22.0
+      ]
+    },
+    {
+      "id": "div_-1_0_-20.5",
+      "min": [
+        -22.2,
+        -22.0
+      ],
+      "max": [
+        -21.8,
+        -19.0
+      ]
+    },
+    {
+      "id": "div_-1_0_-12.5",
+      "min": [
+        -22.2,
+        -14.0
+      ],
+      "max": [
+        -21.8,
+        -11.0
+      ]
+    },
+    {
+      "id": "div_-1_1_-9.5",
+      "min": [
+        -22.2,
+        -11.0
+      ],
+      "max": [
+        -21.8,
+        -8.0
+      ]
+    },
+    {
+      "id": "div_-1_1_-1.5",
+      "min": [
+        -22.2,
+        -3.0
+      ],
+      "max": [
+        -21.8,
+        0.0
+      ]
+    },
+    {
+      "id": "div_-1_2_1.5",
+      "min": [
+        -22.2,
+        0.0
+      ],
+      "max": [
+        -21.8,
+        3.0
+      ]
+    },
+    {
+      "id": "div_-1_2_9.5",
+      "min": [
+        -22.2,
+        8.0
+      ],
+      "max": [
+        -21.8,
+        11.0
+      ]
+    },
+    {
+      "id": "div_-1_3_12.5",
+      "min": [
+        -22.2,
+        11.0
+      ],
+      "max": [
+        -21.8,
+        14.0
+      ]
+    },
+    {
+      "id": "div_-1_3_20.5",
+      "min": [
+        -22.2,
+        19.0
+      ],
+      "max": [
+        -21.8,
+        22.0
+      ]
+    },
+    {
+      "id": "div_1_0_-20.5",
+      "min": [
+        21.8,
+        -22.0
+      ],
+      "max": [
+        22.2,
+        -19.0
+      ]
+    },
+    {
+      "id": "div_1_0_-12.5",
+      "min": [
+        21.8,
+        -14.0
+      ],
+      "max": [
+        22.2,
+        -11.0
+      ]
+    },
+    {
+      "id": "div_1_1_-9.5",
+      "min": [
+        21.8,
+        -11.0
+      ],
+      "max": [
+        22.2,
+        -8.0
+      ]
+    },
+    {
+      "id": "div_1_1_-1.5",
+      "min": [
+        21.8,
+        -3.0
+      ],
+      "max": [
+        22.2,
+        0.0
+      ]
+    },
+    {
+      "id": "div_1_2_1.5",
+      "min": [
+        21.8,
+        0.0
+      ],
+      "max": [
+        22.2,
+        3.0
+      ]
+    },
+    {
+      "id": "div_1_2_9.5",
+      "min": [
+        21.8,
+        8.0
+      ],
+      "max": [
+        22.2,
+        11.0
+      ]
+    },
+    {
+      "id": "div_1_3_12.5",
+      "min": [
+        21.8,
+        11.0
+      ],
+      "max": [
+        22.2,
+        14.0
+      ]
+    },
+    {
+      "id": "div_1_3_20.5",
+      "min": [
+        21.8,
+        19.0
+      ],
+      "max": [
+        22.2,
+        22.0
+      ]
+    },
+    {
+      "id": "stage",
+      "min": [
+        -5.5,
+        -20.5
+      ],
+      "max": [
+        5.5,
+        -9.5
+      ]
+    },
+    {
+      "id": "resin_bar_segment_20",
+      "min": [
+        -6.425,
+        9.175
+      ],
+      "max": [
+        -2.175,
+        10.825
+      ]
+    },
+    {
+      "id": "resin_bar_segment_21",
+      "min": [
+        -2.125,
+        9.175
+      ],
+      "max": [
+        2.125,
+        10.825
+      ]
+    },
+    {
+      "id": "resin_bar_segment_22",
+      "min": [
+        2.175,
+        9.175
+      ],
+      "max": [
+        6.425,
+        10.825
+      ]
+    },
+    {
+      "id": "bar_stool_23",
+      "min": [
+        -5.5,
+        11.7
+      ],
+      "max": [
+        -4.5,
+        12.7
+      ]
+    },
+    {
+      "id": "bar_stool_24",
+      "min": [
+        -3.5,
+        11.7
+      ],
+      "max": [
+        -2.5,
+        12.7
+      ]
+    },
+    {
+      "id": "bar_stool_25",
+      "min": [
+        -1.5,
+        11.7
+      ],
+      "max": [
+        -0.5,
+        12.7
+      ]
+    },
+    {
+      "id": "bar_stool_26",
+      "min": [
+        0.5,
+        11.7
+      ],
+      "max": [
+        1.5,
+        12.7
+      ]
+    },
+    {
+      "id": "bar_stool_27",
+      "min": [
+        2.5,
+        11.7
+      ],
+      "max": [
+        3.5,
+        12.7
+      ]
+    },
+    {
+      "id": "bar_stool_28",
+      "min": [
+        4.5,
+        11.7
+      ],
+      "max": [
+        5.5,
+        12.7
+      ]
+    },
+    {
+      "id": "lounge_booth_29",
+      "min": [
+        -17.7,
+        -10.7
+      ],
+      "max": [
+        -16.3,
+        -7.3
+      ]
+    },
+    {
+      "id": "lounge_booth_30",
+      "min": [
+        -17.7,
+        -1.7
+      ],
+      "max": [
+        -16.3,
+        1.7
+      ]
+    },
+    {
+      "id": "lounge_booth_31",
+      "min": [
+        -17.7,
+        6.3
+      ],
+      "max": [
+        -16.3,
+        9.7
+      ]
+    },
+    {
+      "id": "lounge_booth_32",
+      "min": [
+        16.3,
+        -10.7
+      ],
+      "max": [
+        17.7,
+        -7.3
+      ]
+    },
+    {
+      "id": "lounge_booth_33",
+      "min": [
+        16.3,
+        -1.7
+      ],
+      "max": [
+        17.7,
+        1.7
+      ]
+    },
+    {
+      "id": "lounge_booth_34",
+      "min": [
+        16.3,
+        6.3
+      ],
+      "max": [
+        17.7,
+        9.7
+      ]
+    },
+    {
+      "id": "private_suites_outer",
+      "min": [
+        -48.0,
+        -22.0
+      ],
+      "max": [
+        -47.6,
+        -11.0
+      ]
+    },
+    {
+      "id": "private_suites_north",
+      "min": [
+        -48.0,
+        -22.0
+      ],
+      "max": [
+        -22.0,
+        -21.6
+      ]
+    },
+    {
+      "id": "sleeping_pod_37",
+      "min": [
+        -43.3,
+        -21.1
+      ],
+      "max": [
+        -38.7,
+        -17.9
+      ]
+    },
+    {
+      "id": "sleeping_pod_38",
+      "min": [
+        -43.3,
+        -15.1
+      ],
+      "max": [
+        -38.7,
+        -11.9
+      ]
+    },
+    {
+      "id": "sleeping_pod_39",
+      "min": [
+        -37.3,
+        -21.1
+      ],
+      "max": [
+        -32.7,
+        -17.9
+      ]
+    },
+    {
+      "id": "sleeping_pod_40",
+      "min": [
+        -37.3,
+        -15.1
+      ],
+      "max": [
+        -32.7,
+        -11.9
+      ]
+    },
+    {
+      "id": "sleeping_pod_41",
+      "min": [
+        -31.3,
+        -21.1
+      ],
+      "max": [
+        -26.7,
+        -17.9
+      ]
+    },
+    {
+      "id": "sleeping_pod_42",
+      "min": [
+        -31.3,
+        -15.1
+      ],
+      "max": [
+        -26.7,
+        -11.9
+      ]
+    },
+    {
+      "id": "trade_lounge_outer",
+      "min": [
+        -48.0,
+        -11.0
+      ],
+      "max": [
+        -47.6,
+        0.0
+      ]
+    },
+    {
+      "id": "trade_lounge_north",
+      "min": [
+        -48.0,
+        -11.0
+      ],
+      "max": [
+        -22.0,
+        -10.6
+      ]
+    },
+    {
+      "id": "lounge_booth_45",
+      "min": [
+        -42.7,
+        -9.2
+      ],
+      "max": [
+        -39.3,
+        -7.8
+      ]
+    },
+    {
+      "id": "lounge_booth_46",
+      "min": [
+        -42.7,
+        -3.2
+      ],
+      "max": [
+        -39.3,
+        -1.8
+      ]
+    },
+    {
+      "id": "lounge_booth_47",
+      "min": [
+        -36.7,
+        -9.2
+      ],
+      "max": [
+        -33.3,
+        -7.8
+      ]
+    },
+    {
+      "id": "lounge_booth_48",
+      "min": [
+        -36.7,
+        -3.2
+      ],
+      "max": [
+        -33.3,
+        -1.8
+      ]
+    },
+    {
+      "id": "lounge_booth_49",
+      "min": [
+        -30.7,
+        -9.2
+      ],
+      "max": [
+        -27.3,
+        -7.8
+      ]
+    },
+    {
+      "id": "lounge_booth_50",
+      "min": [
+        -30.7,
+        -3.2
+      ],
+      "max": [
+        -27.3,
+        -1.8
+      ]
+    },
+    {
+      "id": "lounge_pods_outer",
+      "min": [
+        -48.0,
+        0.0
+      ],
+      "max": [
+        -47.6,
+        11.0
+      ]
+    },
+    {
+      "id": "lounge_pods_north",
+      "min": [
+        -48.0,
+        0.0
+      ],
+      "max": [
+        -22.0,
+        0.4
+      ]
+    },
+    {
+      "id": "lounge_booth_53",
+      "min": [
+        -42.7,
+        1.8
+      ],
+      "max": [
+        -39.3,
+        3.2
+      ]
+    },
+    {
+      "id": "lounge_booth_54",
+      "min": [
+        -42.7,
+        7.8
+      ],
+      "max": [
+        -39.3,
+        9.2
+      ]
+    },
+    {
+      "id": "lounge_booth_55",
+      "min": [
+        -36.7,
+        1.8
+      ],
+      "max": [
+        -33.3,
+        3.2
+      ]
+    },
+    {
+      "id": "lounge_booth_56",
+      "min": [
+        -36.7,
+        7.8
+      ],
+      "max": [
+        -33.3,
+        9.2
+      ]
+    },
+    {
+      "id": "lounge_booth_57",
+      "min": [
+        -30.7,
+        1.8
+      ],
+      "max": [
+        -27.3,
+        3.2
+      ]
+    },
+    {
+      "id": "lounge_booth_58",
+      "min": [
+        -30.7,
+        7.8
+      ],
+      "max": [
+        -27.3,
+        9.2
+      ]
+    },
+    {
+      "id": "dining_outer",
+      "min": [
+        -48.0,
+        11.0
+      ],
+      "max": [
+        -47.6,
+        22.0
+      ]
+    },
+    {
+      "id": "dining_north",
+      "min": [
+        -48.0,
+        11.0
+      ],
+      "max": [
+        -22.0,
+        11.4
+      ]
+    },
+    {
+      "id": "dining_south",
+      "min": [
+        -48.0,
+        21.6
+      ],
+      "max": [
+        -22.0,
+        22.0
+      ]
+    },
+    {
+      "id": "resin_table_62",
+      "min": [
+        -42.05,
+        12.45
+      ],
+      "max": [
+        -39.95,
+        14.55
+      ]
+    },
+    {
+      "id": "bar_stool_63",
+      "min": [
+        -39.85,
+        13.0
+      ],
+      "max": [
+        -38.85,
+        14.0
+      ]
+    },
+    {
+      "id": "resin_table_64",
+      "min": [
+        -42.05,
+        18.45
+      ],
+      "max": [
+        -39.95,
+        20.55
+      ]
+    },
+    {
+      "id": "bar_stool_65",
+      "min": [
+        -39.85,
+        19.0
+      ],
+      "max": [
+        -38.85,
+        20.0
+      ]
+    },
+    {
+      "id": "resin_table_66",
+      "min": [
+        -36.05,
+        12.45
+      ],
+      "max": [
+        -33.95,
+        14.55
+      ]
+    },
+    {
+      "id": "bar_stool_67",
+      "min": [
+        -33.85,
+        13.0
+      ],
+      "max": [
+        -32.85,
+        14.0
+      ]
+    },
+    {
+      "id": "resin_table_68",
+      "min": [
+        -36.05,
+        18.45
+      ],
+      "max": [
+        -33.95,
+        20.55
+      ]
+    },
+    {
+      "id": "bar_stool_69",
+      "min": [
+        -33.85,
+        19.0
+      ],
+      "max": [
+        -32.85,
+        20.0
+      ]
+    },
+    {
+      "id": "resin_table_70",
+      "min": [
+        -30.05,
+        12.45
+      ],
+      "max": [
+        -27.95,
+        14.55
+      ]
+    },
+    {
+      "id": "bar_stool_71",
+      "min": [
+        -27.85,
+        13.0
+      ],
+      "max": [
+        -26.85,
+        14.0
+      ]
+    },
+    {
+      "id": "resin_table_72",
+      "min": [
+        -30.05,
+        18.45
+      ],
+      "max": [
+        -27.95,
+        20.55
+      ]
+    },
+    {
+      "id": "bar_stool_73",
+      "min": [
+        -27.85,
+        19.0
+      ],
+      "max": [
+        -26.85,
+        20.0
+      ]
+    },
+    {
+      "id": "service_outer",
+      "min": [
+        47.6,
+        -22.0
+      ],
+      "max": [
+        48.0,
+        -11.0
+      ]
+    },
+    {
+      "id": "service_north",
+      "min": [
+        22.0,
+        -22.0
+      ],
+      "max": [
+        48.0,
+        -21.6
+      ]
+    },
+    {
+      "id": "cargo_crate_76",
+      "min": [
+        27.95,
+        -20.15
+      ],
+      "max": [
+        30.05,
+        -18.85
+      ]
+    },
+    {
+      "id": "cargo_crate_77",
+      "min": [
+        27.95,
+        -14.15
+      ],
+      "max": [
+        30.05,
+        -12.85
+      ]
+    },
+    {
+      "id": "cargo_crate_78",
+      "min": [
+        33.95,
+        -20.15
+      ],
+      "max": [
+        36.05,
+        -18.85
+      ]
+    },
+    {
+      "id": "cargo_crate_79",
+      "min": [
+        33.95,
+        -14.15
+      ],
+      "max": [
+        36.05,
+        -12.85
+      ]
+    },
+    {
+      "id": "cargo_crate_80",
+      "min": [
+        39.95,
+        -20.15
+      ],
+      "max": [
+        42.05,
+        -18.85
+      ]
+    },
+    {
+      "id": "cargo_crate_81",
+      "min": [
+        39.95,
+        -14.15
+      ],
+      "max": [
+        42.05,
+        -12.85
+      ]
+    },
+    {
+      "id": "detox_outer",
+      "min": [
+        47.6,
+        -11.0
+      ],
+      "max": [
+        48.0,
+        0.0
+      ]
+    },
+    {
+      "id": "detox_north",
+      "min": [
+        22.0,
+        -11.0
+      ],
+      "max": [
+        48.0,
+        -10.6
+      ]
+    },
+    {
+      "id": "detox_bed_84",
+      "min": [
+        27.25,
+        -9.7
+      ],
+      "max": [
+        30.75,
+        -7.3
+      ]
+    },
+    {
+      "id": "detox_bed_85",
+      "min": [
+        27.25,
+        -3.7
+      ],
+      "max": [
+        30.75,
+        -1.3
+      ]
+    },
+    {
+      "id": "detox_bed_86",
+      "min": [
+        33.25,
+        -9.7
+      ],
+      "max": [
+        36.75,
+        -7.3
+      ]
+    },
+    {
+      "id": "detox_bed_87",
+      "min": [
+        33.25,
+        -3.7
+      ],
+      "max": [
+        36.75,
+        -1.3
+      ]
+    },
+    {
+      "id": "detox_bed_88",
+      "min": [
+        39.25,
+        -9.7
+      ],
+      "max": [
+        42.75,
+        -7.3
+      ]
+    },
+    {
+      "id": "detox_bed_89",
+      "min": [
+        39.25,
+        -3.7
+      ],
+      "max": [
+        42.75,
+        -1.3
+      ]
+    },
+    {
+      "id": "gaming_outer",
+      "min": [
+        47.6,
+        0.0
+      ],
+      "max": [
+        48.0,
+        11.0
+      ]
+    },
+    {
+      "id": "gaming_north",
+      "min": [
+        22.0,
+        0.0
+      ],
+      "max": [
+        48.0,
+        0.4
+      ]
+    },
+    {
+      "id": "gaming_console_92",
+      "min": [
+        27.95,
+        1.85
+      ],
+      "max": [
+        30.05,
+        3.15
+      ]
+    },
+    {
+      "id": "gaming_console_93",
+      "min": [
+        27.95,
+        7.85
+      ],
+      "max": [
+        30.05,
+        9.15
+      ]
+    },
+    {
+      "id": "gaming_console_94",
+      "min": [
+        33.95,
+        1.85
+      ],
+      "max": [
+        36.05,
+        3.15
+      ]
+    },
+    {
+      "id": "gaming_console_95",
+      "min": [
+        33.95,
+        7.85
+      ],
+      "max": [
+        36.05,
+        9.15
+      ]
+    },
+    {
+      "id": "gaming_console_96",
+      "min": [
+        39.95,
+        1.85
+      ],
+      "max": [
+        42.05,
+        3.15
+      ]
+    },
+    {
+      "id": "gaming_console_97",
+      "min": [
+        39.95,
+        7.85
+      ],
+      "max": [
+        42.05,
+        9.15
+      ]
+    },
+    {
+      "id": "quiet_lounge_outer",
+      "min": [
+        47.6,
+        11.0
+      ],
+      "max": [
+        48.0,
+        22.0
+      ]
+    },
+    {
+      "id": "quiet_lounge_north",
+      "min": [
+        22.0,
+        11.0
+      ],
+      "max": [
+        48.0,
+        11.4
+      ]
+    },
+    {
+      "id": "quiet_lounge_south",
+      "min": [
+        22.0,
+        21.6
+      ],
+      "max": [
+        48.0,
+        22.0
+      ]
+    },
+    {
+      "id": "lounge_booth_101",
+      "min": [
+        27.3,
+        12.8
+      ],
+      "max": [
+        30.7,
+        14.2
+      ]
+    },
+    {
+      "id": "lounge_booth_102",
+      "min": [
+        27.3,
+        18.8
+      ],
+      "max": [
+        30.7,
+        20.2
+      ]
+    },
+    {
+      "id": "lounge_booth_103",
+      "min": [
+        33.3,
+        12.8
+      ],
+      "max": [
+        36.7,
+        14.2
+      ]
+    },
+    {
+      "id": "lounge_booth_104",
+      "min": [
+        33.3,
+        18.8
+      ],
+      "max": [
+        36.7,
+        20.2
+      ]
+    },
+    {
+      "id": "lounge_booth_105",
+      "min": [
+        39.3,
+        12.8
+      ],
+      "max": [
+        42.7,
+        14.2
+      ]
+    },
+    {
+      "id": "lounge_booth_106",
+      "min": [
+        39.3,
+        18.8
+      ],
+      "max": [
+        42.7,
+        20.2
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "id": "bar_0",
+      "position": [
+        -5.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "bar_1",
+      "position": [
+        -3.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "bar_2",
+      "position": [
+        -1.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "bar_3",
+      "position": [
+        1.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "bar_4",
+      "position": [
+        3.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "bar_5",
+      "position": [
+        5.0,
+        0,
+        13.7
+      ],
+      "kind": "drink",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_-1_-9",
+      "position": [
+        -14.8,
+        0,
+        -9
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_-1_0",
+      "position": [
+        -14.8,
+        0,
+        0
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_-1_8",
+      "position": [
+        -14.8,
+        0,
+        8
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_1_-9",
+      "position": [
+        14.8,
+        0,
+        -9
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_1_0",
+      "position": [
+        14.8,
+        0,
+        0
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "booth_1_8",
+      "position": [
+        14.8,
+        0,
+        8
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_0_18",
+      "position": [
+        0,
+        0,
+        18
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_-10_2",
+      "position": [
+        -10,
+        0,
+        2
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_10_2",
+      "position": [
+        10,
+        0,
+        2
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_0_5",
+      "position": [
+        0,
+        0,
+        5
+      ],
+      "kind": "dance",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_-9_-7",
+      "position": [
+        -9,
+        0,
+        -7
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "nexus_9_-7",
+      "position": [
+        9,
+        0,
+        -7
+      ],
+      "kind": "social",
+      "room": "nexus"
+    },
+    {
+      "id": "private_suites_0",
+      "position": [
+        -41.0,
+        0,
+        -16.5
+      ],
+      "kind": "social",
+      "room": "private_suites"
+    },
+    {
+      "id": "private_suites_1",
+      "position": [
+        -35.0,
+        0,
+        -16.5
+      ],
+      "kind": "social",
+      "room": "private_suites"
+    },
+    {
+      "id": "private_suites_2",
+      "position": [
+        -29.0,
+        0,
+        -16.5
+      ],
+      "kind": "social",
+      "room": "private_suites"
+    },
+    {
+      "id": "trade_lounge_0",
+      "position": [
+        -41.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "trade_lounge"
+    },
+    {
+      "id": "trade_lounge_1",
+      "position": [
+        -35.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "trade_lounge"
+    },
+    {
+      "id": "trade_lounge_2",
+      "position": [
+        -29.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "trade_lounge"
+    },
+    {
+      "id": "lounge_pods_0",
+      "position": [
+        -41.0,
+        0,
+        5.5
+      ],
+      "kind": "social",
+      "room": "lounge_pods"
+    },
+    {
+      "id": "lounge_pods_1",
+      "position": [
+        -35.0,
+        0,
+        5.5
+      ],
+      "kind": "social",
+      "room": "lounge_pods"
+    },
+    {
+      "id": "lounge_pods_2",
+      "position": [
+        -29.0,
+        0,
+        5.5
+      ],
+      "kind": "social",
+      "room": "lounge_pods"
+    },
+    {
+      "id": "dining_0",
+      "position": [
+        -41.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "dining"
+    },
+    {
+      "id": "dining_1",
+      "position": [
+        -35.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "dining"
+    },
+    {
+      "id": "dining_2",
+      "position": [
+        -29.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "dining"
+    },
+    {
+      "id": "service_0",
+      "position": [
+        29.0,
+        0,
+        -16.5
+      ],
+      "kind": "service",
+      "room": "service"
+    },
+    {
+      "id": "service_1",
+      "position": [
+        35.0,
+        0,
+        -16.5
+      ],
+      "kind": "service",
+      "room": "service"
+    },
+    {
+      "id": "service_2",
+      "position": [
+        41.0,
+        0,
+        -16.5
+      ],
+      "kind": "service",
+      "room": "service"
+    },
+    {
+      "id": "detox_0",
+      "position": [
+        29.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "detox"
+    },
+    {
+      "id": "detox_1",
+      "position": [
+        35.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "detox"
+    },
+    {
+      "id": "detox_2",
+      "position": [
+        41.0,
+        0,
+        -5.5
+      ],
+      "kind": "social",
+      "room": "detox"
+    },
+    {
+      "id": "gaming_0",
+      "position": [
+        29.0,
+        0,
+        5.5
+      ],
+      "kind": "game",
+      "room": "gaming"
+    },
+    {
+      "id": "gaming_1",
+      "position": [
+        35.0,
+        0,
+        5.5
+      ],
+      "kind": "game",
+      "room": "gaming"
+    },
+    {
+      "id": "gaming_2",
+      "position": [
+        41.0,
+        0,
+        5.5
+      ],
+      "kind": "game",
+      "room": "gaming"
+    },
+    {
+      "id": "quiet_lounge_0",
+      "position": [
+        29.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "quiet_lounge"
+    },
+    {
+      "id": "quiet_lounge_1",
+      "position": [
+        35.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "quiet_lounge"
+    },
+    {
+      "id": "quiet_lounge_2",
+      "position": [
+        41.0,
+        0,
+        16.5
+      ],
+      "kind": "social",
+      "room": "quiet_lounge"
+    }
+  ],
+  "spawns": [
+    [
+      -2,
+      0,
+      19.8
+    ],
+    [
+      0,
+      0,
+      19.8
+    ],
+    [
+      2,
+      0,
+      19.8
+    ]
+  ],
+  "lights": [
+    {
+      "position": [
+        0,
+        9,
+        -15
+      ],
+      "color": "#a044ff",
+      "intensity": 1000,
+      "distance": 18
+    },
+    {
+      "position": [
+        0,
+        8,
+        -1
+      ],
+      "color": "#8c28ff",
+      "intensity": 900,
+      "distance": 25
+    },
+    {
+      "position": [
+        0,
+        4,
+        10
+      ],
+      "color": "#ffaa33",
+      "intensity": 500,
+      "distance": 17
+    },
+    {
+      "position": [
+        -35.0,
+        4.8,
+        -16.5
+      ],
+      "color": "#ffb34d",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        -35.0,
+        4.8,
+        -5.5
+      ],
+      "color": "#ffb34d",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        -35.0,
+        4.8,
+        5.5
+      ],
+      "color": "#b253ff",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        -35.0,
+        4.8,
+        16.5
+      ],
+      "color": "#ffb34d",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        35.0,
+        4.8,
+        -16.5
+      ],
+      "color": "#ffb34d",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        35.0,
+        4.8,
+        -5.5
+      ],
+      "color": "#ffb34d",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        35.0,
+        4.8,
+        5.5
+      ],
+      "color": "#b253ff",
+      "intensity": 340,
+      "distance": 17
+    },
+    {
+      "position": [
+        35.0,
+        4.8,
+        16.5
+      ],
+      "color": "#b253ff",
+      "intensity": 340,
+      "distance": 17
+    }
+  ],
+  "hologram": [
+    0,
+    1.38,
+    -15
+  ],
+  "recommendedActiveNPCs": 32,
+  "wallFootprints": [
+    [
+      0,
+      -21.8,
+      44,
+      0.4
+    ],
+    [
+      -12.5,
+      21.8,
+      19,
+      0.4
+    ],
+    [
+      12.5,
+      21.8,
+      19,
+      0.4
+    ],
+    [
+      -22,
+      -20.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      -12.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      -9.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      -1.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      1.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      9.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      12.5,
+      0.4,
+      3
+    ],
+    [
+      -22,
+      20.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      -20.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      -12.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      -9.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      -1.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      1.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      9.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      12.5,
+      0.4,
+      3
+    ],
+    [
+      22,
+      20.5,
+      0.4,
+      3
+    ],
+    [
+      -47.8,
+      -16.5,
+      0.4,
+      11
+    ],
+    [
+      -35.0,
+      -21.8,
+      26,
+      0.4
+    ],
+    [
+      -47.8,
+      -5.5,
+      0.4,
+      11
+    ],
+    [
+      -35.0,
+      -10.8,
+      26,
+      0.4
+    ],
+    [
+      -47.8,
+      5.5,
+      0.4,
+      11
+    ],
+    [
+      -35.0,
+      0.2,
+      26,
+      0.4
+    ],
+    [
+      -47.8,
+      16.5,
+      0.4,
+      11
+    ],
+    [
+      -35.0,
+      11.2,
+      26,
+      0.4
+    ],
+    [
+      -35.0,
+      21.8,
+      26,
+      0.4
+    ],
+    [
+      47.8,
+      -16.5,
+      0.4,
+      11
+    ],
+    [
+      35.0,
+      -21.8,
+      26,
+      0.4
+    ],
+    [
+      47.8,
+      -5.5,
+      0.4,
+      11
+    ],
+    [
+      35.0,
+      -10.8,
+      26,
+      0.4
+    ],
+    [
+      47.8,
+      5.5,
+      0.4,
+      11
+    ],
+    [
+      35.0,
+      0.2,
+      26,
+      0.4
+    ],
+    [
+      47.8,
+      16.5,
+      0.4,
+      11
+    ],
+    [
+      35.0,
+      11.2,
+      26,
+      0.4
+    ],
+    [
+      35.0,
+      21.8,
+      26,
+      0.4
+    ]
+  ],
+  "version": 1
+}
