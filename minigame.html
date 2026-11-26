@@ -22,10 +22,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261127k"></script>
-  <script src="missions.js?v=20261127k"></script>
-  <script src="sound.js?v=20261127k"></script>
-  <script src="life.js?v=20261127k"></script>
+  <script src="shipskin.js?v=20261127l"></script>
+  <script src="missions.js?v=20261127l"></script>
+  <script src="sound.js?v=20261127l"></script>
+  <script src="life.js?v=20261127l"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -492,7 +492,7 @@ function updateExit(dt) {
   camera.position.copy(exiting.p0).lerp(nose, e); const look = shipPos.clone().add(new THREE.Vector3(0, 0, -6).applyQuaternion(q));
   const m = new THREE.Matrix4().lookAt(camera.position, look, new THREE.Vector3(0, 1, 0)); camera.quaternion.copy(exiting.q0).slerp(new THREE.Quaternion().setFromRotationMatrix(m), e);
   camera.fov = exiting.fov0 - 18 * e; camera.updateProjectionMatrix();
-  if (exiting.t > 1.6 && !exiting.gone) { exiting.gone = true; document.documentElement.style.background = document.body.style.background = '#1a0e06'; location.href = 'bridge.html?from=fly'; }
+  if (exiting.t > 1.6 && !exiting.gone) { exiting.gone = true; document.documentElement.style.background = document.body.style.background = '#1a0e06'; location.href = FIREFLY ? 'firefly.html?from=fly' : 'bridge.html?from=fly'; }   /* the Firefly docks back in its hangar */
   return true;
 }
 // DOCKING CUTSCENE (user, Nov 26: "1" from the Hiveport list) — the exterior pack's scripted docking controller
@@ -923,8 +923,24 @@ let invincible    = 0;
 const playerShip = buildPlayerShip();
 // the sculpted Wayfarer (models/ship/wayfarer_mobile.glb, 25k tris): replaces the hand-built hull once it has loaded.
 // Model units: 1 long, nose −Z; engine pods at x ±0.195, y 0.015, outlets z 0.47.
+const FIREFLY = /[?&]ship=firefly/.test(location.search);   // launched from the Firefly hangar: fly the Pathfinder cruiser WF-01
 (function loadSculptedShip() {
   if (!THREE.GLTFLoader) return;
+  if (FIREFLY) {
+    new THREE.GLTFLoader().load('models/atrium/Firefly_WF01_Mobile.glb', gltf => {
+      const m = gltf.scene, S = 0.85; m.scale.setScalar(S);   // kit units: 10 long, nose −Z → ~4.7 units in the 0.55 group
+      const mix = new THREE.AnimationMixer(m), clip = THREE.AnimationClip.findByName(gltf.animations, 'Landing_Gear_Retract');
+      if (clip) { const a = mix.clipAction(clip); a.setLoop(THREE.LoopOnce); a.clampWhenFinished = true; a.play(); mix.update(5); }   // gear up in flight
+      m.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(m), keep = new Set();
+      [-1, 1].forEach(sx => {   // glow in the two engine nacelles (aft corners of the hull)
+        const at = new THREE.Vector3(sx * bb.max.x * 0.74, (bb.min.y + bb.max.y) / 2, bb.max.z);
+        const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0x4fe0ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); plume.position.copy(at).add(new THREE.Vector3(0, 0, 0.25)); plume.scale.set(1.3, 1.3, 1); keep.add(plume);
+      });
+      playerShip.children.slice().forEach(c => { if (!c.isLight) playerShip.remove(c); });
+      playerShip.add(m); keep.forEach(o => playerShip.add(o)); playerShip.userData.sculpted = true;
+    }, undefined, err => console.warn('Firefly failed to load', err));
+    return;
+  }
   new THREE.GLTFLoader().load('models/ship/wayfarer_mobile.glb', gltf => {
     const m = gltf.scene, S = 10;                     // the hand-built group is scaled 0.55, so 10 here = 5.5 units long
     // no PMREM environment here: on r128 it came out as NaN and turned the whole hull black. Plain lighting, less metal.

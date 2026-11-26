@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127k).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127l).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -398,6 +398,14 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   port wall (deg −103…−67, glass r 8.25, water shader back r 8.85, kelp, 10/18 glowing fish, a ray, bubbles, teal light), STAR HEARTH on the
   starboard wall (deg 86, copper surround, additive flame sprites, flickering light, mantel clock/frames), 3 brass PENDANT lamps over the
   table, BAR CABINET by the door (deg 132, lit bottles). Lounge photo recaptured.
+- [x] FIREFLY WF-01 v1.0 (Nov 26, user's Firefly_WF01_Rebuild_Update.zip; README/VALIDATION/integration.mjs/preview in reference/firefly-kit/):
+  models/atrium/Firefly_WF01_Mobile.glb (44k tris, own PBR copper — NOT reskinned; root sits on the jaw dock's Firefly_Docking_Anchor; clips
+  Landing_Gear_Deploy/Retract, Quarantine_Open/Close; cabin built in: hide Exterior_Shell + Gear_* to see it); the kit's patched
+  Lower_Deck_Complete/Wayfarer_Dual_Deck_Assembled replaced ours; old Firefly_Interior.glb removed (HD 120k-tri model not copied: phone cost).
+  Hangar (kitroom.js): tap → BOARD (shell hidden, eye at Cabin_Spawn, look-only) → cabin menu: pilot's seat & LAUNCH (camera rides
+  Pilot_Anchor out through the opening jaw) / step out; or watch the launch from the hangar. Launch → minigame.html?ship=firefly
+  (FIREFLY flag: Firefly GLB ×0.85 in the player group, gear retracted, nacelle plumes from its bbox) and its exit → firefly.html?from=fly
+  (spawn beside the cradle).
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.

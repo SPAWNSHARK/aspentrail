@@ -1,0 +1,104 @@
+{
+  "Firefly_WF01_HD.glb": {
+    "glb_parse": true,
+    "triangles_instanced": 119418,
+    "renderable_mesh_nodes": 613,
+    "clips": [
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Quarantine_Open",
+      "Quarantine_Close"
+    ],
+    "bytes": 2700156,
+    "bounds": [
+      [
+        -2.8495657314336964,
+        -0.5600000002980232,
+        -5.0
+      ],
+      [
+        2.8495657314336964,
+        2.6142573566695444,
+        5.0
+      ]
+    ],
+    "cabin_vertex_samples_inside": true,
+    "cabin_max_normalized_section": 0.905,
+    "retracted_gear_vertex_samples_inside": true,
+    "retracted_gear_max_normalized_section": 0.6609
+  },
+  "Firefly_WF01_Mobile.glb": {
+    "glb_parse": true,
+    "triangles_instanced": 43868,
+    "renderable_mesh_nodes": 46,
+    "clips": [
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Quarantine_Open",
+      "Quarantine_Close"
+    ],
+    "bytes": 2500320,
+    "bounds": [
+      [
+        -2.8369998931884766,
+        -0.5600000002980232,
+        -5.0
+      ],
+      [
+        2.8369998931884766,
+        2.6106772422790527,
+        5.0
+      ]
+    ],
+    "cabin_vertex_samples_inside": true,
+    "cabin_max_normalized_section": 0.905,
+    "retracted_gear_vertex_samples_inside": true,
+    "retracted_gear_max_normalized_section": 0.6609
+  },
+  "Lower_Deck_Complete.glb": {
+    "glb_parse": true,
+    "triangles_instanced": 70720,
+    "renderable_mesh_nodes": 1058,
+    "clips": [
+      "Hangar_Pressure_Gate_Door_Open",
+      "Hangar_Pressure_Gate_Door_Close",
+      "Jaw_Open",
+      "Jaw_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Quarantine_Open",
+      "Quarantine_Close"
+    ],
+    "bytes": 3182216,
+    "dock_translation_match": true
+  },
+  "Wayfarer_Dual_Deck_Assembled.glb": {
+    "glb_parse": true,
+    "triangles_instanced": 127172,
+    "renderable_mesh_nodes": 3100,
+    "clips": [
+      "Command_Bridge_Door_Open",
+      "Command_Bridge_Door_Close",
+      "Holodeck_Door_Open",
+      "Holodeck_Door_Close",
+      "Captains_Quarters_Door_Open",
+      "Captains_Quarters_Door_Close",
+      "Crew_Lounge_Door_Open",
+      "Crew_Lounge_Door_Close",
+      "Media_Nexus_Door_Open",
+      "Media_Nexus_Door_Close",
+      "Library_Halcyon_Door_Open",
+      "Library_Halcyon_Door_Close",
+      "Hangar_Pressure_Gate_Door_Open",
+      "Hangar_Pressure_Gate_Door_Close",
+      "Jaw_Open",
+      "Jaw_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Quarantine_Open",
+      "Quarantine_Close"
+    ],
+    "bytes": 4419940,
+    "dock_translation_match": true
+  }
+}
