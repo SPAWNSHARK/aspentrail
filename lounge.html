@@ -528,10 +528,13 @@
   });
 </script>
 <script>window.WAYFARER.door.roomExit('lounge');</script>
-  <script src="interior-v8.js?v=20261127t"></script>
+  <script src="interior-v8.js?v=20261127u"></script>
   <script src="furniture.js?v=20261127s"></script>
   <script>  /* Furniture Upgrade 01: the Lounge's cat furniture, swapped in at the old props' transforms */
     document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.swapEntity('#old-cat-tree', 'cat_tree'); WF_FURN.swapEntity('#old-cat-bed', 'cat_sleep_pod'); WF_FURN.swapEntity('#old-cat-food', 'cat_feeding_station'); });
+  </script>
+  <script>  /* Furniture Upgrade 01 props pass (Nov 26) */
+    document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.place('bar_stool', { position: [5.75, 0, 4.58], yaw: 0.838 }); WF_FURN.place('bar_stool', { position: [5.15, 0, 5.24], yaw: 0.838 }); WF_FURN.place('cat_ramp', { position: [5.55, 0, 2.55], yaw: -2.05 }); });
   </script>
 </body>
 </html>

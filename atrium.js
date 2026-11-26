@@ -274,6 +274,7 @@
       var p=this.cam.object3D.position; if(this.loadingPosition)p.copy(this.loadingPosition); var y=floorAt(p.x,p.z,this.floorY);
       if(y===null){ this.spawnFallback=true; p.x=0; p.z=-21; this.floorY=0; y=floorAt(p.x,p.z,0); }
       if(y===null){this.loadFailed=true;window.WAYFARER.frozen=true;say('ATRIUM: NO SAFE SPAWN','#ff8f70');return;}
+      if (window.WF_FURN) [[4.55, 0, 2, -Math.PI / 2], [-4.55, 0, 3.5, Math.PI / 2], [4.55, -5.95, 2, -Math.PI / 2], [-4.55, -5.95, 3.5, Math.PI / 2]].forEach(function (q) { WF_FURN.place('wall_service_terminal', { position: [q[0], q[1], q[2]], yaw: q[3] }); });   /* Furniture 01: service terminals on both decks */
       this.floorY=y; this.player.object3D.position.y=y; this.last={x:p.x,z:p.z}; this.walkReady=true;
       say(this.spawnFallback?'SAFE SPAWN · UPPER DECK':(y < -3 ? 'LOWER DECK':'UPPER DECK'));
     },

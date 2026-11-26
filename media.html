@@ -85,14 +85,14 @@
   vr-mode-ui="enabled: true" renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1" background="color: #050302">
 
   <!-- recliners: two rows with a centre aisle; back row on a riser -->
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="-1.9 0 -0.6"  rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="-0.95 0 -0.6" rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="0.95 0 -0.6"  rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="1.9 0 -0.6"   rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="-1.9 0.36 1.7"  rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="-0.95 0.36 1.7" rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="0.95 0.36 1.7"  rotation="0 180 0"></a-entity>
-  <a-entity wf-prop="src: cinema_seat; height: 1.15" position="1.9 0.36 1.7"   rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="-1.9 0 -0.6"  rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="-0.95 0 -0.6" rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="0.95 0 -0.6"  rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="1.9 0 -0.6"   rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="-1.9 0.36 1.7"  rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="-0.95 0.36 1.7" rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="0.95 0.36 1.7"  rotation="0 180 0"></a-entity>
+  <a-entity class="old-seat" wf-prop="src: cinema_seat; height: 1.15" position="1.9 0.36 1.7"   rotation="0 180 0"></a-entity>
   <!-- speaker towers flanking the main screen -->
   <a-entity wf-prop="src: speaker_tower; height: 2.3" position="-5.4 0 -6.6" rotation="0 25 0"></a-entity>
   <a-entity wf-prop="src: speaker_tower; height: 2.3" position="5.4 0 -6.6"  rotation="0 -25 0"></a-entity>
@@ -249,6 +249,10 @@
 }());
 </script>
 <script>window.WAYFARER.door.roomExit('media');</script>
-  <script src="interior-v8.js?v=20261127t"></script>
+  <script src="interior-v8.js?v=20261127u"></script>
+  <script src="furniture.js?v=20261127u"></script>
+  <script>  /* Furniture Upgrade 01 props pass (Nov 26) */
+    document.querySelector('a-scene').addEventListener('loaded', function () { document.querySelectorAll('.old-seat').forEach(function (e) { WF_FURN.swapEntity(e, 'cinema_recliner'); }); });
+  </script>
 </body>
 </html>

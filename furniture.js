@@ -12,13 +12,13 @@
     return manifest().then(function (M) { var rec = M[id]; if (!rec) throw Error('Unknown furniture ' + id);
       return proto(id, rec).then(function (p) {
         var obj = p.clone(true); obj.name = 'furniture:' + id; obj.userData.v8Skip = true; obj.userData.furnitureId = id; obj.userData.anchors = rec.anchors;
-        if (o.position) obj.position.set(o.position[0], o.position[1] || 0, o.position[2]); obj.rotation.y = o.yaw || 0; if (o.scale) obj.scale.setScalar(o.scale);
+        if (o.position) obj.position.set(o.position[0], o.position[1] || 0, o.position[2]);   /* y may be a riser / lower deck */ obj.rotation.y = o.yaw || 0; if (o.scale) obj.scale.setScalar(o.scale);
         var parent = o.parent || document.querySelector('a-scene').object3D; parent.add(obj); obj.updateWorldMatrix(true, true); return obj; }); });
   }
   // swap an existing <a-entity> (e.g. a wf-prop) for a furniture piece at the same position/heading; the old one is hidden (and so not solid)
   function swapEntity(sel, id, extraYaw) {
     var el = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!el) return Promise.resolve(null);
-    var go = function () { var p = el.object3D.position, yaw = el.object3D.rotation.y + (extraYaw || 0); el.object3D.visible = false; el.setAttribute('visible', false); return place(id, { position: [p.x, 0, p.z], yaw: yaw }); };
+    var go = function () { var p = el.object3D.position, yaw = el.object3D.rotation.y + (extraYaw || 0); el.object3D.visible = false; el.setAttribute('visible', false); return place(id, { position: [p.x, p.y > 0.05 ? p.y : 0, p.z], yaw: yaw }); };   /* keep risers (Media back row) */
     return el.hasLoaded ? go() : new Promise(function (r) { el.addEventListener('loaded', function () { r(go()); }); });
   }
   window.WF_FURN = { place: place, swapEntity: swapEntity, manifest: manifest };

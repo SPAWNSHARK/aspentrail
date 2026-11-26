@@ -488,6 +488,12 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   interior-v8.js (guarded, idempotent) — converted warm lights keep their authored intensity (no more ×0.5), hemisphere ground lifted to
   0x858b93, one non-shadow neutral fill HemisphereLight 'WF_V9_InteriorFill' (0.65) per interior scene. Exposure unchanged (1.1).
   Renders: atrium, Bridge, Lounge, Mess brighter, no clipping. NOT checked on iPhone.
+- [x] PROPS PASS (Nov 26, Furniture 01 leftovers; furniture.js swapEntity now keeps risers): Media 8 cinema_seat → cinema_recliner (back row
+  on its riser); Library reading_armchair + side_table by the study desk; Lounge 2 bar_stools at the bar (deg ~128/136, r 7.35) + cat_ramp
+  by the tree; Holodeck holodeck_control_desk (port, by the planner) + holodeck_utility_table (starboard); atrium 4 wall_service_terminals
+  (both decks, x ±4.55). Not re-done: portal photos of Media/Lounge/Library/Holodeck (props only), maps/deck.json footprints.
+  UNUSED UPLOADS (by choice): Character Engine V5 (motor migration), Part 01–03 kit GLBs (0.6–1.3 MB each), Firefly/Spaceship HD, Medbay
+  assembled preview, bronze TV, orbital station interiors, Kvetar 140 variants, V8 geometry builders, remaining Furniture 01 pieces.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
