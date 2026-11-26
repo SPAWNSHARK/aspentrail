@@ -69,7 +69,7 @@ Rules drawn from them:
   translucent fill + blur 22px saturate 185% + top-edge highlight + sheen). Gyro off by default; its tap calls
   DeviceOrientationEvent.requestPermission so only Apple's prompt shows; every a-scene has device-orientation-permission-ui=
   "enabled: false". NO labels or hint text anywhere (#hud, #controls-hint, #hint-shoot hidden). Door button = symbol only (◀▶).
-  The user has changed their mind on this several times — keep it simple and ask before redesigning again, `brain.js`, `cats.js`, `stargarden.js`
+  The user has changed their mind on this several times — keep it simple and ask before redesigning again, `brain.js`, `stargarden.js`
 - AVATAR + VIEW (Nov 25, `avatar.js`, every A-Frame page, auto-attaches `wf-avatar` to the scene): original captain figure (navy
   coat, copper trim/epaulettes/belt/cuffs, boots) with jointed hips/knees/shoulders/elbows and a procedural walk cycle driven by
   real movement speed (stride, knee bend, arm swing, bob, lean, idle breathing); faces the walk direction. 1st/3rd person toggle =
@@ -224,7 +224,7 @@ Rules drawn from them:
   panel (kit's 7 choices; walking frozen, view eases to them); tap a cat → petted/purr + trust. Player can't walk through them
   (WAYFARER.dynSolids → mobile.js collide, also in the corridor; bump → engine.bump). canMove = never step INTO a mobile.js
   solid, except the last 1.4 m to its own chair/console. GOTCHA: never name a component method `play`/`pause` (A-Frame lifecycle).
-  Route check: scratchpad lay.js validated every in-room edge against the scanned solids (0 hits). Old Lounge alien cats REMOVED (user, Nov 26: "just the new cats"); cats.js stays in the repo, unloaded.
+  Route check: scratchpad lay.js validated every in-room edge against the scanned solids (0 hits). Old Lounge alien cats REMOVED (user, Nov 26: "just the new cats"); cats.js deleted (user, Nov 26).
 - **HIVEPORT INTERIOR (Nov 26, Hiveport_Argo_Station_Prototype.zip; README + concept in reference/hiveport-interior/)** —
   station.html is now the K'Vetar HIVEPORT (old Ember Room club kept as station-ember-room.html, unlinked). hiveport/rooms/
   Hiveport_complete.glb (96 × 44 m deck: nexus with the Resin Spire bar + holo stage, 8 side zones; hex-pattern ceilings added per
