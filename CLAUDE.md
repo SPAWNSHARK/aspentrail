@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126i).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126j).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -236,7 +236,9 @@ Rules drawn from them:
   hand, tipsy wobble). Violet holographic performer dances on the stage. Job board + AIRLOCK at +Z (z 21.55) → minigame
   ?from=station. Audio: Web Audio context made at load; loops (m4a, mp3 fallback) decoded at once and every touch/click/key resumes the
   context until it runs (iOS unlocks only on touchend/click — the first version gave up after pointerdown, so no music on iPhone).
-  MUSIC (user: always on, in the background): dance loop 0.30, up to 0.52 by the holo stage; crowd wash 0.3, hum 0.18. K'Vetar
+  MUSIC (user: always on, in the background; style "like Afterlife in Mass Effect 2" — that soundtrack is copyrighted, so it's an
+  ORIGINAL loop rendered by tools/make-club-loop.py: 124 BPM dark electro-industrial, A minor/phrygian, 31 s seamless) =
+  hiveport/audio/hiveport_club_loop.m4a (+.mp3) 0.30, up to 0.52 by the holo stage (the pack's dance/lounge loops are unused); crowd wash 0.3, hum 0.18. K'Vetar
   voices = WF_SOUND.alien (crowd member every 2–6 s within 22 m, talk/bar replies by caste). Crowd 12 phone / 20 desktop.
   Kvetar_Complete_Modular_140_Variants.zip = OLD/redundant (static; same 112 male + 28 female variants live in the rigged GLBs) — unused.
 - **COMMAND SYSTEM (Nov 26, navigation kit = SS_Wayfarer_Galactic_Navigation_Command_Systems.zip; README/guide in

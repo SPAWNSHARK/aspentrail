@@ -14,11 +14,11 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126i"></script>
-  <script src="sound.js?v=20261126i"></script>
-  <script src="avatar.js?v=20261126i"></script>
-  <script src="lcars.js?v=20261126i"></script>
-  <script src="missions.js?v=20261126i"></script>
+  <script src="mobile.js?v=20261126j"></script>
+  <script src="sound.js?v=20261126j"></script>
+  <script src="avatar.js?v=20261126j"></script>
+  <script src="lcars.js?v=20261126j"></script>
+  <script src="missions.js?v=20261126j"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -82,7 +82,8 @@
 // grid-A* crowd (hiveport/systems/crowd.mjs) walking between its 42 drink/dance/social/game targets and steering round you,
 // a bartender behind the bar (tap → drinks, Serve_Drink with the glass in hand), a dancing violet hologram on the stage,
 // K'Vetar small talk from dialogue.json, the contracts job board, and the airlock home. Collision = layout.json obstacles.
-// MUSIC (user, Nov 26 — an exception to "music only in Flight Mode"): the pack's dance loop, always on in the background,
+// MUSIC (user, Nov 26 — "like Afterlife in Mass Effect 2"): an ORIGINAL dark electro-industrial loop (tools/make-club-loop.py →
+// hiveport/audio/hiveport_club_loop.m4a/.mp3, 124 BPM, A minor), always on in the background,
 // a little louder near the holo stage, under the crowd wash, station hum, bar sounds and K'Vetar voices (WF_SOUND.alien).
 (function () {
   var THREE = AFRAME.THREE, sc = document.querySelector('a-scene'), MOB = window.WAYFARER && window.WAYFARER.mobile;
@@ -102,7 +103,7 @@
     var ctx = AUD.ctx = new C0(), master = ctx.createGain(); master.connect(ctx.destination);
     function decode(name, ext) { return fetch('hiveport/audio/' + name + '.' + ext).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
       .then(function (ab) { return new Promise(function (res, rej) { ctx.decodeAudioData(ab, res, rej); }); }); }
-    [['hiveport_dance_music_loop', 0.34], ['crowd_wash_loop', 0.3], ['station_hum_loop', 0.18]].forEach(function (q) {
+    [['hiveport_club_loop', 0.34], ['crowd_wash_loop', 0.3], ['station_hum_loop', 0.18]].forEach(function (q) {
       var g = ctx.createGain(); g.gain.value = q[1]; g.connect(master);
       AUD[q[0]] = { set volume(v) { g.gain.setTargetAtTime(v, ctx.currentTime, 0.4); } };
       decode(q[0], 'm4a').catch(function () { return decode(q[0], 'mp3'); })
@@ -307,9 +308,9 @@
       var dt = Math.min(dtm || 16, 60) / 1000, s = t / 1000; ANIM.forEach(function (f) { f(s); });
       var cam = this.el.camera && this.el.camera.el; if (!cam) return; cam.object3D.getWorldPosition(tmp); P2[0] = tmp.x; P2[1] = tmp.z;
       if (tmp.z > 20.6 && Math.abs(tmp.x) < 1.6) undock();
-      if (AUD.hiveport_dance_music_loop && LAYOUT) {               // music: dance floor ⇄ lounge by distance to the holo stage
+      if (AUD.hiveport_club_loop && LAYOUT) {               // music: dance floor ⇄ lounge by distance to the holo stage
         var dd = Math.hypot(P2[0] - LAYOUT.hologram[0], P2[1] - LAYOUT.hologram[2]), k = Math.max(0, Math.min(1, (dd - 6) / 18));
-        AUD.hiveport_dance_music_loop.volume = 0.3 + 0.22 * (1 - k);   /* always playing; a little louder by the stage */
+        AUD.hiveport_club_loop.volume = 0.3 + 0.22 * (1 - k);   /* always playing; a little louder by the stage */
       }
       if (HOLO) { HOLO.mx.update(dt); HOLO.s.position.y = LAYOUT.hologram[1] + 0.055 * Math.sin(s * 2); }
       if (BAR) BAR.mixer.update(dt);
