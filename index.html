@@ -20,20 +20,20 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261127d"></script>
+  <script src="textures.js?v=20261127e"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261127d"></script>
-  <script src="life.js?v=20261127d"></script>
-  <script src="manual.js?v=20261127d"></script>
-  <script src="menubar.js?v=20261127d"></script>
-  <script src="ai.js?v=20261127d"></script>
-  <script src="sound.js?v=20261127d"></script>
-  <script src="avatar.js?v=20261127d"></script>
-  <script src="door.js?v=20261127d"></script>
-  <script src="lcars.js?v=20261127d"></script>
-  <script src="crew.js?v=20261127d"></script>
-  <script src="repairs.js?v=20261127d"></script>
-  <script src="hyperspace.js?v=20261127d"></script>
+  <script src="mobile.js?v=20261127e"></script>
+  <script src="life.js?v=20261127e"></script>
+  <script src="manual.js?v=20261127e"></script>
+  <script src="menubar.js?v=20261127e"></script>
+  <script src="ai.js?v=20261127e"></script>
+  <script src="sound.js?v=20261127e"></script>
+  <script src="avatar.js?v=20261127e"></script>
+  <script src="door.js?v=20261127e"></script>
+  <script src="lcars.js?v=20261127e"></script>
+  <script src="crew.js?v=20261127e"></script>
+  <script src="repairs.js?v=20261127e"></script>
+  <script src="hyperspace.js?v=20261127e"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -466,7 +466,7 @@
 
       buildCeiling(root, M, aniso);
       buildFloor(root, M, aniso);
-      buildRugs(root, aniso);
+      buildRugs(root, aniso); buildArt(root);
       buildPortals(root, M);
 
       // soft light splashes on the wall around each sconce (additive, cheap)
@@ -568,6 +568,42 @@
       x.globalCompositeOperation = 'source-over';
       var t = mkTex(c); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
     }
+    // ART + PLANTS in the alcoves freed by cutting the bookcases (user, Nov 26: fewer bookcases, more props): a painted canvas in a
+    // bronze frame with a little picture light, and a potted plant on the deck under it. Paintings are drawn here (original art).
+    function paintCanvas(kind) {
+      var c = document.createElement('canvas'); c.width = 384; c.height = 512; var x = c.getContext('2d'), sd = 7 + kind * 31, r = function () { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+      var skies = [['#0b1030', '#3a1a5a', '#e07a4a'], ['#06222a', '#145a5a', '#e8c070'], ['#1a0a10', '#5a1a2a', '#ffb060'], ['#081028', '#1a3a7a', '#9ad8ff']][kind];
+      var g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, skies[0]); g.addColorStop(0.65, skies[1]); g.addColorStop(1, skies[2]); x.fillStyle = g; x.fillRect(0, 0, 384, 512);
+      for (var i = 0; i < 160; i++) { x.fillStyle = 'rgba(255,255,240,' + r() * 0.8 + ')'; x.fillRect(r() * 384, r() * 300, 1.5, 1.5); }
+      x.globalAlpha = 0.35; for (i = 0; i < 6; i++) { var ng = x.createRadialGradient(r() * 384, r() * 260, 0, 192, 160, 160 + r() * 80); ng.addColorStop(0, ['#ff7ad0', '#7affe0', '#ffd27a', '#9a8aff'][(kind + i) % 4]); ng.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = ng; x.fillRect(0, 0, 384, 512); } x.globalAlpha = 1;
+      var pr = 60 + kind * 18, px = 110 + kind * 50, py = 150 + (kind % 2) * 40, pg = x.createRadialGradient(px - pr * 0.4, py - pr * 0.4, 4, px, py, pr);
+      pg.addColorStop(0, ['#ffd0a0', '#c8fff0', '#ffe0b0', '#d0e8ff'][kind]); pg.addColorStop(1, ['#8a3a20', '#1a6a5a', '#7a2a10', '#2a3a8a'][kind]); x.fillStyle = pg; x.beginPath(); x.arc(px, py, pr, 0, 6.283); x.fill();
+      if (kind % 2 === 0) { x.strokeStyle = 'rgba(255,220,170,.55)'; x.lineWidth = 3; x.beginPath(); x.ellipse(px, py, pr * 1.7, pr * 0.32, -0.3, 0, 6.283); x.stroke(); }
+      x.fillStyle = '#0a0608'; x.beginPath(); x.moveTo(0, 512); for (var k = 0; k <= 384; k += 24) x.lineTo(k, 400 - r() * 70 - Math.sin(k / 50 + kind) * 20); x.lineTo(384, 512); x.fill();   // horizon ridge
+      for (i = 0; i < 9000; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,240,220') + ',' + r() * 0.05 + ')'; x.fillRect(r() * 384, r() * 512, 2, 2); }   // brush texture
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function buildArt(root) {
+      var SPOTS = [{ W: 'L', c: -3 }, { W: 'L', c: 3 }, { W: 'R', c: -9 }, { W: 'R', c: 9 }];
+      var bronze = new THREE.MeshStandardMaterial({ color: 0xc08040, metalness: 0.85, roughness: 0.32 }), potM = new THREE.MeshStandardMaterial({ color: 0x6a3a22, metalness: 0.5, roughness: 0.45 });
+      var leafM = [0x2f6a34, 0x3f8a3e, 0x245a30].map(function (c) { return new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, side: THREE.DoubleSide }); });
+      var leafG = new THREE.PlaneGeometry(0.16, 0.62, 1, 4); leafG.translate(0, 0.31, 0);
+      var lp = leafG.attributes.position; for (var i = 0; i < lp.count; i++) { var yy = lp.getY(i); lp.setX(i, lp.getX(i) * Math.sin(Math.PI * yy / 0.62 + 0.05)); lp.setZ(i, yy * yy * 0.5); }
+      leafG.computeVertexNormals();
+      SPOTS.forEach(function (q, n) {
+        var W = WALLS[q.W], g = new THREE.Group(); g.position.set(W.s * (W.base - 0.06), 0, q.c); g.rotation.y = W.s < 0 ? Math.PI / 2 : -Math.PI / 2; root.add(g);
+        var art = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1.28), new THREE.MeshStandardMaterial({ map: paintCanvas(n), roughness: 0.8, emissive: 0xffffff, emissiveMap: null, emissiveIntensity: 0 }));
+        art.material.emissiveMap = art.material.map; art.material.emissiveIntensity = 0.35; art.position.set(0, 1.75, 0.04); g.add(art);
+        [[0, 0.68, 1.12, 0.08], [0, -0.68, 1.12, 0.08], [-0.52, 0, 0.08, 1.44], [0.52, 0, 0.08, 1.44]].forEach(function (f) { var b = new THREE.Mesh(new THREE.BoxGeometry(f[2], f[3], 0.06), bronze); b.position.set(f[0], 1.75 + f[1], 0.04); g.add(b); });
+        var lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.5, 10), bronze); lamp.rotation.z = Math.PI / 2; lamp.position.set(0, 2.5, 0.16); g.add(lamp);
+        var glow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.5), new THREE.MeshBasicMaterial({ color: 0xffb060, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.set(0, 2.3, 0.05); g.add(glow);
+        var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.16, 0.42, 20), potM); pot.position.set(0, 0.21, 0.34); g.add(pot);
+        var rim = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.02, 8, 24), bronze); rim.rotation.x = Math.PI / 2; rim.position.set(0, 0.42, 0.34); g.add(rim);
+        for (var k = 0; k < 14; k++) { var lf = new THREE.Mesh(leafG, leafM[k % 3]), a = k / 14 * Math.PI * 2 + n; lf.position.set(Math.cos(a) * 0.05, 0.4, 0.34 + Math.sin(a) * 0.05);
+          lf.rotation.set(0, -a + Math.PI / 2, 0); lf.rotateX(-0.25 - (k % 3) * 0.18); lf.scale.setScalar(0.8 + (k % 4) * 0.15); g.add(lf); }
+      });
+    }
+
     function buildRugs(root, aniso) {
       var RR = 1.3;
       DOORS.forEach(function (d, i) {
