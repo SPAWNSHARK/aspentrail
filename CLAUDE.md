@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126o).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126p).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -213,7 +213,7 @@ Rules drawn from them:
   flash to station.html; ?from=station starts in the berth and backs out (undockSeq), turns 180° and hands control back.
 - **SHIP LIFE (Nov 26, user: "I'm bored, not enough to do") — 10-batch plan the user picked ALL of: 1 economy + daily goals + deck
   map [x], 2 Lounge cat play [x], 3 ship repairs + crew orders [x], 4 Holodeck games [x], 5 Hiveport shops + ship upgrades [x], 6 dance floor /
-  K'Vetar gambling / bar brawl + bounties [x], 7 card game with the crew, 8 science scans, 9 Captain's quarters + galley (behind the
+  K'Vetar gambling / bar brawl + bounties [x], 7 card game with the crew [x], 8 science scans, 9 Captain's quarters + galley (behind the
   Library's two SEALED wing doors), 10 story missions.** `life.js` (every page incl. station + minigame, after mobile/sound):
   WF_LIFE wallet (= 'wf-credits', shared with contracts), cargo 'wf-inv' (starter treats/laser/wand; +3 treats daily ration),
   event(name) → 3 daily goals/day ('wf-goals', seeded by local date, 150 cr each + 300 bonus; POOL = only things that exist —
@@ -256,6 +256,9 @@ Rules drawn from them:
   a.state every frame) with a.wait large to freeze the crowd agent. BOUNTIES: broker NPC (black-eyed general) + red BOUNTIES sign at
   (4.2, 20.6) by the airlock; one WANTED K'Vetar a day ('wf-bounty' {day, accepted, done}; name/crest/eyes/crime seeded by date);
   accepting spawns them as an extra crowd member with that variant; talk → "You're coming with me" → fistfight → 200 cr, 'bounty'.
+  STARJACK (`cards.js`, lounge.html): a card deck + pulsing ring on the brass coffee table (world 0, 0.5, −1.1); tap within 3.6 m →
+  #sj blackjack panel, suits ☀☾✦☄, 2 decks; dealer = a droid in the Lounge if any (else random), two more droids play their own
+  hands (stand on 17) and quip in character (LINES per droid); bets 10/25/50, Hit/Stand/Double, Starjack 3:2. Events 'cards', 'cardwin'.
 - **LIVING CREW (Nov 26, SS_Wayfarer_Living_Crew_Expansion.zip; START_HERE + Integration.pdf in reference/living-crew/)** — `crew.js`
   (every room page, after door.js; auto-attaches `wf-crew`) runs the kit's engine (crew/crew-engine.mjs + roster.mjs, vendored
   UNCHANGED) for 6 droids (Aster nav, Forge eng, Vesper sci, Echo com, Sentinel tac, Prism sen; models/crew/Droid_*_Living.glb) and
