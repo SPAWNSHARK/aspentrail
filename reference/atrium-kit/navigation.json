@@ -1,0 +1,518 @@
+{
+  "units": "provisional model units",
+  "nodes": {
+    "upper_fore": [
+      0.0,
+      0.65,
+      -21.5
+    ],
+    "upper_aft": [
+      0.0,
+      0.65,
+      23.5
+    ],
+    "upper_port_0": [
+      -2.45,
+      0.65,
+      -21.0
+    ],
+    "upper_port_1": [
+      -3.25,
+      0.65,
+      -18.2
+    ],
+    "upper_port_2": [
+      -3.35,
+      0.65,
+      -14.0
+    ],
+    "upper_port_3": [
+      -3.35,
+      0.65,
+      0.0
+    ],
+    "upper_port_4": [
+      -3.35,
+      0.65,
+      9.0
+    ],
+    "upper_port_5": [
+      -3.35,
+      0.65,
+      18.4
+    ],
+    "upper_port_6": [
+      -2.65,
+      0.65,
+      21.5
+    ],
+    "upper_port_7": [
+      -1.7,
+      0.65,
+      23.5
+    ],
+    "Holodeck_threshold": [
+      -4.6,
+      0.65,
+      -14.0
+    ],
+    "Captains_Quarters_threshold": [
+      -4.6,
+      0.65,
+      9.0
+    ],
+    "upper_starboard_0": [
+      2.45,
+      0.65,
+      -21.0
+    ],
+    "upper_starboard_1": [
+      3.25,
+      0.65,
+      -18.2
+    ],
+    "upper_starboard_2": [
+      3.35,
+      0.65,
+      -14.0
+    ],
+    "upper_starboard_3": [
+      3.35,
+      0.65,
+      0.0
+    ],
+    "upper_starboard_4": [
+      3.35,
+      0.65,
+      9.0
+    ],
+    "upper_starboard_5": [
+      3.35,
+      0.65,
+      18.4
+    ],
+    "upper_starboard_6": [
+      2.65,
+      0.65,
+      21.5
+    ],
+    "upper_starboard_7": [
+      1.7,
+      0.65,
+      23.5
+    ],
+    "Crew_Lounge_threshold": [
+      4.6,
+      0.65,
+      -14.0
+    ],
+    "Media_Nexus_threshold": [
+      4.6,
+      0.65,
+      9.0
+    ],
+    "upper_bow_door": [
+      0.0,
+      0.65,
+      -24.0
+    ],
+    "upper_core_door": [
+      0.0,
+      0.65,
+      25.8
+    ],
+    "lower_fore": [
+      0.0,
+      -5.3,
+      -21.5
+    ],
+    "lower_aft": [
+      0.0,
+      -5.3,
+      23.5
+    ],
+    "lower_port_0": [
+      -2.45,
+      -5.3,
+      -21.0
+    ],
+    "lower_port_1": [
+      -3.25,
+      -5.3,
+      -18.2
+    ],
+    "lower_port_2": [
+      -3.35,
+      -5.3,
+      -14.0
+    ],
+    "lower_port_3": [
+      -3.35,
+      -5.3,
+      0.0
+    ],
+    "lower_port_4": [
+      -3.35,
+      -5.3,
+      9.0
+    ],
+    "lower_port_5": [
+      -3.35,
+      -5.3,
+      18.4
+    ],
+    "lower_port_6": [
+      -2.65,
+      -5.3,
+      21.5
+    ],
+    "lower_port_7": [
+      -1.7,
+      -5.3,
+      23.5
+    ],
+    "Medbay_threshold": [
+      -4.6,
+      -5.3,
+      -14.0
+    ],
+    "Xenobiology_threshold": [
+      -4.6,
+      -5.3,
+      9.0
+    ],
+    "lower_starboard_0": [
+      2.45,
+      -5.3,
+      -21.0
+    ],
+    "lower_starboard_1": [
+      3.25,
+      -5.3,
+      -18.2
+    ],
+    "lower_starboard_2": [
+      3.35,
+      -5.3,
+      -14.0
+    ],
+    "lower_starboard_3": [
+      3.35,
+      -5.3,
+      0.0
+    ],
+    "lower_starboard_4": [
+      3.35,
+      -5.3,
+      9.0
+    ],
+    "lower_starboard_5": [
+      3.35,
+      -5.3,
+      18.4
+    ],
+    "lower_starboard_6": [
+      2.65,
+      -5.3,
+      21.5
+    ],
+    "lower_starboard_7": [
+      1.7,
+      -5.3,
+      23.5
+    ],
+    "Mess_Hall_threshold": [
+      4.6,
+      -5.3,
+      -14.0
+    ],
+    "Maintenance_Storage_threshold": [
+      4.6,
+      -5.3,
+      9.0
+    ],
+    "lower_bow_door": [
+      0.0,
+      -5.3,
+      -24.0
+    ],
+    "lower_core_door": [
+      0.0,
+      -5.3,
+      26.6
+    ],
+    "port_stair_upper": [
+      -10.66188029081775,
+      0.65,
+      32.10810988538063
+    ],
+    "port_stair_lower": [
+      -4.636332454035187,
+      -5.3,
+      46.35987072195691
+    ],
+    "starboard_stair_upper": [
+      10.66188029081775,
+      0.65,
+      32.10810988538063
+    ],
+    "starboard_stair_lower": [
+      4.636332454035187,
+      -5.3,
+      46.35987072195691
+    ]
+  },
+  "edges": [
+    {
+      "a": "upper_fore",
+      "b": "upper_port_0",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_0",
+      "b": "upper_port_1",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_1",
+      "b": "upper_port_2",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_2",
+      "b": "upper_port_3",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_3",
+      "b": "upper_port_4",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_4",
+      "b": "upper_port_5",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_5",
+      "b": "upper_port_6",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_6",
+      "b": "upper_port_7",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_7",
+      "b": "upper_aft",
+      "type": "walk"
+    },
+    {
+      "a": "upper_port_2",
+      "b": "Holodeck_threshold",
+      "type": "door"
+    },
+    {
+      "a": "upper_port_4",
+      "b": "Captains_Quarters_threshold",
+      "type": "door"
+    },
+    {
+      "a": "upper_fore",
+      "b": "upper_starboard_0",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_0",
+      "b": "upper_starboard_1",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_1",
+      "b": "upper_starboard_2",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_2",
+      "b": "upper_starboard_3",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_3",
+      "b": "upper_starboard_4",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_4",
+      "b": "upper_starboard_5",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_5",
+      "b": "upper_starboard_6",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_6",
+      "b": "upper_starboard_7",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_7",
+      "b": "upper_aft",
+      "type": "walk"
+    },
+    {
+      "a": "upper_starboard_2",
+      "b": "Crew_Lounge_threshold",
+      "type": "door"
+    },
+    {
+      "a": "upper_starboard_4",
+      "b": "Media_Nexus_threshold",
+      "type": "door"
+    },
+    {
+      "a": "upper_fore",
+      "b": "upper_bow_door",
+      "type": "door"
+    },
+    {
+      "a": "upper_aft",
+      "b": "upper_core_door",
+      "type": "door"
+    },
+    {
+      "a": "lower_fore",
+      "b": "lower_port_0",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_0",
+      "b": "lower_port_1",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_1",
+      "b": "lower_port_2",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_2",
+      "b": "lower_port_3",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_3",
+      "b": "lower_port_4",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_4",
+      "b": "lower_port_5",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_5",
+      "b": "lower_port_6",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_6",
+      "b": "lower_port_7",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_7",
+      "b": "lower_aft",
+      "type": "walk"
+    },
+    {
+      "a": "lower_port_2",
+      "b": "Medbay_threshold",
+      "type": "door"
+    },
+    {
+      "a": "lower_port_4",
+      "b": "Xenobiology_threshold",
+      "type": "door"
+    },
+    {
+      "a": "lower_fore",
+      "b": "lower_starboard_0",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_0",
+      "b": "lower_starboard_1",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_1",
+      "b": "lower_starboard_2",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_2",
+      "b": "lower_starboard_3",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_3",
+      "b": "lower_starboard_4",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_4",
+      "b": "lower_starboard_5",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_5",
+      "b": "lower_starboard_6",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_6",
+      "b": "lower_starboard_7",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_7",
+      "b": "lower_aft",
+      "type": "walk"
+    },
+    {
+      "a": "lower_starboard_2",
+      "b": "Mess_Hall_threshold",
+      "type": "door"
+    },
+    {
+      "a": "lower_starboard_4",
+      "b": "Maintenance_Storage_threshold",
+      "type": "door"
+    },
+    {
+      "a": "lower_fore",
+      "b": "lower_bow_door",
+      "type": "door"
+    },
+    {
+      "a": "lower_aft",
+      "b": "lower_core_door",
+      "type": "door"
+    },
+    {
+      "a": "port_stair_upper",
+      "b": "port_stair_lower",
+      "type": "curved_stair"
+    },
+    {
+      "a": "starboard_stair_upper",
+      "b": "starboard_stair_lower",
+      "type": "curved_stair"
+    }
+  ],
+  "notes": "Walk edges checked against atrium floor polygons with 0.25-unit clearance. Door edges terminate at thresholds; core-to-stair and in-room routing require runtime connection. Curved stair edges are traversal links, not straight walking paths."
+}

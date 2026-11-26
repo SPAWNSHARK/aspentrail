@@ -1,0 +1,556 @@
+{
+  "version": "0.3-split-atrium-draft",
+  "asset_count": 24,
+  "units": "provisional metres (not approved)",
+  "assets": [
+    {
+      "file": "Aft_Transition_Lower.glb",
+      "bytes": 55388,
+      "nodes": 40,
+      "mesh_count": 3,
+      "animations": [],
+      "bounds": [
+        [
+          -15.857,
+          -5.53,
+          25.773
+        ],
+        [
+          15.857,
+          -2.1,
+          49.11
+        ]
+      ]
+    },
+    {
+      "file": "Aft_Transition_Upper.glb",
+      "bytes": 211128,
+      "nodes": 36,
+      "mesh_count": 3,
+      "animations": [],
+      "bounds": [
+        [
+          -17.643,
+          0.42,
+          25.781
+        ],
+        [
+          17.643,
+          3.85,
+          49.11
+        ]
+      ]
+    },
+    {
+      "file": "Atrium_Lower.glb",
+      "bytes": 19656,
+      "nodes": 36,
+      "mesh_count": 2,
+      "animations": [],
+      "bounds": [
+        [
+          -4.6,
+          -5.53,
+          -24.003
+        ],
+        [
+          4.6,
+          -5.204,
+          25.801
+        ]
+      ]
+    },
+    {
+      "file": "Captains_Quarters.glb",
+      "bytes": 88304,
+      "nodes": 201,
+      "mesh_count": 14,
+      "animations": [],
+      "bounds": [
+        [
+          -18.71,
+          0.42,
+          -1.11
+        ],
+        [
+          -2.408,
+          3.97,
+          25.91
+        ]
+      ]
+    },
+    {
+      "file": "Command_Bridge.glb",
+      "bytes": 114704,
+      "nodes": 230,
+      "mesh_count": 14,
+      "animations": [],
+      "bounds": [
+        [
+          -13.3,
+          0.42,
+          -38.115
+        ],
+        [
+          13.3,
+          3.97,
+          -23.89
+        ]
+      ]
+    },
+    {
+      "file": "Crew_Lounge.glb",
+      "bytes": 92936,
+      "nodes": 206,
+      "mesh_count": 11,
+      "animations": [],
+      "bounds": [
+        [
+          2.423,
+          0.42,
+          -24.11
+        ],
+        [
+          18.422,
+          4.0,
+          -0.89
+        ]
+      ]
+    },
+    {
+      "file": "Engine_Room_Halcyon_Lower.glb",
+      "bytes": 256112,
+      "nodes": 65,
+      "mesh_count": 15,
+      "animations": [],
+      "bounds": [
+        [
+          -9.51,
+          -5.53,
+          26.6
+        ],
+        [
+          9.51,
+          0.7,
+          45.51
+        ]
+      ]
+    },
+    {
+      "file": "Firefly_Hangar.glb",
+      "bytes": 62208,
+      "nodes": 132,
+      "mesh_count": 7,
+      "animations": [],
+      "bounds": [
+        [
+          -13.2,
+          -5.53,
+          -49.0
+        ],
+        [
+          13.2,
+          -2.1,
+          -23.89
+        ]
+      ]
+    },
+    {
+      "file": "Firefly_Interior.glb",
+      "bytes": 41600,
+      "nodes": 134,
+      "mesh_count": 8,
+      "animations": [],
+      "bounds": [
+        [
+          -1.86,
+          -0.23,
+          -4.347
+        ],
+        [
+          1.86,
+          3.11,
+          4.41
+        ]
+      ]
+    },
+    {
+      "file": "Firefly_Pathfinder_WF01.glb",
+      "bytes": 31500,
+      "nodes": 24,
+      "mesh_count": 7,
+      "animations": [
+        "Landing_Gear_Deploy",
+        "Landing_Gear_Retract"
+      ],
+      "bounds": [
+        [
+          -2.86,
+          -0.56,
+          -5.0
+        ],
+        [
+          2.86,
+          2.65,
+          5.0
+        ]
+      ]
+    },
+    {
+      "file": "Holodeck.glb",
+      "bytes": 220600,
+      "nodes": 196,
+      "mesh_count": 13,
+      "animations": [],
+      "bounds": [
+        [
+          -18.422,
+          0.42,
+          -24.11
+        ],
+        [
+          -2.423,
+          3.97,
+          -0.89
+        ]
+      ]
+    },
+    {
+      "file": "Library_Halcyon_Upper.glb",
+      "bytes": 191316,
+      "nodes": 309,
+      "mesh_count": 10,
+      "animations": [],
+      "bounds": [
+        [
+          -10.31,
+          0.42,
+          25.8
+        ],
+        [
+          10.31,
+          8.452,
+          46.31
+        ]
+      ]
+    },
+    {
+      "file": "Lower_Deck_Complete.glb",
+      "bytes": 679712,
+      "nodes": 1076,
+      "mesh_count": 37,
+      "animations": [
+        "Jaw_Open",
+        "Jaw_Close",
+        "Landing_Gear_Deploy",
+        "Landing_Gear_Retract"
+      ],
+      "bounds": [
+        [
+          -16.287,
+          -5.6,
+          -55.0
+        ],
+        [
+          16.287,
+          0.7,
+          49.11
+        ]
+      ]
+    },
+    {
+      "file": "Maintenance_Storage.glb",
+      "bytes": 71572,
+      "nodes": 186,
+      "mesh_count": 8,
+      "animations": [],
+      "bounds": [
+        [
+          2.408,
+          -5.53,
+          -1.11
+        ],
+        [
+          16.287,
+          -1.98,
+          25.91
+        ]
+      ]
+    },
+    {
+      "file": "Medbay.glb",
+      "bytes": 79604,
+      "nodes": 186,
+      "mesh_count": 11,
+      "animations": [],
+      "bounds": [
+        [
+          -14.264,
+          -5.53,
+          -24.11
+        ],
+        [
+          -2.423,
+          -1.98,
+          -0.89
+        ]
+      ]
+    },
+    {
+      "file": "Media_Nexus.glb",
+      "bytes": 75284,
+      "nodes": 204,
+      "mesh_count": 11,
+      "animations": [],
+      "bounds": [
+        [
+          2.408,
+          0.42,
+          -1.11
+        ],
+        [
+          18.71,
+          4.5,
+          25.91
+        ]
+      ]
+    },
+    {
+      "file": "Mess_Hall.glb",
+      "bytes": 78128,
+      "nodes": 192,
+      "mesh_count": 9,
+      "animations": [],
+      "bounds": [
+        [
+          2.423,
+          -5.53,
+          -24.11
+        ],
+        [
+          14.264,
+          -1.98,
+          -0.89
+        ]
+      ]
+    },
+    {
+      "file": "Split_Hall_Upper.glb",
+      "bytes": 188316,
+      "nodes": 442,
+      "mesh_count": 6,
+      "animations": [],
+      "bounds": [
+        [
+          -4.6,
+          0.42,
+          -24.003
+        ],
+        [
+          4.6,
+          4.015,
+          25.801
+        ]
+      ]
+    },
+    {
+      "file": "Triangular_Jaw_Dock.glb",
+      "bytes": 7912,
+      "nodes": 6,
+      "mesh_count": 2,
+      "animations": [
+        "Jaw_Open",
+        "Jaw_Close"
+      ],
+      "bounds": [
+        [
+          -9.0,
+          -5.6,
+          -55.0
+        ],
+        [
+          9.0,
+          -5.25,
+          -32.0
+        ]
+      ]
+    },
+    {
+      "file": "Twin_Curved_Stairs.glb",
+      "bytes": 156448,
+      "nodes": 251,
+      "mesh_count": 74,
+      "animations": [],
+      "bounds": [
+        [
+          -12.299,
+          -5.53,
+          30.838
+        ],
+        [
+          12.299,
+          1.582,
+          47.566
+        ]
+      ]
+    },
+    {
+      "file": "Upper_Deck_Complete.glb",
+      "bytes": 1107408,
+      "nodes": 1825,
+      "mesh_count": 42,
+      "animations": [],
+      "bounds": [
+        [
+          -18.71,
+          0.42,
+          -38.115
+        ],
+        [
+          18.71,
+          8.452,
+          49.11
+        ]
+      ]
+    },
+    {
+      "file": "Wayfarer_Dual_Deck_Assembled.glb",
+      "bytes": 1903872,
+      "nodes": 3152,
+      "mesh_count": 137,
+      "animations": [
+        "Jaw_Open",
+        "Jaw_Close",
+        "Landing_Gear_Deploy",
+        "Landing_Gear_Retract"
+      ],
+      "bounds": [
+        [
+          -18.71,
+          -5.6,
+          -55.0
+        ],
+        [
+          18.71,
+          8.452,
+          49.11
+        ]
+      ]
+    },
+    {
+      "file": "Wayfarer_Exterior_Mobile_Animated_Jaw.glb",
+      "bytes": 8933728,
+      "nodes": 4,
+      "mesh_count": 2,
+      "animations": [
+        "Jaw_Open",
+        "Jaw_Close"
+      ],
+      "bounds": [
+        [
+          -26.332,
+          -12.39,
+          -60.101
+        ],
+        [
+          26.324,
+          12.209,
+          60.084
+        ]
+      ]
+    },
+    {
+      "file": "Xenobiology.glb",
+      "bytes": 89496,
+      "nodes": 208,
+      "mesh_count": 10,
+      "animations": [],
+      "bounds": [
+        [
+          -16.287,
+          -5.53,
+          -1.11
+        ],
+        [
+          -2.408,
+          -1.98,
+          25.91
+        ]
+      ]
+    }
+  ],
+  "room_plan_areas": {
+    "Command_Bridge": {
+      "revised": 280.9,
+      "previous": 280.9,
+      "increase_pct": 0.0
+    },
+    "Holodeck": {
+      "revised": 277.1,
+      "previous": 317.8,
+      "increase_pct": -12.8
+    },
+    "Captains_Quarters": {
+      "revised": 370.4,
+      "previous": 418.5,
+      "increase_pct": -11.5
+    },
+    "Crew_Lounge": {
+      "revised": 277.1,
+      "previous": 317.8,
+      "increase_pct": -12.8
+    },
+    "Media_Nexus": {
+      "revised": 370.4,
+      "previous": 418.5,
+      "increase_pct": -11.5
+    },
+    "Firefly_Hangar": {
+      "revised": 527.1,
+      "previous": 527.1,
+      "increase_pct": 0.0
+    },
+    "Medbay": {
+      "revised": 198.4,
+      "previous": 239.2,
+      "increase_pct": -17.0
+    },
+    "Xenobiology": {
+      "revised": 244.2,
+      "previous": 292.2,
+      "increase_pct": -16.4
+    },
+    "Mess_Hall": {
+      "revised": 198.4,
+      "previous": 239.2,
+      "increase_pct": -17.0
+    },
+    "Maintenance_Storage": {
+      "revised": 244.2,
+      "previous": 292.2,
+      "increase_pct": -16.4
+    }
+  },
+  "plan_coverage": {
+    "upper": {
+      "defined_plan_area": 2626.9,
+      "assigned_plan_area": 2626.2,
+      "assigned_pct": 100.0
+    },
+    "lower": {
+      "defined_plan_area": 2457.5,
+      "assigned_plan_area": 2456.8,
+      "assigned_pct": 100.0
+    }
+  },
+  "atrium_validation": {
+    "upper_floor_area": 284.139,
+    "lower_floor_area": 426.478,
+    "open_void_area": 142.339,
+    "upper_mesh_void_overlap": 5.04e-06,
+    "lower_mesh_opening_projection_covered": 142.339,
+    "upper_floor_is_connected": true,
+    "tested_walk_edges": 36,
+    "status": "passed geometry/atrium route checks; not runtime collision testing"
+  }
+}
