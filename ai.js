@@ -6,7 +6,7 @@
 // Speaks with the device voice (toggle in the panel; 'wf-ai-voice').
 (function () {
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
-  var ROOMS = { bridge: ['bridge.html', 'the Command Bridge'], corridor: ['index.html', 'the atrium'], hallway: ['index.html', 'the atrium'], atrium: ['index.html', 'the atrium'], holodeck: ['holodeck.html', 'the Holodeck'],
+  var ROOMS = { bridge: ['bridge.html', 'the Command Bridge'], corridor: ['index.html', 'the atrium'], hallway: ['index.html', 'the atrium'], atrium: ['index.html', 'the atrium'], quarters: ['quarters.html', 'your quarters'], medbay: ['medbay.html', 'the Medbay'], xenobiology: ['xeno.html', 'Xenobiology'], mess: ['mess.html', 'the Mess Hall'], galley: ['mess.html', 'the Mess Hall'], maintenance: ['maint.html', 'Maintenance'], storage: ['maint.html', 'Maintenance'], hangar: ['firefly.html', 'the Firefly hangar'], firefly: ['firefly.html', 'the Firefly hangar'], engine: ['engine.html', 'the Engine Room'], reactor: ['engine.html', 'the Engine Room'], holodeck: ['holodeck.html', 'the Holodeck'],
     lounge: ['lounge.html', 'the Crew Lounge'], kitty: ['lounge.html', 'the Crew Lounge'], media: ['media.html', 'the Media Nexus'], theater: ['media.html', 'the Media Nexus'], library: ['library.html', 'the Library'],
     brain: ['library.html', 'the Library'], flight: ['minigame.html', 'Flight Mode'], fly: ['minigame.html', 'Flight Mode'], ship: ['hangar.html', 'Ship View'] };
   var RN = { corridor: 'the atrium', bridge: 'the Bridge', holodeck: 'the Holodeck', lounge: 'the Lounge', media: 'the Media Nexus', library: 'the Library' };

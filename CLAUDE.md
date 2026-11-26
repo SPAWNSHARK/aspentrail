@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127h).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127i).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -373,7 +373,14 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   mess, maint. door.js PORTALS.corr + CORRIDOR box + CORR_YAW updated; corr-*.jpg recaptured. crew.js corridor graph = the upper
   walkways (x ±3.35) + crossovers; Engineering/GUIDE console on the port walkway (−4.1, −3). life.js map: atrium outline + opening + sealed
   Captain's Quarters; rooms re-placed by their doors. repairs: corridor faults stay on the walkways (old ones over the opening dropped).
-- [ ] STEP 3: lower-deck room pages from the kit GLBs (Firefly_Hangar, Medbay, Xenobiology, Mess_Hall, Maintenance_Storage,
+- [x] STEP 3 (Nov 26): kitroom.js + quarters/medbay/xeno/mess/maint/firefly/engine.html (<body data-room>, wf-kitroom): the kit room GLB in
+  ship coords, floor moved to y 0, shell (Trim|Wall|Rib|Light_strip|Ceiling|Door_header|…|_floor) merged per material, furniture kept as
+  separate re-skinned meshes (mobile.js collision); bounds = layout.json room polygon (Engine Room: circle r 9 + reactor keep-out r 3.2);
+  Firefly_Pathfinder_WF01 parked at Hangar_Center_Anchor. door.js PORTALS quarters/medbay/xeno/mess/maint/firefly/engine (corr frames carry
+  y −5.95 for the lower deck: frameMatrix/create honour frame.y; corrSpace = lower atrium box), photos captured; atrium doors unlocked;
+  WF_KIT (atrium.js) = shared mats/envMap/merge(root, walk, keep). Halcyon: "take me to the medbay/engine/quarters/hangar…". Not yet:
+  crew/map/repairs on these pages (crew.js + life.js PAGE tables), room jobs (medbay recovery, xeno specimens, galley, reactor, landings).
+- [ ] (was STEP 3) lower-deck room pages from the kit GLBs (Firefly_Hangar, Medbay, Xenobiology, Mess_Hall, Maintenance_Storage,
   Engine_Room_Halcyon_Lower) + Captain's Quarters (upper) — restyled; unlock their atrium doors; PORTALS entries + photos; crew/map.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.

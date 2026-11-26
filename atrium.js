@@ -18,17 +18,18 @@
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
     { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
-    { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50, locked: true },
+    { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
     { id: 'media',    name: 'MEDIA NEXUS',       x: 4.6,  z: 9,    rot: -90,  y: 0,   tint: 0x4f8cff },
-    { id: 'hangar',   name: 'FIREFLY HANGAR',    x: 0,    z: -24,  rot: 0,    y: LOW, tint: 0x6fd0ff, locked: true },
-    { id: 'engine',   name: 'ENGINE ROOM',       x: 0,    z: 25.8, rot: 180,  y: LOW, tint: 0x3fe0c8, locked: true },
-    { id: 'medbay',   name: 'MEDBAY',            x: -4.6, z: -14,  rot: 90,   y: LOW, tint: 0x7fffd0, locked: true },
-    { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a, locked: true },
-    { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070, locked: true },
-    { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080, locked: true }
+    { id: 'firefly',  name: 'FIREFLY HANGAR',    x: 0,    z: -24,  rot: 0,    y: LOW, tint: 0x6fd0ff},
+    { id: 'engine',   name: 'ENGINE ROOM',       x: 0,    z: 25.8, rot: 180,  y: LOW, tint: 0x3fe0c8},
+    { id: 'medbay',   name: 'MEDBAY',            x: -4.6, z: -14,  rot: 90,   y: LOW, tint: 0x7fffd0},
+    { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
+    { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
+    { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080}
   ];
   window.WAYFARER = window.WAYFARER || {}; window.WAYFARER.atriumDoors = DOORS;
+  window.WF_KIT = { M: M, mats: function (env) { mats(env); return M; }, envMap: function (r) { return envMap(r); }, merge: function (root, walk, keep) { return merge(root, walk, keep); } };   /* kitroom.js */
 
   // ── house-style materials, by the kit's material names ──
   var M = {};
@@ -57,17 +58,18 @@
 
   // ── merge a loaded kit model into one mesh per material (the kit is hundreds of tiny nodes: ~1 draw call each on a phone) ──
   var WALK = /Floor|floor|Landing|Crossover|Stair_tread/;
-  function merge(root, walkOut) {
+  function merge(root, walkOut, keep) {
     root.updateMatrixWorld(true);
     var inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), buckets = {};
     root.traverse(function (o) {
       if (!o.isMesh) return; var name = (o.material && o.material.name) || 'steel', walk = WALK.test(o.name) || WALK.test(o.parent && o.parent.name || '');
+      if (keep && keep(o)) { (buckets.__keep = buckets.__keep || []).push(o); return; }
       if (/^Ceiling_/.test(o.name)) name = 'steel';
       var key = (walk ? 'walk:' : '') + name, g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
       g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
       (buckets[key] = buckets[key] || []).push(g);
     });
-    var out = new THREE.Group();
+    var out = new THREE.Group(), kept = buckets.__keep || []; delete buckets.__keep;
     Object.keys(buckets).forEach(function (k) {
       var list = buckets[k], n = 0; list.forEach(function (g) { n += g.attributes.position.count; });
       var P = new Float32Array(n * 3), N = new Float32Array(n * 3), o = 0;
@@ -76,6 +78,7 @@
       var mn = k.replace('walk:', ''), mesh = new THREE.Mesh(geo, M[mn] || M.steel); out.add(mesh);
       if (k.indexOf('walk:') === 0) { mesh.material = mesh.material.clone(); mesh.material.side = THREE.DoubleSide; walkOut.push(mesh); }   /* some kit floor tops face down: rays must hit both sides */
     });
+    kept.forEach(function (o) { var mt = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), m = new THREE.Mesh(o.geometry, M[(o.material && o.material.name) || 'steel'] || M.steel); m.name = o.name; m.applyMatrix4(mt); out.add(m); });
     return out;
   }
 
@@ -135,8 +138,8 @@
   function buildDoors(sc, root) {
     var PT = window.WAYFARER.door.PORTALS, from = fromRoom();
     DOORS.forEach(function (d) {
-      var P = PT[d.id], lvl = new THREE.Group(); lvl.position.y = d.y; root.add(lvl);
-      var D = window.WAYFARER.door.create({ sc: sc, parent: lvl, frame: { x: d.x, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1,
+      var P = PT[d.id];
+      var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1,
         other: P ? P.room : null, space: P ? P.space : null, img: P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null, locked: !!d.locked,
         autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);
@@ -201,7 +204,7 @@
       var fy = this.floorY;
       doors.forEach(function (D) {
         var d = D.d; if (Math.abs(fy - d.y) > 1.5) { D.update(dt, new THREE.Vector3(1e4, 0, 1e4)); return; }
-        D.update(dt, new THREE.Vector3(wp.x, wp.y - d.y, wp.z));
+        D.update(dt, wp);
         var a = d.rot * Math.PI / 180, dx = p.x - d.x, dz = p.z - d.z, lx = Math.cos(a) * dx - Math.sin(a) * dz, lz = Math.sin(a) * dx + Math.cos(a) * dz;
         if (D.p > 0.92 && Math.abs(lx) < 0.65 && lz < 0.55 && lz > -1.2) go(d);
       });

@@ -7,7 +7,8 @@
       'The ship’s main hall is now a split-level ATRIUM: two walkways either side of an opening that looks down onto the lower deck, with a skylight overhead.',
       'Upper deck doors: Command Bridge (bow end) · Holodeck and Captain’s Quarters (port) · Crew Lounge and Media Nexus (starboard) · the Library (aft end).',
       'Walk past either side of the Library door at the aft end onto the walkway that rings the Library, then take either curved staircase down to the lower deck.',
-      'Lower deck doors: Firefly Hangar · Medbay · Xenobiology · Mess Hall · Maintenance · Engine Room. They’re sealed until those rooms are built (coming next), and so is the Captain’s Quarters.',
+      'Lower deck doors: Firefly Hangar (the Pathfinder cruiser WF-01) · Medbay · Xenobiology · Mess Hall & Galley · Maintenance & Storage · Engine Room (the Halcyon power core, under the Library). All open — they’re furnished blockouts for now; their jobs (landings, recovery, specimens, cooking, the reactor) are coming.',
+      'Captain’s Quarters (upper deck, port, aft of the Holodeck): your bunk, desk and lockers. Ask Halcyon to “take me to the medbay / engine room / my quarters”.',
       'Forge’s Engineering console on the port walkway (labelled GUIDE) still opens this manual.'
     ]],
     ['🧭 Getting around', [

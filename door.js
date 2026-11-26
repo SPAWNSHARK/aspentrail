@@ -19,14 +19,23 @@
   // ───────── the ship's doorways: corridor side + room side, and a proxy shape for each space ─────────
   // frame: x, z, rot (deg) of the door group; the group's +z faces into the space it belongs to.
   var CORRIDOR = { kind: 'box', bmin: [-4.6, 0, -24], bmax: [4.6, 3.2, 25.8] };   // the split-level ATRIUM's upper hall (Nov 26 rebuild; bow = −Z)
+  var LOWS = { kind: 'box', bmin: [-4.6, -5.95, -24], bmax: [4.6, -0.23, 25.8] };   // the lower atrium (photo projection box for lower-deck doors)
   var PORTALS = {
     bridge:   { name: 'COMMAND BRIDGE', page: 'bridge.html',   tint: 0x4aa8ff, corr: { x: 0,    z: -24,   rot: 0 }, room: { x: 0, z: 7.85,  rot: 180 }, space: { kind: 'cyl', radius: 8.2, bmin: [-8.2, 0, -8.2], bmax: [8.2, 5.2, 8.2] } },
     library:  { name: 'THE LIBRARY',    page: 'library.html',  tint: 0x3fe0c8, corr: { x: 0,    z: 25.8,  rot: 180 },   room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 11, bmin: [-11, 0, -11], bmax: [11, 5, 11] } },
     holodeck: { name: 'HOLODECK',       page: 'holodeck.html', tint: 0x8a5cff, corr: { x: -4.6, z: -14,   rot: 90 },  room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'box', bmin: [-9, 0, -9], bmax: [9, 4, 9] } },
     lounge:   { name: 'CREW LOUNGE',    page: 'lounge.html',   tint: 0xffa060, corr: { x: 4.6,  z: -14,   rot: -90 }, room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'cyl', radius: 9, bmin: [-9, 0, -9], bmax: [9, 5.5, 9] } },
-    media:    { name: 'MEDIA NEXUS',    page: 'media.html',    tint: 0x4f8cff, corr: { x: 4.6,  z: 9,     rot: -90 }, room: { x: 0, z: 8.85,  rot: 180 }, space: { kind: 'cyl', radius: 9.2, bmin: [-9.2, 0, -9.2], bmax: [9.2, 7, 9.2] } }
+    media:    { name: 'MEDIA NEXUS',    page: 'media.html',    tint: 0x4f8cff, corr: { x: 4.6,  z: 9,     rot: -90 }, room: { x: 0, z: 8.85,  rot: 180 }, space: { kind: 'cyl', radius: 9.2, bmin: [-9.2, 0, -9.2], bmax: [9.2, 7, 9.2] } },
+    // the Atrium Kit rooms (Nov 26 rebuild; kitroom.js): room pages keep the kit's ship coordinates with their floor moved to y 0
+    quarters: { name: "CAPTAIN'S QUARTERS", page: 'quarters.html', tint: 0xc08a50, corr: { x: -4.6, z: 9, rot: 90 }, room: { x: -4.6, z: 9, rot: -90 }, space: { kind: 'box', bmin: [-18.6, 0, -1], bmax: [-2.5, 3.2, 25.8] } },
+    medbay:   { name: 'MEDBAY',      page: 'medbay.html',  tint: 0x7fffd0, corr: { x: -4.6, y: -5.95, z: -14, rot: 90 },  room: { x: -4.6, z: -14, rot: -90 }, space: { kind: 'box', bmin: [-14.2, 0, -24], bmax: [-2.5, 3.2, -1] }, corrSpace: LOWS },
+    xeno:     { name: 'XENOBIOLOGY', page: 'xeno.html',    tint: 0x9aff6a, corr: { x: -4.6, y: -5.95, z: 9, rot: 90 },    room: { x: -4.6, z: 9, rot: -90 },   space: { kind: 'box', bmin: [-16.2, 0, -1], bmax: [-2.5, 3.2, 25.8] }, corrSpace: LOWS },
+    mess:     { name: 'MESS HALL',   page: 'mess.html',    tint: 0xffc070, corr: { x: 4.6, y: -5.95, z: -14, rot: -90 },  room: { x: 4.6, z: -14, rot: 90 },   space: { kind: 'box', bmin: [2.5, 0, -24], bmax: [14.2, 3.2, -1] }, corrSpace: LOWS },
+    maint:    { name: 'MAINTENANCE', page: 'maint.html',   tint: 0xd0a080, corr: { x: 4.6, y: -5.95, z: 9, rot: -90 },    room: { x: 4.6, z: 9, rot: 90 },     space: { kind: 'box', bmin: [2.5, 0, -1], bmax: [16.2, 3.2, 25.8] }, corrSpace: LOWS },
+    firefly:  { name: 'FIREFLY HANGAR', page: 'firefly.html', tint: 0x6fd0ff, corr: { x: 0, y: -5.95, z: -24, rot: 0 },   room: { x: 0, z: -24, rot: 180 },    space: { kind: 'box', bmin: [-13.1, 0, -49], bmax: [13.1, 3.2, -24] }, corrSpace: LOWS },
+    engine:   { name: 'ENGINE ROOM', page: 'engine.html',  tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 25.8, rot: 180 },  room: { x: 0, z: 26.6, rot: 0 },     space: { kind: 'box', bmin: [-9.4, 0, 26.6], bmax: [9.4, 3.2, 45.4] }, corrSpace: LOWS }
   };
-  function frameMatrix(f) { return new THREE.Matrix4().makeRotationY(f.rot * Math.PI / 180).setPosition(f.x, 0, f.z); }
+  function frameMatrix(f) { return new THREE.Matrix4().makeRotationY(f.rot * Math.PI / 180).setPosition(f.x, f.y || 0, f.z); }   // y: lower-deck doors (atrium −5.95)
 
   // ───────── small helpers ─────────
   function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
@@ -226,7 +235,7 @@
   // startOpen, say(msg), holdMs, locked (message: the button refuses to open)
   function create(o) {
     var renderer = o.sc.renderer; res(renderer);
-    var g = new THREE.Group(); g.position.set(o.frame.x, 0, o.frame.z); g.rotation.y = o.frame.rot * Math.PI / 180; (o.parent || o.sc.object3D).add(g);
+    var g = new THREE.Group(); g.position.set(o.frame.x, o.frame.y || 0, o.frame.z); g.rotation.y = o.frame.rot * Math.PI / 180; (o.parent || o.sc.object3D).add(g);
     g.userData.noCollide = true;   // doorways stay walkable (mobile.js obstacle scan skips this subtree)
     var depth = o.depth || 0.1;
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
@@ -316,7 +325,7 @@
     function start() {
       var fromCorr = false;
       try { var nav = performance.getEntriesByType('navigation')[0]; fromCorr = (!nav || nav.type === 'navigate') && /index\.html$|\/aspentrail\/?$|\/$/.test((document.referrer || '').split('?')[0].split('#')[0]) && document.referrer.indexOf(location.host) >= 0; } catch (e) {}
-      var D = create({ sc: sc, frame: P.room, name: '← CORRIDOR', tint: 0xffd090, depth: 0.45, other: P.corr, space: CORRIDOR, img: 'images/portals/corr-' + id + '.jpg',
+      var D = create({ sc: sc, frame: P.room, name: '← ATRIUM', tint: 0xffd090, depth: 0.45, other: P.corr, space: P.corrSpace || CORRIDOR, img: 'images/portals/corr-' + id + '.jpg',
         autoPass: true, onPass: go, startOpen: fromCorr, holdMs: fromCorr ? 900 : 8000, say: opts.say });
       window.WAYFARER.roomDoor = D;
       var cam = sc.camera, wp = new THREE.Vector3();
@@ -368,7 +377,7 @@
   // Leaving: remember which 360° photo shows the other side + which way you'll face, and go straight away (no black fade).
   // Arriving: before the heavy room has built, a tiny second renderer shows that photo at your arrival heading, then
   // crossfades into the live scene. You see the destination the whole time.
-  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
+  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
   function leave(page, img, yaw) {
     try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
     document.documentElement.style.background = '#120c08'; location.href = page;
