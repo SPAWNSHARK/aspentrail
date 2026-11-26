@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126w).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126x).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -375,7 +375,7 @@ Record of everything asked for; tick items off as they ship.
 - [x] Ship hum quieter (0.045) and on at the first touch: the real cause was iOS's silent switch muting Web Audio until an <audio> file played — sound.js now sets navigator.audioSession.type='playback', plays a silent clip on the first touch, creates the context at load and resumes it on every touch/click/key
 - [x] Random light-speed jumps: crew.js warpAlert() reads/rolls the shared 'wf-warp' schedule ({until,next,at}); 20 s before a jump until 6 s into it: #wf-redalert (red multiply tint + pulsing vignette) on every deck, klaxon (WF_SOUND.alarm), every droid not seated runs home at ×2.6 speed
 - [x] SHIP AI = HALCYON (`ai.js`, every ship page): eye icon in #wf-btns, key I, tap the Library brain; offline answers from live state (status, crew whereabouts, advice, next jump, credits, goals), commands (take me to X, open manual/map, red alert on the Bridge), manual search fallback; speechSynthesis voice ('wf-ai-voice'); brain.js flickers while it talks (window.__aiTalk); event 'ai'
-- [ ] Consoles do real things: e.g. the Library console = the user's WordPress site, scrollable, with interaction animations
+- [x] Library console (Vesper's Science console) = the user's WordPress site sonsofnaphtali.wordpress.com (`wp-console.js`): #wf-wp panel, LIVE SITE iframe by default (its own scrolling/animations) + READER tab (public-api.wordpress.com v1.1 posts?type=any, cards fade/slide in via IntersectionObserver, full articles, scroll progress bar), ↗ opens the site; the console's 3D screen shows the masthead + latest title. Site had 0 posts on Nov 26 (pages-based). Science log stays in the ship log SCIENCE tab. [ ] other consoles
 - [~] Library tank: fewer bubbles (120), lightning every 10–24 s and dimmer, EELS (brain.js gel-tank: InstancedMesh tapered segments placed by arc length along each eel's path history, glowing eyes) [x]; partly see-through down to the below deck [ ] (with Phase D)
 - [ ] Ship View model: the front windows are painted wrong
 - [~] Flight Mode: ZOOM (wheel / pinch / Z X, 0.4–2.6×, 'wf-zoom') [x]; far more space traffic, more ship types, ships fighting each other [ ]
