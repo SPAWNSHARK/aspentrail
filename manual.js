@@ -6,12 +6,15 @@
     ['🏛 The Atrium (new, Nov 26)', [
       'The ship’s main hall is now a split-level ATRIUM: two walkways either side of an opening that looks down onto the lower deck, with a skylight overhead.',
       'Upper deck doors: Command Bridge (bow end) · Holodeck and Captain’s Quarters (port) · Crew Lounge and Media Nexus (starboard) · the Library (aft end).',
-      'Walk past either side of the Library door at the aft end onto the walkway that rings the Library, then take either curved staircase down to the lower deck.',
+      'Walk past either side of the Library door at the aft end onto the walkway that rings the Library, then take either curved staircase down to the lower deck. Shortcut: inside the Library, the two side doors (STAIRS · LOWER DECK, where the book wings used to be) put you at the top of each staircase.',
       'Lower deck doors: Firefly Hangar (the Pathfinder cruiser WF-01) · Medbay · Xenobiology · Mess Hall & Galley · Maintenance & Storage · Engine Room (the Halcyon power core, under the Library). All open — they’re furnished blockouts for now; their jobs (landings, recovery, specimens, cooking, the reactor) are coming.',
       'Captain’s Quarters (upper deck, port, aft of the Holodeck): your bunk, desk and lockers. Ask Halcyon to “take me to the medbay / engine room / my quarters”.',
       'Room jobs — tap the furniture with a glowing amber ring: QUARTERS bunk = sleep · trophy locker = your Hiveport curios · desk = a private Captain’s log (saved on this device). MEDBAY bed = check-up with Vesper · console = your medical record. XENOBIOLOGY tanks = every planet and anomaly you’ve scanned. MESS HALL replicator = order food, or replicate cat treats (20 cr). MAINTENANCE console = open ship faults. ENGINE ROOM core console = reactor status and “spin up a light-speed jump now”. FIREFLY HANGAR (tap the cruiser or its console) = LAUNCH: the bow jaw swings open, the Firefly rides the dock down and out, and you’re in Flight Mode.',
       'Ship Log → MAP has ⬆ UPPER DECK / ⬇ LOWER DECK; it opens on the deck you’re on.',
       'Forge’s Engineering console on the port walkway (labelled GUIDE) still opens this manual.'
+    ]],
+    ['🛋 Crew Lounge', [
+      'Alien aquarium in the port wall: glowing fish, a drifting ray, swaying kelp. Star-fire hearth on the starboard wall. Brass pendants over the table, bar cabinet by the door. Alien TV on the window wall (tap to change channel), Starjack on the coffee table.'
     ]],
     ['🧭 Getting around', [
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',

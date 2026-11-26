@@ -23,24 +23,24 @@
   <meta name="theme-color" content="#000208">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <script src="textures.js?v=20261127j"></script>
+  <script src="textures.js?v=20261127k"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="brain.js?v=20261127j"></script>
-  <script src="mobile.js?v=20261127j"></script>
-  <script src="life.js?v=20261127j"></script>
-  <script src="manual.js?v=20261127j"></script>
-  <script src="menubar.js?v=20261127j"></script>
-  <script src="ai.js?v=20261127j"></script>
-  <script src="sound.js?v=20261127j"></script>
-  <script src="avatar.js?v=20261127j"></script>
-  <script src="door.js?v=20261127j"></script>
-  <script src="lcars.js?v=20261127j"></script>
-  <script src="starmap.js?v=20261127j"></script>
-  <script src="wp-console.js?v=20261127j"></script>
-  <script src="crew.js?v=20261127j"></script>
-  <script src="repairs.js?v=20261127j"></script>
-  <script src="props.js?v=20261127j"></script>
-  <script src="hyperspace.js?v=20261127j"></script>
+  <script src="brain.js?v=20261127k"></script>
+  <script src="mobile.js?v=20261127k"></script>
+  <script src="life.js?v=20261127k"></script>
+  <script src="manual.js?v=20261127k"></script>
+  <script src="menubar.js?v=20261127k"></script>
+  <script src="ai.js?v=20261127k"></script>
+  <script src="sound.js?v=20261127k"></script>
+  <script src="avatar.js?v=20261127k"></script>
+  <script src="door.js?v=20261127k"></script>
+  <script src="lcars.js?v=20261127k"></script>
+  <script src="starmap.js?v=20261127k"></script>
+  <script src="wp-console.js?v=20261127k"></script>
+  <script src="crew.js?v=20261127k"></script>
+  <script src="repairs.js?v=20261127k"></script>
+  <script src="props.js?v=20261127k"></script>
+  <script src="hyperspace.js?v=20261127k"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -673,15 +673,21 @@
       scene.object3D.add(pts);
     }
 
-    // BOOK WINGS — the shared ship door, sealed until the wings are built (Book I left, Book II right)
+    // THE STAIRS DOORS (user, Nov 26: the two old book-wing doors "will be the stairs doors"): each opens onto the walkway that rings
+    // the Library and the top of that side's curved staircase down to the lower deck (atrium index.html?stairs=…). Library-local −x
+    // is ship starboard (the Library faces the bow, turned 180°), so the left door → starboard stairs.
     function buildWings() {
       const say = msg => { if (typeof showPrompt === 'function') { showPrompt(msg, '#ffcc66'); setTimeout(hidePrompt, 1800); } };
+      let going = false;
+      const go = side => { if (going) return; going = true; const f = document.createElement('div'); f.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;transition:opacity .35s;z-index:80'; document.body.appendChild(f);
+        requestAnimationFrame(() => { f.style.opacity = 1; }); setTimeout(() => { location.href = 'index.html?stairs=' + side; }, 380); };
       const wings = [
-        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 90 }, name: 'SONS OF NAPHTALI', tint: 0xffb040, depth: 0.45, noPockets: true, locked: 'BOOK I WING — SEALED (COMING SOON)', say: say }),
-        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -90 }, name: 'HAPLOGROUPS', tint: 0x4f8cff, depth: 0.45, noPockets: true, locked: 'BOOK II WING — SEALED (COMING SOON)', say: say })
+        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 90 }, name: 'STAIRS · LOWER DECK', tint: 0xffb040, depth: 0.45, noPockets: true, onPass: () => go('starboard'), say: say }),
+        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -90 }, name: 'STAIRS · LOWER DECK', tint: 0x4f8cff, depth: 0.45, noPockets: true, onPass: () => go('port'), say: say })
       ];
       const wp = new THREE.Vector3();
-      AFRAME.registerComponent('wf-lib-wings', { tick: function (t, dt) { if (!scene.camera) return; scene.camera.getWorldPosition(wp); wings.forEach(D => D.update(dt, wp)); } });
+      AFRAME.registerComponent('wf-lib-wings', { tick: function (t, dt) { if (!scene.camera) return; scene.camera.getWorldPosition(wp);
+        wings.forEach((D, i) => { const lp = D.update(dt, wp); if (lp && D.p > 0.92 && Math.abs(lp.x) < 0.7 && lp.z < 0.45 && lp.z > -1.5) go(i ? 'port' : 'starboard'); }); } });
       scene.setAttribute('wf-lib-wings', '');
     }
 

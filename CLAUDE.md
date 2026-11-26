@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127j).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127k).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -390,6 +390,14 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   Firefly parented to Firefly_Docking_Anchor (gear retracts), camera on the starboard side, stars below, then minigame.html ('launch').
   window.WF_ROOMJOBS for tests. life.js PAGE knows the new pages (room:<id> events); MAP has UPPER/LOWER DECK tabs (renderLower: layout.json
   polygons in ship coords, engine ring, twin stairs, you) and the Captain's Quarters is a tappable room on the upper map with your arrow.
+- [x] Doors (Nov 26, user screenshot: the sky showed round every frame): door.js create() adds a dark RECESS behind every door (back plate
+  z −0.9, sides ±1.22, top) on every page; atrium walls cut in 10 cm strips, doorway gap ±1.05.
+- [x] Library side doors (old SONS OF NAPHTALI / HAPLOGROUPS wings) = 'STAIRS · LOWER DECK': unlocked, walk/tap through → index.html?stairs=
+  starboard|port (library-local −x = ship starboard) → atrium spawns on that staircase's upper landing (±10.2, 31.6) facing down it.
+- [x] CREW LOUNGE upgrade (lounge-plus.js; user: "pretty lame", crossed out the plaques + white slot lamps → removed): ALIEN AQUARIUM in the
+  port wall (deg −103…−67, glass r 8.25, water shader back r 8.85, kelp, 10/18 glowing fish, a ray, bubbles, teal light), STAR HEARTH on the
+  starboard wall (deg 86, copper surround, additive flame sprites, flickering light, mantel clock/frames), 3 brass PENDANT lamps over the
+  table, BAR CABINET by the door (deg 132, lit bottles). Lounge photo recaptured.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.

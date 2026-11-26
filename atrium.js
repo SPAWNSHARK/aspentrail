@@ -94,11 +94,11 @@
       for (var i = 0; i < outline.length; i++) {
         var a = outline[i], b = outline[(i + 1) % outline.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 1e-3) continue;
         if (Math.abs(a[1] - b[1]) < 1e-3 && Math.abs(a[1] - 25.8) < 0.01) { run += L; continue; }   // the aft end stays open onto the Library apron
-        var steps = Math.max(1, Math.ceil(L / 0.5));
+        var steps = Math.max(1, Math.ceil(L / 0.1));   /* 10 cm strips: the doorway cut hugs the frame (0.5 m left gaps the sky showed through) */
         for (var s = 0; s < steps; s++) {
           var k0 = s / steps, k1 = (s + 1) / steps, x0 = a[0] + (b[0] - a[0]) * k0, z0 = a[1] + (b[1] - a[1]) * k0, x1 = a[0] + (b[0] - a[0]) * k1, z1 = a[1] + (b[1] - a[1]) * k1;
           var mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
-          if (DOORS.some(function (d) { return d.y === y0 && Math.hypot(mx - d.x, mz - d.z) < 1.15; })) {      // doorway: only the lintel above it
+          if (DOORS.some(function (d) { return d.y === y0 && Math.hypot(mx - d.x, mz - d.z) < 1.05; })) {      // doorway: only the lintel above it
             var vv = pos.length / 3, top = y0 + (y0 === 0 ? H : HL), uu0 = run / 3, uu1 = (run + L / steps) / 3; run += L / steps;
             pos.push(x0, y0 + 2.95, z0, x1, y0 + 2.95, z1, x1, top, z1, x0, top, z0); uv.push(uu0, 0.9, uu1, 0.9, uu1, 1, uu0, 1); idx.push(vv, vv + 1, vv + 2, vv, vv + 2, vv + 3); continue; }
           var v = pos.length / 3, u0 = run / 3, u1 = (run + L / steps) / 3; run += L / steps;
@@ -144,7 +144,8 @@
         autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);
     });
-    window.WAYFARER.corridorDoors = doors;   /* crew.js waits on these when droids/cats pass a doorway */
+    window.WAYFARER.corridorDoors = doors;
+   /* crew.js waits on these when droids/cats pass a doorway */
   }
   function go(d) { if (navigating || d.locked) return; var P = window.WAYFARER.door.PORTALS[d.id]; if (!P) return; navigating = true; window.WAYFARER.door.leave(P.page, 'images/portals/room-' + d.id + '.jpg', 0); }
   function fromRoom() {
@@ -184,6 +185,8 @@
       var from = fromRoom(), d = from && DOORS.filter(function (q) { return q.id === from; })[0], p = this.cam.object3D.position, yaw = Math.PI;   // default: facing aft (+Z) down the atrium
       if (d) { var a = d.rot * Math.PI / 180; p.x = d.x + Math.sin(a) * 1.3; p.z = d.z + Math.cos(a) * 1.3; this.floorY = d.y; yaw = Math.atan2(-Math.sin(a), -Math.cos(a)); }   // one step out, facing away from the door
       else { p.x = 0; p.z = -20; this.floorY = 0; }
+      var st = (location.search.match(/[?&]stairs=(port|starboard)/) || [])[1];   // through a Library stairs door: top of that staircase
+      if (st) { p.x = st === 'port' ? -10.2 : 10.2; p.z = 31.6; this.floorY = 0; yaw = Math.PI; if (this.last) { this.last.x = p.x; this.last.z = p.z; } }
       this.player.object3D.position.y = this.floorY;
       var lc = this.cam.components['look-controls']; if (lc && lc.yawObject) lc.yawObject.rotation.y = yaw;
     },
