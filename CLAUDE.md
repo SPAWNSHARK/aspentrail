@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127e).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127f).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -423,7 +423,7 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [ ] Space combat run from the Bridge (bridge-combat-concept.jpg: tactical sphere, LCARS side panels)
 - [x] Visible warp jump (Flight Mode NAV → WARP). [x] missions/contracts, rewards, rank (missions.js). [ ] ship upgrades, crew
 - [ ] Interactive objects in rooms; real-time planetary window views; upgraded Holodeck visuals
-- [ ] Reduce floor glare / better ambient shadows; adjustable mobile controls (size, opacity)
+- [~] Reduce floor glare / better ambient shadows [ ]; adjustable mobile controls [x] (⚙️ menu: Thumbstick size S 92 / M 118 / L 148 px, opacity 100/70/40 %, localStorage 'wf-stick', menubar.js applyStick)
 - [x] VOICES (Nov 26, user: "more than one type of sound"): sound.js WF_SOUND.droid(kind) chatter/whistle/affirm/negative/ponder/
   servo/scan, .cat(kind) meow/mew/trill/yowl/purr/chirp/chatter, .alien(kind) click/chitter/hum/trill/growl/query — (kind, pan, vol).
   crew.js picks them per event (chats, petting, bumps, dialogue topic, door entries) + an ambient voice every 5–14 s in the room;

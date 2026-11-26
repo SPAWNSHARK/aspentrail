@@ -5,7 +5,7 @@
   var S = [
     ['🧭 Getting around', [
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',
-      'Top bar (left → right): 📋 Ship Log · 👁 Halcyon · Gyro (phone) · Level (phone) · 🔈 Sound · 👤 1st / 3rd person.',
+      'Top bar: clock and credits on the left; 📍 map · 📋 Ship Log · 🧠 Halcyon · 📖 this manual · 🔊 sound · ⚙️ settings. The ⚙️ menu holds thumbstick size (S / M / L) and opacity, VR / gyro look, level the view, and 1st / 3rd person.',
       'Doors: walk up and tap the glowing hub button, or just walk through an open one. The coloured half-round rug in front of each door matches its room.',
       'Ship Log (📋 or J): GOALS · MAP (live deck map — tap a room to go straight there) · CARGO · SCIENCE · ORDERS.',
       'Keys: J log · H this manual · I Halcyon · M mute · V view · Esc closes panels.']],

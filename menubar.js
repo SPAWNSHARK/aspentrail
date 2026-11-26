@@ -38,7 +38,14 @@
     // the settings drop-down
     if (!set) { set = document.createElement('div'); set.id = 'wf-set'; set.className = 'wf-ctl'; set.innerHTML = '<div class="t">SETTINGS</div>'; document.body.appendChild(set); stopper(set);
       gear = mk('Settings', '⚙️', function () { var o = !set.classList.contains('open'); set.classList.toggle('open', o); gear.classList.toggle('open', o); });
-      document.addEventListener('pointerdown', function (e) { if (set.classList.contains('open') && !set.contains(e.target) && e.target !== gear) { set.classList.remove('open'); gear.classList.remove('open'); } }); }
+      document.addEventListener('pointerdown', function (e) { if (set.classList.contains('open') && !set.contains(e.target) && e.target !== gear) { set.classList.remove('open'); gear.classList.remove('open'); } }); 
+      // THUMBSTICK size + opacity (roadmap: adjustable mobile controls), saved in localStorage 'wf-stick' {s, o}
+      var SZ = [['S', 92], ['M', 118], ['L', 148]], OP = [['100%', 1], ['70%', 0.7], ['40%', 0.4]], cfg = { s: 1, o: 0 }; try { cfg = Object.assign(cfg, JSON.parse(localStorage.getItem('wf-stick') || '{}')); } catch (e) {}
+      var stSt = document.createElement('style'); document.head.appendChild(stSt);
+      function applyStick() { var w = SZ[cfg.s][1]; stSt.textContent = '#wf-joy,#wf-stick{width:' + w + 'px!important;height:' + w + 'px!important;opacity:' + OP[cfg.o][1] + '}#wf-joy i,#wf-stick i{width:' + Math.round(w * 0.42) + 'px!important;height:' + Math.round(w * 0.42) + 'px!important;margin:-' + Math.round(w * 0.21) + 'px 0 0 -' + Math.round(w * 0.21) + 'px!important}';
+        try { localStorage.setItem('wf-stick', JSON.stringify(cfg)); } catch (e) {} szB.querySelector('.st').textContent = SZ[cfg.s][0]; opB.querySelector('.st').textContent = OP[cfg.o][0]; }
+      function setRow(icon, label, fn) { var b = document.createElement('b'); b.innerHTML = em(icon) + '<span class="lb">' + label + '</span><span class="st"></span>'; b.addEventListener('click', function (e) { e.stopPropagation(); fn(); applyStick(); }); set.appendChild(b); return b; }
+      var szB = setRow('🕹️', 'Thumbstick size', function () { cfg.s = (cfg.s + 1) % 3; }), opB = setRow('👁️', 'Thumbstick opacity', function () { cfg.o = (cfg.o + 1) % 3; }); applyStick(); }
     // new buttons
     if (!row.querySelector('.wf-mapbtn') && window.WF_LIFE) { var mp = mk('Deck map', '📍', function () { WF_LIFE.open('map'); }); mp.classList.add('wf-mapbtn'); row.appendChild(mp); }
     if (!row.querySelector('.wf-manbtn') && window.WF_MANUAL) { var mn = mk('Manual', '📖', function () { WF_MANUAL.open(); }); mn.classList.add('wf-manbtn'); row.appendChild(mn); }
