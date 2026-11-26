@@ -3,6 +3,13 @@
 // panel, port wall z −6) or key H anywhere. KEEP THIS CURRENT whenever a feature ships — it is the user's map of the game.
 (function () {
   var S = [
+    ['🏛 The Atrium (new, Nov 26)', [
+      'The ship’s main hall is now a split-level ATRIUM: two walkways either side of an opening that looks down onto the lower deck, with a skylight overhead.',
+      'Upper deck doors: Command Bridge (bow end) · Holodeck and Captain’s Quarters (port) · Crew Lounge and Media Nexus (starboard) · the Library (aft end).',
+      'Walk past either side of the Library door at the aft end onto the walkway that rings the Library, then take either curved staircase down to the lower deck.',
+      'Lower deck doors: Firefly Hangar · Medbay · Xenobiology · Mess Hall · Maintenance · Engine Room. They’re sealed until those rooms are built (coming next), and so is the Captain’s Quarters.',
+      'Forge’s Engineering console on the port walkway (labelled GUIDE) still opens this manual.'
+    ]],
     ['🧭 Getting around', [
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',
       'Top bar: clock and credits on the left; 📍 map · 📋 Ship Log · 🧠 Halcyon · 📖 this manual · 🔊 sound · ⚙️ settings. The ⚙️ menu holds thumbstick size (S / M / L) and opacity, VR / gyro look, level the view, and 1st / 3rd person.',

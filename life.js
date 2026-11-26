@@ -143,7 +143,7 @@
     box.appendChild(el('p', 'sub', 'Three new goals every day · 150 cr each · +300 cr for all three'));
     st.list.forEach(function (g) { var d = el('div', 'goal' + (g.done ? ' done' : ''), (g.done ? '✓ ' : '') + g.text + '<small>' + Math.min(g.have, g.n) + ' / ' + g.n + '</small><i><u style="width:' + Math.min(100, g.have / g.n * 100) + '%"></u></i>'); box.appendChild(d); });
     if (st.bonus) box.appendChild(el('p', 'sub', 'All done for today — new goals tomorrow.'));
-    var FL = load('wf-faults', []), RN = { corridor: 'corridor', bridge: 'Bridge', holodeck: 'Holodeck', lounge: 'Crew Lounge', media: 'Media Nexus', library: 'Library' };
+    var FL = load('wf-faults', []), RN = { corridor: 'atrium', bridge: 'Bridge', holodeck: 'Holodeck', lounge: 'Crew Lounge', media: 'Media Nexus', library: 'Library' };
     if (FL.length) box.appendChild(el('p', 'sub', '⚠ Forge reports: ' + FL.map(function (f) { return f.kind === 'spark' ? 'sparking conduit' : f.kind === 'coolant' ? 'coolant leak' : 'power relay'; }).map(function (k, i) { return k + ' (' + RN[FL[i].room] + ')'; }).join(' · ') + ' — 80 cr each'));
   }
   function renderDisc() {      // Vesper's science log: what you've scanned in Flight Mode
@@ -168,14 +168,14 @@
   //    footprints (maps/deck.json, baked from each page's collision scan), the corridor with its bookcases, doors and hull. A live
   //    layer redraws every 0.4 s: you (arrow = where you face), droids, cats (initials), faults ⚠. Tap a room to go there.
   var DECK = null; function deckData(cb) { if (DECK) return cb(DECK); fetch('maps/deck.json?v=1').then(function (r) { return r.json(); }).then(function (d) { DECK = d; cb(d); }).catch(function () { cb(null); }); }
-  var SR = 7, KC = 20;                                     // px per metre inside rooms · along the (stretched) corridor
+  var SR = 7, KC = 1;                                      // px per metre inside rooms · the atrium maps itself (12 px/m across, 10.5 px/m along)
   var ROOMS = {   // map centre + how room-local metres turn on the map (each room's door faces its corridor doorway)
-    bridge:   { c: [300, 191], m: function (x, z) { return [x, z]; }, page: 'bridge.html', name: 'COMMAND BRIDGE', em: '🛸' },
-    holodeck: { c: [185, 380], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK', em: '🎮' },
-    lounge:   { c: [411, 420], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE', em: '🐈' },
-    media:    { c: [412, 580], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS', em: '🎬' },
-    library:  { c: [300, 825], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY', em: '🧠' },
-    corridor: { c: [300, 500], m: function (x, z) { return [x, -z]; }, page: 'index.html', name: 'CORRIDOR', em: '🚪' }
+    bridge:   { c: [300, 183], m: function (x, z) { return [x, z]; }, page: 'bridge.html', name: 'COMMAND BRIDGE', em: '🛸' },
+    holodeck: { c: [185, 345], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK', em: '🎮' },
+    lounge:   { c: [416, 345], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE', em: '🐈' },
+    media:    { c: [416, 585], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS', em: '🎬' },
+    library:  { c: [300, 836], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY', em: '🧠' },
+    corridor: { c: [300, 500], m: function (x, z) { return [x * 12, (z - 0.9) * 10.5]; }, page: 'index.html', name: 'ATRIUM', em: '🚪' }
   };
   var OFFR = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
   function mapPt(room, lx, lz) { var R = ROOMS[room], q = R.m(lx, lz), k = room === 'corridor' ? KC : SR; return [R.c[0] + q[0] * k, R.c[1] + q[1] * k]; }
@@ -242,9 +242,12 @@
       function circle(room, r, g, at) { var c = ROOMS[room].c; return add('circle', Object.assign({ cx: c[0], cy: c[1], r: r * SR }, at), g); }
       function furniture(room, g) { var d = D && D[room]; if (!d) return; d.solids.forEach(function (b) { poly(room, [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]], g, { fill: FURN, stroke: 'rgba(255,230,200,.35)', 'stroke-width': 0.5 }); }); }
       // corridor
-      var gc = roomG('corridor'); poly('corridor', [[-2.5, 12.5], [2.5, 12.5], [2.5, -12.5], [-2.5, -12.5]], gc, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
-      poly('corridor', [[-1.5, 12.5], [1.5, 12.5], [1.5, -12.5], [-1.5, -12.5]], gc, { fill: 'rgba(120,90,255,.10)', stroke: 'none' });   // stained-glass runner
-      ((D && D.corridor && D.corridor.shelves) || []).forEach(function (q) { var x = q[0] === 'L' ? -2.5 : 2.5; poly('corridor', [[x - 0.12 * (q[0] === 'L' ? 0 : 1), q[1] - 1.2], [x + 0.12 * (q[0] === 'L' ? 1 : 0), q[1] - 1.2], [x + 0.12 * (q[0] === 'L' ? 1 : 0), q[1] + 1.2], [x - 0.12 * (q[0] === 'L' ? 0 : 1), q[1] + 1.2]], gc, { fill: 'rgba(200,120,70,.8)' }); });
+      var gc = roomG('corridor');   // the split-level atrium (upper deck): walkways round the opening down to the lower deck
+      poly('corridor', [[-2.5, -24], [-4.6, -17], [-4.6, 18.5], [-2.5, 25.8], [2.5, 25.8], [4.6, 18.5], [4.6, -17], [2.5, -24]], gc, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
+      poly('corridor', [[-2.05, -16], [2.05, -16], [2.05, 16], [-2.05, 16]], gc, { fill: 'rgba(60,200,220,.10)', stroke: 'rgba(120,230,255,.5)', 'stroke-width': 1, 'stroke-dasharray': '3 2' });
+      var qa = mapPt('corridor', -4.6, -1), qb = mapPt('corridor', -4.6, 25.8);   // Captain's Quarters (sealed until its page exists)
+      add('rect', { x: qa[0] - 118, y: qa[1], width: 118, height: qb[1] - qa[1], fill: 'rgba(255,170,90,.04)', stroke: 'rgba(255,200,140,.45)', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' });
+      var tq = add('text', { x: qa[0] - 59, y: (qa[1] + qb[1]) / 2, 'text-anchor': 'middle', fill: '#d9c4ae', 'font-size': 8.5, 'font-weight': 800 }); tq.textContent = "🎖 CAPTAIN'S QTRS";
       furniture('corridor', gc);
       // rooms
       var gb = roomG('bridge'); if (D && D.bridge && D.bridge.bounds) poly('bridge', D.bridge.bounds, gb, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); furniture('bridge', gb);
@@ -256,8 +259,8 @@
       // doorways
       [['bridge', 0, 7.9], ['holodeck', 0, 8.7], ['lounge', 0, 8.7], ['media', 0, 8.9], ['library', 0, 10.7]].forEach(function (q) { var p = mapPt(q[0], q[1], q[2]); add('circle', { cx: p[0], cy: p[1], r: 4.5, fill: '#ffd27a' }); });
       // labels
-      Object.keys(ROOMS).forEach(function (id) { var R = ROOMS[id], y = id === 'bridge' ? R.c[1] + 46 : id === 'corridor' ? 470 : R.c[1] + 4, x = id === 'corridor' ? 300 : R.c[0];
-        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#fff2dc', 'font-size': id === 'corridor' ? 8 : 10, 'font-weight': 800, 'letter-spacing': 1.2, stroke: 'rgba(0,0,0,.55)', 'stroke-width': 2.5, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 470)' : '' }); t.textContent = R.em + ' ' + R.name; });
+      Object.keys(ROOMS).forEach(function (id) { var R = ROOMS[id], y = id === 'bridge' ? R.c[1] + 46 : id === 'corridor' ? 500 : R.c[1] + 4, x = id === 'corridor' ? 300 : R.c[0];
+        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#fff2dc', 'font-size': id === 'corridor' ? 8 : 10, 'font-weight': 800, 'letter-spacing': 1.2, stroke: 'rgba(0,0,0,.55)', 'stroke-width': 2.5, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 500)' : '' }); t.textContent = R.em + ' ' + R.name; });
       // live layer
       var live = add('g', {});
       box.appendChild(el('p', 'sub', 'Live · tap a room to go there · <span style="color:#6ff">▲</span> you · <span style="color:#7fd8ff">●</span> droids · <span style="color:#ffb0e0">●</span> cats · ⚠ faults'));

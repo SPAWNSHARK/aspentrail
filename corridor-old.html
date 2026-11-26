@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#120c08">
+  <meta name="apple-mobile-web-app-title" content="SS Wayfarer">
+  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=2">
+  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SS Wayfarer">
+  <meta property="og:url" content="https://spawnshark.github.io/aspentrail/">
+  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=2">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="textures.js?v=20261127h"></script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="mobile.js?v=20261127h"></script>
+  <script src="life.js?v=20261127h"></script>
+  <script src="manual.js?v=20261127h"></script>
+  <script src="menubar.js?v=20261127h"></script>
+  <script src="ai.js?v=20261127h"></script>
+  <script src="sound.js?v=20261127h"></script>
+  <script src="avatar.js?v=20261127h"></script>
+  <script src="door.js?v=20261127h"></script>
+  <script src="lcars.js?v=20261127h"></script>
+  <script src="crew.js?v=20261127h"></script>
+  <script src="repairs.js?v=20261127h"></script>
+  <script src="hyperspace.js?v=20261127h"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; }
+
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #cc8833;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      pointer-events: none;
+      text-shadow: 0 0 8px #ff6600;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      z-index: 10;
+    }
+
+    #room-prompt {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ffcc66;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      pointer-events: none;
+      text-shadow: 0 0 12px #ff8833;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    #controls-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #554433;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #wf-fade { position: fixed; inset: 0; background: #000; opacity: 1; z-index: 30; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div id="hud">
+    <span>SS WAYFARER</span>
+    <span>HERITAGE CLASS · DEEP CORE SERIES</span>
+    <span>DECK 01</span>
+  </div>
+
+  <div id="room-prompt"></div>
+  <div id="controls-hint">WASD / DRAG TO LOOK · CLICK OR TAP THE OPEN BUTTON BESIDE A DOOR · VR ICON FOR CARDBOARD</div>
+  <div id="wf-fade"></div>
+
+  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="collide: false" light="defaultLightsEnabled: false"
+    fog="type: exponential; color: #0c0a08; density: 0.010"
+    background="color: #02030a"
+    vr-mode-ui="enabled: true"
+    renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.05">
+
+    <a-entity id="player" position="0 0 0">
+      <a-camera id="cam"
+        wasd-controls="acceleration: 22; fly: false"
+        look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false"
+        position="0 1.6 9">
+        <a-cursor color="#ffcc66" opacity="0.6" fuse="true" fuse-timeout="1500"
+          raycaster="objects: .interactive"></a-cursor>
+      </a-camera>
+    </a-entity>
+
+    <a-entity id="corridor" wf-corr></a-entity>
+  </a-scene>
+
+  <script>
+  (function () {
+    var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
+    var MOB = window.WAYFARER && window.WAYFARER.mobile;
+
+    // ───────────────────────────── layout (metres) ─────────────────────────────
+    // Style reference: reference/interiors-doors-closed.jpg (Main Corridor panel).
+    // corridor: x ±2.5, z ±12.5.  Straight walls to 2.9 m, then a curved cove rising to a glass skylight
+    // (x ±0.85, y 3.75) that runs the full length.  Bronze arched ribs every 3 m.  Library at −Z end, Bridge at +Z end.
+    var T = 0.5, H = 2.95, DOOR_W = 1.72, DOOR_H = 2.55;
+    var FR_X = 1.1, FR_TOP = 2.9, R_IN = 0.35, R_OUT = 0.55, HUB_Y = 1.2;   // arched door frame (outer half-width, top), corner radii, centre-hub height
+    var COVE_Y = 2.9, SKY_X = 0.85, SKY_Y = 3.75;
+    var WALLS = {
+      L: { axis: 'x', s: -1, base: 2.5, rot: 90 },
+      R: { axis: 'x', s: 1, base: 2.5, rot: -90 },
+      F: { axis: 'z', s: 1, base: 12.5, rot: 180 },     // Bridge end
+      B: { axis: 'z', s: -1, base: 12.5, rot: 0 }       // Library end
+    };
+    var DOORS = [
+      { id: 'bridge',   name: ['COMMAND', 'BRIDGE'], one: 'COMMAND BRIDGE', page: 'bridge.html',   W: 'F', c: 0,  end: true, glow: 0xffa040, tint: 0x4aa8ff },
+      { id: 'library',  name: ['THE', 'LIBRARY'],    one: 'THE LIBRARY',    page: 'library.html',  W: 'B', c: 0,  end: true, glow: 0x3fe0c8, tint: 0x3fe0c8 },
+      { id: 'holodeck', name: ['HOLO', 'DECK'],      one: 'HOLODECK',       page: 'holodeck.html', W: 'L', c: 6, tint: 0x8a5cff },
+      { id: 'lounge',   name: ['CREW', 'LOUNGE'],    one: 'CREW LOUNGE',    page: 'lounge.html',   W: 'R', c: 4, tint: 0xffa060 },
+      { id: 'media',    name: ['MEDIA', 'NEXUS'],    one: 'MEDIA NEXUS',    page: 'media.html',    W: 'R', c: -4, tint: 0x4f8cff }
+    ];
+    var RIBS = [-10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5];
+
+    // where you stand when you come back out of a room: one step outside its doorway, facing down the hall
+    // (heading = yaw about +Y, 0 faces −Z i.e. toward the Library, 180 faces +Z toward the Bridge)
+    // yaw: 0 = facing −Z (toward the Library), 180 = facing +Z (toward the Bridge). Leaving an end room you face away from it.
+    var SPAWN = {
+      library:  { x: 0,    z: -11.6, yaw: 180 },
+      bridge:   { x: 0,    z: 11.6,  yaw: 0 },
+      holodeck: { x: -1.6, z: 6,     yaw: 180 },
+      lounge:   { x: 1.6,  z: 4,     yaw: 180 },
+      media:    { x: 1.6,  z: -4,    yaw: 180 }
+    };
+    var ALONG = { L: -1, R: 1, F: -1, B: 1 };               // door-group local +x expressed along world z (side walls) / x (end walls)
+    var DEFAULT_SPAWN = { x: 0, z: 9, yaw: 180 };         // Home Screen launch: the usual view down the hall
+
+    // built-in bookshelves, recessed into the wall between ribs (user, Nov 24: reference was a hallway with inset shelves)
+    var SHELVES = [{ W: 'L', c: -9 }, { W: 'R', c: 0 }, { W: 'L', c: 9 }];   /* fewer bookcases in the hall (user, Nov 26) */
+    var SH_W = 2.4, SH_Y0 = 0.14, SH_Y1 = 2.62, SH_D = 0.38;
+    function shelfAt(Wk, z, pad) { return SHELVES.some(function (q) { return q.W === Wk && Math.abs(z - q.c) < SH_W / 2 + pad; }); }
+
+    // stretches of each side wall that a door, its button or its frame occupies: ribs and sconces keep clear
+    function busy(Wk, z, pad) {
+      return DOORS.some(function (d) {
+        if (d.W !== Wk) return false;
+        return Math.abs(z - d.c) < 1.36 + pad;
+      });
+    }
+
+    // ───────────────────────────── helpers ─────────────────────────────
+    function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+    function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function mkTex(c) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; }
+    function coveXY(t, s) { return [s * (SKY_X + (2.5 - SKY_X) * Math.cos(t)), COVE_Y + (SKY_Y - COVE_Y) * Math.sin(t)]; }
+
+    // ───────────────────────────── textures ─────────────────────────────
+    function wallTexture() {            // 1.2 m wide × H tall tile; v maps world height.  Dark walnut-brown panels, bronze rails
+      var W = 512, Hh = 1024, c = cv(W, Hh), x = c.getContext('2d'), r = rng(11);
+      function Y(m) { return (1 - m / H) * Hh; }
+      x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, Hh);
+      function inset(x0, y0, x1, y1, base) {
+        x.fillStyle = base; x.fillRect(x0, y0, x1 - x0, y1 - y0);
+        x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(x0, y0, x1 - x0, 3); x.fillRect(x0, y0, 3, y1 - y0);
+        x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(x0, y1 - 3, x1 - x0, 3); x.fillRect(x1 - 3, y0, 3, y1 - y0);
+      }
+      inset(26, Y(2.72), W - 26, Y(1.06), '#372b23');
+      inset(26, Y(0.86), W - 26, Y(0.14), '#2f251e');
+      // vertical seams
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, Hh); x.fillRect(W - 3, 0, 3, Hh);
+      x.fillStyle = 'rgba(255,200,140,0.05)'; x.fillRect(3, 0, 2, Hh);
+      [[38, Y(2.64)], [W - 38, Y(2.64)], [38, Y(1.14)], [W - 38, Y(1.14)], [38, Y(0.78)], [W - 38, Y(0.78)], [38, Y(0.22)], [W - 38, Y(0.22)]].forEach(function (p) {
+        x.fillStyle = '#6b4c28'; x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill();
+        x.fillStyle = 'rgba(255,220,160,0.35)'; x.beginPath(); x.arc(p[0] - 1, p[1] - 1, 1.6, 0, 6.3); x.fill();
+      });
+      function rail(m, hgt) { var g = x.createLinearGradient(0, Y(m + hgt), 0, Y(m)); g.addColorStop(0, '#d9a866'); g.addColorStop(0.5, '#9a6c36'); g.addColorStop(1, '#5a3d1e'); x.fillStyle = g; x.fillRect(0, Y(m + hgt), W, Y(m) - Y(m + hgt)); }
+      rail(0.95, 0.05); rail(2.80, 0.04);
+      for (var i = 0; i < 9000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 2, 1 + r() * 8); }
+      return mkTex(c);
+    }
+    function coveTexture() {            // u: 1.2 m along the hall, v: the whole curve from wall top (0) to skylight edge (1)
+      var W = 512, Hh = 512, c = cv(W, Hh), x = c.getContext('2d'), r = rng(19);
+      x.fillStyle = '#2a211b'; x.fillRect(0, 0, W, Hh);
+      [[22, 30, W - 22, 236], [22, 270, W - 22, 486]].forEach(function (q) {
+        x.fillStyle = '#33281f'; x.fillRect(q[0], q[1], q[2] - q[0], q[3] - q[1]);
+        x.fillStyle = 'rgba(255,210,150,0.06)'; x.fillRect(q[0], q[1], q[2] - q[0], 3);
+        x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(q[0], q[3] - 3, q[2] - q[0], 3);
+      });
+      x.fillStyle = 'rgba(0,0,0,0.55)'; x.fillRect(0, 0, 3, Hh);
+      for (var i = 0; i < 5000; i++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,220,180,0.025)'; x.fillRect(r() * W, r() * Hh, 1 + r() * 6, 1 + r() * 2); }
+      return mkTex(c);
+    }
+    function coveGlowTexture() {        // emissive wash: amber from the hidden strip at the wall top, a softer warm edge at the skylight
+      var c = cv(4, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 256, 0, 0);
+      g.addColorStop(0, 'rgb(255,150,60)'); g.addColorStop(0.08, 'rgb(170,88,30)'); g.addColorStop(0.35, 'rgb(40,20,8)');
+      g.addColorStop(0.8, 'rgb(14,8,4)'); g.addColorStop(0.96, 'rgb(90,62,36)'); g.addColorStop(1, 'rgb(150,110,70)');
+      x.fillStyle = g; x.fillRect(0, 0, 4, 256); var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function trimTexture() {             // brushed bronze, 1 m tile
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(5);
+      x.fillStyle = '#8c6234'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 1400; i++) { var y = r() * 256, a = r() * 0.18; x.fillStyle = r() < 0.5 ? 'rgba(255,215,150,' + a * 0.5 + ')' : 'rgba(40,20,6,' + a * 0.5 + ')'; x.fillRect(0, y, 256, 1); }
+      return mkTex(c);
+    }
+    function deckTexture() {             // polished dark deck plates, 1 m tiles
+      var c = cv(512, 512), x = c.getContext('2d'), r = rng(23);
+      x.fillStyle = '#1e1a17'; x.fillRect(0, 0, 512, 512);
+      for (var i = 0; i < 70; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,230,200') + ',' + (0.015 + r() * 0.025) + ')'; x.fillRect(r() * 512, r() * 512, 40 + r() * 160, 20 + r() * 90); }
+      x.fillStyle = 'rgba(0,0,0,0.65)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512);
+      x.fillStyle = 'rgba(255,220,170,0.05)'; x.fillRect(0, 3, 512, 2); x.fillRect(3, 0, 2, 512);
+      return mkTex(c);
+    }
+    function dotTexture() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
+    function rampTexture(sym) {          // soft band across u: sym → bright centre, else bright at u=0 fading to u=1
+      var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0);
+      if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); }
+      else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); }
+      x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c);
+    }
+    function shaftTexture() {            // skylight light shaft: bright at the top, gone by the floor, soft sides
+      var c = cv(64, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256);
+      g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(0.5, 'rgba(255,255,255,0.25)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 64, 256);
+      var e = x.createLinearGradient(0, 0, 64, 0); e.addColorStop(0, 'rgba(0,0,0,1)'); e.addColorStop(0.3, 'rgba(0,0,0,0)'); e.addColorStop(0.7, 'rgba(0,0,0,0)'); e.addColorStop(1, 'rgba(0,0,0,1)');
+      x.globalCompositeOperation = 'destination-out'; x.fillStyle = e; x.fillRect(0, 0, 64, 256);
+      return new THREE.CanvasTexture(c);
+    }
+
+    // ───────────────────────────── geometry collector (world-aligned boxes, world-space UVs) ─────────────────────────────
+    var TILE = { wall: [1.2, H], trim: [1, 1], dark: [1, 1], amber: [1, 1], lamp: [1, 1], wood: [1, 1] };
+    var buckets = {};
+    function bx(key, cx, cy, cz, w, h, d) {
+      var g = new THREE.BoxGeometry(w, h, d); g.translate(cx, cy, cz);
+      var p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv, t = TILE[key] || [1, 1];
+      for (var i = 0; i < p.count; i++) {
+        var u, v;
+        if (Math.abs(n.getX(i)) > 0.5) { u = p.getZ(i) / t[0]; v = p.getY(i) / t[1]; }
+        else if (Math.abs(n.getZ(i)) > 0.5) { u = p.getX(i) / t[0]; v = p.getY(i) / t[1]; }
+        else { u = p.getX(i) / t[0]; v = p.getZ(i) / t[0]; }
+        uv.setXY(i, u, v);
+      }
+      (buckets[key] = buckets[key] || []).push(g);
+    }
+    function wb(key, W, depth0, size, y0, y1, a0, a1) {       // box in wall-local coords (depth outward from the corridor face)
+      var dc = W.base + depth0 + size / 2, al = (a0 + a1) / 2, cy = (y0 + y1) / 2, wd = a1 - a0, h = y1 - y0;
+      if (W.axis === 'x') bx(key, W.s * dc, cy, al, size, h, wd); else bx(key, al, cy, W.s * dc, wd, h, size);
+    }
+    function merge(gs) {
+      var vc = 0, ic = 0, i; gs.forEach(function (g) { vc += g.attributes.position.count; ic += g.index.count; });
+      var P = new Float32Array(vc * 3), N = new Float32Array(vc * 3), U = new Float32Array(vc * 2), I = new Uint32Array(ic), vo = 0, io = 0;
+      gs.forEach(function (g) { P.set(g.attributes.position.array, vo * 3); N.set(g.attributes.normal.array, vo * 3); U.set(g.attributes.uv.array, vo * 2);
+        for (i = 0; i < g.index.count; i++) I[io + i] = g.index.array[i] + vo; vo += g.attributes.position.count; io += g.index.count; });
+      var m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('uv', new THREE.BufferAttribute(U, 2)); m.setIndex(new THREE.BufferAttribute(I, 1)); return m;
+    }
+
+    function buildWall(W, ops, lo, hi, Wk) {
+      ops = ops.slice().sort(function (a, b) { return a.c - b.c; }); var cur = lo;
+      function solid(a0, a1) {
+        wb('wall', W, 0, T, 0, H, a0, a1);
+        wb('amber', W, -0.025, 0.03, 0.05, 0.085, a0, a1);                 // baseboard light line
+        wb('trim', W, -0.02, 0.03, 0, 0.05, a0, a1);                       // kick plate under it
+      }
+      ops.forEach(function (o) {
+        var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
+        if (a0 > cur) solid(cur, a0);
+        if (o.type === 'shelf') {
+          wb('wall', W, 0, T, SH_Y1, H, a0, a1); wb('wall', W, 0, T, 0, SH_Y0, a0, a1);
+          wb('amber', W, -0.025, 0.03, 0.05, 0.085, a0, a1); wb('trim', W, -0.02, 0.03, 0, 0.05, a0, a1);
+          shelfUnit(Wk, W, a0, a1);
+        } else wb('wall', W, 0, T, DOOR_H, H, a0, a1);
+        cur = a1;
+      });
+      if (hi > cur) solid(cur, hi);
+      wb('amber', W, -0.06, 0.06, 2.86, 2.9, lo, hi);                      // cove light line on top of the ledge
+    }
+    // ── a recessed bookcase: walnut carcass, bronze lip, two columns × six shelves, amber strip under every shelf ──
+    var books = [], bookCol = [], decor = [];
+    var BOOK_COLS = ['#6b1e1e', '#7a2a1a', '#1f3350', '#24405e', '#2d4a2f', '#3c5a36', '#b08a3e', '#8c6a2a', '#e2d6bc', '#cbbd9a', '#1c1c1e', '#3a2a22', '#1f5a5a', '#5a2e4a', '#9a4a24', '#4a3a6a'];
+    function shelfUnit(Wk, W, a0, a1) {
+      var r = rng(Math.round((a0 + 20) * 97) + (Wk === 'L' ? 1 : 7)), mid = (a0 + a1) / 2, rows = 6, pitch = (SH_Y1 - SH_Y0) / rows;
+      wb('wood', W, SH_D, T - SH_D, SH_Y0, SH_Y1, a0, a1);                                  // back panel
+      wb('wood', W, 0, SH_D, SH_Y0, SH_Y1, a0, a0 + 0.025); wb('wood', W, 0, SH_D, SH_Y0, SH_Y1, a1 - 0.025, a1);   // sides
+      wb('wood', W, 0, SH_D, SH_Y1 - 0.03, SH_Y1, a0, a1);                                   // top
+      wb('wood', W, 0.01, SH_D - 0.01, SH_Y0, SH_Y1, mid - 0.016, mid + 0.016);             // centre upright
+      wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y0, a0 - 0.05, a1 + 0.05); wb('trim', W, -0.035, 0.045, SH_Y1, SH_Y1 + 0.05, a0 - 0.05, a1 + 0.05);   // bronze lip
+      wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y1 + 0.05, a0 - 0.05, a0); wb('trim', W, -0.035, 0.045, SH_Y0 - 0.05, SH_Y1 + 0.05, a1, a1 + 0.05);
+      wb('trim', W, -0.012, 0.012, SH_Y0, SH_Y1, mid - 0.02, mid + 0.02);
+      for (var k = 0; k < rows; k++) {
+        var y = SH_Y0 + k * pitch;
+        wb('wood', W, 0.005, SH_D - 0.005, y, y + 0.03, a0, a1);                              // shelf board
+        wb('trim', W, -0.004, 0.01, y, y + 0.03, a0 + 0.025, a1 - 0.025);                     // brass nosing
+        if (k > 0) wb('amber', W, 0.012, 0.006, y - 0.008, y - 0.003, a0 + 0.04, a1 - 0.04);  // strip light under the shelf above
+        [[a0 + 0.035, mid - 0.025], [mid + 0.025, a1 - 0.035]].forEach(function (seg) { fillRow(Wk, seg[0], seg[1], y + 0.03, pitch - 0.05, r); });
+      }
+      wb('amber', W, 0.012, 0.006, SH_Y1 - 0.038, SH_Y1 - 0.033, a0 + 0.04, a1 - 0.04);
+    }
+    function fillRow(Wk, x0, x1, y, room, r) {
+      var x = x0, decorDone = r() < 0.45 ? 0 : 1;
+      while (x < x1 - 0.03) {
+        if (!decorDone && r() < 0.12 && x1 - x > 0.4) {                    // an ornament between the books
+          var kind = Math.floor(r() * 4), w = 0.26;
+          decor.push({ Wk: Wk, a: x + w / 2, y: y, kind: kind, h: Math.min(room - 0.02, 0.18 + r() * 0.12), r: r() });
+          x += w; decorDone = 1; continue;
+        }
+        if (r() < 0.08 && x1 - x > 0.3) {                                  // a short stack lying flat
+          var n = 2 + Math.floor(r() * 3), bw = 0.22 + r() * 0.06, yy = y;
+          for (var j = 0; j < n; j++) { var th = 0.03 + r() * 0.025; books.push({ Wk: Wk, a: x + bw / 2, y: yy + th / 2, t: bw, h: th, d: 0.15 + r() * 0.06, lean: 0, flat: 1 }); bookCol.push(BOOK_COLS[Math.floor(r() * BOOK_COLS.length)]); yy += th; }
+          x += bw + 0.01; continue;
+        }
+        var t = 0.022 + r() * 0.035, h = Math.min(room - 0.01, 0.2 + r() * 0.16);
+        if (x + t > x1) break;
+        var lean = 0;
+        if (r() < 0.05 && x1 - x > 0.12) { lean = 0.22; x += 0.05; }       // the odd book leaning on its neighbour
+        books.push({ Wk: Wk, a: x + t / 2, y: y + h / 2, t: t, h: h, d: 0.16 + r() * 0.08, lean: lean, flat: 0 }); bookCol.push(BOOK_COLS[Math.floor(r() * BOOK_COLS.length)]);
+        x += t + (r() < 0.1 ? 0.01 : 0.002);
+      }
+    }
+    function spineTexture() {               // light spine with gilt bands; tinted per book by instance colour
+      var c = cv(64, 256), x = c.getContext('2d'), r = rng(5);
+      x.fillStyle = '#d8d0c4'; x.fillRect(0, 0, 64, 256);
+      for (var i = 0; i < 1500; i++) { x.fillStyle = 'rgba(0,0,0,' + r() * 0.08 + ')'; x.fillRect(r() * 64, r() * 256, 1, 2); }
+      x.fillStyle = '#fff4d8'; [[18, 5], [28, 2], [214, 2], [222, 5]].forEach(function (b) { x.fillRect(0, b[0], 64, b[1]); });
+      x.fillStyle = 'rgba(255,240,210,0.7)'; x.fillRect(16, 70, 32, 70);
+      x.fillStyle = 'rgba(0,0,0,0.25)'; x.fillRect(0, 0, 4, 256); x.fillRect(60, 0, 4, 256);
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function woodTexture() {
+      var c = cv(256, 256), x = c.getContext('2d'), r = rng(13);
+      x.fillStyle = '#3a2516'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 160; i++) { var y = r() * 256; x.strokeStyle = r() < 0.5 ? 'rgba(20,10,4,0.35)' : 'rgba(120,70,36,0.25)'; x.lineWidth = 1 + r() * 2; x.beginPath(); x.moveTo(0, y); for (var u = 0; u <= 256; u += 32) x.lineTo(u, y + Math.sin(u * 0.03 + i) * 3); x.stroke(); }
+      return mkTex(c);
+    }
+    function buildBooks(root) {
+      if (!books.length) return;
+      var g = new THREE.BoxGeometry(1, 1, 1), m = new THREE.MeshStandardMaterial({ map: spineTexture(), roughness: 0.75, metalness: 0.05 });
+      var im = new THREE.InstancedMesh(g, m, books.length), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), S = new THREE.Vector3(), P = new THREE.Vector3(), E = new THREE.Euler(), col = new THREE.Color();
+      books.forEach(function (b, i) {
+        var mw = wallMatrix(b.Wk, b.a, b.y, -(0.03 + b.d / 2));
+        E.set(0, 0, b.flat ? 0 : -b.lean); q.setFromEuler(E);
+        var local = new THREE.Matrix4().compose(P.set(0, 0, 0), q, S.set(b.t, b.h, b.d));
+        M4.multiplyMatrices(mw, local); im.setMatrixAt(i, M4); im.setColorAt(i, col.set(bookCol[i]));
+      });
+      im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; root.add(im);
+      // ornaments: vases, framed pictures, potted plants, a brass globe
+      var vaseM = new THREE.MeshStandardMaterial({ color: 0x5a6a6e, roughness: 0.35, metalness: 0.2 }), brass = new THREE.MeshStandardMaterial({ color: 0xb8894a, roughness: 0.35, metalness: 0.85 });
+      var leaf = new THREE.MeshStandardMaterial({ color: 0x3f6b2e, roughness: 0.8 }), pot = new THREE.MeshStandardMaterial({ color: 0x8a4a2a, roughness: 0.8 });
+      var pic = new THREE.MeshBasicMaterial({ color: 0xc8b48c }), frameM = new THREE.MeshStandardMaterial({ color: 0x4a2e18, roughness: 0.6 });
+      var vaseG = new THREE.LatheGeometry([[0, 0], [0.05, 0.005], [0.075, 0.05], [0.07, 0.1], [0.035, 0.15], [0.03, 0.18], [0.04, 0.19]].map(function (p) { return new THREE.Vector2(p[0], p[1]); }), 16);
+      decor.forEach(function (d) {
+        var g2 = new THREE.Group(); g2.applyMatrix4(wallMatrix(d.Wk, d.a, d.y, -0.18)); root.add(g2);
+        if (d.kind === 0) { var v = new THREE.Mesh(vaseG, d.r < 0.5 ? vaseM : brass); v.scale.setScalar(d.h / 0.19); g2.add(v); }
+        else if (d.kind === 1) { var f = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.16, 0.015), frameM); f.position.set(0, 0.085, 0.06); f.rotation.x = -0.18; g2.add(f); var pp = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.12), pic); pp.position.set(0, 0.002, 0.0085); f.add(pp); }
+        else if (d.kind === 2) { var po = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.045, 0.09, 12), pot); po.position.y = 0.045; g2.add(po); for (var j = 0; j < 7; j++) { var lf = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 4), leaf); lf.scale.set(0.6, 1.4, 0.6); lf.position.set(Math.cos(j) * 0.04, 0.12 + (j % 3) * 0.025, Math.sin(j) * 0.04); lf.rotation.z = Math.cos(j * 2) * 0.5; g2.add(lf); } }
+        else { var st = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.03, 12), brass); st.position.y = 0.015; g2.add(st); var gl = new THREE.Mesh(new THREE.SphereGeometry(0.075, 16, 10), new THREE.MeshStandardMaterial({ color: 0x2f5a6a, roughness: 0.5 })); gl.position.y = 0.11; g2.add(gl); var rg = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.006, 6, 24), brass); rg.position.y = 0.11; rg.rotation.x = 0.4; g2.add(rg); }
+      });
+    }
+
+    function doorFrame(W, o) {
+      var a0 = o.c - o.w / 2, a1 = o.c + o.w / 2;
+      wb('trim', W, 0.14, 0.36, 0, DOOR_H, a0, a0 + 0.03); wb('trim', W, 0.14, 0.36, 0, DOOR_H, a1 - 0.03, a1);
+      wb('trim', W, 0.14, 0.36, DOOR_H - 0.03, DOOR_H, a0, a1);
+      wb('trim', W, -0.04, 0.5, 0, 0.025, a0, a1);                      // threshold plate
+      wb('amber', W, -0.045, 0.01, 0.0, 0.026, a0, a1);                  // threshold light
+      wb('dark', W, T, 0.05, 0, DOOR_H, a0, a1);                         // niche back: never a gap
+      wb('dark', W, 0, T + 0.05, -0.05, 0, a0, a1);
+    }
+    // ── rounded, bevelled parts (no raw boxes where the eye lands) ──
+    function rrect(w, h, r) {            // rounded rectangle centred on the origin
+      var x = -w / 2, y = -h / 2, sh = new THREE.Shape();
+      sh.moveTo(x + r, y); sh.lineTo(x + w - r, y); sh.quadraticCurveTo(x + w, y, x + w, y + r); sh.lineTo(x + w, y + h - r); sh.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      sh.lineTo(x + r, y + h); sh.quadraticCurveTo(x, y + h, x, y + h - r); sh.lineTo(x, y + r); sh.quadraticCurveTo(x, y, x + r, y); return sh;
+    }
+    function soft(shape, depth, bev) { return new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 2, curveSegments: 6 }); }
+    var parts = {};                       // material key → geometries already placed in world space
+    function wallMatrix(Wk, along, y, out) {
+      var W = WALLS[Wk], m = new THREE.Matrix4().makeRotationY(W.rot * Math.PI / 180), o = new THREE.Vector3(0, y, out).applyMatrix4(m);
+      if (W.axis === 'x') m.setPosition(W.s * W.base + o.x, o.y, along + o.z); else m.setPosition(along + o.x, o.y, W.s * W.base + o.z);
+      return m;
+    }
+    function place(key, geo, mtx) { var g = geo.clone().applyMatrix4(mtx); if (g.index) g = g.toNonIndexed(); (parts[key] = parts[key] || []).push(g); }
+    function mergeNI(gs) {
+      var n = 0; gs.forEach(function (g) { n += g.attributes.position.count; });
+      var P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2), o = 0;
+      gs.forEach(function (g) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) U.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; });
+      var m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); m.setAttribute('normal', new THREE.BufferAttribute(N, 3)); m.setAttribute('uv', new THREE.BufferAttribute(U, 2)); return m;
+    }
+    var G = {};
+    function sconce(Wk, a, y) {          // square amber wall lamp on a rounded bronze back plate
+      G.scBack = G.scBack || soft(rrect(0.2, 0.3, 0.04), 0.02, 0.01);
+      G.scLamp = G.scLamp || soft(rrect(0.13, 0.2, 0.03), 0.035, 0.01);
+      G.scCap = G.scCap || soft(rrect(0.2, 0.025, 0.01), 0.05, 0.008);
+      place('trim', G.scBack, wallMatrix(Wk, a, y, 0.01)); place('lamp', G.scLamp, wallMatrix(Wk, a, y - 0.01, 0.03)); place('trim', G.scCap, wallMatrix(Wk, a, y + 0.125, 0.02));
+    }
+
+    // ───────────────────────────── build ─────────────────────────────
+    var state = { doors: [], hullLights: [] }, glowSpots = [];
+    function build() {
+      var root = new THREE.Group(); sc.object3D.add(root);
+      var aniso = Math.min(4, sc.renderer.capabilities.getMaxAnisotropy());
+      var M = {
+        wall:  new THREE.MeshStandardMaterial({ map: wallTexture(), roughness: 0.62, metalness: 0.15 }),
+        trim:  new THREE.MeshStandardMaterial({ map: trimTexture(), color: 0xd8b58a, roughness: 0.45, metalness: 0.8, emissive: 0x1a0e04, emissiveIntensity: 0.5 }),
+        dark:  new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 0.9, metalness: 0.1, emissive: 0x140d07, emissiveIntensity: 0.6 }),
+        amber: new THREE.MeshBasicMaterial({ color: 0xffa040, fog: false, toneMapped: false }),
+        lamp:  new THREE.MeshBasicMaterial({ color: 0xffb468, fog: false, toneMapped: false }),
+        wood:  new THREE.MeshStandardMaterial({ map: woodTexture(), roughness: 0.6, metalness: 0.05, color: 0xc8a888, emissive: 0x1a0c04, emissiveIntensity: 0.6 })
+      };
+      [M.wall.map, M.trim.map].forEach(function (t) { t.anisotropy = aniso; });
+
+      // walls, frames
+      var ops = { L: [], R: [], F: [], B: [] };
+      DOORS.forEach(function (d) { ops[d.W].push({ c: d.c, w: DOOR_W }); });
+      SHELVES.forEach(function (q) { ops[q.W].push({ c: q.c, w: SH_W, type: 'shelf' }); });
+      buildWall(WALLS.L, ops.L, -12.5, 12.5, 'L'); buildWall(WALLS.R, ops.R, -12.5, 12.5, 'R');
+      buildWall(WALLS.F, ops.F, -2.5, 2.5, 'F');   buildWall(WALLS.B, ops.B, -2.5, 2.5, 'B');
+      DOORS.forEach(function (d) { doorFrame(WALLS[d.W], { c: d.c, w: DOOR_W }); });
+
+      // rib legs (wall pilasters) where the wall is clear; the arches themselves are built below
+      ['L', 'R'].forEach(function (k) { RIBS.forEach(function (z) {
+        if (busy(k, z, 0)) return;                                     // over a door the arch springs from the cornice
+        G.leg = G.leg || soft(rrect(0.2, 2.84, 0.05), 0.08, 0.03);
+        place('trim', G.leg, wallMatrix(k, z, 1.42, 0.0)); wb('amber', WALLS[k], -0.115, 0.006, 0.14, 2.7, z - 0.012, z + 0.012);
+      }); });
+
+      // sconces: between ribs, at the clear spots; and a pair flanking every side door, as in the reference
+      ['L', 'R'].forEach(function (k) { for (var z = -12; z <= 12; z += 3) if (!busy(k, z, 0.3) && !shelfAt(k, z, 0.2)) { sconce(k, z, 2.25); glowSpots.push([k, z, 2.25]); } });
+      DOORS.forEach(function (d) { if (d.end) return; [-1.23, 1.23].forEach(function (o) { sconce(d.W, d.c + o, 2.35); glowSpots.push([d.W, d.c + o, 2.35]); }); });
+
+      // cornice: a moulded quarter-round ledge under the cove light, run the length of every wall
+      var cp = new THREE.Shape(); cp.moveTo(0, 2.76); cp.quadraticCurveTo(0.12, 2.77, 0.13, 2.84); cp.lineTo(0.13, 2.86); cp.lineTo(0, 2.86); cp.lineTo(0, 2.76);
+      [['L', 25], ['R', 25], ['F', 5], ['B', 5]].forEach(function (q) {
+        var W = WALLS[q[0]], g = new THREE.ExtrudeGeometry(cp, { depth: q[1], bevelEnabled: false, curveSegments: 6 }); g.translate(0, 0, -q[1] / 2);
+        var m = new THREE.Matrix4();
+        if (q[0] === 'L') m.makeTranslation(-2.5, 0, 0); else if (q[0] === 'R') m.makeScale(-1, 1, 1).setPosition(2.5, 0, 0);
+        else { m.makeRotationY(q[0] === 'B' ? -Math.PI / 2 : Math.PI / 2); m.setPosition(0, 0, W.s * 12.5); }
+        place('trim', g, m);
+      });
+
+      Object.keys(buckets).forEach(function (k) { var m = new THREE.Mesh(merge(buckets[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
+      Object.keys(parts).forEach(function (k) { var m = new THREE.Mesh(mergeNI(parts[k]), M[k]); m.matrixAutoUpdate = false; root.add(m); });
+
+      buildCeiling(root, M, aniso);
+      buildFloor(root, M, aniso);
+      buildRugs(root, aniso); buildArt(root);
+      buildPortals(root, M);
+
+      // soft light splashes on the wall around each sconce (additive, cheap)
+      var dot = dotTexture(), gm = new THREE.MeshBasicMaterial({ map: dot, color: 0xff9a3c, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+      glowSpots.forEach(function (g) { var W = WALLS[g[0]], m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), gm); m.position.set(W.s * (2.5 - 0.012), g[2], g[1]); m.rotation.y = W.rot * Math.PI / 180; root.add(m); });
+
+      // ── lights ── warm amber, plus the end-door colours
+      root.add(new THREE.HemisphereLight(0xffd8b0, 0x2a1c12, 0.8));
+      [10.5, 5, 0, -5, -10.5].forEach(function (zl) { var l = new THREE.PointLight(0xffc690, 1.35, 9, 1.4); l.position.set(0, 2.7, zl); root.add(l); });
+      DOORS.forEach(function (d) { if (!d.end) return; var l = new THREE.PointLight(d.glow, 0.9, 6, 2); l.position.set(0, 2.0, WALLS[d.W].s * 11.4); root.add(l); });
+
+      buildBooks(root); buildDoors(root); buildSky(root);
+      bakeReflections(root, M);
+    }
+
+    // ── curved cove ceiling, skylight glazing, ribs, light shafts ──
+    function buildCeiling(root, M, aniso) {
+      var N = 14, cm = new THREE.MeshStandardMaterial({ map: coveTexture(), emissiveMap: coveGlowTexture(), emissive: 0xffffff, emissiveIntensity: 0.9, roughness: 0.55, metalness: 0.2, side: THREE.DoubleSide });
+      cm.map.anisotropy = aniso;
+      [-1, 1].forEach(function (s) {
+        var pos = [], uvs = [], idx = [], len = [0], i, pts = [];
+        for (i = 0; i <= N; i++) pts.push(coveXY(i / N * Math.PI / 2, s));
+        for (i = 1; i <= N; i++) len.push(len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+        for (i = 0; i <= N; i++) [-12.5, 12.5].forEach(function (z) { pos.push(pts[i][0], pts[i][1], z); uvs.push(z / 1.2, len[i] / len[N]); });
+        for (i = 0; i < N; i++) { var a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); g.setIndex(idx); g.computeVertexNormals();
+        root.add(new THREE.Mesh(g, cm));
+      });
+      // end caps: close the curved profile above the end walls
+      var cap = new THREE.Shape(); cap.moveTo(-2.6, 2.8); cap.lineTo(2.6, 2.8);
+      for (var i = 0; i <= N; i++) { var p = coveXY(i / N * Math.PI / 2, 1); cap.lineTo(p[0], p[1]); }
+      cap.lineTo(SKY_X, SKY_Y + 0.1); cap.lineTo(-SKY_X, SKY_Y + 0.1);
+      for (i = N; i >= 0; i--) { p = coveXY(i / N * Math.PI / 2, -1); cap.lineTo(p[0], p[1]); }
+      var capM = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.7, metalness: 0.2, side: THREE.DoubleSide });
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.ShapeGeometry(cap), capM); m.position.z = s * 12.49; root.add(m); });
+
+      // ribs: one bronze band following the profile, crossing the skylight
+      var IN = 0.13, outer = [], inner = [];
+      for (i = 0; i <= N; i++) { var t = i / N * Math.PI / 2, q = coveXY(t, -1), cx = -SKY_X, cy = COVE_Y, dx = cx - q[0], dy = cy - q[1], dl = Math.hypot(dx, dy) || 1; outer.push(q); inner.push([q[0] + dx / dl * IN, q[1] + dy / dl * IN]); }
+      var rib = new THREE.Shape(); rib.moveTo(outer[0][0], outer[0][1]);
+      for (i = 1; i <= N; i++) rib.lineTo(outer[i][0], outer[i][1]);
+      for (i = N; i >= 0; i--) rib.lineTo(-outer[i][0], outer[i][1]);
+      for (i = 0; i <= N; i++) rib.lineTo(-inner[i][0], inner[i][1]);
+      for (i = N; i >= 0; i--) rib.lineTo(inner[i][0], inner[i][1]);
+      var rg = new THREE.ExtrudeGeometry(rib, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.02, bevelSegments: 2, curveSegments: 1 }); rg.translate(0, 0, -0.08);
+      RIBS.forEach(function (z) { var m = new THREE.Mesh(rg, M.trim); m.position.z = z; root.add(m); });
+
+      // skylight: glazing, two long rails, cross bars between the ribs
+      var glass = new THREE.Mesh(new THREE.PlaneGeometry(SKY_X * 2, 25), new THREE.MeshBasicMaterial({ color: 0x7fb4e0, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+      glass.rotation.x = Math.PI / 2; glass.position.y = SKY_Y + 0.02; root.add(glass);
+      var railG = new THREE.BoxGeometry(0.08, 0.1, 25);
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(railG, M.trim); m.position.set(s * (SKY_X - 0.02), SKY_Y + 0.02, 0); root.add(m); });
+      var barG = new THREE.BoxGeometry(SKY_X * 2, 0.05, 0.05);
+      for (var z = -12; z <= 12; z += 1.5) { if (RIBS.indexOf(z) >= 0) continue; var b = new THREE.Mesh(barG, M.trim); b.position.set(0, SKY_Y + 0.04, z); root.add(b); }
+      [-1, 1].forEach(function (s) { var l = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 25), M.amber); l.rotation.x = Math.PI / 2; l.rotation.y = s * 0.6; l.position.set(s * (SKY_X + 0.04), SKY_Y - 0.035, 0); root.add(l); });
+
+      // light shafts falling from the skylight (faint, additive, cool white)
+      var sm = new THREE.MeshBasicMaterial({ map: shaftTexture(), color: 0xbcd4ff, transparent: true, opacity: 0.075, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+      state.shafts = [];
+      [-9, -3, 3, 9].forEach(function (z) { var m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3.6), sm.clone()); m.position.set(0, 1.9, z); m.rotation.x = -0.18; root.add(m); state.shafts.push(m); });
+    }
+
+    // ── polished deck, woven runner with brass rods, edge glow ──
+    // ── half-round DOOR RUGS (user, Nov 25: "hard to tell which door is which until you're right next to it"): a futuristic
+    //    mosaic mandala in each door's own glass colour, laid flat-edge against the door, with a faint glowing rim so you can
+    //    pick out your room from the far end of the hall. Patterns follow the user's references (half-round mosaic door mats).
+    function rugTexture(hex, seed) {
+      var N = 1024, c = cv(N, N), x = c.getContext('2d'), r = rng(seed), C = N / 2, cy = N / 2, R = N / 2 - 6;
+      var col = new THREE.Color(hex), hsl = {}; col.getHSL(hsl);
+      function tone(l, sat) { return 'hsl(' + Math.round(hsl.h * 360) + ',' + Math.round((sat == null ? Math.min(0.85, hsl.s) : sat) * 100) + '%,' + Math.round(l * 100) + '%)'; }
+      var gold = '#d8a858', dark = tone(0.08, 0.35), deep = tone(0.17), mid = tone(0.32), lite = tone(0.55), pale = tone(0.78, 0.5);
+      x.fillStyle = 'rgba(0,0,0,0)'; x.clearRect(0, 0, N, N);
+      function ring(r0, r1, fill) { x.beginPath(); x.arc(C, cy, r1, 0, 7); x.arc(C, cy, r0, 0, 7, true); x.fillStyle = fill; x.fill('evenodd'); }
+      function line(rr, w, st) { x.beginPath(); x.arc(C, cy, rr, 0, 7); x.lineWidth = w; x.strokeStyle = st; x.stroke(); }
+      x.beginPath(); x.arc(C, cy, R, 0, 7); x.fillStyle = dark; x.fill();
+      // outer border: a circuit-trace key pattern (futuristic take on the greek key)
+      ring(R * 0.86, R, deep); line(R - 3, 6, gold); line(R * 0.86, 4, gold);
+      for (var k = 0; k < 64; k++) { var a = k / 64 * Math.PI * 2, a2 = a + Math.PI / 64, r0 = R * 0.885, r1 = R * 0.975;
+        x.strokeStyle = k % 2 ? lite : mid; x.lineWidth = 7; x.beginPath(); x.moveTo(C + Math.cos(a) * r0, cy + Math.sin(a) * r0); x.lineTo(C + Math.cos(a) * r1, cy + Math.sin(a) * r1); x.arc(C, cy, r1, a, a2); x.lineTo(C + Math.cos(a2) * (r0 + 18), cy + Math.sin(a2) * (r0 + 18)); x.stroke(); }
+      // mosaic band of rounded tiles with diamond insets
+      ring(R * 0.6, R * 0.84, mid);
+      var nT = 36; for (k = 0; k < nT; k++) { var a0 = k / nT * Math.PI * 2, a1 = (k + 1) / nT * Math.PI * 2, gap = 0.012;
+        x.beginPath(); x.arc(C, cy, R * 0.83, a0 + gap, a1 - gap); x.arc(C, cy, R * 0.615, a1 - gap, a0 + gap, true); x.closePath(); x.fillStyle = k % 2 ? deep : tone(0.24); x.fill();
+        var am = (a0 + a1) / 2, rm = R * 0.722, ds = R * 0.05; x.save(); x.translate(C + Math.cos(am) * rm, cy + Math.sin(am) * rm); x.rotate(am);
+        x.beginPath(); x.moveTo(-ds, 0); x.lineTo(0, -ds * 0.8); x.lineTo(ds, 0); x.lineTo(0, ds * 0.8); x.closePath(); x.fillStyle = k % 2 ? lite : gold; x.fill(); x.restore(); }
+      line(R * 0.6, 4, gold);
+      // radial spoke field with a glowing ring
+      ring(R * 0.34, R * 0.59, deep);
+      for (k = 0; k < 24; k++) { var aa = k / 24 * Math.PI * 2; x.strokeStyle = k % 2 ? mid : lite; x.lineWidth = 5; x.beginPath(); x.moveTo(C + Math.cos(aa) * R * 0.36, cy + Math.sin(aa) * R * 0.36); x.lineTo(C + Math.cos(aa) * R * 0.575, cy + Math.sin(aa) * R * 0.575); x.stroke(); }
+      line(R * 0.47, 10, lite); line(R * 0.34, 4, gold);
+      // the centre: a petal sunburst (the references' rosette), octagon hub to echo the door's button
+      x.save(); x.translate(C, cy);
+      for (k = 0; k < 16; k++) { x.rotate(Math.PI / 8); x.beginPath(); x.moveTo(0, R * 0.06); x.quadraticCurveTo(R * 0.09, R * 0.2, 0, R * 0.32); x.quadraticCurveTo(-R * 0.09, R * 0.2, 0, R * 0.06); x.fillStyle = k % 2 ? mid : lite; x.fill(); x.strokeStyle = dark; x.lineWidth = 3; x.stroke(); }
+      x.beginPath(); for (k = 0; k < 8; k++) { var ao = (k + 0.5) / 8 * Math.PI * 2; x[k ? 'lineTo' : 'moveTo'](Math.cos(ao) * R * 0.09, Math.sin(ao) * R * 0.09); } x.closePath(); x.fillStyle = gold; x.fill();
+      x.beginPath(); x.arc(0, 0, R * 0.04, 0, 7); x.fillStyle = pale; x.fill(); x.restore();
+      // pile: fine fibre noise so it reads as a woven mat, not a decal
+      x.globalCompositeOperation = 'source-atop';
+      for (k = 0; k < 26000; k++) { x.fillStyle = r() < 0.5 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.06)'; x.fillRect(r() * N, r() * N, 1 + r() * 2, 1 + r() * 2); }
+      x.globalCompositeOperation = 'source-over';
+      var t = mkTex(c); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+    }
+    // ART + PLANTS in the alcoves freed by cutting the bookcases (user, Nov 26: fewer bookcases, more props): a painted canvas in a
+    // bronze frame with a little picture light, and a potted plant on the deck under it. Paintings are drawn here (original art).
+    function paintCanvas(kind) {
+      var c = document.createElement('canvas'); c.width = 384; c.height = 512; var x = c.getContext('2d'), sd = 7 + kind * 31, r = function () { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+      var skies = [['#0b1030', '#3a1a5a', '#e07a4a'], ['#06222a', '#145a5a', '#e8c070'], ['#1a0a10', '#5a1a2a', '#ffb060'], ['#081028', '#1a3a7a', '#9ad8ff']][kind];
+      var g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, skies[0]); g.addColorStop(0.65, skies[1]); g.addColorStop(1, skies[2]); x.fillStyle = g; x.fillRect(0, 0, 384, 512);
+      for (var i = 0; i < 160; i++) { x.fillStyle = 'rgba(255,255,240,' + r() * 0.8 + ')'; x.fillRect(r() * 384, r() * 300, 1.5, 1.5); }
+      x.globalAlpha = 0.35; for (i = 0; i < 6; i++) { var ng = x.createRadialGradient(r() * 384, r() * 260, 0, 192, 160, 160 + r() * 80); ng.addColorStop(0, ['#ff7ad0', '#7affe0', '#ffd27a', '#9a8aff'][(kind + i) % 4]); ng.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = ng; x.fillRect(0, 0, 384, 512); } x.globalAlpha = 1;
+      var pr = 60 + kind * 18, px = 110 + kind * 50, py = 150 + (kind % 2) * 40, pg = x.createRadialGradient(px - pr * 0.4, py - pr * 0.4, 4, px, py, pr);
+      pg.addColorStop(0, ['#ffd0a0', '#c8fff0', '#ffe0b0', '#d0e8ff'][kind]); pg.addColorStop(1, ['#8a3a20', '#1a6a5a', '#7a2a10', '#2a3a8a'][kind]); x.fillStyle = pg; x.beginPath(); x.arc(px, py, pr, 0, 6.283); x.fill();
+      if (kind % 2 === 0) { x.strokeStyle = 'rgba(255,220,170,.55)'; x.lineWidth = 3; x.beginPath(); x.ellipse(px, py, pr * 1.7, pr * 0.32, -0.3, 0, 6.283); x.stroke(); }
+      x.fillStyle = '#0a0608'; x.beginPath(); x.moveTo(0, 512); for (var k = 0; k <= 384; k += 24) x.lineTo(k, 400 - r() * 70 - Math.sin(k / 50 + kind) * 20); x.lineTo(384, 512); x.fill();   // horizon ridge
+      for (i = 0; i < 9000; i++) { x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0' : '255,240,220') + ',' + r() * 0.05 + ')'; x.fillRect(r() * 384, r() * 512, 2, 2); }   // brush texture
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+    }
+    function buildArt(root) {
+      var SPOTS = [{ W: 'L', c: -3 }, { W: 'L', c: 3 }, { W: 'R', c: -9 }, { W: 'R', c: 9 }];
+      var bronze = new THREE.MeshStandardMaterial({ color: 0xc08040, metalness: 0.85, roughness: 0.32 }), potM = new THREE.MeshStandardMaterial({ color: 0x6a3a22, metalness: 0.5, roughness: 0.45 });
+      var leafM = [0x2f6a34, 0x3f8a3e, 0x245a30].map(function (c) { return new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, side: THREE.DoubleSide }); });
+      var leafG = new THREE.PlaneGeometry(0.16, 0.62, 1, 4); leafG.translate(0, 0.31, 0);
+      var lp = leafG.attributes.position; for (var i = 0; i < lp.count; i++) { var yy = lp.getY(i); lp.setX(i, lp.getX(i) * Math.sin(Math.PI * yy / 0.62 + 0.05)); lp.setZ(i, yy * yy * 0.5); }
+      leafG.computeVertexNormals();
+      SPOTS.forEach(function (q, n) {
+        var W = WALLS[q.W], g = new THREE.Group(); g.position.set(W.s * (W.base - 0.06), 0, q.c); g.rotation.y = W.s < 0 ? Math.PI / 2 : -Math.PI / 2; root.add(g);
+        var art = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1.28), new THREE.MeshStandardMaterial({ map: paintCanvas(n), roughness: 0.8, emissive: 0xffffff, emissiveMap: null, emissiveIntensity: 0 }));
+        art.material.emissiveMap = art.material.map; art.material.emissiveIntensity = 0.35; art.position.set(0, 1.75, 0.04); g.add(art);
+        [[0, 0.68, 1.12, 0.08], [0, -0.68, 1.12, 0.08], [-0.52, 0, 0.08, 1.44], [0.52, 0, 0.08, 1.44]].forEach(function (f) { var b = new THREE.Mesh(new THREE.BoxGeometry(f[2], f[3], 0.06), bronze); b.position.set(f[0], 1.75 + f[1], 0.04); g.add(b); });
+        var lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.5, 10), bronze); lamp.rotation.z = Math.PI / 2; lamp.position.set(0, 2.5, 0.16); g.add(lamp);
+        var glow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.5), new THREE.MeshBasicMaterial({ color: 0xffb060, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })); glow.position.set(0, 2.3, 0.05); g.add(glow);
+        var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.16, 0.42, 20), potM); pot.position.set(0, 0.21, 0.34); g.add(pot);
+        var rim = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.02, 8, 24), bronze); rim.rotation.x = Math.PI / 2; rim.position.set(0, 0.42, 0.34); g.add(rim);
+        for (var k = 0; k < 14; k++) { var lf = new THREE.Mesh(leafG, leafM[k % 3]), a = k / 14 * Math.PI * 2 + n; lf.position.set(Math.cos(a) * 0.05, 0.4, 0.34 + Math.sin(a) * 0.05);
+          lf.rotation.set(0, -a + Math.PI / 2, 0); lf.rotateX(-0.25 - (k % 3) * 0.18); lf.scale.setScalar(0.8 + (k % 4) * 0.15); g.add(lf); }
+      });
+    }
+
+    function buildRugs(root, aniso) {
+      var RR = 1.3;
+      DOORS.forEach(function (d, i) {
+        var W = WALLS[d.W], tint = d.tint, g = new THREE.Group();
+        if (W.axis === 'x') g.position.set(W.s * W.base, 0, d.c); else g.position.set(d.c, 0, W.s * W.base);
+        var inward = W.axis === 'x' ? new THREE.Vector3(-W.s, 0, 0) : new THREE.Vector3(0, 0, -W.s);
+        g.rotation.y = Math.atan2(-inward.x, -inward.z); g.position.addScaledVector(inward, 0.18); root.add(g);   // clear of the door frame
+        var tex = rugTexture(tint, 31 + i * 7); tex.anisotropy = aniso;
+        var rug = new THREE.Mesh(new THREE.RingGeometry(0.001, RR, 96, 10, 0, Math.PI), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.95, metalness: 0, alphaTest: 0.05 }));
+        rug.rotation.x = -Math.PI / 2; rug.position.y = 0.012; g.add(rug);
+        var rim = new THREE.Mesh(new THREE.RingGeometry(RR - 0.03, RR + 0.05, 96, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+        rim.rotation.x = -Math.PI / 2; rim.position.y = 0.014; g.add(rim);
+      });
+    }
+    function buildFloor(root, M, aniso) {
+      var fm = new THREE.MeshStandardMaterial({ map: deckTexture(), roughness: 0.3, metalness: 0.55, color: 0xa89e92 });
+      fm.map.repeat.set(5, 25); fm.map.anisotropy = aniso;
+      var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), fm); fl.rotation.x = -Math.PI / 2; root.add(fl); state.floorMat = fm;
+      var add = function (tex, col, op) { return new THREE.MeshBasicMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); };
+      // STAINED-GLASS RUNNER (user, Nov 25 — replaces the woven runner; reference: an ammonite-spiral stained-glass rug):
+      // images/runner.jpg (1024×4096, tiles along its length) — a warm amber/red ammonite set in cool blue/teal/violet glass
+      // shards with dark leading. 3 m wide (most of the 5 m deck), repeats twice down the hall; brass rods on both edges.
+      var rt = new THREE.TextureLoader().load('images/runner.jpg?v=1'); rt.colorSpace = THREE.SRGBColorSpace; rt.wrapT = THREE.RepeatWrapping; rt.repeat.set(1, 2); rt.anisotropy = aniso;
+      var runner = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 24.2, 1, 24), new THREE.MeshStandardMaterial({ map: rt, roughness: 0.55, metalness: 0.1, emissive: 0xffffff, emissiveMap: rt, emissiveIntensity: 0.12 }));
+      runner.rotation.x = -Math.PI / 2; runner.position.y = 0.006; root.add(runner);
+      var rodM = new THREE.MeshStandardMaterial({ color: 0xc08a48, roughness: 0.3, metalness: 0.9 });
+      [-1.53, 1.53].forEach(function (xx) { var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 24.2, 8), rodM); rod.rotation.x = Math.PI / 2; rod.position.set(xx, 0.02, 0); root.add(rod); });
+      var edge = rampTexture(false);
+      [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 25), add(edge, 0xff9a40, 0.32)); m.rotation.x = -Math.PI / 2; m.rotation.z = s > 0 ? Math.PI : 0; m.position.set(s * (2.5 - 0.4), 0.003, 0); root.add(m); });
+    }
+
+    // ── glowing arch portals around the two end doors (amber: Bridge, teal: Library) ──
+    function buildPortals(root, M) {
+      DOORS.forEach(function (d) {
+        if (!d.end) return;
+        var s = WALLS[d.W].s, g = new THREE.Group(), R = 1.5, cy = 1.9; g.position.set(0, 0, s * 12.5); g.rotation.y = s > 0 ? Math.PI : 0; root.add(g);
+        var glowM = new THREE.MeshBasicMaterial({ color: d.glow, fog: false, toneMapped: false });
+        var arc = new THREE.Mesh(new THREE.TorusGeometry(R, 0.1, 10, 48, Math.PI), M.trim); arc.position.set(0, cy, 0.1); g.add(arc);
+        var arcL = new THREE.Mesh(new THREE.TorusGeometry(R - 0.1, 0.022, 6, 48, Math.PI), glowM); arcL.position.set(0, cy, 0.17); g.add(arcL);
+        [-1, 1].forEach(function (k) {
+          var leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, cy, 0.2), M.trim); leg.position.set(k * R, cy / 2, 0.1); g.add(leg);
+          var ll = new THREE.Mesh(new THREE.BoxGeometry(0.04, cy - 0.1, 0.02), glowM); ll.position.set(k * (R - 0.1), cy / 2 + 0.05, 0.2); g.add(ll);
+        });
+        var halo = new THREE.Mesh(new THREE.RingGeometry(R - 0.35, R + 0.45, 48, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ map: rampTexture(true), color: d.glow, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        halo.position.set(0, cy, 0.02); g.add(halo);
+      });
+    }
+
+    // one-off environment capture from eye height: gives the polished deck and bronze their reflections
+    function bakeReflections(root, M) {
+      try {
+        var r = sc.renderer, pm = new THREE.PMREMGenerator(r);
+        var camO = document.getElementById('cam').object3D, cv0 = camO.visible; camO.visible = false;
+        var lampC = M.lamp.color.clone(), ambC = M.amber.color.clone(); M.lamp.color.multiplyScalar(0.25); M.amber.color.multiplyScalar(0.45);
+        root.position.set(0, -1.6, -2); root.updateMatrixWorld(true);
+        var rt = pm.fromScene(sc.object3D, 0.015, 0.1, 1000);
+        root.position.set(0, 0, 0); root.updateMatrixWorld(true); camO.visible = cv0; M.lamp.color.copy(lampC); M.amber.color.copy(ambC);
+        [state.floorMat, M.trim].concat(state.doorMats || []).forEach(function (m) { m.envMap = rt.texture; m.envMapIntensity = m === state.floorMat ? 1.1 : (m === M.trim ? 0.6 : 0.35); m.needsUpdate = true; });
+        pm.dispose();
+      } catch (e) { root.position.set(0, 0, 0); }
+    }
+
+    // ───────────────────────────── doors ─────────────────────────────
+    var promptEl = document.getElementById('room-prompt'), promptT = 0;
+    function say(msg, col) { promptEl.textContent = msg; promptEl.style.color = col || '#ffcc66'; promptEl.style.opacity = '1'; clearTimeout(promptT); promptT = setTimeout(function () { promptEl.style.opacity = '0'; }, 1800); }
+
+    function buildDoors(root) {
+      var from = fromRoom(), PT = window.WAYFARER.door.PORTALS;
+      state.doorMats = [];
+      DOORS.forEach(function (d) {
+        var P = PT[d.id], W = WALLS[d.W];
+        var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: P.corr, name: d.one, tint: d.tint, depth: 0.1, other: P.room, space: P.space,
+          img: 'images/portals/room-' + d.id + '.jpg', autoPass: false, onPass: function () { goto(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
+        D.d = d; D.W = W; D.c = d.c; D.s = W.s;
+        D.mats.forEach(function (m) { if (state.doorMats.indexOf(m) < 0) state.doorMats.push(m); });
+        state.doors.push(D);
+      });
+      window.WAYFARER.corridorDoors = state.doors;
+    }
+
+    // ───────────────────────────── stars (seen through the skylight) ─────────────────────────────
+    // ── light speed overhead (shared hyperspace.js): the ship flies toward the Bridge (+Z), streaks rush aft ──
+    function buildSky(root) { state.hyper = window.WAYFARER.hyperspace(root, { fwd: 1, arc: [-70, 70], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9,
+      spill: [{ p: [0, 3.3, -7], i: 1.6, d: 10 }, { p: [0, 3.3, 0], i: 1.6, d: 10 }, { p: [0, 3.3, 7], i: 1.6, d: 10 }] }); }   // blue glare on the deck/walls
+
+    // ───────────────────────────── per-frame: door animation, collision, entry ─────────────────────────────
+    var navigating = false, fade = document.getElementById('wf-fade');
+    function goto(d) { if (navigating) return; navigating = true; window.WAYFARER.door.leave(d.page, 'images/portals/room-' + d.id + '.jpg', 0); }   // no black fade: the room's photo carries you in (door.js)
+    AFRAME.registerComponent('wf-corr', {
+      init: function () { this.cam = document.getElementById('cam'); this.t0 = 0; var self = this; if (sc.hasLoaded) this.start(); else sc.addEventListener('loaded', function () { self.start(); }); },
+      start: function () { build(); applySpawn(); },
+      tick: function (t, dt) {
+        if (!state.doors.length) return;
+        var s = Math.min(dt, 50) / 1000, p = this.cam.object3D.position, now = performance.now();
+        // blink nav lights
+        state.hullLights.forEach(function (l, i) { l.visible = ((t / 1000 + i * 0.7) % 2) < 0.2; });
+        // light shafts fade out as you walk into them (seen from inside they'd be a flat smear)
+        if (state.hyper) state.hyper.update(t / 1000);
+        if (state.shafts) state.shafts.forEach(function (m) { var d = Math.abs(p.z - m.position.z); m.material.opacity = 0.075 * Math.max(0, Math.min(1, (d - 1.2) / 2.5)); m.visible = m.material.opacity > 0.001; });
+        // doors (shared door.js: animation, auto-close, portal); the corridor keeps its own walls and doorway lanes
+        var lim = { xm: 2.15, xp: 2.15, zm: 12.15, zp: 12.15 };
+        state.doors.forEach(function (D) {
+          D.update(dt, p);
+          var W = D.W, along = W.axis === 'x' ? p.z : p.x, depthPos = W.axis === 'x' ? W.s * p.x : W.s * p.z;     // depthPos: how far into the wall plane (2.5 = at the face)
+          var inLane = Math.abs(along - D.c) < 0.6, open = D.p > 0.92, base = W.axis === 'x' ? 2.15 : 12.15;
+          if (open && (inLane || depthPos > base)) {                    // an open doorway: let the player into the niche, kept inside the opening's width
+            if (W.axis === 'x') { if (W.s > 0) lim.xp = 2.95; else lim.xm = 2.95; } else { if (W.s > 0) lim.zp = 12.95; else lim.zm = 12.95; }
+          }
+        });
+        // walls: clamp, then keep the player inside an open doorway's width
+        p.x = Math.max(-lim.xm, Math.min(lim.xp, p.x)); p.z = Math.max(-lim.zm, Math.min(lim.zp, p.z));
+        state.doors.forEach(function (D) {
+          var W = D.W; if (D.p <= 0.92) return;
+          var depthPos = W.axis === 'x' ? W.s * p.x : W.s * p.z, base = W.axis === 'x' ? 2.15 : 12.15;
+          if (depthPos > base + 0.01) {
+            if (W.axis === 'x') p.z = Math.max(D.c - 0.6, Math.min(D.c + 0.6, p.z)); else p.x = Math.max(D.c - 0.6, Math.min(D.c + 0.6, p.x));
+            if (depthPos > base + 0.4) goto(D.d);                       // stepped through (before reaching the portal surface)
+          }
+        });
+      }
+    });
+
+    // ───────────────────────────── spawn: one step outside the doorway you came out of ─────────────────────────────
+    var wrap = function (a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+    function fromRoom() {
+      try {
+        var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        if (nav && nav.type !== 'navigate') return null;                // reload / back-forward: don't re-place the player
+        var ref = document.referrer || ''; if (!ref || ref.indexOf(location.host) < 0) return null;
+        var m = ref.split('?')[0].split('#')[0].split('/').pop();
+        var hit = DOORS.filter(function (d) { return d.page === m; })[0]; return hit ? hit.id : null;
+      } catch (e) { return null; }
+    }
+    function applySpawn() {
+      var from = fromRoom(), sp = (from && SPAWN[from]) || DEFAULT_SPAWN, cam = document.getElementById('cam'), want = sp.yaw * Math.PI / 180;
+      var player = document.getElementById('player'); player.object3D.rotation.set(0, 0, 0);          // rig heading (kept at 0: the camera carries the heading, so movement stays aligned)
+      cam.setAttribute('position', { x: sp.x, y: 1.6, z: sp.z }); cam.object3D.position.set(sp.x, 1.6, sp.z);
+      var lc = cam.components['look-controls'], dir = new THREE.Vector3(), frames = 0, settled = 0, t0 = performance.now(), done = false;
+      function align() {
+        if (!lc || !lc.yawObject) return 1;
+        lc.pitchObject.rotation.x = 0;
+        cam.object3D.updateMatrixWorld(true); cam.object3D.getWorldDirection(dir);
+        var cur = Math.atan2(dir.x, dir.z), diff = wrap(want - cur);          // actual heading of the view (gyro included) vs wanted
+        if (Math.abs(diff) > 0.005) lc.yawObject.rotation.y += diff;
+        return Math.abs(diff);
+      }
+      function step() {
+        var e = 0; if (frames % 3 === 0) { e = align(); settled = e < 0.02 ? settled + 1 : 0; } frames++;
+        var late = performance.now() - t0;
+        if (!done && (settled >= 3 && late > 250 || late > 1500)) { done = true; fade.style.transition = 'opacity .35s'; fade.style.opacity = '0'; }
+        if (late < 2500) requestAnimationFrame(step);
+      }
+      window.addEventListener('deviceorientation', function once() { window.removeEventListener('deviceorientation', once); var n = 0; (function k() { if (n % 3 === 0) align(); if (++n < 30) requestAnimationFrame(k); })(); });
+      step();
+    }
+  }());
+  </script>
+</body>
+</html>

@@ -141,6 +141,7 @@
         autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);
     });
+    window.WAYFARER.corridorDoors = doors;   /* crew.js waits on these when droids/cats pass a doorway */
   }
   function go(d) { if (navigating || d.locked) return; var P = window.WAYFARER.door.PORTALS[d.id]; if (!P) return; navigating = true; window.WAYFARER.door.leave(P.page, 'images/portals/room-' + d.id + '.jpg', 0); }
   function fromRoom() {

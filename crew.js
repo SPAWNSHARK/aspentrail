@@ -38,15 +38,18 @@
     function spot(id, type) { L.spots.push({ node: id, room: L.nodes[id].room, type: type }); }
     function gate(id, gx, gz) { L.gates[id] = { x: gx, z: gz }; }               // which way the doorway is from a door node (unit vector)
 
-    // CORRIDOR — centre line x 0, door approach nodes one step off each doorway
-    N('c_bd', 'corridor', 0, 11.4); N('c_b', 'corridor', 0, 9.5); N('c_6', 'corridor', 0, 6); N('c_4', 'corridor', 0, 4); N('c_0', 'corridor', 0, 0);
-    N('c_m4', 'corridor', 0, -4); N('c_m6', 'corridor', 0, -6); N('c_l', 'corridor', 0, -9.5); N('c_ld', 'corridor', 0, -11.4);
-    N('c_hd', 'corridor', -1.5, 6); N('c_lo', 'corridor', 1.5, 4); N('c_me', 'corridor', 1.5, -4);
-    chain(['c_bd', 'c_b', 'c_6', 'c_4', 'c_0', 'c_m4', 'c_m6', 'c_l', 'c_ld']); E('c_6', 'c_hd'); E('c_4', 'c_lo'); E('c_m4', 'c_me');
-    gate('c_bd', 0, 1); gate('c_ld', 0, -1); gate('c_hd', -1, 0); gate('c_lo', 1, 0); gate('c_me', 1, 0);
-    N('c_s1', 'corridor', 1.3, 8.0); N('c_s2', 'corridor', -1.3, 1.0); N('c_s3', 'corridor', 1.3, -1.6); N('c_s4', 'corridor', -1.2, -9.2);
-    E('c_b', 'c_s1'); E('c_0', 'c_s2'); E('c_0', 'c_s3'); E('c_l', 'c_s4');
-    spot('c_s1', 'explore'); spot('c_s2', 'rest'); spot('c_s3', 'explore'); spot('c_s4', 'explore');
+    // CORRIDOR = the split-level ATRIUM's upper deck (Nov 26 rebuild, kit navigation.json): port + starboard walkways either side of
+    // the opening (x ±3.35), fore/aft crossovers; door approach nodes one step off each doorway (bridge z −24, library z 25.8,
+    // holodeck port z −14, lounge starboard z −14, media starboard z 9)
+    N('c_fore', 'corridor', 0, -21.5); N('c_aft', 'corridor', 0, 23.5); N('c_bd', 'corridor', 0, -22.9); N('c_ld', 'corridor', 0, 24.7);
+    N('c_p0', 'corridor', -2.45, -21); N('c_p1', 'corridor', -3.25, -18.2); N('c_hd', 'corridor', -3.5, -14); N('c_p3', 'corridor', -3.35, 0); N('c_p4', 'corridor', -3.35, 9); N('c_p5', 'corridor', -3.35, 18.4); N('c_p6', 'corridor', -2.65, 21.5); N('c_p7', 'corridor', -1.7, 23.5);
+    N('c_s0', 'corridor', 2.45, -21); N('c_s1', 'corridor', 3.25, -18.2); N('c_lo', 'corridor', 3.5, -14); N('c_s3', 'corridor', 3.35, 0); N('c_me', 'corridor', 3.5, 9); N('c_s5', 'corridor', 3.35, 18.4); N('c_s6', 'corridor', 2.65, 21.5); N('c_s7', 'corridor', 1.7, 23.5);
+    chain(['c_fore', 'c_p0', 'c_p1', 'c_hd', 'c_p3', 'c_p4', 'c_p5', 'c_p6', 'c_p7', 'c_aft']); chain(['c_fore', 'c_s0', 'c_s1', 'c_lo', 'c_s3', 'c_me', 'c_s5', 'c_s6', 'c_s7', 'c_aft']);
+    E('c_fore', 'c_bd'); E('c_aft', 'c_ld');
+    gate('c_bd', 0, -1); gate('c_ld', 0, 1); gate('c_hd', -1, 0); gate('c_lo', 1, 0); gate('c_me', 1, 0);
+    N('c_x1', 'corridor', 3.4, -6); N('c_x2', 'corridor', -3.4, 5); N('c_x3', 'corridor', 3.4, 15); N('c_x4', 'corridor', -3.4, -9);
+    E('c_s3', 'c_x1'); E('c_p4', 'c_x2'); E('c_s5', 'c_x3'); E('c_hd', 'c_x4');
+    spot('c_x1', 'explore'); spot('c_x2', 'rest'); spot('c_x3', 'explore'); spot('c_x4', 'explore');
 
     // BRIDGE — ring round the dais (r 2.05), the six home chairs (kit arrangement ×1.45, same as bridge.html buildStations)
     N('b_door', 'bridge', 0, 7.0); N('b_back', 'bridge', 0, 4.6); gate('b_door', 0, 1);
@@ -105,9 +108,9 @@
     L.stations.push({ id: 'sci_remote', node: 'sci_work', owner: 'sci', type: 'console', yaw: -60 * Math.PI / 180, asset: 'Console_Science.glb', placement: { room: 'library', x: -6.25, z: 3.62, yaw: -60 } });
     spot('li_nw', 'rest'); spot('li_ne', 'explore'); spot('li_e', 'explore'); spot('li_n', 'explore');
 
-    // the corridor maintenance alcove: Engineering console on the port wall between the z −3 and z −9 bookcases
-    N('eng_work', 'corridor', -1.2, -6); E('c_m6', 'eng_work');
-    L.stations.push({ id: 'eng_remote', node: 'eng_work', owner: 'eng', type: 'console', yaw: -Math.PI / 2, asset: 'Console_Engineering.glb', placement: { room: 'corridor', x: -1.98, z: -6, yaw: -90 } });
+    // the atrium maintenance station: Engineering console (= the Captain's Manual, labelled GUIDE) on the port wall, upper deck
+    N('eng_work', 'corridor', -3.3, -3); E('c_p3', 'eng_work');
+    L.stations.push({ id: 'eng_remote', node: 'eng_work', owner: 'eng', type: 'console', yaw: -Math.PI / 2, asset: 'Console_Engineering.glb', placement: { room: 'corridor', x: -4.1, z: -3, yaw: -90 } });
 
     // doorways (corridor door node ⇄ room door node)
     E('c_bd', 'b_door', 'bridge'); E('c_ld', 'li_door', 'library'); E('c_hd', 'h_door', 'holodeck'); E('c_lo', 'l_door', 'lounge'); E('c_me', 'm_door', 'media');
@@ -455,7 +458,7 @@
         var B = W.bounds, rr = Math.hypot(tx, tz), R = this.roomR();
         if (B && B.length > 2 && W.clampPoly) { var q = W.clampPoly(B, tx, tz, 0.6); if (q) { tx = q[0]; tz = q[1]; } }
         else if (R && rr > R - 0.6) { tx *= (R - 0.6) / rr; tz *= (R - 0.6) / rr; }
-        if (PAGE === 'corridor') { tx = Math.max(-1.9, Math.min(1.9, tx)); tz = Math.max(-11.5, Math.min(11.5, tz)); }
+        if (PAGE === 'corridor') { tx = (tx < 0 ? -1 : 1) * Math.max(2.4, Math.min(4.2, Math.abs(tx))); tz = Math.max(-21, Math.min(23, tz)); }   /* atrium walkways */
         T.dot.position.set(tx, 0, tz);
       } else {                                                    // the wand: dangle in front of you, cat jumps at it
         var w = T.wand, sw = Math.sin(T.t * 3.1) * 0.12; w.fe.position.set(0.18 + sw, -0.62 - Math.abs(Math.sin(T.t * 5)) * 0.08, -0.7); w.str.position.set(0.18 + sw / 2, -0.47, -0.6);

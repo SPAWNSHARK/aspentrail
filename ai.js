@@ -6,10 +6,10 @@
 // Speaks with the device voice (toggle in the panel; 'wf-ai-voice').
 (function () {
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
-  var ROOMS = { bridge: ['bridge.html', 'the Command Bridge'], corridor: ['index.html', 'the corridor'], hallway: ['index.html', 'the corridor'], holodeck: ['holodeck.html', 'the Holodeck'],
+  var ROOMS = { bridge: ['bridge.html', 'the Command Bridge'], corridor: ['index.html', 'the atrium'], hallway: ['index.html', 'the atrium'], atrium: ['index.html', 'the atrium'], holodeck: ['holodeck.html', 'the Holodeck'],
     lounge: ['lounge.html', 'the Crew Lounge'], kitty: ['lounge.html', 'the Crew Lounge'], media: ['media.html', 'the Media Nexus'], theater: ['media.html', 'the Media Nexus'], library: ['library.html', 'the Library'],
     brain: ['library.html', 'the Library'], flight: ['minigame.html', 'Flight Mode'], fly: ['minigame.html', 'Flight Mode'], ship: ['hangar.html', 'Ship View'] };
-  var RN = { corridor: 'the corridor', bridge: 'the Bridge', holodeck: 'the Holodeck', lounge: 'the Lounge', media: 'the Media Nexus', library: 'the Library' };
+  var RN = { corridor: 'the atrium', bridge: 'the Bridge', holodeck: 'the Holodeck', lounge: 'the Lounge', media: 'the Media Nexus', library: 'the Library' };
   var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' };
   function rankOf(c) { var R = [[0, 'Ensign'], [600, 'Lieutenant'], [1800, 'Lieutenant Commander'], [4000, 'Commander'], [8000, 'Captain'], [15000, 'Commodore']], n = R[0][1]; R.forEach(function (q) { if (c >= q[0]) n = q[1]; }); return n; }
   function crewWhere() {

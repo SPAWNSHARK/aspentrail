@@ -18,13 +18,13 @@
 
   // ───────── the ship's doorways: corridor side + room side, and a proxy shape for each space ─────────
   // frame: x, z, rot (deg) of the door group; the group's +z faces into the space it belongs to.
-  var CORRIDOR = { kind: 'box', bmin: [-2.5, 0, -12.5], bmax: [2.5, 3.8, 12.5] };
+  var CORRIDOR = { kind: 'box', bmin: [-4.6, 0, -24], bmax: [4.6, 3.2, 25.8] };   // the split-level ATRIUM's upper hall (Nov 26 rebuild; bow = −Z)
   var PORTALS = {
-    bridge:   { name: 'COMMAND BRIDGE', page: 'bridge.html',   tint: 0x4aa8ff, corr: { x: 0,    z: 12.5,  rot: 180 }, room: { x: 0, z: 7.85,  rot: 180 }, space: { kind: 'cyl', radius: 8.2, bmin: [-8.2, 0, -8.2], bmax: [8.2, 5.2, 8.2] } },
-    library:  { name: 'THE LIBRARY',    page: 'library.html',  tint: 0x3fe0c8, corr: { x: 0,    z: -12.5, rot: 0 },   room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 11, bmin: [-11, 0, -11], bmax: [11, 5, 11] } },
-    holodeck: { name: 'HOLODECK',       page: 'holodeck.html', tint: 0x8a5cff, corr: { x: -2.5, z: 6,     rot: 90 },  room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'box', bmin: [-9, 0, -9], bmax: [9, 4, 9] } },
-    lounge:   { name: 'CREW LOUNGE',    page: 'lounge.html',   tint: 0xffa060, corr: { x: 2.5,  z: 4,     rot: -90 }, room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'cyl', radius: 9, bmin: [-9, 0, -9], bmax: [9, 5.5, 9] } },
-    media:    { name: 'MEDIA NEXUS',    page: 'media.html',    tint: 0x4f8cff, corr: { x: 2.5,  z: -4,    rot: -90 }, room: { x: 0, z: 8.85,  rot: 180 }, space: { kind: 'cyl', radius: 9.2, bmin: [-9.2, 0, -9.2], bmax: [9.2, 7, 9.2] } }
+    bridge:   { name: 'COMMAND BRIDGE', page: 'bridge.html',   tint: 0x4aa8ff, corr: { x: 0,    z: -24,   rot: 0 }, room: { x: 0, z: 7.85,  rot: 180 }, space: { kind: 'cyl', radius: 8.2, bmin: [-8.2, 0, -8.2], bmax: [8.2, 5.2, 8.2] } },
+    library:  { name: 'THE LIBRARY',    page: 'library.html',  tint: 0x3fe0c8, corr: { x: 0,    z: 25.8,  rot: 180 },   room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 11, bmin: [-11, 0, -11], bmax: [11, 5, 11] } },
+    holodeck: { name: 'HOLODECK',       page: 'holodeck.html', tint: 0x8a5cff, corr: { x: -4.6, z: -14,   rot: 90 },  room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'box', bmin: [-9, 0, -9], bmax: [9, 4, 9] } },
+    lounge:   { name: 'CREW LOUNGE',    page: 'lounge.html',   tint: 0xffa060, corr: { x: 4.6,  z: -14,   rot: -90 }, room: { x: 0, z: 8.65,  rot: 180 }, space: { kind: 'cyl', radius: 9, bmin: [-9, 0, -9], bmax: [9, 5.5, 9] } },
+    media:    { name: 'MEDIA NEXUS',    page: 'media.html',    tint: 0x4f8cff, corr: { x: 4.6,  z: 9,     rot: -90 }, room: { x: 0, z: 8.85,  rot: 180 }, space: { kind: 'cyl', radius: 9.2, bmin: [-9.2, 0, -9.2], bmax: [9.2, 7, 9.2] } }
   };
   function frameMatrix(f) { return new THREE.Matrix4().makeRotationY(f.rot * Math.PI / 180).setPosition(f.x, 0, f.z); }
 
@@ -368,7 +368,7 @@
   // Leaving: remember which 360° photo shows the other side + which way you'll face, and go straight away (no black fade).
   // Arriving: before the heavy room has built, a tiny second renderer shows that photo at your arrival heading, then
   // crossfades into the live scene. You see the destination the whole time.
-  var CORR_YAW = { bridge: 0, library: 180, holodeck: 180, lounge: 180, media: 180 };   // corridor SPAWN headings (0 = facing −Z)
+  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
   function leave(page, img, yaw) {
     try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
     document.documentElement.style.background = '#120c08'; location.href = page;

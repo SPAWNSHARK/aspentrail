@@ -12,10 +12,10 @@
   if (!PAGE) return;
   var OFF = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
   var KINDS = { spark: { name: 'sparking conduit', col: 0xffa040 }, coolant: { name: 'coolant leak', col: 0x40e8d8 }, relay: { name: 'failing power relay', col: 0xb070ff } };
-  var NAMES = { corridor: 'the corridor', bridge: 'the Bridge', holodeck: 'the Holodeck', lounge: 'the Crew Lounge', media: 'the Media Nexus', library: 'the Library' };
+  var NAMES = { corridor: 'the atrium', bridge: 'the Bridge', holodeck: 'the Holodeck', lounge: 'the Crew Lounge', media: 'the Media Nexus', library: 'the Library' };
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-  function faults() { return load('wf-faults', []); }
+  function faults() { return load('wf-faults', []).filter(function (f) { return !(f.room === 'corridor' && (Math.abs(f.x) < 2.3 || Math.abs(f.z) > 22)); }); }   /* old-corridor faults would float over the atrium opening */
   function say(t) { if (window.WF_LIFE) WF_LIFE.toast(t); }
 
   function spawn() {
@@ -24,7 +24,7 @@
     var cand = Object.keys(L.nodes).filter(function (id) { return !/_seat|_work|_door|_out|_visit|^c_(bd|ld|hd|lo|me)$|^c_b$|^c_l$/.test(id) && !list.some(function (f) { return f.node === id; }); });
     var id = cand[Math.floor(Math.random() * cand.length)], nd = L.nodes[id], kinds = Object.keys(KINDS), k = kinds[Math.floor(Math.random() * kinds.length)];
     var a = Math.random() * Math.PI * 2, f = { id: 'f' + Date.now(), node: id, room: nd.room, x: nd.lx + Math.cos(a) * 0.45, z: nd.lz + Math.sin(a) * 0.45, kind: k, born: Date.now() };
-    if (nd.room === 'corridor') f.x = Math.max(-1.6, Math.min(1.6, f.x));
+    if (nd.room === 'corridor') f.x = (nd.lx < 0 ? -1 : 1) * Math.max(2.5, Math.min(4.1, Math.abs(f.x)));   /* atrium walkways, never the opening */
     list.push(f); save('wf-faults', list);
     say('Forge: "Captain, a ' + KINDS[k].name + ' in ' + NAMES[nd.room] + '. Could you take a look?"'); if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak('Forge to the Captain. A ' + KINDS[k].name + ' in ' + NAMES[nd.room] + '. Could you take a look?', 'intercom');
     if (window.WF_SOUND && !WF_SOUND.muted()) WF_SOUND.droid('negative', 0, 0.8);

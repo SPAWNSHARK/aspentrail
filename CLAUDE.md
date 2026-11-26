@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127g).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127h).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -355,6 +355,28 @@ Rules drawn from them:
 - **Icons** — Nov 25: the user's new SS WAYFARER art (reference/app-icon-source-v2.png, frame cropped) at 1024/512/192/180 + favicon,
   linked with ?v=2 to beat icon caches. Share image (Nov 25): user's new art (reference/share-image-source.jpg) cropped to
   images/wayfarer-share.jpg 1200×630, og:image ?v=2.
+
+## SPLIT-LEVEL ATRIUM REBUILD (user, Nov 26: "Full rebuild" to the Wayfarer Atrium Asset Kit v0.3 — reference/atrium-kit/, models/atrium/)
+The kit = a two-deck re-layout (procedural blockout GLBs, 12 shared material names, ship-space coords, bow = −Z, port = −X).
+Upper: Bridge (bow) · Holodeck + Captain's Quarters (port) · Crew Lounge + Media Nexus (starboard) · split-level atrium hall · Library (aft).
+Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess Hall + Maintenance (starboard) · Engine Room under the Library.
+- [x] STEP 1+2 (Nov 26): index.html IS NOW THE ATRIUM (atrium.js; old corridor kept unlinked as corridor-old.html). Kit pieces loaded:
+  Split_Hall_Upper, Atrium_Lower, Aft_Transition_Upper/Lower, Twin_Curved_Stairs; whole kit lowered 0.65 → upper floor y 0, lower floor
+  y −5.95 (LOW). merge(): every kit model collapsed to one mesh per material (draw calls), re-skinned by material name (M table: copper,
+  bronze, edge, steel, floor, wood, leather, cream, glass, amber, teal, blue) + a gradient PMREM env. Walls (buildWalls): walnut panels
+  along layout.json corridor.outerPolygon on both decks (lower walls run up to the upper floor's underside, −0.23), gaps + lintels at doors,
+  aft end open onto the Library apron; Library/Engine round outer wall r 10.2 at (0, 36); hall ceiling with the skylight cut out; apron
+  ceiling ring. WALKING: wayfarer-mobile collide:false; each frame a DOWNWARD RAY onto the walkable meshes (WALK names: Floor|Landing|
+  Crossover|Stair_tread, DoubleSide) — step up ≤ 0.5 / down ≤ 0.7 accepted (= stairs), else back to the last good spot; #player rig y eases
+  to the floor. Doors (DOORS in atrium.js) at the kit thresholds: upper bridge (0,−24) · library (0,25.8) · holodeck (−4.6,−14) · quarters
+  (−4.6,9, locked) · lounge (4.6,−14) · media (4.6,9); lower (y −5.95, all locked until their pages exist): hangar, engine, medbay, xeno,
+  mess, maint. door.js PORTALS.corr + CORRIDOR box + CORR_YAW updated; corr-*.jpg recaptured. crew.js corridor graph = the upper
+  walkways (x ±3.35) + crossovers; Engineering/GUIDE console on the port walkway (−4.1, −3). life.js map: atrium outline + opening + sealed
+  Captain's Quarters; rooms re-placed by their doors. repairs: corridor faults stay on the walkways (old ones over the opening dropped).
+- [ ] STEP 3: lower-deck room pages from the kit GLBs (Firefly_Hangar, Medbay, Xenobiology, Mess_Hall, Maintenance_Storage,
+  Engine_Room_Halcyon_Lower) + Captain's Quarters (upper) — restyled; unlock their atrium doors; PORTALS entries + photos; crew/map.
+- [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
+- [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.
 
 ## BIG ROADMAP (user, Nov 26 — second wish list; supersedes batch 9 "quarters/galley behind the Library wing doors")
 Record of everything asked for; tick items off as they ship.
