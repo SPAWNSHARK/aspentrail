@@ -167,7 +167,7 @@
       this.ready = false; this.objs = {}; this.hits = {}; this.loading = {}; this.want = {}; this.mix = {}; this.acts = {}; this.cur = {}; this.vis = {};
       this.tmp = new THREE.Vector3(); this.lastSave = 0; this.talk = null; this.consoleBoxes = [];
       if (CAPTURE) { var go = function () { self.placeConsoles(); }; if (sc.hasLoaded) go(); else sc.addEventListener('loaded', go); return; }
-      import('./crew/crew-engine.mjs?v=1').then(function (M) { self.boot(M); }).catch(function (e) { console.warn('crew engine', e); });
+      import('./crew/crew-engine.mjs?v=2').then(function (M) { self.boot(M); }).catch(function (e) { console.warn('crew engine', e); });
       addEventListener('pagehide', function () { self.save(); });
       document.addEventListener('visibilitychange', function () { if (document.hidden) self.save(); });
     },
@@ -311,7 +311,7 @@
     // ── models: loaded the first time someone is actually in this room ──
     model: function (n) {
       var self = this, id = n.id; if (this.objs[id] || this.loading[id]) return; this.loading[id] = true;
-      var url = n.kind === 'cat' ? 'models/crew/Kitty_' + n.name + '.glb?v=1' : 'models/crew/Droid_' + n.role + '_Living.glb?v=1';
+      var url = n.kind === 'cat' ? 'models/crew/Kitty_' + n.name + '.glb?v=2' : 'models/crew/Droid_' + n.role + '_Living.glb?v=1';
       new THREE.GLTFLoader().load(url, function (g) {
         var root = new THREE.Group(); root.name = 'crew_' + id; root.userData.noCollide = true; root.userData.wfPortal = true;
         g.scene.traverse(function (o) { o.userData.noCollide = true; if (o.isMesh) { o.castShadow = false; [].concat(o.material).forEach(function (m) { if (m && m.envMapIntensity !== undefined) m.envMapIntensity = 0.9; }); } });
@@ -330,7 +330,7 @@
     },
     animate: function (n, clip, o) { this.want[n.id] = { clip: clip, loop: o.loop }; if (this.acts[n.id]) this.playClip(n.id, clip, o.loop, o.fade); },
     playClip: function (id, clip, loop, fade) {
-      var acts = this.acts[id], a = acts && acts[clip]; if (!a) return; var old = this.cur[id]; if (old === a) return;
+      var acts = this.acts[id], a = acts && acts[clip]; if (!a) { console.warn('Missing crew animation', id, clip); return; } var old = this.cur[id]; if (old === a) return;
       if (old) old.fadeOut(fade || 0.22);
       a.reset(); a.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1); a.clampWhenFinished = !loop; a.setEffectiveWeight(1); a.fadeIn(fade || 0.22).play(); this.cur[id] = a;
     },
@@ -399,7 +399,7 @@
       if (what === 'catnip') {
         if (d > 2.3) { toast('Walk closer to ' + n.name); return; }
         if (!(L && L.take('catnip'))) return; n.memory.trust = Math.min(1, n.memory.trust + 0.12);
-        n.route = []; n.goal = null; this.eng.release(n); n.state = 'TOY'; this.toy = { n: n, kind: 'trick', t: 0, dur: 4 }; this.animate(n, 'Run_InPlace', { loop: true, fade: 0.15 });
+        n.route = []; n.goal = null; this.eng.release(n); n.state = 'TOY'; this.toy = { n: n, kind: 'trick', t: 0, dur: 4 }; this.animate(n, 'Sprint', { loop: true, fade: 0.15 });   /* Felines 2.0: Run_InPlace → Sprint */
         this.sound(n, 'yowl'); setTimeout(function () { self.sound(n, 'chatter'); }, 1400); toast(n.name + ' rolls in the catnip and zooms in circles! · trust ' + Math.round(n.memory.trust * 100) + '%'); if (L) L.event('catnip'); return;
       }
       if (what === 'pet' || what === 'treat' || what === 'trick') {
@@ -470,7 +470,7 @@
       if (d > 0.35) {
         var sp = (T.kind === 'laser' ? 2.4 : 1.6) * (d > 1.5 ? 1 : 0.6), st = Math.min(d, sp * dt), nx = px + dx / d * st, nz = pz + dz / d * st;
         if (this.canMove(n, { x: nx + ox, z: nz }) !== false) { n.pos.x = nx + ox; n.pos.z = nz; }
-        n.yaw = Math.atan2(dx, dz); this.animate(n, d > 1.2 ? 'Run_InPlace' : 'Walk_InPlace', { loop: true, fade: 0.15 });
+        n.yaw = Math.atan2(dx, dz); this.animate(n, d > 1.2 ? 'Sprint' : 'Walk_InPlace', { loop: true, fade: 0.15 });
       } else { T.pounce = 0.9; this.animate(n, 'Play', { loop: false, fade: 0.1 }); if (Math.random() < 0.5) this.sound(n, Math.random() < 0.5 ? 'chirp' : 'chatter'); n.yaw = Math.atan2(dx, dz); }
     },
     // GET OUT OF THE WAY (user, Nov 26): anyone standing/walking within 1.3 m of you steps aside (away from you and off your heading)
@@ -577,10 +577,10 @@
         }
         o.visible = show;
         if (!show) { if (self.hits[n.id]) self.hits[n.id].object3D.visible = false; return; }
-        o.position.set(x, 0, z);
+        o.position.set(x, n.kind === 'cat' ? (n.pos.y || 0) : 0, z);
         var dy = n.yaw - o.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy));            // turn smoothly (the engine snaps)
         o.rotation.y += (Math.abs(dy) > 2.6 && n.state === 'SEATED') ? dy : dy * Math.min(1, dt * 7);
-        if (self.mix[n.id]) self.mix[n.id].update(dt);
+        if (self.mix[n.id]) { var action = self.cur[n.id]; if (n.kind === 'cat' && action && n.state === 'WALK') action.setEffectiveTimeScale(Math.max(0.65, Math.min(1.6, n.speed / 0.72))); self.mix[n.id].update(dt); }
         var h = self.hits[n.id]; if (h) { h.object3D.visible = true; h.object3D.position.set(x, n.kind === 'cat' ? 0.28 : 0.9, z); }
         var r = n.radius * (n.kind === 'cat' ? 0.6 : 0.8); dyn.push([x - r, z - r, x + r, z + r, n.id]);
       });

@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127l).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127m).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -406,6 +406,12 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   Pilot_Anchor out through the opening jaw) / step out; or watch the launch from the hangar. Launch → minigame.html?ship=firefly
   (FIREFLY flag: Firefly GLB ×0.85 in the player group, gear retracted, nacelle plumes from its bbox) and its exit → firefly.html?from=fly
   (spawn beside the cradle).
+- [x] LIVING FELINES 2.0 (Nov 26, user's Wayfarer_Living_Felines_2_Prototype.zip; README + install_felines.py in reference/living-felines-2/):
+  models/crew/Kitty_{Ember,Nimbus,Orbit,Pixel}.glb replaced (rigid-part rigs, 26 clips: Idle Walk_InPlace Trot Sprint Sleep Groom Play Petted
+  Yield Stretch Pounce Jump Land Knead Sit Stand Sniff LookAround TailFlick EarTwitch Eat Drink Roll Chirp Crouch Wake; ~1.5 MB each). The
+  installer's patches were applied BY HAND (its anchors matched; no backup dir in the repo): crew.js kitty ?v=2, missing-clip warning, cat
+  y from n.pos.y, walk clip time-scaled to speed; crew-engine.mjs (now ?v=2) cats accelerate/settle, rest = Sleep 20–75 s, idle variety
+  (Groom/Stretch/Sniff/LookAround/Knead), play variety (Play/Pounce/TailFlick/Roll). Our cat-play calls' Run_InPlace → Sprint (new rigs lack it).
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.

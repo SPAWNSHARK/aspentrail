@@ -1,0 +1,4 @@
+# Wayfarer Living Felines 2.0 — prototype
+Four procedural GLB replacements with articulated rigid-part hierarchy and 26 named animation clips. These are not production-quality skinned or fur-textured assets. Some clips share motion patterns; foot IK, collision-aware climbing, social play and new needs systems remain future work. No live browser testing was performed.
+
+Integration: use a clean local checkout of the branch containing crew.js and crew/crew-engine.mjs. Run `python3 /path/to/install_felines.py /path/to/checkout`. The installer checks exact source anchors, backs up originals, then replaces the four GLBs and patches locomotion, rest arrival, idle variation, and missing-animation diagnostics. If anchors differ, manually port the changes. Do not commit the backup directory. Test on iOS before merging. Existing trust, inventory, names and droid behavior remain intact by design. Models face +Z and retain the existing 0.6 scale. No changes to GitHub were made.
