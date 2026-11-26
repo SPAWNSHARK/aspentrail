@@ -98,7 +98,7 @@
     '#wf-log .item{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.06);margin-bottom:7px}#wf-log .item em{font-style:normal;font-size:22px}#wf-log .item div{flex:1}#wf-log .item small{display:block;color:#d9c4ae;font-size:11.5px}#wf-log .item b{color:#ffe6b0}' +
     '#wf-btns b.wf-logbtn{position:relative}#wf-btns b.wf-logbtn i{position:absolute;right:3px;top:2px;width:7px;height:7px;border-radius:50%;background:#ffb040;box-shadow:0 0 6px #ffb040;display:none}#wf-btns b.wf-logbtn.new i{display:block}';
   document.head.appendChild(css);
-  var tab = 'goals', box = null;
+  var tab = 'goals', box = null, EXTRA = [];
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function open(t) {
     if (t) tab = t;
@@ -114,14 +114,19 @@
     var c = credits(), rk = window.WF_MISSIONS ? WF_MISSIONS.rank(c).name : '';
     box.innerHTML = '';
     var hd = el('div', 'hd', '<b>SHIP LOG</b><span>' + c + ' cr' + (rk ? ' · ' + rk : '') + '</span>'), x = el('button', 'x', '✕'); x.onclick = close; hd.appendChild(x); box.appendChild(hd);
-    var tabs = el('div', 'tabs'); [['goals', 'GOALS'], ['map', 'DECK MAP'], ['cargo', 'CARGO']].forEach(function (q) { var b = el('button', tab === q[0] ? 'on' : '', q[1]); b.onclick = function () { tab = q[0]; render(); }; tabs.appendChild(b); }); box.appendChild(tabs);
-    if (tab === 'goals') renderGoals(); else if (tab === 'map') renderMap(); else renderCargo();
+    var T = [['goals', 'GOALS'], ['map', 'DECK MAP'], ['cargo', 'CARGO']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
+    var tabs = el('div', 'tabs'); tabs.style.gridTemplateColumns = 'repeat(' + T.length + ',1fr)';
+    T.forEach(function (q) { var b = el('button', tab === q[0] ? 'on' : '', q[1]); b.onclick = function () { tab = q[0]; render(); }; tabs.appendChild(b); }); box.appendChild(tabs);
+    var ex = EXTRA.filter(function (x) { return x.id === tab; })[0];
+    if (ex) ex.render(box, el, render); else if (tab === 'goals') renderGoals(); else if (tab === 'map') renderMap(); else renderCargo();
   }
   function renderGoals() {
     var st = goals();
     box.appendChild(el('p', 'sub', 'Three new goals every day · 150 cr each · +300 cr for all three'));
     st.list.forEach(function (g) { var d = el('div', 'goal' + (g.done ? ' done' : ''), (g.done ? '✓ ' : '') + g.text + '<small>' + Math.min(g.have, g.n) + ' / ' + g.n + '</small><i><u style="width:' + Math.min(100, g.have / g.n * 100) + '%"></u></i>'); box.appendChild(d); });
     if (st.bonus) box.appendChild(el('p', 'sub', 'All done for today — new goals tomorrow.'));
+    var FL = load('wf-faults', []), RN = { corridor: 'corridor', bridge: 'Bridge', holodeck: 'Holodeck', lounge: 'Crew Lounge', media: 'Media Nexus', library: 'Library' };
+    if (FL.length) box.appendChild(el('p', 'sub', '⚠ Forge reports: ' + FL.map(function (f) { return f.kind === 'spark' ? 'sparking conduit' : f.kind === 'coolant' ? 'coolant leak' : 'power relay'; }).map(function (k, i) { return k + ' (' + RN[FL[i].room] + ')'; }).join(' · ') + ' — 80 cr each'));
   }
   function renderCargo() {
     var v = inv(), any = false;
@@ -172,6 +177,9 @@
       add('circle', { cx: p[0], cy: p[1], r: n.cat ? 2.6 : 3.4, fill: n.cat ? '#ffb0e0' : '#7fd8ff', stroke: '#000', 'stroke-width': 0.6 });
       legend.push((n.cat ? '🐈 ' : '🤖 ') + NAMES[n.id] + ' — ' + ROOMS[room].name.toLowerCase());
     });
+    var FL = load('wf-faults', []), FOFF = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
+    FL.forEach(function (f) { if (!ROOMS[f.room]) return; var p = mapPt(f.room, f.x, f.z); var t = add('text', { x: p[0], y: p[1] + 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#ff6a40' }); t.textContent = '⚠'; });
+    if (FL.length) legend.unshift('⚠ ' + FL.length + ' fault' + (FL.length > 1 ? 's' : '') + ' to fix');
     box.appendChild(el('p', 'sub', 'Tap a room to go there · <span style="color:#7fd8ff">●</span> droids <span style="color:#ffb0e0">●</span> cats'));
     box.appendChild(svg);
     if (legend.length) box.appendChild(el('p', 'sub', legend.join(' · ')));
@@ -196,5 +204,5 @@
 
   window.WF_LIFE = { credits: credits, add: add, spend: spend, give: give, take: take, count: count, inv: inv, ITEMS: ITEMS, event: event, goals: goals, open: open, close: close, toast: toast, page: PAGE,
     listeners: [], on: function (f) { this.listeners.push(f); }, addGoals: function (feature, list) { REG[feature] = true; list.forEach(function (g) { g.need = feature; if (!POOL.some(function (q) { return q.id === g.id; })) POOL.push(g); }); },
-    addItems: function (o) { for (var k in o) ITEMS[k] = o[k]; } };
+    addItems: function (o) { for (var k in o) ITEMS[k] = o[k]; }, addTab: function (id, label, render) { EXTRA.push({ id: id, label: label, render: render }); } };
 }());

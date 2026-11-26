@@ -146,6 +146,8 @@
     '#wf-crew-talk button{padding:10px 8px;border-radius:13px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:600 12.5px -apple-system,system-ui,sans-serif;text-align:left}' +
     '#wf-crew-talk button.x{grid-column:1/-1;text-align:center;color:#e8d4bf;background:none}' +
     'body.wf-crew-talking #wf-joy,body.wf-crew-talking #room-prompt{opacity:0;pointer-events:none}' +
+    '#wf-redalert{position:fixed;inset:0;z-index:15;pointer-events:none;display:none;box-shadow:inset 0 0 140px 40px rgba(255,20,20,.55);animation:wfRA 1.6s ease-in-out infinite}' +
+    '@keyframes wfRA{0%,100%{opacity:.25}50%{opacity:1}}' +
     '#wf-cat-menu{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:57;display:none;width:min(94vw,440px);padding:12px 12px 10px;border-radius:20px;box-sizing:border-box;' +
       'background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),rgba(30,16,22,.6);-webkit-backdrop-filter:blur(22px) saturate(185%);backdrop-filter:blur(22px) saturate(185%);border:1px solid rgba(255,180,210,.3);color:#fff;font:600 13px -apple-system,system-ui,sans-serif}' +
     '#wf-cat-menu h3{margin:0 0 8px;font:800 13px -apple-system,system-ui,sans-serif;letter-spacing:1px;display:flex;gap:8px;align-items:baseline}#wf-cat-menu h3 small{color:#e6c8d8;font-weight:500;flex:1}#wf-cat-menu h3 span{color:#ff8ab8;letter-spacing:2px}' +
@@ -188,6 +190,17 @@
           }
           this._mv = n; try { super.move(n, dt); } finally { this._mv = null; }
         }
+        decide(n) {                                          // CREW ORDERS from the Bridge override the droids' own routine
+          var o = self.order && self.order.kind;
+          if (n.kind !== 'droid' || !o) return super.decide(n);
+          if (o === 'shoreleave') {
+            if (this.social(n)) return;
+            var sp = this.layout.spots.filter(function (q) { return q.room === 'lounge' || q.room === 'media'; });
+            this.release(n); if (this.go(n, this.pick(sp).node, { type: 'patrol' })) n.next = this.time + 25; else n.next = this.time + 6; return;
+          }
+          if (n.state === 'SEATED') { n.next = this.time + 20; return; }   // battle stations / red alert: stay in your chair
+          if (!this.home(n)) n.next = this.time + 5;
+        }
       }
       var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
       var eng = this.eng = new ShipCrew({ layout: LAYOUT, seed: (Math.random() * 4294967296) >>> 0, adapter: {
@@ -208,6 +221,44 @@
       W.crew = { engine: eng, save: function () { self.save(); }, talkTo: function (id) { self.tap(id); }, layout: LAYOUT, page: PAGE };
       W.crewBump = function (id) { var t = performance.now(); if (self._bumpAt && t - self._bumpAt < 700) return; self._bumpAt = t; eng.bump(id); };
       this.placeConsoles();
+      this.order = null; try { this.order = JSON.parse(localStorage.getItem('wf-order') || 'null'); } catch (e) {}
+      if (this.order) this.applyOrder(this.order.kind, true);
+      if (window.WF_LIFE) {
+        WF_LIFE.addGoals('orders', [{ id: 'order1', text: 'Give your crew an order from the Bridge', ev: 'order', n: 1 }]);
+        WF_LIFE.addTab('orders', 'ORDERS', function (box, el, rerender) { self.ordersTab(box, el, rerender); });
+      }
+    },
+    // ── CREW ORDERS (user, Nov 26): battle stations · red alert · shore leave · stand down — given from the Bridge, obeyed shipwide ──
+    ordersTab: function (box, el, rerender) {
+      var self = this, cur = this.order && this.order.kind;
+      var O = [['stations', '🪑 Battle stations', 'Every droid returns to its Bridge chair and stays there.'], ['redalert', '🚨 Red alert', 'Klaxons, red lights on every deck, all hands to the Bridge.'],
+               ['shoreleave', '🍹 Shore leave', 'Droids knock off and hang out in the Lounge and Media Nexus.'], ['standdown', '✅ Stand down', 'Back to the normal routine.']];
+      box.appendChild(el('p', 'sub', PAGE === 'bridge' ? 'Current order: <b>' + (cur ? O.filter(function (q) { return q[0] === cur; })[0][1] : 'normal duty') + '</b>' : 'Orders are given from the Command Bridge. Current: <b>' + (cur || 'normal duty') + '</b>'));
+      O.forEach(function (q) {
+        var b = el('div', 'goal' + (cur === q[0] || (!cur && q[0] === 'standdown') ? ' done' : ''), '<b>' + q[1] + '</b><br><span style="font-size:12px;color:#d9c4ae">' + q[2] + '</span>');
+        b.style.cursor = 'pointer';
+        b.onclick = function () { if (PAGE !== 'bridge') { WF_LIFE.toast('Go to the Command Bridge to give orders'); return; } self.applyOrder(q[0]); rerender(); };
+        box.appendChild(b);
+      });
+    },
+    applyOrder: function (kind, quiet) {
+      var e = this.eng, self = this;
+      if (kind === 'standdown') { this.order = null; try { localStorage.removeItem('wf-order'); } catch (er) {} }
+      else { this.order = { kind: kind, at: Date.now() }; try { localStorage.setItem('wf-order', JSON.stringify(this.order)); } catch (er) {} }
+      e.setShip({ alert: kind === 'redalert' });
+      e.npcs.forEach(function (n) { if (n.kind !== 'droid' || n.state === 'CONVERSATION') return;
+        if (kind === 'standdown') { n.next = Math.min(n.next, e.time + 3 + Math.random() * 8); return; }
+        if (n.state === 'WORK' || n.state === 'IDLE') { e.release(n); e.set(n, 'IDLE', 'Idle'); n.next = e.time + Math.random() * 2; }
+        else if (n.state === 'SEATED' && kind === 'shoreleave') n.next = e.time + Math.random() * 6; });
+      var ra = document.getElementById('wf-redalert');
+      if (kind === 'redalert') { if (!ra) { ra = document.createElement('div'); ra.id = 'wf-redalert'; document.body.appendChild(ra); } ra.style.display = 'block';
+        if (!quiet && window.WF_SOUND) { WF_SOUND.alarm(); setTimeout(function () { if (self.order && self.order.kind === 'redalert') WF_SOUND.alarm(); }, 1600); } }
+      else if (ra) ra.style.display = 'none';
+      if (!quiet) {
+        var msg = { stations: 'All droids to battle stations.', redalert: 'RED ALERT — all hands to the Bridge!', shoreleave: 'Shore leave granted. Enjoy yourselves, crew.', standdown: 'Standing down. Normal duty.' }[kind];
+        if (window.WF_LIFE) { WF_LIFE.toast(msg); WF_LIFE.event('order'); }
+        var d = []; e.npcs.forEach(function (n) { if (n.kind === 'droid') d.push(n); }); d.forEach(function (n, i) { setTimeout(function () { self.sound(n, kind === 'standdown' || kind === 'shoreleave' ? 'whistle' : 'affirm'); }, 200 + i * 260); });
+      }
     },
     setShip: function () {
       var near = null; try { near = localStorage.getItem('wf-near'); } catch (e) {}

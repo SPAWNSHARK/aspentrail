@@ -66,6 +66,13 @@
       bp2.type = 'bandpass'; bp2.Q.value = 8; bp2.frequency.value = 2900; var g2 = ctx.createGain(); g2.gain.value = 0.4;
       o.connect(bp); o.connect(bp2); bp2.connect(g2); g2.connect(g); bp.connect(g); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.06); g.gain.setValueAtTime(0.22, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       out(g, pan); o.start(t); o.stop(t + dur + 0.05); }); },
+    // zap(pan, vol): electrical crackle (faults)   alarm(): two-tone red-alert klaxon   chime(ok): repair success / fail
+    zap: function (pan, vol) { ready(function () { var t = now(), g0 = ctx.createGain(); g0.gain.value = vol == null ? 1 : vol; out(g0, pan);
+      for (var i = 0, k = 3 + Math.floor(Math.random() * 5); i < k; i++) { var n = noise(), hp = ctx.createBiquadFilter(), g = ctx.createGain(); hp.type = 'highpass'; hp.frequency.value = 1500 + Math.random() * 3000;
+        n.connect(hp); hp.connect(g); env(g, t, 0.001, 0.25, 0.02 + Math.random() * 0.05); g.connect(g0); n.start(t, Math.random()); n.stop(t + 0.1); t += 0.02 + Math.random() * 0.07; } }); },
+    alarm: function () { ready(function () { var t = now(); for (var i = 0; i < 2; i++) { var o = osc('sawtooth', 620), lp = ctx.createBiquadFilter(), g = ctx.createGain(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+      o.frequency.setValueAtTime(620, t); o.frequency.linearRampToValueAtTime(880, t + 0.45); o.connect(lp); lp.connect(g); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.05); g.gain.setValueAtTime(0.12, t + 0.42); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); out(g); o.start(t); o.stop(t + 0.6); t += 0.7; } }); },
+    chime: function (ok) { ready(function () { var t = now(); (ok ? [660, 880, 1320] : [300, 220]).forEach(function (f, i) { var o = osc('triangle', f), g = ctx.createGain(); o.connect(g); env(g, t + i * 0.09, 0.005, 0.12, ok ? 0.35 : 0.25); out(g); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.5); }); }); },
     // ── VOICES (user, Nov 26: "more than one type of sound") ──
     // droid(kind, pan, vol): chatter · whistle · affirm · negative · ponder · servo · scan   (no kind = random)
     droid: function (kind, pan, vol) { ready(function () {
