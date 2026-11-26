@@ -29,7 +29,12 @@ functional workspace. A-Frame (WebXR), so it runs in a browser, on iPhone, and i
 | `app-icon-source-v2.png` | CURRENT app icon source (Nov 25, user's new art; neon frame cropped off, 64 px inset) → icons/ 1024/512/192/180 + favicon |
 | `app-icon-source.jpg` | Old icon source (superseded) |
 
-Rules drawn from them:
+**STYLE CHANGE (user, Nov 26 — Architecture V8, reference/architecture-v8/): ALL INTERIORS of both ships (Wayfarer rooms + Firefly cabin) are
+now the V8 look — graphite / gunmetal / charcoal panels, white + pale-blue light strips, copper only as thin accent trim, neutral white
+lighting. The SHIP EXTERIORS (Wayfarer hull, Firefly hull), the DROIDS and the CAPTAIN stay copper. The amber/walnut rules below now apply
+only to those exteriors/characters and are history for interiors.** Implemented by interior-v8.js (see What's built).
+
+Rules drawn from them (pre-V8):
 - **Hull:** worn copper/bronze plating with rivets; engine glow and dome glass teal/cyan; deep navy space.
 - **Interiors:** brushed-bronze arched ribs framing every room; a warm amber light ring/cove on every ceiling;
   dark walnut-brown/charcoal wall panels; polished dark reflective floors; small square amber sconces.
@@ -451,6 +456,18 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
 - [x] ANIMATION LIBRARY V6 (reference/animation-v6/; crew/anim-v6/ adapter + cat/droid JSON): crew.js addV6() binds the procedural clips to
   the real joints (cats: the pack's felineMap; droids: Torso/HeadPivot/L|R_Shoulder/Elbow/Hip/Knee) and adds ONLY clips the GLB lacks
   (authored win): cats +17 (Run, Stair_Up/Down, Rub_Legs, Feed…), droids +33 (Salute, Scan, Repair, Recharge, Emergency_Run…). Tests 4/4.
+- [x] ARCHITECTURE V8 INTERIORS (Nov 26; arch-v8/ = the pack's architecture.mjs, decking.mjs and 21 textures): interior-v8.js on all 13
+  interior pages re-runs a material pass while models stream in (24 passes, 0.5 → 1.5 s; re-checks when A-Frame swaps a material): warm
+  colour/emissive materials → V8 palette (graphite/gunmetal/charcoal; thin metal ≤ 16 cm → copper accent; amber glows → white, violet→blue
+  stays), surfaces ≥ 10 m² get V8 base/normal/rough maps with planar UVs (floor kind by page: bridge/lounge/engineering/corridor; walls;
+  ceilings) and envMapIntensity 0.22; warm lights → neutral white at ×0.5 (hemisphere ×0.7); warm fog → neutral. Skips: userData.wfPortal
+  (crew, cats, avatar, portals), keepLook (Library shelf faces), #brain, Firefly Exterior_Shell/Gear_*, ShaderMaterials, transparent/additive,
+  MeshBasic (screens, TV, signage), small canvas maps (screens/art). door.js frame paint (v8Paint → gunmetal) and leaves (v8Tint, glass kept).
+  All portal photos recaptured. NOT used yet: the kit's skylight canopy / wall / portal builders (the shader pass covers the look).
+- [x] INTERDIMENSIONAL TV V10 (Nov 26; reference/tv-v10/): installer run (dry → apply; backups in .wf-tv-v10-backup/, git-ignored) —
+  alien-tv.js replaced + wayfarer-tv-v10/programs.js (16 channels, shared wall-clock schedule, 3 storylines each), remote GLB on a floor dock
+  at (−2.44, 0.145, 4.3) by l_r1, control panel (power/mute/last/ch±/vol±/cats), cats autonomously press the remote. Its test passes
+  (48 episode draw paths); live page: all 16 channels tune, remote present, panel opens. Cache tags normalised to the date version.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.

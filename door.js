@@ -189,7 +189,7 @@
     if (R) return R;
     R = {};
     R.side = new THREE.MeshStandardMaterial({ color: 0x7a5530, roughness: 0.45, metalness: 0.7 });
-    var fp = framePaint(); R.frame = new THREE.MeshStandardMaterial({ map: fp.map, bumpMap: fp.bump, bumpScale: 2.5, roughnessMap: fp.rough, roughness: 1, metalness: 0.75, color: 0xe0c8a8 });
+    var fp = framePaint(); R.frame = new THREE.MeshStandardMaterial({ map: fp.map, bumpMap: fp.bump, bumpScale: 2.5, roughnessMap: fp.rough, roughness: 1, metalness: 0.75, color: 0xe0c8a8 }); R.frame.userData.v8Paint = true;   /* interior-v8.js: copper paint → gunmetal */
     R.leafL = soft(leafShape(false), 0.05, 0.01); R.leafR = soft(leafShape(true), 0.05, 0.01);
     var hubO = octagon(0.24); hubO.holes.push(octagon(0.15)); R.hub = soft(hubO, 0.03, 0.012);
     R.opening = new THREE.ShapeGeometry(openingShape(), 10);
@@ -253,7 +253,7 @@
       });
     }
     var dp = doorPaint(o.tint || 0xffa040), leafM = new THREE.MeshStandardMaterial({ map: dp.map, bumpMap: dp.bump, bumpScale: 3, roughnessMap: dp.rough, roughness: 1, metalness: 0.55, color: 0xf0e0cc, envMap: R.env, envMapIntensity: 0.35 });
-    var lL = new THREE.Mesh(R.leafL, [leafM, R.side]), lR = new THREE.Mesh(R.leafR, [leafM, R.side]); lL.position.z = lR.position.z = -0.27; g.add(lL); g.add(lR);
+    leafM.userData.v8Tint = true; var lL = new THREE.Mesh(R.leafL, [leafM, R.side]), lR = new THREE.Mesh(R.leafR, [leafM, R.side]); lL.position.z = lR.position.z = -0.27; g.add(lL); g.add(lR);
     var hub = new THREE.Mesh(R.hub, R.side); hub.position.set(0, HUB_Y, 0.06); lR.add(hub);
 
     // portal
