@@ -107,12 +107,12 @@
       'border:1px solid rgba(255,200,140,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 18px 44px rgba(0,0,0,.55);color:#fff;font:500 14px -apple-system,system-ui,sans-serif}' +
     '#wf-log .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}#wf-log .hd b{font:800 12px -apple-system,system-ui,sans-serif;letter-spacing:3px;color:#ffc98a}' +
     '#wf-log .hd span{font:700 13px -apple-system,system-ui,sans-serif;color:#ffe6b0}#wf-log .x{background:none;border:none;color:#e8d4bf;font-size:20px;padding:0 4px;cursor:pointer}' +
-    '#wf-log .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}#wf-log .tabs button{padding:8px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:700 12px -apple-system,system-ui,sans-serif;letter-spacing:1px}' +
+    '#wf-log .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}#wf-log .tabs button{padding:8px 2px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:700 10.5px -apple-system,system-ui,sans-serif;letter-spacing:.3px;min-width:0;overflow:hidden;text-overflow:ellipsis}' +
     '#wf-log .tabs button.on{background:rgba(255,170,80,.3);border-color:rgba(255,200,140,.6)}' +
     '#wf-log .goal{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);margin-bottom:8px}' +
     '#wf-log .goal.done{opacity:.55}#wf-log .goal i{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:7px;overflow:hidden}#wf-log .goal i u{display:block;height:100%;background:linear-gradient(90deg,#ffb050,#ffe08a)}' +
     '#wf-log .goal small{float:right;color:#ffd58a;font-weight:700}#wf-log p.sub{color:#d9c4ae;font-size:12px;margin:2px 0 10px;text-align:center}' +
-    '#wf-log svg.map{width:100%;height:auto;max-height:calc(100vh - 230px);display:block;margin:0 auto}#wf-log svg.map .rm{cursor:pointer}#wf-log svg.map .rm:hover path,#wf-log svg.map .rm:hover rect,#wf-log svg.map .rm:hover circle{fill:rgba(255,180,90,.28)}' +
+    '#wf-log svg.map{width:100%;height:auto;max-height:calc(100vh - 190px);display:block;margin:0 auto;border-radius:14px;background:#06121e}#wf-log svg.map .rm{cursor:pointer}#wf-log svg.map .rm:hover path,#wf-log svg.map .rm:hover rect,#wf-log svg.map .rm:hover circle{fill:rgba(255,180,90,.28)}' +
     '#wf-log .item{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.06);margin-bottom:7px}#wf-log .item em{font-style:normal;font-size:22px}#wf-log .item div{flex:1}#wf-log .item small{display:block;color:#d9c4ae;font-size:11.5px}#wf-log .item b{color:#ffe6b0}' +
     '#wf-btns b.wf-logbtn{position:relative}#wf-btns b.wf-logbtn i{position:absolute;right:3px;top:2px;width:7px;height:7px;border-radius:50%;background:#ffb040;box-shadow:0 0 6px #ffb040;display:none}#wf-btns b.wf-logbtn.new i{display:block}';
   document.head.appendChild(css);
@@ -163,55 +163,81 @@
     box.appendChild(el('p', 'sub', up.length ? '🛠 Ship: ' + up.join(' · ') : '🛠 Ship upgrades: buy them at Chitin & Thrust in the Hiveport'));
   }
 
-  // ── DECK MAP: the ship from above (bow up), live crew dots, tap a room to go there ──
-  var ROOMS = {   // map centre (px), how room-local metres turn on the map, page
-    bridge:   { c: [150, 70], m: function (x, z) { return [x, z]; }, page: 'bridge.html', name: 'COMMAND BRIDGE' },
-    holodeck: { c: [58, 196], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK' },
-    lounge:   { c: [242, 206], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE' },
-    media:    { c: [242, 304], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS' },
-    library:  { c: [150, 420], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY' },
-    corridor: { c: [150, 255], m: function (x, z) { return [x * 1.8, -z * 6.4]; }, page: 'index.html', name: 'CORRIDOR' }
+  // ── DECK MAP (user, Nov 26: "a helluva lot more detailed and realistic, and live"): a blueprint of the whole deck, bow up.
+  //    Every room is drawn in its true shape (Bridge guitar-pick outline, round rooms, the square Holodeck) with its REAL furniture
+  //    footprints (maps/deck.json, baked from each page's collision scan), the corridor with its bookcases, doors and hull. A live
+  //    layer redraws every 0.4 s: you (arrow = where you face), droids, cats (initials), faults ⚠. Tap a room to go there.
+  var DECK = null; function deckData(cb) { if (DECK) return cb(DECK); fetch('maps/deck.json?v=1').then(function (r) { return r.json(); }).then(function (d) { DECK = d; cb(d); }).catch(function () { cb(null); }); }
+  var SR = 7, KC = 20;                                     // px per metre inside rooms · along the (stretched) corridor
+  var ROOMS = {   // map centre + how room-local metres turn on the map (each room's door faces its corridor doorway)
+    bridge:   { c: [300, 191], m: function (x, z) { return [x, z]; }, page: 'bridge.html', name: 'COMMAND BRIDGE', em: '🛸' },
+    holodeck: { c: [185, 380], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK', em: '🎮' },
+    lounge:   { c: [411, 420], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE', em: '🐈' },
+    media:    { c: [412, 580], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS', em: '🎬' },
+    library:  { c: [300, 825], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY', em: '🧠' },
+    corridor: { c: [300, 500], m: function (x, z) { return [x, -z]; }, page: 'index.html', name: 'CORRIDOR', em: '🚪' }
   };
-  var S = 4.2;   // px per metre inside rooms
-  function mapPt(room, lx, lz) { var R = ROOMS[room], q = R.m(lx, lz), k = room === 'corridor' ? 1 : S; return [R.c[0] + q[0] * k, R.c[1] + q[1] * k]; }
+  var OFFR = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
+  function mapPt(room, lx, lz) { var R = ROOMS[room], q = R.m(lx, lz), k = room === 'corridor' ? KC : SR; return [R.c[0] + q[0] * k, R.c[1] + q[1] * k]; }
+  var mapTimer = null;
   function renderMap() {
-    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 300 480'); svg.setAttribute('class', 'map');
-    function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
-    var line = 'rgba(255,190,120,.75)', fill = 'rgba(255,170,90,.08)';
-    add('path', { d: 'M150 6 C110 6 70 40 60 120 L60 400 C60 470 240 470 240 400 L240 120 C230 40 190 6 150 6 Z', fill: 'rgba(120,70,30,.12)', stroke: 'rgba(200,120,60,.35)', 'stroke-width': 1.5 });   // hull
-    function room(id, shape) {
-      var g = add('g', { class: 'rm' }); shape(g); var R = ROOMS[id];
-      var t = add('text', { x: R.c[0], y: id === 'bridge' ? R.c[1] - 22 : id === 'library' ? R.c[1] + 4 : R.c[1] + (id === 'corridor' ? -100 : 4), 'text-anchor': 'middle', fill: '#ffd8a8', 'font-size': 8.5, 'font-weight': 700, 'letter-spacing': 1.2 }, g); t.textContent = R.name;
-      if (PAGE === id) { var y = add('text', { x: R.c[0], y: (id === 'corridor' ? R.c[1] - 90 : R.c[1] + 14), 'text-anchor': 'middle', fill: '#7fffb0', 'font-size': 7.5, 'font-weight': 700 }, g); y.textContent = '● YOU ARE HERE'; }
-      g.addEventListener('click', function () { if (PAGE === id) { close(); return; } close(); toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, 250); });
-    }
-    room('corridor', function (g) { add('rect', { x: 139, y: 172, width: 22, height: 168, rx: 5, fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    room('bridge', function (g) { add('path', { d: 'M150 22 C126 30 112 60 112 86 C112 104 130 112 150 112 C170 112 188 104 188 86 C188 60 174 30 150 22 Z', fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    room('holodeck', function (g) { add('rect', { x: 20, y: 158, width: 76, height: 76, rx: 6, fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    room('lounge', function (g) { add('circle', { cx: 242, cy: 206, r: 38, fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    room('media', function (g) { add('circle', { cx: 242, cy: 304, r: 39, fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    room('library', function (g) { add('circle', { cx: 150, cy: 420, r: 46, fill: fill, stroke: line, 'stroke-width': 1.4 }, g); });
-    [[150, 112, 150, 172], [96, 196, 139, 196], [161, 206, 204, 206], [161, 304, 203, 304], [150, 340, 150, 374]].forEach(function (d) { add('line', { x1: d[0], y1: d[1], x2: d[2], y2: d[3], stroke: line, 'stroke-width': 3, 'stroke-dasharray': '3 2' }); });   // doorways
-    // the crew, where they are right now
-    var snap = load('wf-crew', null), L = window.WAYFARER && window.WAYFARER.crewLayout, live = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine;
-    var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' };
-    var list = live ? Array.from(live.npcs.values()).map(function (n) { return { id: n.id, node: n.node, x: n.pos.x, z: n.pos.z, cat: n.kind === 'cat' }; })
-                    : (snap && snap.npcs || []).map(function (n) { return { id: n.id, node: n.node, x: n.pos && n.pos.x, z: n.pos && n.pos.z, cat: /ember|nimbus|orbit|pixel/.test(n.id) }; });
-    var legend = [];
-    list.forEach(function (n, i) {
-      var nd = L && L.nodes[n.node], room = nd ? nd.room : null; if (!room || !ROOMS[room]) return;
-      var OFF = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
-      var lx = n.x != null ? n.x - OFF[room] * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, p = mapPt(room, lx, lz);
-      add('circle', { cx: p[0], cy: p[1], r: n.cat ? 2.6 : 3.4, fill: n.cat ? '#ffb0e0' : '#7fd8ff', stroke: '#000', 'stroke-width': 0.6 });
-      legend.push((n.cat ? '🐈 ' : '🤖 ') + NAMES[n.id] + ' — ' + ROOMS[room].name.toLowerCase());
+    deckData(function (D) {
+      if (!box || tab !== 'map') return;
+      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '40 80 520 860'); svg.setAttribute('class', 'map');
+      function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
+      var defs = add('defs', {}); var pat = add('pattern', { id: 'bpgrid', width: 14, height: 14, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M14 0H0V14', fill: 'none', stroke: 'rgba(120,200,255,.07)', 'stroke-width': 1 }, pat);
+      add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpgrid)' });
+      // hull: a teardrop with the engine pods and the dome
+      add('path', { d: 'M300 92 C220 100 150 190 132 300 L100 360 L100 760 C100 900 200 935 300 935 C400 935 500 900 500 760 L500 360 L468 300 C450 190 380 100 300 92 Z', fill: 'rgba(140,80,40,.13)', stroke: 'rgba(230,150,80,.55)', 'stroke-width': 2.2 });
+      [[68, 780], [532, 780]].forEach(function (q) { add('rect', { x: q[0] - 18, y: q[1] - 70, width: 36, height: 140, rx: 16, fill: 'rgba(80,200,255,.08)', stroke: 'rgba(120,220,255,.45)', 'stroke-width': 1.4 }); add('circle', { cx: q[0], cy: q[1] + 74, r: 9, fill: 'rgba(120,230,255,.6)' }); });
+      var WALL = 'rgba(255,200,140,.9)', FILL = 'rgba(255,170,90,.07)', FURN = 'rgba(255,214,170,.42)';
+      function roomG(id) { var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { var R = ROOMS[id]; if (PAGE === id) { close(); return; } close(); toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, 250); }); return g; }
+      function poly(room, pts, g, at) { return add('polygon', Object.assign({ points: pts.map(function (p) { var q = mapPt(room, p[0], p[1]); return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') }, at), g); }
+      function circle(room, r, g, at) { var c = ROOMS[room].c; return add('circle', Object.assign({ cx: c[0], cy: c[1], r: r * SR }, at), g); }
+      function furniture(room, g) { var d = D && D[room]; if (!d) return; d.solids.forEach(function (b) { poly(room, [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]], g, { fill: FURN, stroke: 'rgba(255,230,200,.35)', 'stroke-width': 0.5 }); }); }
+      // corridor
+      var gc = roomG('corridor'); poly('corridor', [[-2.5, 12.5], [2.5, 12.5], [2.5, -12.5], [-2.5, -12.5]], gc, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
+      poly('corridor', [[-1.5, 12.5], [1.5, 12.5], [1.5, -12.5], [-1.5, -12.5]], gc, { fill: 'rgba(120,90,255,.10)', stroke: 'none' });   // stained-glass runner
+      ((D && D.corridor && D.corridor.shelves) || []).forEach(function (q) { var x = q[0] === 'L' ? -2.5 : 2.5; poly('corridor', [[x - 0.12 * (q[0] === 'L' ? 0 : 1), q[1] - 1.2], [x + 0.12 * (q[0] === 'L' ? 1 : 0), q[1] - 1.2], [x + 0.12 * (q[0] === 'L' ? 1 : 0), q[1] + 1.2], [x - 0.12 * (q[0] === 'L' ? 0 : 1), q[1] + 1.2]], gc, { fill: 'rgba(200,120,70,.8)' }); });
+      furniture('corridor', gc);
+      // rooms
+      var gb = roomG('bridge'); if (D && D.bridge && D.bridge.bounds) poly('bridge', D.bridge.bounds, gb, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); furniture('bridge', gb);
+      add('circle', { cx: ROOMS.bridge.c[0], cy: ROOMS.bridge.c[1] - 6.4 * SR, r: 3.3 * SR * 0.55, fill: 'rgba(150,120,255,.18)', stroke: 'rgba(170,150,255,.6)', 'stroke-dasharray': '2 2' }, gb);   // navigator galaxy
+      var gh = roomG('holodeck'); poly('holodeck', [[-9, -9], [9, -9], [9, 9], [-9, 9]], gh, { fill: 'rgba(255,170,60,.05)', stroke: WALL, 'stroke-width': 2 });
+      for (var gx = -6; gx <= 6; gx += 3) { poly('holodeck', [[gx, -9], [gx + 0.02, -9], [gx + 0.02, 9], [gx, 9]], gh, { fill: 'rgba(255,170,60,.18)' }); poly('holodeck', [[-9, gx], [9, gx], [9, gx + 0.02], [-9, gx + 0.02]], gh, { fill: 'rgba(255,170,60,.18)' }); }
+      furniture('holodeck', gh);
+      ['lounge', 'media', 'library'].forEach(function (id) { var g = roomG(id); circle(id, id === 'library' ? 10.6 : 9.2, g, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); if (id === 'library') circle(id, 7.6, g, { fill: 'rgba(60,230,200,.12)', stroke: 'rgba(80,240,210,.45)', 'stroke-width': 1 }); furniture(id, g); });
+      // doorways
+      [['bridge', 0, 7.9], ['holodeck', 0, 8.7], ['lounge', 0, 8.7], ['media', 0, 8.9], ['library', 0, 10.7]].forEach(function (q) { var p = mapPt(q[0], q[1], q[2]); add('circle', { cx: p[0], cy: p[1], r: 4.5, fill: '#ffd27a' }); });
+      // labels
+      Object.keys(ROOMS).forEach(function (id) { var R = ROOMS[id], y = id === 'bridge' ? R.c[1] + 46 : id === 'corridor' ? 470 : R.c[1] + 4, x = id === 'corridor' ? 300 : R.c[0];
+        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#fff2dc', 'font-size': id === 'corridor' ? 8 : 10, 'font-weight': 800, 'letter-spacing': 1.2, stroke: 'rgba(0,0,0,.55)', 'stroke-width': 2.5, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 470)' : '' }); t.textContent = R.em + ' ' + R.name; });
+      // live layer
+      var live = add('g', {});
+      box.appendChild(el('p', 'sub', 'Live · tap a room to go there · <span style="color:#6ff">▲</span> you · <span style="color:#7fd8ff">●</span> droids · <span style="color:#ffb0e0">●</span> cats · ⚠ faults'));
+      box.appendChild(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
+      function drawLive() {
+        while (live.firstChild) live.removeChild(live.firstChild);
+        var L = window.WAYFARER && window.WAYFARER.crewLayout, eng = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine, snap = load('wf-crew', null);
+        var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' }, where = {};
+        var list = eng ? Array.from(eng.npcs.values()).map(function (n) { return { id: n.id, node: n.node, x: n.pos.x, z: n.pos.z, cat: n.kind === 'cat', st: n.state }; })
+                       : ((snap && snap.npcs) || []).map(function (n) { return { id: n.id, node: n.node, x: n.pos && n.pos.x, z: n.pos && n.pos.z, cat: /ember|nimbus|orbit|pixel/.test(n.id), st: n.state }; });
+        list.forEach(function (n) { var nd = L && L.nodes[n.node], room = nd ? nd.room : null; if (!room || !ROOMS[room]) return;
+          var lx = n.x != null ? n.x - OFFR[room] * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, p = mapPt(room, lx, lz), col = n.cat ? '#ffb0e0' : '#7fd8ff';
+          add('circle', { cx: p[0], cy: p[1], r: n.cat ? 4 : 5, fill: col, stroke: '#081018', 'stroke-width': 1.2 }, live);
+          var t = add('text', { x: p[0] + 6, y: p[1] + 3, fill: col, 'font-size': 7.5, 'font-weight': 700, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2, 'paint-order': 'stroke' }, live); t.textContent = NAMES[n.id];
+          (where[room] = where[room] || []).push(NAMES[n.id]); });
+        load('wf-faults', []).forEach(function (f) { if (!ROOMS[f.room]) return; var p = mapPt(f.room, f.x, f.z); var t = add('text', { x: p[0], y: p[1] + 5, 'text-anchor': 'middle', 'font-size': 14, opacity: (Date.now() / 400 | 0) % 2 ? 1 : 0.45 }, live); t.textContent = '⚠'; });
+        if (ROOMS[PAGE] && document.querySelector('a-scene') && document.querySelector('a-scene').camera) {        // YOU: position + facing
+          var cam = document.querySelector('a-scene').camera, cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); cam.getWorldPosition(cp); cam.getWorldDirection(cd);
+          var p0 = mapPt(PAGE, cp.x, cp.z), p1 = mapPt(PAGE, cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
+          add('circle', { cx: p0[0], cy: p0[1], r: 11 + 3 * Math.sin(Date.now() / 250), fill: 'rgba(100,255,255,.18)' }, live);
+          add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live);
+        }
+        leg.innerHTML = Object.keys(where).map(function (r) { return ROOMS[r].em + ' ' + where[r].join(', '); }).join(' · ');
+      }
+      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
     });
-    var FL = load('wf-faults', []), FOFF = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
-    FL.forEach(function (f) { if (!ROOMS[f.room]) return; var p = mapPt(f.room, f.x, f.z); var t = add('text', { x: p[0], y: p[1] + 4, 'text-anchor': 'middle', 'font-size': 11, fill: '#ff6a40' }); t.textContent = '⚠'; });
-    if (FL.length) legend.unshift('⚠ ' + FL.length + ' fault' + (FL.length > 1 ? 's' : '') + ' to fix');
-    box.appendChild(el('p', 'sub', 'Tap a room to go there · <span style="color:#7fd8ff">●</span> droids <span style="color:#ffb0e0">●</span> cats'));
-    box.appendChild(svg);
-    if (legend.length) box.appendChild(el('p', 'sub', legend.join(' · ')));
-    else box.appendChild(el('p', 'sub', 'Crew positions show once you’ve been aboard.'));
   }
 
   // ── the menu-bar button (clipboard) ──
