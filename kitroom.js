@@ -134,7 +134,38 @@
     if (JOBS.aboard && pilot) { JOBS.ride = pilot; var lc0 = document.getElementById('cam').components['look-controls']; if (lc0) { lc0.yawObject.rotation.y = 0; lc0.pitchObject.rotation.x = -0.1; } }   /* ride out in the pilot's seat */
     else { var cam = document.getElementById('cam'); cam.object3D.position.set(9, 1.6, -27); var lc = cam.components['look-controls']; if (lc) { lc.yawObject.rotation.y = Math.atan2(9, 11); lc.pitchObject.rotation.x = -0.32; } }   /* watch from the hangar's starboard side */
   }
+  // FURNITURE UPGRADE 01 (furniture.js): the kit's blockout furniture is hidden (still tappable for the room jobs) and the pack's piece is
+  // placed at the same spot: long axis matched, front (+Z) facing the room centre — chairs face their nearest table.
+  var SWAP = {
+    quarters: [['crew_bed', /^Bed_base/, /^(Bed_base|Mattress|Pillow|Blanket)/, 1.8, 'z'], ['crew_locker', /^Locker(_\d+)?$/, /^Locker/, 0.5], ['library_writing_desk', /^Table_top/, /^Table_(top|base)/, 1.0, 'x'], ['desk_chair', /^Seat(_\d+)?$/, /^Seat/, 0.7, null, 'table']],
+    medbay:   [['crew_bed', /^Bed_base/, /^(Bed_base|Mattress|Pillow|Blanket)/, 1.8, 'z']],
+    mess:     [['dining_table', /^Table_top/, /^Table_(top|base)/, 1.0, 'x'], ['dining_chair', /^Seat(_\d+)?$/, /^Seat/, 0.7, null, 'table'], ['bar_counter', /^Galley_counter/, /^Galley_counter/, 0.5, 'x']],
+    maint:    [['crew_locker', /^Locker(_\d+)?$/, /^Locker/, 0.5], ['holodeck_utility_table', /^Table_top/, /^Table_(top|base)/, 1.0, 'x']]
+  };
+  function swapFurniture() {
+    var R0 = SWAP[ID]; if (!R0 || !window.WF_FURN) return; var C = JOBS.center || { x: 0, z: 0 }, tables = [], jobs = [];
+    var bbox = function (o) { return new THREE.Box3().setFromObject(o); };
+    R0.forEach(function (rule) {
+      JOBS.meshes.filter(function (m) { return rule[1].test(m.name); }).forEach(function (a) {
+        var b = bbox(a), c = b.getCenter(new THREE.Vector3());
+        JOBS.meshes.forEach(function (m) { if (!rule[2].test(m.name)) return; var mc = bbox(m).getCenter(new THREE.Vector3()); if (Math.hypot(mc.x - c.x, mc.z - c.z) < rule[3]) { b.union(bbox(m)); m.visible = false; } });
+        var cc = b.getCenter(new THREE.Vector3()), sz = b.getSize(new THREE.Vector3()), yaw;
+        var toC = Math.atan2(C.x - cc.x, C.z - cc.z);
+        if (rule[4]) { var alongX = sz.x >= sz.z; yaw = (rule[4] === 'z') === alongX ? Math.PI / 2 : 0;   /* long axis */
+          var fx = Math.sin(yaw), fz = Math.cos(yaw); if (fx * Math.sin(toC) + fz * Math.cos(toC) < 0) yaw += Math.PI; }        /* front toward the room */
+        else yaw = toC;
+        if (/table|desk|counter/.test(rule[0])) tables.push(cc);
+        jobs.push({ id: rule[0], at: cc, yaw: yaw, faceTable: rule[5] === 'table' });
+      });
+    });
+    jobs.forEach(function (j) {
+      if (j.faceTable && tables.length) { var t = tables.slice().sort(function (a, b) { return Math.hypot(a.x - j.at.x, a.z - j.at.z) - Math.hypot(b.x - j.at.x, b.z - j.at.z); })[0]; j.yaw = Math.atan2(t.x - j.at.x, t.z - j.at.z); }
+      WF_FURN.place(j.id, { position: [j.at.x, 0, j.at.z], yaw: j.yaw }).catch(function (e) { console.warn('furniture', j.id, e); });
+    });
+    JOBS.swapped = jobs.map(function (j) { return j.id; });
+  }
   JOBS.setup = function (sc) {
+    swapFurniture();
     this.sc = sc;
     if (ID === 'firefly') {   // open space below/ahead of the bow jaw
       var n = 1500, pos = new Float32Array(n * 3); for (var i = 0; i < n; i++) { var u = Math.random() * 2 - 1, th = Math.random() * 6.283, q = Math.sqrt(1 - u * u); pos.set([q * Math.cos(th) * 400, u * 400, q * Math.sin(th) * 400], i * 3); }
@@ -186,7 +217,7 @@
       var flat = new THREE.Group(); this.el.object3D.add(flat); flat.add(new THREE.HemisphereLight(0xffd8b0, 0x1a0e06, 0.5));
       fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (LY) {
         var poly = R.circle ? null : (LY.rooms[R.key] && LY.rooms[R.key].polygon), cx = 0, cz = 0;
-        if (poly) { poly.forEach(function (p) { cx += p[0]; cz += p[1]; }); cx /= poly.length; cz /= poly.length; window.WAYFARER.bounds = poly.map(function (p) { return [p[0], p[1]]; }); }
+        if (poly) { poly.forEach(function (p) { cx += p[0]; cz += p[1]; }); cx /= poly.length; cz /= poly.length; JOBS.center = { x: cx, z: cz }; window.WAYFARER.bounds = poly.map(function (p) { return [p[0], p[1]]; }); }
         else { cx = R.circle[0]; cz = R.circle[1]; var c = []; for (var i = 0; i < 48; i++) { var a = i / 48 * Math.PI * 2; c.push([cx + Math.sin(a) * R.circle[2], cz + Math.cos(a) * R.circle[2]]); } window.WAYFARER.bounds = c; }
         [[0, 0], [3, 2], [-3, -2]].forEach(function (o, i) { var l = new THREE.PointLight(i ? 0xffb060 : 0xffc890, i ? 3 : 5, 14, 1.8); l.position.set(cx + o[0], 2.7, cz + o[1]); flat.add(l); });
         if (ID === 'engine') { var core = new THREE.PointLight(0x3fe0c8, 10, 16, 1.6); core.position.set(0, 1.6, 36); flat.add(core); }

@@ -1,0 +1,1249 @@
+{
+  "version": "1.0",
+  "units": "meters",
+  "coordinateSystem": "Y-up; +Z local front/access; origin at floor center",
+  "assets": [
+    {
+      "id": "captain_throne",
+      "room": "Bridge",
+      "description": "High-backed command seat with copper collar and status controls",
+      "file": "models/captain_throne.glb",
+      "bounds": [
+        [
+          -0.47,
+          -0.0,
+          -0.445
+        ],
+        [
+          0.47,
+          1.47,
+          0.435
+        ]
+      ],
+      "dimensions": [
+        0.94,
+        1.47,
+        0.88
+      ],
+      "triangles": 4640,
+      "nodes": 19,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.59,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.91
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "droid_operator_chair",
+      "room": "Bridge",
+      "description": "Compact swivel operator chair",
+      "file": "models/droid_operator_chair.glb",
+      "bounds": [
+        [
+          -0.35,
+          -0.0,
+          -0.345
+        ],
+        [
+          0.35,
+          1.06,
+          0.335
+        ]
+      ],
+      "dimensions": [
+        0.7,
+        1.06,
+        0.68
+      ],
+      "triangles": 4028,
+      "nodes": 16,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.5599999999999999,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.81
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "pilot_chair",
+      "room": "Bridge",
+      "description": "Flight seat with low-profile bolsters",
+      "file": "models/pilot_chair.glb",
+      "bounds": [
+        [
+          -0.405,
+          -0.0,
+          -0.405
+        ],
+        [
+          0.405,
+          1.32,
+          0.395
+        ]
+      ],
+      "dimensions": [
+        0.81,
+        1.32,
+        0.8
+      ],
+      "triangles": 4028,
+      "nodes": 16,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.58,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.87
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "reading_armchair",
+      "room": "Library",
+      "description": "Deep upholstered reading chair",
+      "file": "models/reading_armchair.glb",
+      "bounds": [
+        [
+          -0.47,
+          -0.0,
+          -0.425
+        ],
+        [
+          0.47,
+          1.08,
+          0.415
+        ]
+      ],
+      "dimensions": [
+        0.94,
+        1.08,
+        0.84
+      ],
+      "triangles": 4632,
+      "nodes": 18,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.53,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.89
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "cinema_recliner",
+      "room": "Media Nexus",
+      "description": "Cinema recliner with sculpted frame",
+      "file": "models/cinema_recliner.glb",
+      "bounds": [
+        [
+          -0.425,
+          -0.0,
+          -0.495
+        ],
+        [
+          0.425,
+          1.18,
+          0.485
+        ]
+      ],
+      "dimensions": [
+        0.85,
+        1.18,
+        0.98
+      ],
+      "triangles": 4632,
+      "nodes": 18,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.52,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.96
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "desk_chair",
+      "room": "Library",
+      "description": "Compact task chair",
+      "file": "models/desk_chair.glb",
+      "bounds": [
+        [
+          -0.2825,
+          -0.0,
+          -0.325
+        ],
+        [
+          0.2825,
+          1.02,
+          0.315
+        ]
+      ],
+      "dimensions": [
+        0.565,
+        1.02,
+        0.64
+      ],
+      "triangles": 2228,
+      "nodes": 10,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.5599999999999999,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.79
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "dining_chair",
+      "room": "Crew Lounge",
+      "description": "Lightweight dining seat",
+      "file": "models/dining_chair.glb",
+      "bounds": [
+        [
+          -0.2375,
+          -0.0,
+          -0.27
+        ],
+        [
+          0.2375,
+          0.91,
+          0.26
+        ]
+      ],
+      "dimensions": [
+        0.475,
+        0.91,
+        0.53
+      ],
+      "triangles": 2832,
+      "nodes": 12,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.54,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.735
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "lounge_sofa_3",
+      "room": "Crew Lounge",
+      "description": "Modular upholstered sofa with copper plinth and segmented cushions",
+      "file": "models/lounge_sofa_3.glb",
+      "bounds": [
+        [
+          -1.21,
+          -0.0,
+          -0.435
+        ],
+        [
+          1.21,
+          0.915,
+          0.435
+        ]
+      ],
+      "dimensions": [
+        2.42,
+        0.915,
+        0.87
+      ],
+      "triangles": 4832,
+      "nodes": 16,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            -0.69,
+            0.47,
+            0.06
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            -0.69,
+            0,
+            0.92
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "sit",
+          "position": [
+            0.0,
+            0.47,
+            0.06
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0.0,
+            0,
+            0.92
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "sit",
+          "position": [
+            0.69,
+            0.47,
+            0.06
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0.69,
+            0,
+            0.92
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "media_loveseat",
+      "room": "Media Nexus",
+      "description": "Modular upholstered sofa with copper plinth and segmented cushions",
+      "file": "models/media_loveseat.glb",
+      "bounds": [
+        [
+          -0.83,
+          -0.0,
+          -0.435
+        ],
+        [
+          0.83,
+          0.915,
+          0.435
+        ]
+      ],
+      "dimensions": [
+        1.66,
+        0.915,
+        0.87
+      ],
+      "triangles": 3976,
+      "nodes": 14,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            -0.328,
+            0.47,
+            0.06
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            -0.328,
+            0,
+            0.92
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "sit",
+          "position": [
+            0.328,
+            0.47,
+            0.06
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0.328,
+            0,
+            0.92
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "coffee_table",
+      "room": "Crew Lounge",
+      "description": "Low table with a graphite inlay and ivory edge",
+      "file": "models/coffee_table.glb",
+      "bounds": [
+        [
+          -0.575,
+          0.0125,
+          -0.285
+        ],
+        [
+          0.575,
+          0.4145,
+          0.285
+        ]
+      ],
+      "dimensions": [
+        1.15,
+        0.402,
+        0.57
+      ],
+      "triangles": 1180,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            0.416,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "side_table",
+      "room": "Library",
+      "description": "Compact reading-side table",
+      "file": "models/side_table.glb",
+      "bounds": [
+        [
+          -0.245,
+          0.0125,
+          -0.245
+        ],
+        [
+          0.245,
+          0.5745,
+          0.245
+        ]
+      ],
+      "dimensions": [
+        0.49,
+        0.562,
+        0.49
+      ],
+      "triangles": 1180,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            0.576,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "dining_table",
+      "room": "Crew Lounge",
+      "description": "Four-person pedestal dining table",
+      "file": "models/dining_table.glb",
+      "bounds": [
+        [
+          -0.775,
+          0.0125,
+          -0.415
+        ],
+        [
+          0.775,
+          0.7645,
+          0.415
+        ]
+      ],
+      "dimensions": [
+        1.55,
+        0.752,
+        0.83
+      ],
+      "triangles": 1180,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            0.766,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "holodeck_utility_table",
+      "room": "Holodeck",
+      "description": "Movable equipment table",
+      "file": "models/holodeck_utility_table.glb",
+      "bounds": [
+        [
+          -0.45,
+          0.0125,
+          -0.275
+        ],
+        [
+          0.45,
+          0.7845,
+          0.275
+        ]
+      ],
+      "dimensions": [
+        0.9,
+        0.772,
+        0.55
+      ],
+      "triangles": 1180,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            0.786,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "bridge_workstation",
+      "room": "Bridge",
+      "description": "Droid/operator station with physical controls",
+      "file": "models/bridge_workstation.glb",
+      "bounds": [
+        [
+          -0.61,
+          0.0025,
+          -0.35
+        ],
+        [
+          0.61,
+          1.195,
+          0.35
+        ]
+      ],
+      "dimensions": [
+        1.22,
+        1.193,
+        0.7
+      ],
+      "triangles": 2160,
+      "nodes": 12,
+      "anchors": [
+        {
+          "kind": "operate",
+          "position": [
+            0,
+            0,
+            0.8
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "display",
+          "position": [
+            0,
+            1.05,
+            -0.13799999999999998
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "wall_service_terminal",
+      "room": "Corridor",
+      "description": "Shallow service station for roaming droids",
+      "file": "models/wall_service_terminal.glb",
+      "bounds": [
+        [
+          -0.355,
+          0.0025,
+          -0.215
+        ],
+        [
+          0.355,
+          1.195,
+          0.215
+        ]
+      ],
+      "dimensions": [
+        0.71,
+        1.193,
+        0.43
+      ],
+      "triangles": 2160,
+      "nodes": 12,
+      "anchors": [
+        {
+          "kind": "operate",
+          "position": [
+            0,
+            0,
+            0.665
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "display",
+          "position": [
+            0,
+            1.05,
+            -0.05969999999999999
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "holodeck_control_desk",
+      "room": "Holodeck",
+      "description": "Freestanding simulation console",
+      "file": "models/holodeck_control_desk.glb",
+      "bounds": [
+        [
+          -0.56,
+          0.0025,
+          -0.31
+        ],
+        [
+          0.56,
+          1.195,
+          0.31
+        ]
+      ],
+      "dimensions": [
+        1.12,
+        1.193,
+        0.62
+      ],
+      "triangles": 2160,
+      "nodes": 12,
+      "anchors": [
+        {
+          "kind": "operate",
+          "position": [
+            0,
+            0,
+            0.76
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "display",
+          "position": [
+            0,
+            1.05,
+            -0.11479999999999999
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "library_writing_desk",
+      "room": "Library",
+      "description": "Writing desk with drawer and cable recess",
+      "file": "models/library_writing_desk.glb",
+      "bounds": [
+        [
+          -0.71,
+          0.01,
+          -0.33
+        ],
+        [
+          0.71,
+          0.8145,
+          0.33
+        ]
+      ],
+      "dimensions": [
+        1.42,
+        0.804,
+        0.66
+      ],
+      "triangles": 1696,
+      "nodes": 8,
+      "anchors": [
+        {
+          "kind": "operate",
+          "position": [
+            0,
+            0,
+            0.76
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            0.815,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "library_bookshelf",
+      "room": "Library",
+      "description": "Built-in book or storage cabinet with individually modeled contents",
+      "file": "models/library_bookshelf.glb",
+      "bounds": [
+        [
+          -0.55,
+          -0.0,
+          -0.17
+        ],
+        [
+          0.55,
+          1.9475,
+          0.17
+        ]
+      ],
+      "dimensions": [
+        1.1,
+        1.947,
+        0.34
+      ],
+      "triangles": 4076,
+      "nodes": 73,
+      "anchors": [
+        {
+          "kind": "browse",
+          "position": [
+            0,
+            0,
+            0.67
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "library_display_case",
+      "room": "Library",
+      "description": "Artifact display plinth with clear-view open frame",
+      "file": "models/library_display_case.glb",
+      "bounds": [
+        [
+          -0.44,
+          0.0,
+          -0.285
+        ],
+        [
+          0.44,
+          1.2425,
+          0.285
+        ]
+      ],
+      "dimensions": [
+        0.88,
+        1.242,
+        0.57
+      ],
+      "triangles": 1836,
+      "nodes": 9,
+      "anchors": [
+        {
+          "kind": "display",
+          "position": [
+            0,
+            0.81,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "media_screen_stand",
+      "room": "Media Nexus",
+      "description": "Freestanding display with soundbar, speaker pods and equipment storage",
+      "file": "models/media_screen_stand.glb",
+      "bounds": [
+        [
+          -0.9,
+          0.0,
+          -0.235
+        ],
+        [
+          0.9,
+          1.87,
+          0.2451
+        ]
+      ],
+      "dimensions": [
+        1.8,
+        1.87,
+        0.48
+      ],
+      "triangles": 1688,
+      "nodes": 10,
+      "anchors": [
+        {
+          "kind": "video_surface",
+          "position": [
+            0,
+            1.38,
+            0.005
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "bar_counter",
+      "room": "Crew Lounge",
+      "description": "Modular beverage counter with equipment recess and service ledge",
+      "file": "models/bar_counter.glb",
+      "bounds": [
+        [
+          -0.925,
+          -0.0,
+          -0.36
+        ],
+        [
+          0.925,
+          1.028,
+          0.36
+        ]
+      ],
+      "dimensions": [
+        1.85,
+        1.028,
+        0.72
+      ],
+      "triangles": 1732,
+      "nodes": 11,
+      "anchors": [
+        {
+          "kind": "serve",
+          "position": [
+            0,
+            0,
+            0.85
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "surface",
+          "position": [
+            0,
+            1.03,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "bar_stool",
+      "room": "Crew Lounge",
+      "description": "Elevated pedestal seat",
+      "file": "models/bar_stool.glb",
+      "bounds": [
+        [
+          -0.2125,
+          -0.0,
+          -0.23
+        ],
+        [
+          0.2125,
+          1.1053,
+          0.22
+        ]
+      ],
+      "dimensions": [
+        0.425,
+        1.105,
+        0.45
+      ],
+      "triangles": 2228,
+      "nodes": 10,
+      "anchors": [
+        {
+          "kind": "sit",
+          "position": [
+            0,
+            0.84,
+            0.04
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "approach",
+          "position": [
+            0,
+            0,
+            0.6950000000000001
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "cat_tree",
+      "room": "Crew Lounge",
+      "description": "Multi-height alien-kitty climbing tower with safe landing platforms",
+      "file": "models/cat_tree.glb",
+      "bounds": [
+        [
+          -0.455,
+          0.0005,
+          -0.38
+        ],
+        [
+          0.475,
+          1.2345,
+          0.38
+        ]
+      ],
+      "dimensions": [
+        0.93,
+        1.234,
+        0.76
+      ],
+      "triangles": 2396,
+      "nodes": 7,
+      "anchors": [
+        {
+          "kind": "cat_perch",
+          "position": [
+            -0.23,
+            1.24,
+            -0.12
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "cat_perch",
+          "position": [
+            0.25,
+            0.87,
+            0.13
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "cat_jump_start",
+          "position": [
+            0.4,
+            0,
+            0.47
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "cat_sleep_pod",
+      "room": "Crew Lounge",
+      "description": "Low-profile kitty bed with padded nest",
+      "file": "models/cat_sleep_pod.glb",
+      "bounds": [
+        [
+          -0.385,
+          0.0,
+          -0.31
+        ],
+        [
+          0.385,
+          0.275,
+          0.31
+        ]
+      ],
+      "dimensions": [
+        0.77,
+        0.275,
+        0.62
+      ],
+      "triangles": 2140,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "cat_sleep",
+          "position": [
+            0,
+            0.2,
+            0.03
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "cat_approach",
+          "position": [
+            0,
+            0,
+            0.57
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "cat_feeding_station",
+      "room": "Crew Lounge",
+      "description": "Dual feeding bowls with low base",
+      "file": "models/cat_feeding_station.glb",
+      "bounds": [
+        [
+          -0.35,
+          0.0,
+          -0.17
+        ],
+        [
+          0.35,
+          0.155,
+          0.17
+        ]
+      ],
+      "dimensions": [
+        0.7,
+        0.155,
+        0.34
+      ],
+      "triangles": 1388,
+      "nodes": 3,
+      "anchors": [
+        {
+          "kind": "cat_eat",
+          "position": [
+            -0.18,
+            0,
+            0.3
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "kind": "cat_eat",
+          "position": [
+            0.18,
+            0,
+            0.3
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "cat_ramp",
+      "room": "Crew Lounge",
+      "description": "Low carpeted ramp for optional feline pathing",
+      "file": "models/cat_ramp.glb",
+      "bounds": [
+        [
+          -0.185,
+          0.0075,
+          -0.425
+        ],
+        [
+          0.185,
+          0.3671,
+          0.425
+        ]
+      ],
+      "dimensions": [
+        0.37,
+        0.36,
+        0.85
+      ],
+      "triangles": 420,
+      "nodes": 3,
+      "anchors": [
+        {
+          "kind": "cat_ramp_low",
+          "position": [
+            0,
+            0.08,
+            -0.36
+          ],
+          "yaw": 0
+        },
+        {
+          "kind": "cat_ramp_high",
+          "position": [
+            0,
+            0.37,
+            0.36
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "crew_bed",
+      "room": "Optional quarters",
+      "description": "Single sleeping berth, optional only if quarters exist",
+      "file": "models/crew_bed.glb",
+      "bounds": [
+        [
+          -0.475,
+          0.005,
+          -1.035
+        ],
+        [
+          0.475,
+          0.56,
+          1.035
+        ]
+      ],
+      "dimensions": [
+        0.95,
+        0.555,
+        2.07
+      ],
+      "triangles": 1564,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "lie",
+          "position": [
+            0,
+            0.48,
+            0
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "crew_locker",
+      "room": "Optional quarters",
+      "description": "Storage locker with inset handles; use only if space permits",
+      "file": "models/crew_locker.glb",
+      "bounds": [
+        [
+          -0.33,
+          -0.0,
+          -0.25
+        ],
+        [
+          0.33,
+          1.705,
+          0.3
+        ]
+      ],
+      "dimensions": [
+        0.66,
+        1.705,
+        0.55
+      ],
+      "triangles": 892,
+      "nodes": 5,
+      "anchors": [
+        {
+          "kind": "access",
+          "position": [
+            0,
+            0,
+            0.72
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    }
+  ]
+}

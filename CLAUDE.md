@@ -468,6 +468,12 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   alien-tv.js replaced + wayfarer-tv-v10/programs.js (16 channels, shared wall-clock schedule, 3 storylines each), remote GLB on a floor dock
   at (−2.44, 0.145, 4.3) by l_r1, control panel (power/mute/last/ch±/vol±/cats), cats autonomously press the remote. Its test passes
   (48 episode draw paths); live page: all 16 channels tune, remote present, panel opens. Cache tags normalised to the date version.
+- [x] FURNITURE UPGRADE 01 (Nov 26; furniture/ = 28 GLBs + manifest; reference/furniture-01/): furniture.js (WF_FURN.place / swapEntity; pieces keep
+  their own V8 materials via userData.v8Skip, stay solid for mobile.js). Lounge: cat_tree / cat_sleep_pod / cat_feeding_station swapped at the
+  old prop transforms. Library: library_writing_desk at the study corner + desk_chair. Kit rooms (kitroom.js SWAP/swapFurniture): kit blockout
+  hidden but still tappable for room jobs, pack piece at the same spot (long axis matched, front toward the room centre, chairs face the
+  nearest table): Quarters bed/5 lockers/desk/chair, Medbay beds, Mess 2 tables/4 chairs/bar counter, Maintenance lockers/utility table.
+  Bridge chairs/consoles and Media seats NOT swapped (droid seat calibration, command chair).
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.

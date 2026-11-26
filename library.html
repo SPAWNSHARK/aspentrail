@@ -364,7 +364,7 @@
     <!-- exit: the shared ship door (door.js → WAYFARER.door.roomExit) -->
 
       <!-- study corner: walnut writing desk at the back wall with a microscope, specimen rack and hourglass; armillary sphere on a bronze plinth -->
-    <a-entity wf-prop="src: writing_desk; accent: teal" position="0 0 -9.25"></a-entity>
+    <a-entity id="old-desk" wf-prop="src: writing_desk; accent: teal" position="0 0 -9.25"></a-entity>
     <a-entity wf-prop="src: microscope; accent: teal" position="-0.5 0.85 -9.3" rotation="0 20 0"></a-entity>
     <a-entity wf-prop="src: specimen_vial_rack; accent: teal" position="0.05 0.85 -9.45"></a-entity>
     <a-entity wf-prop="src: hourglass" position="0.52 0.85 -9.25"></a-entity>
@@ -726,5 +726,9 @@
 
 <script>window.WAYFARER.door.roomExit('library');</script>
   <script src="interior-v8.js?v=20261127r"></script>
+  <script src="furniture.js?v=20261127r"></script>
+  <script>  /* Furniture Upgrade 01: study-corner writing desk + desk chair (the instruments stay on the new desk) */
+    document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.swapEntity('#old-desk', 'library_writing_desk'); WF_FURN.place('desk_chair', { position: [0.15, 0, -8.55], yaw: Math.PI + 0.25 }); });
+  </script>
 </body>
 </html>

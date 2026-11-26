@@ -206,9 +206,9 @@
   </a-entity>
 
   <!-- cat furniture (models/props, recoloured to the ship palette by props.js) -->
-  <a-entity wf-prop="src: cat_tree; height: 1.5" position="6.4 0.1 3.4" rotation="0 -118 0"></a-entity>
-  <a-entity wf-prop="src: cat_bed; height: 0.28" position="-6.3 0.1 3.1" rotation="0 116 0"></a-entity>
-  <a-entity wf-prop="src: cat_feeding_station; height: 0.16" position="5.0 0.1 5.8" rotation="0 -140 0"></a-entity>
+  <a-entity id="old-cat-tree" wf-prop="src: cat_tree; height: 1.5" position="6.4 0.1 3.4" rotation="0 -118 0"></a-entity>
+  <a-entity id="old-cat-bed" wf-prop="src: cat_bed; height: 0.28" position="-6.3 0.1 3.1" rotation="0 116 0"></a-entity>
+  <a-entity id="old-cat-food" wf-prop="src: cat_feeding_station; height: 0.16" position="5.0 0.1 5.8" rotation="0 -140 0"></a-entity>
 </a-scene>
 
 <script>
@@ -529,5 +529,9 @@
 </script>
 <script>window.WAYFARER.door.roomExit('lounge');</script>
   <script src="interior-v8.js?v=20261127r"></script>
+  <script src="furniture.js?v=20261127r"></script>
+  <script>  /* Furniture Upgrade 01: the Lounge's cat furniture, swapped in at the old props' transforms */
+    document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.swapEntity('#old-cat-tree', 'cat_tree'); WF_FURN.swapEntity('#old-cat-bed', 'cat_sleep_pod'); WF_FURN.swapEntity('#old-cat-food', 'cat_feeding_station'); });
+  </script>
 </body>
 </html>
