@@ -9,6 +9,6 @@
   "bartender": ["Select a beverage. I will assess its compatibility with your species.", "Amber resin is the customary choice. It is not a recommendation.", "Your drink. No further ceremony is required.", "You appear to have finished. Shall I prepare another?"],
   "hologram": ["I am a projection, not a patron. Enjoy the performance.", "The next performance begins shortly. Emotional responses are permitted."],
   "fight": ["Your behavior has become statistically inconvenient.", "Withdraw. This dispute serves no purpose.", "Security has been notified. Further escalation is illogical."],
-  "playerPrompts": ["Where are you from?", "Tell me about your crest.", "What are you drinking?", "Can you get me a drink?", "What do you know about Argo Station?", "Any work available?", "I'll leave you to it."],
+  "playerPrompts": ["Where are you from?", "Tell me about your crest.", "What are you drinking?", "Can you get me a drink?", "What do you know about the Hiveport?", "Any work available?", "I'll leave you to it."],
   "drinkMenu": [{"id":"amber_resin","name":"Amber Resin Ale"},{"id":"voidfruit","name":"Voidfruit Tonic"},{"id":"neural_mist","name":"Neural Mist"},{"id":"crimson_spore","name":"Crimson Spore"},{"id":"luminous_brew","name":"Luminous Brew"},{"id":"quorum_blend","name":"Quorum Blend"}]
 }

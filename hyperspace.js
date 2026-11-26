@@ -96,7 +96,7 @@
       // the nearby world, painted with the orbital kit's texture (images/planets/<id>.jpg; matches Flight Mode)
       var W = { VARKESH: ['varkesh', '#e0864c'], AURALIS: ['auralis', '#4099ee'], ORINTH: ['orinth', '#c8a0ff'], CRYOVALE: ['cryovale', '#51bdf5'], PYRAXIS: ['pyraxis', '#ff6a2e', 1],
         MYCELION: ['mycelion', '#8aff9a', 1], NYXARA: ['nyxara', '#a946f7', 1], 'FERRUM PRIME': ['ferrum_prime', '#44aeff', 1], THALASSA: ['thalassa', '#27b4eb'], VESPERA: ['vespera', '#d8d040'],
-        SELENITE: ['selenite', '#b48aff', 1], 'KHARON FRACTURE': ['kharon_fracture', '#ff6a2e', 1], 'ARGO WAYSTATION': ['varkesh', '#e0864c'], HIVEPORT: ['varkesh', '#e0864c'] };
+        SELENITE: ['selenite', '#b48aff', 1], 'KHARON FRACTURE': ['kharon_fracture', '#ff6a2e', 1], HIVEPORT: ['varkesh', '#e0864c'] };
       var near = 'VARKESH'; try { near = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {}
       var P = W[near] || W.VARKESH, TL = new THREE.TextureLoader(), ptex = TL.load('images/planets/' + P[0] + '.jpg'); if (THREE.SRGBColorSpace) ptex.colorSpace = THREE.SRGBColorSpace;
       var gtex = P[2] ? TL.load('images/planets/' + P[0] + '_glow.jpg') : ptex;

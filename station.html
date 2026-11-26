@@ -14,11 +14,11 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126h"></script>
-  <script src="sound.js?v=20261126h"></script>
-  <script src="avatar.js?v=20261126h"></script>
-  <script src="lcars.js?v=20261126h"></script>
-  <script src="missions.js?v=20261126h"></script>
+  <script src="mobile.js?v=20261126i"></script>
+  <script src="sound.js?v=20261126i"></script>
+  <script src="avatar.js?v=20261126i"></script>
+  <script src="lcars.js?v=20261126i"></script>
+  <script src="missions.js?v=20261126i"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -76,14 +76,14 @@
 </a-scene>
 
 <script>
-// THE HIVEPORT (user, Nov 26) — Argo Station's K'Vetar trade venue, from the user's Hiveport_Argo_Station_Prototype pack:
+// THE HIVEPORT (user, Nov 26) — the K'Vetar trade station's venue, from the user's Hiveport prototype pack:
 // the 96 × 44 m deck (central nexus with the Resin Spire bar and holo stage, plus eight side zones), rigged K'Vetar crowd
 // (male + female rigs, one load each, cloned per NPC with their KHR_materials_variants caste/body/eye colours), the pack's
 // grid-A* crowd (hiveport/systems/crowd.mjs) walking between its 42 drink/dance/social/game targets and steering round you,
 // a bartender behind the bar (tap → drinks, Serve_Drink with the glass in hand), a dancing violet hologram on the stage,
 // K'Vetar small talk from dialogue.json, the contracts job board, and the airlock home. Collision = layout.json obstacles.
-// MUSIC (user, Nov 26 — an exception to "music only in Flight Mode"): the pack's dance loop by the holo stage crossfading into its
-// lounge loop round the rest of the deck, by distance (musicMix in tick), under the crowd wash, station hum and bar sounds.
+// MUSIC (user, Nov 26 — an exception to "music only in Flight Mode"): the pack's dance loop, always on in the background,
+// a little louder near the holo stage, under the crowd wash, station hum, bar sounds and K'Vetar voices (WF_SOUND.alien).
 (function () {
   var THREE = AFRAME.THREE, sc = document.querySelector('a-scene'), MOB = window.WAYFARER && window.WAYFARER.mobile;
   var LOADER = new THREE.GLTFLoader(), NPCS = [], BAR = null, HOLO = null, CROWD = null, LAYOUT = null, DLG = null, DRINKS = {}, AUD = {}, ANIM = [];
@@ -93,19 +93,27 @@
 
   // ── sound: the pack's loops + one-shots (transcoded to m4a for iOS); start on the first tap, honour the mute ──
   function sfx(n, v) { try { if (window.WF_SOUND && WF_SOUND.muted()) return; var a = new Audio('hiveport/audio/' + n + '.m4a'); a.volume = v || 0.6; a.play().catch(function () {}); } catch (e) {} }
-  // loops through Web Audio gain nodes: iOS Safari ignores <audio>.volume, so levels and the music crossfade need gains
-  function loops() {
-    if (AUD.on) return; var C = window.AudioContext || window.webkitAudioContext; if (!C) return; AUD.on = true;
-    var ctx = AUD.ctx = new C(), master = ctx.createGain(); master.connect(ctx.destination); ctx.resume();
-    [['crowd_wash_loop', 0.35], ['station_hum_loop', 0.25], ['hiveport_dance_music_loop', 0], ['hiveport_lounge_music_loop', 0]].forEach(function (q) {
+  // BACKGROUND AUDIO through Web Audio gains (iOS Safari ignores <audio>.volume). The context is made at load and the loops are
+  // decoded straight away; EVERY touch/click/key nudges it awake until it runs (iOS only unlocks audio on touchend/click — the old
+  // code tried once on pointerdown and gave up, which is why the music never played on the iPhone). Music is always on.
+  var C0 = window.AudioContext || window.webkitAudioContext;
+  window.__hiveAudio = AUD;   /* debug handle */
+  if (C0) (function () {
+    var ctx = AUD.ctx = new C0(), master = ctx.createGain(); master.connect(ctx.destination);
+    function decode(name, ext) { return fetch('hiveport/audio/' + name + '.' + ext).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(function (ab) { return new Promise(function (res, rej) { ctx.decodeAudioData(ab, res, rej); }); }); }
+    [['hiveport_dance_music_loop', 0.34], ['crowd_wash_loop', 0.3], ['station_hum_loop', 0.18]].forEach(function (q) {
       var g = ctx.createGain(); g.gain.value = q[1]; g.connect(master);
-      AUD[q[0]] = { set volume(v) { g.gain.setTargetAtTime(v, ctx.currentTime, 0.25); } };
-      fetch('hiveport/audio/' + q[0] + '.m4a').then(function (r) { return r.arrayBuffer(); }).then(function (ab) { return new Promise(function (res, rej) { ctx.decodeAudioData(ab, res, rej); }); })
-        .then(function (buf) { var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); src.start(); }).catch(function () {});
+      AUD[q[0]] = { set volume(v) { g.gain.setTargetAtTime(v, ctx.currentTime, 0.4); } };
+      decode(q[0], 'm4a').catch(function () { return decode(q[0], 'mp3'); })
+        .then(function (buf) { var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); src.start(); AUD.playing = (AUD.playing || 0) + 1; })
+        .catch(function (e) { console.warn('hiveport audio', q[0], e); });
     });
-    AUD.iv = setInterval(function () { var m = window.WF_SOUND && WF_SOUND.muted(); master.gain.setTargetAtTime(m || document.hidden ? 0 : 1, ctx.currentTime, 0.1); }, 300);
-  }
-  ['pointerdown', 'keydown', 'touchend'].forEach(function (n) { addEventListener(n, loops, { passive: true }); });
+    function wake() { if (ctx.state !== 'running') ctx.resume(); }
+    ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'click', 'keydown'].forEach(function (n) { addEventListener(n, wake, { capture: true, passive: true }); });
+    wake();
+    setInterval(function () { var m = window.WF_SOUND && WF_SOUND.muted(); master.gain.setTargetAtTime(m || document.hidden ? 0 : 1, ctx.currentTime, 0.1); }, 300);
+  }());
   if (window.WF_SOUND) WF_SOUND.hum(false);
 
   // ── SkeletonUtils.clone (not bundled with A-Frame): each NPC gets its own bones ──
@@ -231,7 +239,7 @@
   function talkTo(e) {
     if (!DLG) return; talking = e; var cam = sc.camera.el.object3D.position;
     e.a.path = []; CROWD.release(e.a); e.a.wait = 6; e.a.state = 'Talk'; e.a.heading = Math.atan2(cam.x - e.a.p[0], cam.z - e.a.p[1]);
-    sfx('mandible_click', 0.5);
+    sfx('mandible_click', 0.5); setTimeout(function () { alienSay(e.a.p[0], e.a.p[1], e.caste === 'red_general_king' ? 'growl' : e.caste === 'purple_female' ? 'trill' : 'query', true); }, 250);
     document.getElementById('talk-who').textContent = (CASTE[e.caste] || CASTE.blue_civilian_male)[1];
     document.getElementById('talk-line').textContent = '“' + pick(DLG.greetings) + '”';
     var list = document.getElementById('talk-list'); list.innerHTML = '';
@@ -239,11 +247,11 @@
     openP('talk');
   }
   function answer(q) {
-    var e = talking; if (!e) return; e.a.wait = 6; sfx('mandible_click', 0.45);
+    var e = talking; if (!e) return; e.a.wait = 6; sfx('mandible_click', 0.45); alienSay(e.a.p[0], e.a.p[1], ['chitter', 'hum', 'click', 'trill', 'query'][Math.floor(Math.random() * 5)], true);
     if (/leave you/i.test(q)) { closeP('talk'); talking = null; return; }
     if (/get me a drink/i.test(q)) { closeP('talk'); openBar(); return; }
     if (/work/i.test(q)) { closeP('talk'); renderJobs(); openP('job-board'); return; }
-    var pool = /crest/i.test(q) ? DLG[(CASTE[e.caste] || CASTE.blue_civilian_male)[0]] : /Argo/i.test(q) ? (DLG.general || []).concat(DLG.greetings) : /drinking/i.test(q) ? (DLG.female || []).concat(DLG.bartender || []) : DLG.civilian;
+    var pool = /crest/i.test(q) ? DLG[(CASTE[e.caste] || CASTE.blue_civilian_male)[0]] : /Hiveport/i.test(q) ? (DLG.general || []).concat(DLG.greetings) : /drinking/i.test(q) ? (DLG.female || []).concat(DLG.bartender || []) : DLG.civilian;
     document.getElementById('talk-line').textContent = '“' + pick(pool && pool.length ? pool : DLG.greetings) + '”';
   }
   // ── the bar ──
@@ -251,9 +259,10 @@
     if (!DLG) return; document.getElementById('bar-line').textContent = '“' + pick(DLG.bartender || ['Select a beverage.']) + '”';
     var list = document.getElementById('bar-list'); list.innerHTML = '';
     DLG.drinkMenu.forEach(function (d) { var b = document.createElement('button'); b.textContent = d.name; b.onclick = function () { closeP('bar-menu'); serve(d.id); }; list.appendChild(b); });
-    if (BAR) play(BAR, 'Talk'); openP('bar-menu');
+    if (BAR) play(BAR, 'Talk'); alienSay(0, 7.9, 'query', true); openP('bar-menu');
   }
   function serve(id) {
+    alienSay(0, 7.9, Math.random() < 0.5 ? 'click' : 'hum', true);
     if (BAR) { holdDrink(BAR, true, id); play(BAR, 'Serve_Drink', true); setTimeout(function () { holdDrink(BAR, false); play(BAR, 'Idle'); }, 2600); }
     sfx('drink_pour', 0.6); setTimeout(function () { sfx('glass_clink', 0.6); }, 1500);
     toast(DLG.drinkMenu.filter(function (d) { return d.id === id; })[0].name + ' — served.');
@@ -281,6 +290,13 @@
   function undock() { if (leaving) return; leaving = true; sfx('door_slide', 0.6); jump.style.transition = 'opacity .6s ease-in'; jump.style.opacity = 1;
     setTimeout(function () { document.documentElement.style.background = document.body.style.background = '#dff0ff'; location.href = 'minigame.html?from=station'; }, 650); }
 
+  // K'Vetar voices (user, Nov 26: more than one kind of sound): WF_SOUND.alien click/chitter/hum/trill/growl/query, panned + by distance
+  var _vp = new THREE.Vector3();
+  function alienSay(x, z, kind, loud) {
+    if (!window.WF_SOUND || WF_SOUND.muted() || !sc.camera) return;
+    var c = sc.camera; c.el.object3D.getWorldPosition(_vp); var d = Math.hypot(x - _vp.x, z - _vp.z); if (d > 22 && !loud) return;
+    _vp.set(x, 1.7, z).project(c); WF_SOUND.alien(kind || null, Math.max(-1, Math.min(1, _vp.x)) * 0.8, (loud ? 1.2 : 0.9) / (1 + d / 5));
+  }
   var DRINK_STATES = ['Drink_Sip', 'Serve_Drink', 'Reach_Grab', 'Toast'], P2 = [0, 0], tmp = new THREE.Vector3();
   AFRAME.registerComponent('wf-hive', {
     init: function () { if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build);
@@ -293,11 +309,15 @@
       if (tmp.z > 20.6 && Math.abs(tmp.x) < 1.6) undock();
       if (AUD.hiveport_dance_music_loop && LAYOUT) {               // music: dance floor ⇄ lounge by distance to the holo stage
         var dd = Math.hypot(P2[0] - LAYOUT.hologram[0], P2[1] - LAYOUT.hologram[2]), k = Math.max(0, Math.min(1, (dd - 6) / 18));
-        AUD.hiveport_dance_music_loop.volume = 0.42 * (1 - k); AUD.hiveport_lounge_music_loop.volume = 0.12 + 0.2 * k;
+        AUD.hiveport_dance_music_loop.volume = 0.3 + 0.22 * (1 - k);   /* always playing; a little louder by the stage */
       }
       if (HOLO) { HOLO.mx.update(dt); HOLO.s.position.y = LAYOUT.hologram[1] + 0.055 * Math.sin(s * 2); }
       if (BAR) BAR.mixer.update(dt);
       if (!CROWD) return; CROWD.update(dt, P2);
+      if (s > (this._voice || 2) && NPCS.length) {                 // the crowd talks: someone nearby clicks, hums or chitters every few seconds
+        this._voice = s + 1.8 + Math.random() * 4; var vn = NPCS[Math.floor(Math.random() * NPCS.length)];
+        alienSay(vn.a.p[0], vn.a.p[1], vn.caste === 'yellow_soldier' && Math.random() < 0.4 ? 'growl' : null);
+      }
       for (var i = 0; i < NPCS.length; i++) {
         var e = NPCS[i], a = e.a, name = a.state || 'Idle', d = Math.hypot(a.p[0] - P2[0], a.p[1] - P2[1]);
         play(e, name, name === 'Serve_Drink'); holdDrink(e, DRINK_STATES.indexOf(name) >= 0, 'amber_resin');

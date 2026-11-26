@@ -21,13 +21,13 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126h"></script>
-  <script src="sound.js?v=20261126h"></script>
-  <script src="avatar.js?v=20261126h"></script>
-  <script src="door.js?v=20261126h"></script>
-  <script src="hyperspace.js?v=20261126h"></script>
-  <script src="lcars.js?v=20261126h"></script>
-  <script src="crew.js?v=20261126h"></script>
+  <script src="mobile.js?v=20261126i"></script>
+  <script src="sound.js?v=20261126i"></script>
+  <script src="avatar.js?v=20261126i"></script>
+  <script src="door.js?v=20261126i"></script>
+  <script src="hyperspace.js?v=20261126i"></script>
+  <script src="lcars.js?v=20261126i"></script>
+  <script src="crew.js?v=20261126i"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -179,14 +179,14 @@
     function rampTex(sym) { var c = cv(128, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 128, 0); if (sym) { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } else { g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); } x.fillStyle = g; x.fillRect(0, 0, 128, 4); return new THREE.CanvasTexture(c); }
     function dotTex() { var c = cv(64, 64), x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
 
-    window.WF_STARS = [   // must match minigame.html SYSTEM names (+ the Argo)
+    window.WF_STARS = [   // must match minigame.html SYSTEM names (+ the Hiveport)
       { name: 'VARKESH', col: 0xe0864c, size: 0.012, note: 'Rust desert world' }, { name: 'AURALIS', col: 0x4099ee, size: 0.014, note: 'Temperate ocean world' },
       { name: 'ORINTH', col: 0xc8a0ff, size: 0.024, note: 'Ringed gas giant' }, { name: 'CRYOVALE', col: 0x9fdcff, size: 0.012, note: 'Glacial world' },
       { name: 'PYRAXIS', col: 0xff6a2e, size: 0.010, note: 'Volcanic world' }, { name: 'MYCELION', col: 0x8aff9a, size: 0.013, note: 'Exotic forest world' },
       { name: 'NYXARA', col: 0xa946f7, size: 0.014, note: 'Violet bioluminescent world' }, { name: 'FERRUM PRIME', col: 0x44aeff, size: 0.016, note: 'Machine civilization' },
       { name: 'THALASSA', col: 0x27b4eb, size: 0.017, note: 'Global ocean world' }, { name: 'VESPERA', col: 0xd8d040, size: 0.013, note: 'Toxic sulfur world' },
       { name: 'SELENITE', col: 0xb48aff, size: 0.011, note: 'Crystalline mineral world' }, { name: 'KHARON FRACTURE', col: 0xff6a2e, size: 0.013, note: 'Impact-shattered world' },
-      { name: 'ARGO WAYSTATION', col: 0xffb060, size: 0.008, note: 'Orbital station · the Ember Room' } ];
+      { name: 'HIVEPORT', col: 0x7ae0a0, size: 0.008, note: 'K\u2019Vetar trade station · the Hiveport club' } ];
     var root, M, anim = [], hyper, hyperT = 0, warpK = 1;   // warpK speeds the light-speed streaks up for the jump
     function build() {
       root = new THREE.Group(); sc.object3D.add(root);
@@ -428,7 +428,7 @@
 
     AFRAME.registerComponent('wf-bridge', {
       init: function () { var self = this; if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build); },
-      tick: function (t, dt) { var s = t / 1000; for (var mi = 0; mi < mixers.length; mi++) mixers[mi].update(Math.min(dt || 16, 50) / 1000); if (window.WF_SOUND && s > (this._chat || 0)) { this._chat = s + 2.5 + Math.random() * 5; WF_SOUND.beep((Math.random() - 0.5) * 1.4); } /* droids chatter */ hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
+      tick: function (t, dt) { var s = t / 1000; for (var mi = 0; mi < mixers.length; mi++) mixers[mi].update(Math.min(dt || 16, 50) / 1000); /* droid chatter now comes from the living crew themselves (crew.js ambient) */ hyperT += Math.min(dt || 16, 50) / 1000 * warpK; if (hyper) hyper.update(hyperT); anim.forEach(function (f) { f(s); }); }
     });
 
     // captain's chair → Flight Mode
@@ -515,7 +515,7 @@
 
     // ── the galactic map (navigation kit's galaxy-map.mjs, its own lightweight renderer, opened over the Bridge) ──
     var MAP = null, mapLoading = null;
-    function nearId() { var n = 'VARKESH'; try { n = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {} if (/HIVEPORT|ARGO/.test(n)) return 'Argo_Hiveport'; return n.toLowerCase().split(' ').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join('_'); }
+    function nearId() { var n = 'VARKESH'; try { n = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {} if (/HIVEPORT/.test(n)) return 'Hiveport'; return n.toLowerCase().split(' ').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join('_'); }
     function loadMap() {
       if (mapLoading) return mapLoading;
       mapLoading = Promise.all([import('./nav/galaxy-map.mjs?v=1'), fetch('nav/galaxy.json?v=1').then(function (r) { return r.json(); })]).then(function (res) {

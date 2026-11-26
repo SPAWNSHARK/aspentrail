@@ -3,6 +3,7 @@
 // (localStorage 'wf-mute'). MUSIC plays only in Flight Mode and its transition scenes (user, Nov 25).
 //   WF_SOUND.hum(on)        interior ship hum (auto on A-Frame pages)      WF_SOUND.warp(0..1)   light-speed whoosh layer
 //   WF_SOUND.door() .step() .beep() .meow() .murmur(on)                     interior one-shots / beds
+//   WF_SOUND.droid(kind,pan,vol) .cat(kind,pan,vol) .alien(kind,pan,vol)    varied voices (kind omitted = random)
 //   WF_SOUND.laser() .enemyLaser() .boom(big) .flyby(pan) .engine(on) .warpRise()   Flight Mode
 //   WF_SOUND.music(mode|null)  'explore' | 'combat' | null (fade out)        WF_SOUND.button(parent)  adds the mute toggle
 (function () {
@@ -65,6 +66,61 @@
       bp2.type = 'bandpass'; bp2.Q.value = 8; bp2.frequency.value = 2900; var g2 = ctx.createGain(); g2.gain.value = 0.4;
       o.connect(bp); o.connect(bp2); bp2.connect(g2); g2.connect(g); bp.connect(g); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.06); g.gain.setValueAtTime(0.22, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       out(g, pan); o.start(t); o.stop(t + dur + 0.05); }); },
+    // ── VOICES (user, Nov 26: "more than one type of sound") ──
+    // droid(kind, pan, vol): chatter · whistle · affirm · negative · ponder · servo · scan   (no kind = random)
+    droid: function (kind, pan, vol) { ready(function () {
+      var K = ['chatter', 'whistle', 'affirm', 'negative', 'ponder', 'servo', 'scan']; kind = kind || K[Math.floor(Math.random() * K.length)];
+      var t = now(), v = vol == null ? 1 : vol, g0 = ctx.createGain(); g0.gain.value = v; out(g0, pan);
+      function tone(type, f0, f1, at, d, peak) { var o = osc(type, f0), g = ctx.createGain(); o.frequency.setValueAtTime(f0, at); if (f1) o.frequency.exponentialRampToValueAtTime(f1, at + d); o.connect(g); env(g, at, 0.006, peak || 0.07, d); g.connect(g0); o.start(at); o.stop(at + d + 0.06); return o; }
+      if (kind === 'chatter') { var k = 3 + Math.floor(Math.random() * 6); for (var i = 0; i < k; i++) { var d = 0.04 + Math.random() * 0.09; tone(Math.random() < 0.7 ? 'sine' : 'triangle', 900 + Math.random() * 2400, Math.random() < 0.4 ? 600 + Math.random() * 3000 : 0, t, d); t += d + Math.random() * 0.05; } }
+      else if (kind === 'whistle') { var a = 1200 + Math.random() * 600; tone('sine', a, a * 1.9, t, 0.22, 0.08); tone('sine', a * 1.9, a * 0.8, t + 0.24, 0.3, 0.07); }
+      else if (kind === 'affirm') { tone('triangle', 880, 0, t, 0.09, 0.08); tone('triangle', 1320, 0, t + 0.11, 0.14, 0.08); }
+      else if (kind === 'negative') { tone('square', 420, 300, t, 0.16, 0.035); tone('square', 300, 210, t + 0.18, 0.22, 0.035); }
+      else if (kind === 'ponder') { var o = tone('sine', 700, 0, t, 0.9, 0.06), lf = osc('sine', 7), lg = ctx.createGain(); lg.gain.value = 90; lf.connect(lg); lg.connect(o.frequency); o.frequency.linearRampToValueAtTime(1100, t + 0.5); o.frequency.linearRampToValueAtTime(820, t + 0.9); lf.start(t); lf.stop(t + 1); }
+      else if (kind === 'servo') { var n = noise(), bp = ctx.createBiquadFilter(), g = ctx.createGain(); bp.type = 'bandpass'; bp.Q.value = 9; bp.frequency.setValueAtTime(600, t); bp.frequency.linearRampToValueAtTime(1500, t + 0.25); bp.frequency.linearRampToValueAtTime(900, t + 0.45); n.connect(bp); bp.connect(g); env(g, t, 0.03, 0.25, 0.45); g.connect(g0); n.start(t, Math.random()); n.stop(t + 0.55); tone('sawtooth', 110, 160, t, 0.4, 0.02); }
+      else if (kind === 'scan') { var o2 = tone('triangle', 400, 2600, t, 0.55, 0.05); o2.frequency.exponentialRampToValueAtTime(400, t + 0.55); tone('sine', 2600, 0, t + 0.6, 0.05, 0.06); }
+    }); },
+    // cat(kind, pan, vol): meow · mew · trill · yowl · purr · chirp · chatter
+    cat: function (kind, pan, vol) { ready(function () {
+      var K = ['meow', 'mew', 'trill', 'yowl', 'chirp', 'chatter']; kind = kind || K[Math.floor(Math.random() * K.length)];
+      var t = now(), v = vol == null ? 1 : vol, g0 = ctx.createGain(); g0.gain.value = v; out(g0, pan);
+      function voice(f0, peakF, endF, dur, form, peak, am) {       // sawtooth through two moving formants, optional amplitude flutter
+        var o = osc('sawtooth', f0), bp = ctx.createBiquadFilter(), bp2 = ctx.createBiquadFilter(), g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.4;
+        o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(peakF, t + dur * 0.35); o.frequency.linearRampToValueAtTime(endF, t + dur);
+        bp.type = 'bandpass'; bp.Q.value = 6; bp.frequency.setValueAtTime(form[0], t); bp.frequency.linearRampToValueAtTime(form[1], t + dur * 0.4); bp.frequency.linearRampToValueAtTime(form[2], t + dur);
+        bp2.type = 'bandpass'; bp2.Q.value = 8; bp2.frequency.value = 2900; o.connect(bp); o.connect(bp2); bp2.connect(g2); g2.connect(g); bp.connect(g);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.05); g.gain.setValueAtTime(peak, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        if (am) { var lf = osc('square', am), lg = ctx.createGain(); lg.gain.value = peak * 0.9; lf.connect(lg); lg.connect(g.gain); lf.start(t); lf.stop(t + dur); }
+        g.connect(g0); o.start(t); o.stop(t + dur + 0.05);
+      }
+      var f = 0.85 + Math.random() * 0.3;
+      if (kind === 'meow') voice(560 * f, 700 * f, 400 * f, 0.6 + Math.random() * 0.3, [900, 1800, 700], 0.22);
+      else if (kind === 'mew') voice(900 * f, 1100 * f, 800 * f, 0.22, [1400, 2400, 1500], 0.16);
+      else if (kind === 'yowl') voice(380 * f, 620 * f, 300 * f, 1.3, [700, 1500, 600], 0.2);
+      else if (kind === 'trill') voice(600 * f, 760 * f, 820 * f, 0.4, [1100, 1500, 1700], 0.18, 28);
+      else if (kind === 'chirp') { voice(800 * f, 1000 * f, 1200 * f, 0.15, [1500, 2000, 2300], 0.15); t += 0.18; voice(850 * f, 1100 * f, 1300 * f, 0.13, [1500, 2100, 2400], 0.13); }
+      else if (kind === 'chatter') { for (var i = 0; i < 7; i++) { voice(1300 * f, 1350 * f, 1250 * f, 0.05, [2000, 2400, 2100], 0.1); t += 0.07; } }
+      else if (kind === 'purr') { var n = noise(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), am2 = osc('sine', 24), ag = ctx.createGain(); lp.type = 'lowpass'; lp.frequency.value = 260; ag.gain.value = 0.12;
+        am2.connect(ag); ag.connect(g.gain); n.connect(lp); lp.connect(g); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.14, t + 0.25); g.gain.setValueAtTime(0.14, t + 1.6); g.gain.linearRampToValueAtTime(0.0001, t + 2.1);
+        g.connect(g0); n.start(t, Math.random()); n.stop(t + 2.2); am2.start(t); am2.stop(t + 2.2); }
+    }); },
+    // alien(kind, pan, vol): the K'Vetar — click · chitter · hum · trill · growl · query
+    alien: function (kind, pan, vol) { ready(function () {
+      var K = ['click', 'chitter', 'hum', 'trill', 'growl', 'query']; kind = kind || K[Math.floor(Math.random() * K.length)];
+      var t = now(), v = vol == null ? 1 : vol, g0 = ctx.createGain(); g0.gain.value = v; out(g0, pan);
+      function clk(at, f, q, peak) { var n = noise(), bp = ctx.createBiquadFilter(), g = ctx.createGain(); bp.type = 'bandpass'; bp.Q.value = q; bp.frequency.value = f; n.connect(bp); bp.connect(g); env(g, at, 0.001, peak, 0.03); g.connect(g0); n.start(at, Math.random()); n.stop(at + 0.06); }
+      function throat(f0, f1, dur, form, peak, trem) { var o = osc('sawtooth', f0), o2 = osc('square', f0 * 1.01), bp = ctx.createBiquadFilter(), g = ctx.createGain(); o.frequency.linearRampToValueAtTime(f1, t + dur); o2.frequency.linearRampToValueAtTime(f1 * 1.01, t + dur);
+        bp.type = 'bandpass'; bp.Q.value = 4; bp.frequency.setValueAtTime(form[0], t); bp.frequency.linearRampToValueAtTime(form[1], t + dur); o.connect(bp); o2.connect(bp); bp.connect(g);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.08); g.gain.setValueAtTime(peak, t + dur * 0.75); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        if (trem) { var lf = osc('sine', trem), lg = ctx.createGain(); lg.gain.value = peak * 0.8; lf.connect(lg); lg.connect(g.gain); lf.start(t); lf.stop(t + dur); }
+        g.connect(g0); o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); }
+      if (kind === 'click') { var k = 2 + Math.floor(Math.random() * 4); for (var i = 0; i < k; i++) { clk(t, 2200 + Math.random() * 1800, 6, 0.5); t += 0.06 + Math.random() * 0.08; } }
+      else if (kind === 'chitter') { for (var j = 0; j < 14; j++) { clk(t, 3000 + Math.random() * 1500, 9, 0.3); t += 0.025 + Math.random() * 0.02; } t = now(); throat(260, 320, 0.4, [1200, 1700], 0.06, 30); }
+      else if (kind === 'hum') throat(95 + Math.random() * 30, 120 + Math.random() * 40, 1.1, [380, 720], 0.12, 5);
+      else if (kind === 'trill') { var o = osc('triangle', 900), fm = osc('sine', 46), fg = ctx.createGain(), g = ctx.createGain(); fg.gain.value = 260; fm.connect(fg); fg.connect(o.frequency); o.frequency.linearRampToValueAtTime(1300, t + 0.5); o.connect(g); env(g, t, 0.02, 0.06, 0.5); g.connect(g0); o.start(t); fm.start(t); o.stop(t + 0.6); fm.stop(t + 0.6); }
+      else if (kind === 'growl') throat(70, 55, 0.8, [300, 220], 0.16, 22);
+      else if (kind === 'query') { clk(t, 2600, 6, 0.45); t += 0.09; throat(180, 300, 0.45, [700, 1500], 0.09, 0); }
+    }); },
     // ── Flight Mode ──
     laser: function () { if (!ctx || ctx.state !== 'running') return; var t = now(), o = osc('square', 1600), o2 = osc('sawtooth', 1210), g = ctx.createGain(), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3800;
       [o, o2].forEach(function (x) { x.frequency.exponentialRampToValueAtTime(220, t + 0.16); x.connect(lp); x.start(t); x.stop(t + 0.2); }); lp.connect(g); env(g, t, 0.004, 0.16, 0.16); out(g, (Math.random() - 0.5) * 0.3); },

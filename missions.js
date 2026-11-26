@@ -1,4 +1,4 @@
-// SS Wayfarer — contracts, credits and rank, shared by the Argo's job board (station.html) and Flight Mode (minigame.html).
+// SS Wayfarer — contracts, credits and rank, shared by the Hiveport's job board (station.html) and Flight Mode (minigame.html).
 // Everything lives in localStorage, so progress survives between visits. Plain JS, no three.js.
 //   WF_MISSIONS.offers()          → today's three contracts (stable for the day)
 //   WF_MISSIONS.accept(offer)     WF_MISSIONS.active()   WF_MISSIONS.abandon()
@@ -20,10 +20,10 @@
       text: 'Raiders are hitting the trade lanes. Destroy ' + n + ' ' + kind + 's.', goal: n, target: kind, reward: n * (kind === 'drone' ? 60 : 110) });
     var p = pick();
     out.push({ id: 'survey-' + day, type: 'survey', title: 'Survey: ' + p, need: 'any',
-      text: 'The Argo\'s cartographers want fresh scans. Warp to ' + p + ' and fly in close.', goal: 1, target: p, reward: 250 + Math.floor(r() * 150) });
+      text: 'The Hiveport\'s cartographers want fresh scans. Warp to ' + p + ' and fly in close.', goal: 1, target: p, reward: 250 + Math.floor(r() * 150) });
     var q = pick();
     if (r() < 0.5) out.push({ id: 'courier-' + day, type: 'courier', title: 'Courier: medical crates to ' + q, need: 'any',
-      text: 'Deliver crates to the outpost at ' + q + ', then dock back at the Argo to get paid.', goal: 2, target: q, reward: 450, stage: 0 });
+      text: 'Deliver crates to the outpost at ' + q + ', then dock back at the Hiveport to get paid.', goal: 2, target: q, reward: 450, stage: 0 });
     else out.push({ id: 'boss-' + day, type: 'boss', title: 'Contract: bring down a Bioship', need: 'combat',
       text: 'An organic carrier is preying on haulers. Survive to wave 3 and destroy it.', goal: 1, target: 'carrier', reward: 1500 });
     return out;
@@ -39,7 +39,7 @@
     if (!m) return '';
     if (m.type === 'bounty') return m.title + ' · ' + m.progress + '/' + m.goal;
     if (m.type === 'survey') return m.title + ' · warp there (NAV) and fly in close';
-    if (m.type === 'courier') return m.stage ? 'Courier · return and DOCK at the Argo' : m.title + ' · fly close to deliver';
+    if (m.type === 'courier') return m.stage ? 'Courier · return and DOCK at the Hiveport' : m.title + ' · fly close to deliver';
     if (m.type === 'boss') return m.title + ' · reach wave 3';
     return m.title;
   }
@@ -48,7 +48,7 @@
     if (m.type === 'bounty' && ev === 'kill:' + m.target) { m.progress++; hit = true; }
     if (m.type === 'boss' && ev === 'kill:carrier') { m.progress = 1; hit = true; }
     if (m.type === 'survey' && ev === 'visit:' + m.target) { m.progress = 1; hit = true; }
-    if (m.type === 'courier' && m.stage === 0 && ev === 'visit:' + m.target) { m.stage = 1; save('wf-mission', m); return { done: false, text: 'Crates delivered to ' + m.target + '. Return to the Argo and dock.' }; }
+    if (m.type === 'courier' && m.stage === 0 && ev === 'visit:' + m.target) { m.stage = 1; save('wf-mission', m); return { done: false, text: 'Crates delivered to ' + m.target + '. Return to the Hiveport and dock.' }; }
     if (m.type === 'courier' && m.stage === 1 && ev === 'dock') { m.progress = 2; hit = true; }
     if (!hit) return null;
     if (m.progress >= m.goal) { var c = pay(m); return { done: true, text: 'CONTRACT COMPLETE  +' + m.reward + ' cr  ·  ' + rank(c).name, credits: c }; }

@@ -105,7 +105,7 @@
    "faction": "K\u2019Vetar Confederation",
    "starColor": "#a2ffc6",
    "destinations": [
-    "Argo_Hiveport"
+    "Hiveport"
    ]
   },
   {
@@ -399,9 +399,9 @@
    "texture": "images/planets/selenite.jpg"
   },
   {
-   "id": "Argo_Hiveport",
+   "id": "Hiveport",
    "name": "Hiveport",
-   "description": "K\u2019Vetar trade station \u00b7 Argo Station / Hiveport",
+   "description": "K\u2019Vetar trade station",
    "fictional": true,
    "kind": "station",
    "glb": null,

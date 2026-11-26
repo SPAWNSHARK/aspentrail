@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126h).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126i).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -134,7 +134,7 @@ Rules drawn from them:
   wrapping the tip; the 4 consoles sit 1.7 m inside it (`__SPOTS`) facing the glass. Movement uses `WAYFARER.bounds` (polygon,
   mobile.js `clampPoly`, 0.35 m pad; wayfarer-mobile radius 0) — avatar 3rd-person camera respects it too. Droids are polished
   GOLD (M.shell) with dark bronze joints. NAVIGATION ORB (Nov 25): the glass orb holds a live mini star system (WF_STARS, must
-  match minigame SYSTEM names + the Argo); tap → STAR CHART glass panel → pick a world → chair jump → `minigame.html?from=bridge&
+  match minigame SYSTEM names + the Hiveport); tap → STAR CHART glass panel → pick a world → chair jump → `minigame.html?from=bridge&
   dest=NAME` arrives beside it on the sunlit side, mid-warp. ALL METAL (user, Nov 25: "looks like a 1970s wooden trailer"): NO wood anywhere — brushed
   copper (bronzeTexture), riveted copper wall plates, copper ceiling, polished ribbed-copper captain's chair (M.leather name kept),
   copper shelves (M.wood name kept), and the shared exit door re-tinted to copper on this page only. RESTYLED Nov 24 to the reference, all procedural three.js: round room r 8.2;
@@ -168,17 +168,17 @@ Rules drawn from them:
   GOTCHA: loftHull winding must face outward (it was inside-out once: windows painted on top were never visible).
   MODES (Nov 25): EXPLORE IS THE DEFAULT (localStorage key 'wf-mode2'; old 'wf-mode' ignored). COMBAT or EXPLORE (no enemies; score/hull/reticle/Fire hidden via body.explore). Title buttons, compass button
   on the touch bar, key E. Stored in localStorage 'wf-mode' — the Bridge chair jump lands you in the last-used mode.
-  ARGO WAYSTATION (Nov 25, user asked for a dockable DS9/Afterlife-style station — ORIGINAL design): `STATION` in minigame.html at
+  HIVEPORT STATION (originally built Nov 25 as a procedural station; user asked for a dockable DS9/Afterlife-style station — ORIGINAL design): `STATION` in minigame.html at
   (-150,30,-460) near the start: lit core + spires, habitat ring on spokes, outer docking ring, 3 up + 3 down curved pylons,
-  blinking lights; in NAV (NAV = planets + station); solid (core sphere 26). Within 170 → "DOCK AT ARGO" button / key F → flash
+  blinking lights (now the fallback); in NAV (NAV = planets + station); solid. Within 170 → "DOCK AT HIVEPORT" button / key F → flash
   → `station.html?from=dock`. FRIENDLY TRAFFIC: 6 rounded haulers ply lanes station⇄planets; tap one → hail panel (#hail), never shot.
   **station.html — "The Ember Room"** club (A-Frame): LED shader dance floor, 10–16 dancing NPCs (solid via mobile.js collision),
   DJ booth + hologram waveform, curved copper bar + bottle wall + robot bartender (tap → drinks menu; drinks add a 'tipsy'
   canvas wobble), booths, sweeping beams, wall washers, PMREM gradient env (copper is black without it), LCARS JOB BOARD by the
-  entrance → CONTRACTS, AIRLOCK arch at +Z (walk in / tap) → `minigame.html?from=station` = undock beside the Argo.
+  entrance → CONTRACTS, AIRLOCK arch at +Z (walk in / tap) → `minigame.html?from=station` = undock from the Hiveport.
   CONTRACTS (Nov 25) — shared `missions.js` (WF_MISSIONS, localStorage wf-mission / wf-credits / wf-done): 3 offers per day
   (bounty: kill N drones|strikers; survey: fly within r×1.8+80 of a planet; courier: visit planet then DOCK; boss: kill a Bioship).
-  Accept at the Argo job board; Flight Mode shows an #objective chip under NAV and reports 'kill:<kind>' / 'visit:<PLANET>' /
+  Accept at the Hiveport job board; Flight Mode shows an #objective chip under NAV and reports 'kill:<kind>' / 'visit:<PLANET>' /
   'dock'; completion pays credits immediately → rank (Ensign → Lieutenant 600 → Lt Cdr 1800 → Commander 4000 → Captain 8000 →
   Commodore 15000), shown on the board.
   COMPACT HUD (Nov 25, user): reticle min(24vmin,130px) at 75%, lock bracket 36 px, touch bar max 300 px with 74 px pads and
@@ -194,7 +194,7 @@ Rules drawn from them:
 - **Orbital kit (user, Nov 25)** — 3 zips: Models_Textures, Views_Guides, and a duplicate of the Command Deck pack (byte-identical,
   ignored). Used: the 12 worlds' albedo/emission textures → images/planets/<id>.jpg (+ _glow.jpg for Nyxara, Ferrum Prime, Kharon
   Fracture, Pyraxis, Mycelion, Selenite); Orbital_Station_Assembled.glb → models/station/orbital_station.glb (80k tris, scale 0.8)
-  as the Argo's exterior (procedural build = fallback). destinations.json + catalog + manifest in reference/orbital-kit/.
+  as the station exterior (since replaced by the Hiveport exterior). destinations.json + catalog + manifest in reference/orbital-kit/.
   THE GALAXY is now these 12: VARKESH (start), AURALIS, ORINTH (rings), CRYOVALE, PYRAXIS, MYCELION, NYXARA, FERRUM PRIME,
   THALASSA, VESPERA, SELENITE, KHARON FRACTURE — names shared by minigame SYSTEM, bridge WF_STARS/PLANET_MAP, missions.js
   PLANETS, hyperspace.js W table (window planet uses the same texture). Planets use a self-lit ShaderMaterial from SUN_DIR
@@ -202,9 +202,10 @@ Rules drawn from them:
   (1–1.8 MB each; same textures), station interior modules (Observation Lounge, Research Lab, Engineering, Crew Quarters,
   Command Ops, Hangar, Transfer Corridor) + props, Views/*.png renders, Window_Frame_Overlay — candidates for walkable
   station rooms later.
-- **HIVEPORT EXTERIOR (Nov 26, Argo_Station_Exterior_Asset_Pack.zip; README + hero render in reference/hiveport-exterior/)** —
-  the station is now the K'Vetar HIVEPORT (Argo Station): models/station/hiveport_exterior.glb (= Argo_Station_Master, 102k tris,
-  3.6 MB) at scale 0.45, its 'Rotor' habitation belt turning slowly; STATION.name 'HIVEPORT' (map id Argo_Hiveport); collision
+- **HIVEPORT EXTERIOR (Nov 26, the station exterior asset pack; README + hero render in reference/hiveport-exterior/)** —
+  the station is the K'Vetar HIVEPORT STATION (user, Nov 26: never call it Argo — every 'Argo' string was removed from the code):
+  models/station/hiveport_exterior.glb (the pack's station master, 102k tris, 3.6 MB) at scale 0.45, its 'Rotor' habitation belt
+  turning slowly; STATION.name 'HIVEPORT' (galaxy-map id 'Hiveport'); collision
   sphere 42; DOCK AT HIVEPORT. The orbital-kit wheel (models/station/orbital_station.glb) is no longer loaded.
   DOCKING CUTSCENE (Nov 26): the pack's docking.mjs timeline ported inline in minigame.html (dockArrival/dockDeparture, station-local
   metres; Door_L/R ±20, Clamp_L/R ±4 driven directly — never the GLB clips at the same time), ×1.6 speed, ship scaled ×3 while it
@@ -225,7 +226,7 @@ Rules drawn from them:
   (WAYFARER.dynSolids → mobile.js collide, also in the corridor; bump → engine.bump). canMove = never step INTO a mobile.js
   solid, except the last 1.4 m to its own chair/console. GOTCHA: never name a component method `play`/`pause` (A-Frame lifecycle).
   Route check: scratchpad lay.js validated every in-room edge against the scanned solids (0 hits). Old Lounge alien cats REMOVED (user, Nov 26: "just the new cats"); cats.js deleted (user, Nov 26).
-- **HIVEPORT INTERIOR (Nov 26, Hiveport_Argo_Station_Prototype.zip; README + concept in reference/hiveport-interior/)** —
+- **HIVEPORT INTERIOR (Nov 26, the Hiveport prototype pack; README + concept in reference/hiveport-interior/)** —
   station.html is now the K'Vetar HIVEPORT (old Ember Room club kept as station-ember-room.html, unlinked). hiveport/rooms/
   Hiveport_complete.glb (96 × 44 m deck: nexus with the Resin Spire bar + holo stage, 8 side zones; hex-pattern ceilings added per
   layout room), hiveport/layout.json (rooms, lights, 42 crowd targets, obstacles → WAYFARER.extraSolids for mobile.js collision,
@@ -233,8 +234,10 @@ Rules drawn from them:
   (cloneSkinned) with KHR_materials_variants castes (civilian 45 / soldier 30 / commander 18 / general 7 %, 22 % female purple
   crest); 8 on mobile, 16 desktop; tap → dialogue.json small talk. Bartender behind the bar → drinks menu (Serve_Drink, glass in
   hand, tipsy wobble). Violet holographic performer dances on the stage. Job board + AIRLOCK at +Z (z 21.55) → minigame
-  ?from=station. Audio: hiveport/audio/*.m4a loops through Web Audio gains (iOS ignores <audio>.volume): crowd wash, station hum and
-  MUSIC (user-approved exception, Nov 26): dance loop near the holo stage crossfading to the lounge loop by distance. Crowd 12 phone / 20 desktop.
+  ?from=station. Audio: Web Audio context made at load; loops (m4a, mp3 fallback) decoded at once and every touch/click/key resumes the
+  context until it runs (iOS unlocks only on touchend/click — the first version gave up after pointerdown, so no music on iPhone).
+  MUSIC (user: always on, in the background): dance loop 0.30, up to 0.52 by the holo stage; crowd wash 0.3, hum 0.18. K'Vetar
+  voices = WF_SOUND.alien (crowd member every 2–6 s within 22 m, talk/bar replies by caste). Crowd 12 phone / 20 desktop.
   Kvetar_Complete_Modular_140_Variants.zip = OLD/redundant (static; same 112 male + 28 female variants live in the rigged GLBs) — unused.
 - **COMMAND SYSTEM (Nov 26, navigation kit = SS_Wayfarer_Galactic_Navigation_Command_Systems.zip; README/guide in
   reference/navigation-kit/)** — bridge.html `wf-cmd` component + window.WF_CMD {sit, stand, launch, openNav, state}. Models:
@@ -246,9 +249,8 @@ Rules drawn from them:
   into Eye_Anchor or, 3rd person, a raised lens). SEATED: look stays on, walking frozen (WAYFARER.frozen; mobile.js skips movement/
   collision/bounds), glass #cmd-hud: Navigation / Launch / Stand (keys N / L / X|Esc). STAND = reverse. avatar.js
   WAYFARER.avatar.script({x,y,z,yaw,clip,time,show,cam:'owned'|'free',up}). GALACTIC MAP = vendored nav/galaxy-map.mjs (+
-  navigation-core.mjs, nav/galaxy.json patched: planet previews use images/planets textures, glb null; Argo_Hiveport named
-  'Hiveport'); dynamic import(); its own renderer overlay. Confirm → travel(id): seated → launch(id); standing (from the
-  navigator) → walks to the chair, sits, launches. minigame `?dest=` accepts map ids (Ferrum_Prime, Argo_Hiveport). Sounds:
+  navigation-core.mjs, nav/galaxy.json patched: planet previews use images/planets textures, glb null; station id 'Hiveport'); dynamic import(); its own renderer overlay. Confirm → travel(id): seated → launch(id); standing (from the
+  navigator) → walks to the chair, sits, launches. minigame `?dest=` accepts map ids (Ferrum_Prime, Hiveport). Sounds:
   audio/nav/*.m4a (kit WAVs transcoded). The kit's own command-system.mjs is NOT used (its rig/camera assumptions don't fit A-Frame).
 - **Command-deck kit (user, Nov 25)** — `models/deck/` (from Command_Deck.zip; catalog + manifest in reference/command-deck-kit/):
   Commander_Chair, Planet_Selector (Hologram_Rotation; tappable Planet_01..06 → PLANET_MAP in bridge.html → launch), Operator_Chair,
@@ -335,6 +337,10 @@ Guidelines, not orders: don't destroy what's built if an item doesn't fit.
 - [x] Visible warp jump (Flight Mode NAV → WARP). [x] missions/contracts, rewards, rank (missions.js). [ ] ship upgrades, crew
 - [ ] Interactive objects in rooms; real-time planetary window views; upgraded Holodeck visuals
 - [ ] Reduce floor glare / better ambient shadows; adjustable mobile controls (size, opacity)
+- [x] VOICES (Nov 26, user: "more than one type of sound"): sound.js WF_SOUND.droid(kind) chatter/whistle/affirm/negative/ponder/
+  servo/scan, .cat(kind) meow/mew/trill/yowl/purr/chirp/chatter, .alien(kind) click/chitter/hum/trill/growl/query — (kind, pan, vol).
+  crew.js picks them per event (chats, petting, bumps, dialogue topic, door entries) + an ambient voice every 5–14 s in the room;
+  bridge.html's old random beep timer is gone.
 - [x] Sounds (Nov 25): `sound.js` (WF_SOUND, all WebAudio synthesis, no files; unlocks on first touch/key; mute = speaker button
   in #wf-btns / Flight bar / desktop corner, key M, localStorage 'wf-mute'). Interior: ship hum bed, light-speed whoosh layer
   (hyperspace.js calls WF_SOUND.warp), door hiss+thunk (door.js), footsteps from the avatar walk cycle, droid chatter (Bridge),

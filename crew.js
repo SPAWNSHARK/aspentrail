@@ -204,7 +204,7 @@
     },
     setShip: function () {
       var near = null; try { near = localStorage.getItem('wf-near'); } catch (e) {}
-      var nm = near ? near.charAt(0) + near.slice(1).toLowerCase() : null; if (nm && /hiveport|argo/i.test(nm)) nm = 'the Hiveport';
+      var nm = near ? near.charAt(0) + near.slice(1).toLowerCase() : null; if (nm && /hiveport/i.test(nm)) nm = 'the Hiveport';
       this.eng.setShip({ mode: 'cruise', destination: nm, alert: false, fault: null });
     },
 
@@ -299,7 +299,7 @@
       var r = this.eng.interact(id);
       if (!r) { var p = this.eng.player(); if (p && Math.hypot(p.x - n.pos.x, p.z - n.pos.z) > 2.3) toast(n.kind === 'cat' ? n.name + ' is too far away to pet' : 'Walk closer to talk to ' + n.name); return; }
       if (r.kind === 'cat') { toast(n.name + (r.trust > 0.75 ? ' purrs and leans into your hand' : r.trust > 0.55 ? ' purrs' : ' lets you pet them')); this.purr(n); return; }
-      this.show(r);
+      this.show(r); this.say(id, 'greeting');
     },
     show: function (r) {
       var self = this, box = document.getElementById('wf-crew-talk');
@@ -307,7 +307,7 @@
       box.innerHTML = ''; var h = document.createElement('h3'); h.textContent = r.name + ' · ' + r.role; var p = document.createElement('p'); p.textContent = r.line; var ch = document.createElement('div'); ch.className = 'ch';
       box.appendChild(h); box.appendChild(p); box.appendChild(ch);
       r.choices.forEach(function (c) { var b = document.createElement('button'); b.textContent = c[1]; if (c[0] === 'exit') b.className = 'x';
-        b.addEventListener('click', function (ev) { ev.stopPropagation(); if (window.WF_SOUND && !WF_SOUND.muted()) WF_SOUND.beep(0);
+        b.addEventListener('click', function (ev) { ev.stopPropagation(); self.say(r.id, c[0]);
           if (c[0] === 'exit') { self.endTalk(); return; } var nx = self.eng.dialogue(r.id, c[0]); if (nx) self.show(nx); }); ch.appendChild(b); });
       box.style.display = 'block'; this.talk = r.id; document.body.classList.add('wf-crew-talking');
     },
@@ -316,25 +316,39 @@
       if (on) { this._wasFrozen = !!W.frozen; W.frozen = true; this.face = n.id; }
       else { if (!this._wasFrozen) W.frozen = false; this.face = null; }
     },
-    purr: function (n) { this.sound(n, 'purr'); },
+    purr: function (n) { this.sound(n, 'purr'); var self = this; setTimeout(function () { self.sound(n, Math.random() < 0.5 ? 'trill' : 'chirp'); }, 1500); },
+    // varied voices (user, Nov 26): sound.js droid()/cat() kinds, panned and quieter with distance; kind null = random
     sound: function (n, kind) {
-      if (roomOf(n) !== PAGE || !window.WF_SOUND || WF_SOUND.muted()) return;
-      var pan = 0, c = this.el.camera; if (c) { var v = new THREE.Vector3(n.pos.x - OFF[PAGE] * 100, 0.5, n.pos.z).project(c); pan = Math.max(-1, Math.min(1, v.x)); }
-      if (kind === 'purr') { WF_SOUND.meow(pan * 0.6); return; }
-      if (kind === 'chat') { WF_SOUND.beep(pan); return; }
-      WF_SOUND.meow(pan);
+      if (!n || roomOf(n) !== PAGE || !window.WF_SOUND || WF_SOUND.muted()) return;
+      var pan = 0, vol = 1, c = this.el.camera, x = n.pos.x - OFF[PAGE] * 100;
+      if (c) { var v = new THREE.Vector3(x, 0.5, n.pos.z).project(c); pan = Math.max(-1, Math.min(1, v.x)) * 0.8; c.el.object3D.getWorldPosition(this.tmp); vol = 1 / (1 + Math.hypot(x - this.tmp.x, n.pos.z - this.tmp.z) / 4); }
+      if (n.kind === 'cat') WF_SOUND.cat(kind === 'meow' ? null : kind, pan, vol); else WF_SOUND.droid(kind, pan, vol);
+    },
+    say: function (id, topic) {                                   // droids answer in a voice that fits what they say
+      var n = this.eng && this.eng.npcs.get(id), K = { greeting: Math.random() < 0.5 ? 'whistle' : 'affirm', status: 'chatter', destination: 'scan', crew: 'ponder', specialty: 'chatter', last_order: 'ponder', return_to_station: 'affirm', exit: 'affirm' };
+      this.sound(n, K[topic] || null);
     },
     onEvent: function (e) {
-      var n = this.eng && this.eng.npcs.get(e.npc); if (!n) return;
-      if (e.type === 'cat_sound' && e.sound !== 'purr') this.sound(n, 'meow');
-      if (e.type === 'crew_chat') this.sound(n, 'chat');
-      if (e.type === 'room_enter' && e.room === PAGE) { var D = pageDoor(e.door); if (D && D.target !== 1) D.open(); }
+      var self = this, n = this.eng && this.eng.npcs.get(e.npc); if (!n) return;
+      var o = e.other && this.eng.npcs.get(e.other);
+      if (e.type === 'cat_sound' && e.sound !== 'purr') this.sound(n, n.state === 'REST' ? ['chirp', 'trill', 'purr'][Math.floor(Math.random() * 3)] : null);
+      if (e.type === 'crew_chat') { this.sound(n, null); setTimeout(function () { self.sound(o, null); }, 700); setTimeout(function () { self.sound(n, Math.random() < 0.5 ? 'affirm' : 'ponder'); }, 1600); }
+      if (e.type === 'pet') { this.sound(o, 'purr'); setTimeout(function () { self.sound(n, 'whistle'); }, 900); }
+      if (e.type === 'player_bump') this.sound(n, n.kind === 'cat' ? 'mew' : 'negative');
+      if (e.type === 'room_enter' && e.room === PAGE) { var D = pageDoor(e.door); if (D && D.target !== 1) D.open(); this.sound(n, n.kind === 'cat' ? 'chirp' : 'servo'); }
+    },
+    ambient: function (s) {                                       // now and then someone in this room makes a noise
+      if (!this.eng || s < (this._amb || 3)) return; this._amb = s + 5 + Math.random() * 9;
+      var here = []; this.eng.npcs.forEach(function (n) { if (roomOf(n) === PAGE && !n.xferAt) here.push(n); }); if (!here.length) return;
+      var n = here[Math.floor(Math.random() * here.length)];
+      if (n.kind === 'cat') { if (Math.random() < 0.45) this.sound(n, n.state === 'REST' ? 'purr' : null); return; }
+      this.sound(n, n.state === 'WALK' ? 'servo' : ['chatter', 'scan', 'ponder', 'whistle', 'chatter'][Math.floor(Math.random() * 5)]);
     },
 
     tick: function (t, dtm) {
       if (!this.ready) return;
       var dt = Math.min(dtm || 16, 100) / 1000, eng = this.eng, self = this, ox = OFF[PAGE] * 100, dyn = [];
-      eng.update(dt);
+      eng.update(dt); this.ambient(t / 1000);
       if (this.lcars) this.lcars.forEach(function (f) { f(t / 1000); });
       eng.npcs.forEach(function (n) {
         var here = roomOf(n) === PAGE, o;

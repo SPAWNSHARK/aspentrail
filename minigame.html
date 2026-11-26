@@ -22,9 +22,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126h"></script>
-  <script src="missions.js?v=20261126h"></script>
-  <script src="sound.js?v=20261126h"></script>
+  <script src="shipskin.js?v=20261126i"></script>
+  <script src="missions.js?v=20261126i"></script>
+  <script src="sound.js?v=20261126i"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -377,7 +377,7 @@ function collidePlanets() {
   });
   if (hit) { shake = Math.max(shake, 0.25); if (skimWarn <= 0) { announce('PULL UP'); skimWarn = 3; } }
 }
-// ── ARGO WAYSTATION (user, Nov 25: a dockable station "like DS9 / Mass Effect's Afterlife" — an ORIGINAL design in the ship's
+// ── THE HIVEPORT STATION (user, Nov 25: a dockable station "like DS9 / Mass Effect's Afterlife" — an ORIGINAL design in the ship's
 //    copper/amber language): a domed core with spires, a lit habitat ring on spokes, an outer docking ring with three upper
 //    and three lower curved pylons, blinking running lights. Fly within range → DOCK → its club (station.html).
 const STATION = (() => {
@@ -404,9 +404,9 @@ const STATION = (() => {
   }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xffa050, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(150, 150, 1); g.add(glow);
   fixColors(g);
-  // THE HIVEPORT (user, Nov 26): Argo Station rebuilt as the K'Vetar Confederation's trade station — emerald-chitin spine,
+  // THE HIVEPORT (user, Nov 26): the station rebuilt as the K'Vetar Confederation's trade station — emerald-chitin spine,
   // a rotating habitation belt of pods (the 'Rotor' node turns slowly), the Hiveport envelope and the docking bay
-  // (models/station/hiveport_exterior.glb = the exterior pack's Argo_Station_Master, ~337 m → scaled 0.45). The old orbital
+  // (models/station/hiveport_exterior.glb = the exterior pack's station master model, ~337 m → scaled 0.45). The old orbital
   // wheel is retired; the procedural build stays as the fallback. No PMREM on r128 GLBs (renders black) — metal is capped instead.
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load('models/station/hiveport_exterior.glb?v=1', gl => {
     const m = gl.scene; m.scale.setScalar(0.45); m.rotation.y = Math.PI * 0.85; m.position.y = -10;
@@ -472,7 +472,7 @@ function toBridge() {
   warp = { t: 0, from: shipPos.clone(), to: shipPos.clone().addScaledVector(fwd, 2500), depart: true }; if (window.WF_SOUND) WF_SOUND.warpRise();
 }
 // DOCKING CUTSCENE (user, Nov 26: "1" from the Hiveport list) — the exterior pack's scripted docking controller
-// (ArgoExterior/systems/docking.mjs) ported inline: station-local metres, ship +Z bow with yaw π ⇒ our −Z nose points into the
+// (the exterior pack's systems/docking.mjs) ported inline: station-local metres, ship +Z bow with yaw π ⇒ our −Z nose points into the
 // bay with no extra turn. Arrival 42 s / departure 36 s, bay doors (Door_L/R ±20 m) and clamps (Clamp_L/R ±4 m) on the same
 // timeline, played ×DOCK_SPEED. The kit's GLB clips are NOT run (they drive the same nodes). The Wayfarer grows ×DOCK_SHIP_K while
 // it docks so it reads at the kit's ~72 m against the bay (the station is scaled 0.45 here). Tap SKIP to cut to the end.
@@ -531,7 +531,7 @@ document.getElementById('dock-skip').addEventListener('click', e => { e.stopProp
 addEventListener('keydown', e => { if (e.code === 'KeyF' && document.getElementById('dock').style.display === 'block') dockAt(); if (dockSeq && (e.code === 'Escape' || e.code === 'Space')) dockSeq.skip = true; });
 function updateDock() { const near = state === 'playing' && !warp && !dockSeq && shipPos.distanceTo(STATION.group.position) < 170; document.getElementById('dock').style.display = near ? 'block' : 'none'; }
 function arriveFromBridge() {
-  if (/from=station/.test(location.search)) {                       // undocking: just off the Argo, nose pointed away from it
+  if (/from=station/.test(location.search)) {                       // undocking: just off the Hiveport, nose pointed away from it
     startGame(); const away = new THREE.Vector3(0, 0.15, 1).normalize(); shipPos.copy(STATION.group.position).addScaledVector(away, 150); shipYaw = Math.PI; shipPitch = 0;
     const wf = document.getElementById('warp-flash'); wf.style.transition = 'opacity 1.1s ease-out';
     let tries = 0; (function begin() {                                // wait (≤6 s) for the Hiveport model, then back out of the berth
@@ -542,7 +542,7 @@ function arriveFromBridge() {
     }()); return;
   }
   startGame();
-  const dest = decodeURIComponent((location.search.match(/[?&]dest=([^&]+)/) || [])[1] || ''), dN = dest.toUpperCase().replace(/_/g, ' '), D = NAV.find(P => P.name === dN || (P.isStation && /HIVEPORT|ARGO/.test(dN)));   // galactic-map ids (Ferrum_Prime, Argo_Hiveport) or names
+  const dest = decodeURIComponent((location.search.match(/[?&]dest=([^&]+)/) || [])[1] || ''), dN = dest.toUpperCase().replace(/_/g, ' '), D = NAV.find(P => P.name === dN || (P.isStation && /HIVEPORT/.test(dN)));   // galactic-map ids (Ferrum_Prime, Hiveport) or names
   if (D) {                                                          // the Bridge's star chart: arrive beside the chosen world
     const side = SUN_DIR.clone().multiplyScalar(0.75).add(D.group.position.clone().negate().normalize().multiplyScalar(0.25)).normalize();   // arrive on the sunlit side
     const at = D.group.position.clone().addScaledVector(side, D.isStation ? 150 : D.r * 3.2 + 60);
@@ -918,7 +918,7 @@ let lockTarget = null;
 const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
 // ── CONTRACTS (missions.js): the objective chip under NAV; kills and planet visits report progress ──
 function showObjective() { const m = window.WF_MISSIONS && WF_MISSIONS.active(), o = document.getElementById('objective'); if (!o) return; o.style.display = m && state === 'playing' ? 'block' : 'none'; if (m) o.textContent = WF_MISSIONS.status(m); }
-function missionEvent(ev) { if (!window.WF_MISSIONS) return; const r = WF_MISSIONS.progress(ev); if (!r) return; if (r.done) { announce('CONTRACT COMPLETE'); hail('ARGO CONTROL', r.text); } else if (ev.indexOf('visit:') === 0 || ev === 'dock') hail('ARGO CONTROL', r.text); showObjective(); }
+function missionEvent(ev) { if (!window.WF_MISSIONS) return; const r = WF_MISSIONS.progress(ev); if (!r) return; if (r.done) { announce('CONTRACT COMPLETE'); hail('HIVEPORT CONTROL', r.text); } else if (ev.indexOf('visit:') === 0 || ev === 'dock') hail('HIVEPORT CONTROL', r.text); showObjective(); }
 const visited = {}; let visitT = 0;
 function saveNear() { let best = null, bd = 1e12; NAV.forEach(P => { const d = shipPos.distanceTo(P.group.position) - (P.r || 0); if (d < bd) { bd = d; best = P; } }); if (best) try { localStorage.setItem('wf-near', best.name); } catch (e) {} }   // the ship's windows show this world
 function checkVisits(dt) { visitT -= dt; if (visitT > 0) return; visitT = 0.5; if (Math.random() < 0.25) saveNear(); planets.forEach(P => { const near = shipPos.distanceTo(P.group.position) < P.r * 1.8 + 80; if (near && !visited[P.name]) { visited[P.name] = true; missionEvent('visit:' + P.name); } else if (!near) visited[P.name] = false; }); }
