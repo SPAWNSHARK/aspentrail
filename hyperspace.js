@@ -110,7 +110,7 @@
     function scheduled() {                                  // shared across pages: { until, next } in localStorage
       var now = Date.now(), w = null; try { w = JSON.parse(localStorage.getItem('wf-warp') || 'null'); } catch (e) {}
       if (!w) { w = { until: 0, next: now + (4 + Math.random() * 8) * 60000 }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
-      if (now > w.next) { w = { until: now + 75000, next: now + (7 + Math.random() * 6) * 60000 }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
+      if (now > w.next) { w = { until: now + 75000, next: now + (7 + Math.random() * 6) * 60000, at: now }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
       return now < w.until;
     }
     if (mode === 'schedule') warpCur = warpWant = scheduled() ? 1 : 0; else warpCur = warpWant = o.warp ? 1 : 0;

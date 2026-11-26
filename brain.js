@@ -265,7 +265,8 @@
       // no turning (user): it PUMPS — a lub-dub heartbeat (~66 bpm) swells it slightly and flushes the vessels with blood
       var bt = (t / 1000) % 0.9, beat = Math.exp(-Math.pow((bt - 0.08) / 0.05, 2)) + 0.6 * Math.exp(-Math.pow((bt - 0.3) / 0.06, 2));
       if (g) { g.scale.set(1 + 0.018 * beat, 1 + 0.024 * beat, 1 + 0.018 * beat); }
-      if (this.pathMat) this.pathMat.emissiveIntensity = 0.15 + 0.9 * beat;
+      var talk = window.__aiTalk && performance.now() < window.__aiTalk ? 0.5 + 0.5 * Math.sin(t / 90) : 0;   /* Halcyon speaking: the brain flickers with thought */
+      if (this.pathMat) this.pathMat.emissiveIntensity = 0.15 + 0.9 * beat + 1.4 * talk;
       if (this.mat) { this.mat.emissive.setRGB(0.32, 0.03, 0.05); this.mat.emissiveIntensity = 0.08 + 0.22 * beat; }
       // electrical discharges every few seconds: flicker for ~0.35 s
       var ts = t / 1000;

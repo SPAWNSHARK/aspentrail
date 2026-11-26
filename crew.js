@@ -51,7 +51,7 @@
     // BRIDGE — ring round the dais (r 2.05), the six home chairs (kit arrangement ×1.45, same as bridge.html buildStations)
     N('b_door', 'bridge', 0, 7.0); N('b_back', 'bridge', 0, 4.6); gate('b_door', 0, 1);
     var ring = [];
-    for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2, id = 'b_r' + i; N(id, 'bridge', Math.sin(a) * 3.0, Math.cos(a) * 3.0); ring.push(id); }
+    for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2, id = 'b_r' + i, rr = 3.0 + 2.6 * Math.max(0, -Math.cos(a)); N(id, 'bridge', Math.sin(a) * rr, Math.cos(a) * rr); ring.push(id); }   /* bulges round the navigator plinth at the front of the helm (z −3.5, r 1.64) */
     chain(ring.concat(['b_r0'])); chain(['b_door', 'b_back', 'b_r0']);
     BRIDGE_ST.forEach(function (st) {
       var K = 1.45, cx = -st[2][0] * K, cz = -st[2][1] * K, yaw = (st[4] + 180) * Math.PI / 180;
@@ -63,7 +63,7 @@
       E(oid, best);
       L.stations.push({ id: st[0] + '_home', node: sid, owner: st[0], type: 'seat', yaw: yaw });
     });
-    N('b_s1', 'bridge', -1.6, 5.2); N('b_s2', 'bridge', 1.7, 5.6); N('b_s3', 'bridge', 0, -4.6); N('b_s4', 'bridge', 2.4, -5.2);
+    N('b_s1', 'bridge', -1.6, 5.2); N('b_s2', 'bridge', 1.7, 5.6); N('b_s3', 'bridge', -2.6, -6.0); N('b_s4', 'bridge', 2.4, -5.2);
     E('b_back', 'b_s1'); E('b_back', 'b_s2'); E('b_r5', 'b_s3'); E('b_s3', 'b_s4');
     spot('b_s1', 'rest'); spot('b_s2', 'explore'); spot('b_s3', 'explore'); spot('b_s4', 'explore');
 
@@ -146,8 +146,8 @@
     '#wf-crew-talk button{padding:10px 8px;border-radius:13px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:600 12.5px -apple-system,system-ui,sans-serif;text-align:left}' +
     '#wf-crew-talk button.x{grid-column:1/-1;text-align:center;color:#e8d4bf;background:none}' +
     'body.wf-crew-talking #wf-joy,body.wf-crew-talking #room-prompt{opacity:0;pointer-events:none}' +
-    '#wf-redalert{position:fixed;inset:0;z-index:15;pointer-events:none;display:none;box-shadow:inset 0 0 140px 40px rgba(255,20,20,.55);animation:wfRA 1.6s ease-in-out infinite}' +
-    '@keyframes wfRA{0%,100%{opacity:.25}50%{opacity:1}}' +
+    '#wf-redalert{position:fixed;inset:0;z-index:15;pointer-events:none;display:none;background:rgba(255,40,30,.55);mix-blend-mode:multiply;box-shadow:inset 0 0 160px 50px rgba(255,0,0,.7);animation:wfRA 1.6s ease-in-out infinite}' +
+    '@keyframes wfRA{0%,100%{opacity:.45}50%{opacity:1}}' +
     '#wf-cat-menu{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:57;display:none;width:min(94vw,440px);padding:12px 12px 10px;border-radius:20px;box-sizing:border-box;' +
       'background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),rgba(30,16,22,.6);-webkit-backdrop-filter:blur(22px) saturate(185%);backdrop-filter:blur(22px) saturate(185%);border:1px solid rgba(255,180,210,.3);color:#fff;font:600 13px -apple-system,system-ui,sans-serif}' +
     '#wf-cat-menu h3{margin:0 0 8px;font:800 13px -apple-system,system-ui,sans-serif;letter-spacing:1px;display:flex;gap:8px;align-items:baseline}#wf-cat-menu h3 small{color:#e6c8d8;font-weight:500;flex:1}#wf-cat-menu h3 span{color:#ff8ab8;letter-spacing:2px}' +
@@ -519,6 +519,29 @@
       if (e.type === 'player_bump') this.sound(n, n.kind === 'cat' ? 'mew' : 'negative');
       if (e.type === 'room_enter' && e.room === PAGE) { var D = pageDoor(e.door); if (D && D.target !== 1) D.open(); this.sound(n, n.kind === 'cat' ? 'chirp' : 'servo'); }
     },
+    // RANDOM LIGHT-SPEED ESCAPES (user, Nov 26): the shared 'wf-warp' schedule (hyperspace.js; same {until, next} the windows use).
+    // 20 s before each jump: RED ALERT on every deck (#wf-redalert + klaxon), and every droid not already in its Bridge chair runs
+    // (×2.6 speed) back to it. The red light holds until 6 s into the jump, then everyone goes back to work.
+    warpAlert: function () {
+      var now = Date.now(), w = null; try { w = JSON.parse(localStorage.getItem('wf-warp') || 'null'); } catch (e) {}
+      if (!w) { w = { until: 0, next: now + (4 + Math.random() * 8) * 60000 }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
+      if (now > w.next) { w = { until: now + 75000, next: now + (7 + Math.random() * 6) * 60000, at: now }; try { localStorage.setItem('wf-warp', JSON.stringify(w)); } catch (e) {} }
+      var jumpAt = w.at || (w.until - 75000), pre = now > w.next - 20000 && now < w.next, during = now >= jumpAt && now < jumpAt + 6000 && now < w.until;
+      var on = (pre || during) && !(this.order && this.order.kind === 'standdown'), e = this.eng, self = this;
+      var ra = document.getElementById('wf-redalert'); if (!ra) { ra = document.createElement('div'); ra.id = 'wf-redalert'; document.body.appendChild(ra); }
+      var manual = this.order && this.order.kind === 'redalert';
+      ra.style.display = on || manual ? 'block' : 'none';
+      if (on && !this._escape) {
+        this._escape = true; if (window.WF_SOUND) { WF_SOUND.alarm(); setTimeout(function () { if (self._escape) WF_SOUND.alarm(); }, 1700); }
+        if (window.WF_LIFE) WF_LIFE.toast(pre ? 'RED ALERT — pirates on sensors! All hands to the Bridge, jumping to light speed…' : 'Jumping to light speed!');
+        e.setShip({ alert: true });
+        e.npcs.forEach(function (n) { if (n.kind !== 'droid' || n.state === 'CONVERSATION') return; n._spd = n._spd || n.speed; n.speed = n._spd * 2.6;
+          if (n.state !== 'SEATED' && n.state !== 'SIT') { e.release(n); e.set(n, 'IDLE', 'Idle'); n.next = e.time; e.home(n); } });
+      } else if (!on && this._escape) {
+        this._escape = false; e.setShip({ alert: !!manual });
+        e.npcs.forEach(function (n) { if (n._spd) { n.speed = n._spd; n._spd = 0; } if (n.kind === 'droid' && n.state === 'SEATED') n.next = e.time + 20 + Math.random() * 40; });
+      }
+    },
     ambient: function (s) {                                       // now and then someone in this room makes a noise
       if (!this.eng || s < (this._amb || 3)) return; this._amb = s + 5 + Math.random() * 9;
       var here = []; this.eng.npcs.forEach(function (n) { if (roomOf(n) === PAGE && !n.xferAt) here.push(n); }); if (!here.length) return;
@@ -531,6 +554,7 @@
       if (!this.ready) return;
       var dt = Math.min(dtm || 16, 100) / 1000, eng = this.eng, self = this, ox = OFF[PAGE] * 100, dyn = [];
       eng.update(dt); this.ambient(t / 1000); this.toyTick(dt);
+      if (t - (this._wa || 0) > 1000) { this._wa = t; this.warpAlert(); }
       if (this.lcars) this.lcars.forEach(function (f) { f(t / 1000); });
       this.dodge(dt);
       eng.npcs.forEach(function (n) {

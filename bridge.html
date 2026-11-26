@@ -21,17 +21,18 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126r"></script>
-  <script src="life.js?v=20261126r"></script>
-  <script src="manual.js?v=20261126r"></script>
-  <script src="sound.js?v=20261126r"></script>
-  <script src="avatar.js?v=20261126r"></script>
-  <script src="door.js?v=20261126r"></script>
-  <script src="hyperspace.js?v=20261126r"></script>
-  <script src="shipskin.js?v=20261126r"></script>
-  <script src="lcars.js?v=20261126r"></script>
-  <script src="crew.js?v=20261126r"></script>
-  <script src="repairs.js?v=20261126r"></script>
+  <script src="mobile.js?v=20261126s"></script>
+  <script src="life.js?v=20261126s"></script>
+  <script src="manual.js?v=20261126s"></script>
+  <script src="ai.js?v=20261126s"></script>
+  <script src="sound.js?v=20261126s"></script>
+  <script src="avatar.js?v=20261126s"></script>
+  <script src="door.js?v=20261126s"></script>
+  <script src="hyperspace.js?v=20261126s"></script>
+  <script src="shipskin.js?v=20261126s"></script>
+  <script src="lcars.js?v=20261126s"></script>
+  <script src="crew.js?v=20261126s"></script>
+  <script src="repairs.js?v=20261126s"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -70,7 +71,7 @@
     #cmd-hud { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom,0px)); z-index:30; display:none; gap:8px; padding:6px;
       border-radius:22px; background:linear-gradient(140deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 48%,rgba(255,255,255,.07)),rgba(22,22,28,.4); -webkit-backdrop-filter:blur(22px) saturate(185%); backdrop-filter:blur(22px) saturate(185%);
       border:1px solid rgba(255,255,255,.24); box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.45); }
-    #cmd-hud button { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:72px; padding:8px 10px; border:0; border-radius:16px; background:rgba(255,255,255,.06); color:#fff; font:600 11px -apple-system,system-ui,sans-serif; }
+    #cmd-hud button { display:flex; flex-direction:column; align-items:center; gap:3px; min-width:58px; padding:8px 10px; border:0; border-radius:16px; background:rgba(255,255,255,.06); color:#fff; font:600 11px -apple-system,system-ui,sans-serif; }
     #cmd-hud button:active { background:rgba(255,180,90,.35); } #cmd-hud svg { width:22px; height:22px; fill:none; stroke:#fff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     html.from-flight, html.from-flight body { background:#dff0ff; } html.from-flight #jump { opacity:1; }
   </style>
@@ -84,7 +85,7 @@
   </div>
   <div id="room-prompt"></div>
   <div id="jump"></div>
-  <div id="cmd-hud" class="wf-ctl"><button id="cmd-nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Navigation</span></button><button id="cmd-fly"><svg viewBox="0 0 24 24"><path d="M12 3l4 8-4 10-4-10z"/><path d="M8 13l-3 3M16 13l3 3"/></svg><span>Launch</span></button><button id="cmd-stand"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 22l4-7 4 7M7 11h10"/></svg><span>Stand</span></button></div>
+  <div id="cmd-hud" class="wf-ctl"><button id="cmd-cruise"><svg viewBox="0 0 24 24"><path d="M3 15c3-4 6-6 9-6s6 2 9 6"/><circle cx="12" cy="9" r="2"/></svg><span>Cruising</span></button><button id="cmd-hunt"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg><span>Hunting</span></button><button id="cmd-inspect"><svg viewBox="0 0 24 24"><path d="M12 3l4 8-4 10-4-10z"/><circle cx="12" cy="11" r="1.6"/></svg><span>Ship</span></button><button id="cmd-nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>Navigate</span></button><button id="cmd-stand"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 22l4-7 4 7M7 11h10"/></svg><span>Stand</span></button></div>
   <div id="controls-hint">WASD / DRAG TO LOOK · TAP THE CAPTAIN'S CHAIR TO FLY</div>
 
   <!-- Style reference: reference/interiors-doors-closed.jpg (Command Bridge panel).
@@ -113,7 +114,7 @@
   (function () {
     var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
     var MOB = window.WAYFARER && window.WAYFARER.mobile;
-    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22, CHAIR_Z = 0.65, ORB_Z = -1.3;
+    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22, CHAIR_Z = 0.65, ORB_Z = -3.5, ORB_S = 2.0;
 
     // ───────── helpers ─────────
     function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
@@ -341,21 +342,42 @@
       var ce = kitModel('Commander_Chair_Animated.glb', [0, DAIS_H, CHAIR_Z], 180); ce.setAttribute('id', 'cmd-chair'); window.__chairEl = ce;
     }
 
-    // ── the NAVIGATOR (navigation kit's animated planet selector) stands IN FRONT of the commander's chair (user, Nov 26),
-    //    between the chair and the window. Tapping it opens the GALACTIC MAP. Hologram_Rotation + Galaxy_Spin loop; Orb_Open /
-    //    Orb_Close play when the map opens and closes.
-    var PLANET_MAP = { Planet_01_Terrestrial: 'Auralis', Planet_02_Red: 'Varkesh', Planet_03_GasGiant: 'Vespera', Planet_04_Ice: 'Cryovale', Planet_05_Ringed: 'Orinth', Planet_06_Green: 'Mycelion' };
+    // ── THE HELM (user, Nov 26): the NAVIGATOR is part of the captain's station — a big holographic planet selector (×1.5) on its
+    //    own bronze plinth at the front of the helm, joined to the command dais by a raised neck, so chair + navigator read as one
+    //    console. Its own holo layers (light cone, three gyroscope rings, rising sparks) idle softly and SPIN UP while you navigate.
+    //    Tapping it seats you in the chair first, then turns you to the map. Planets are only picked inside the map.
+    var NAV_FX = null;
     function buildOrb(add, dot) {
-      var e = kitModel('Planet_Selector_Animated.glb', [0, DAIS_H, ORB_Z], 180); e.setAttribute('scale', '0.72 0.72 0.72'); /* hologram sits just below seated eye level, so you look over it to the window */ e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb'); window.__orbEl = e;
+      var cu = M.bronze, pl = new THREE.Group(); pl.position.set(0, 0, ORB_Z); root.add(pl);
+      mesh(lathe([[0, 0], [1.6, 0], [1.64, 0.04], [1.64, DAIS_H - 0.05], [1.58, DAIS_H], [0, DAIS_H]], 64), M.floor, pl);           // plinth
+      var rim = mesh(new THREE.TorusGeometry(1.61, 0.03, 8, 96), M.amber, pl, 0, DAIS_H - 0.06, 0); rim.rotation.x = Math.PI / 2;
+      var rim2 = mesh(new THREE.TorusGeometry(1.56, 0.035, 8, 96), cu, pl, 0, DAIS_H, 0); rim2.rotation.x = Math.PI / 2;
+      var neck = mesh(new THREE.BoxGeometry(1.3, DAIS_H, 0.6), M.floor, root, 0, DAIS_H / 2, (ORB_Z + 1.6 + (-DAIS_R + 0.05)) / 2);    // dais ⇄ plinth
+      [-0.66, 0.66].forEach(function (x) { mesh(new THREE.BoxGeometry(0.04, 0.03, 0.9), M.amber, root, x, DAIS_H + 0.005, neck.position.z); });
+      var e = kitModel('Planet_Selector_Animated.glb', [0, DAIS_H, ORB_Z], 180); e.setAttribute('scale', ORB_S + ' ' + ORB_S + ' ' + ORB_S); e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb'); window.__orbEl = e;
       e.addEventListener('model-loaded', function () {
         var m = e.getObject3D('mesh'), clips = (e.components['gltf-model'].model || m).animations || [], mx = new THREE.AnimationMixer(m); mixers.push(mx);
         ['Hologram_Rotation', 'Galaxy_Spin'].forEach(function (n) { var c = THREE.AnimationClip.findByName(clips, n); if (c) mx.clipAction(c).play(); });
         window.__orbAnim = { mx: mx, clips: clips };
       });
-      e.addEventListener('click', function () { if (window.WF_CMD) window.WF_CMD.openNav('orb'); });
-      var l = new THREE.PointLight(0x4a9cff, 1.1, 5, 2); l.position.set(0, DAIS_H + 1.25, ORB_Z); root.add(l);
+      e.addEventListener('click', function () { if (window.WF_CMD) window.WF_CMD.navigator(); });
+      var l = new THREE.PointLight(0x4a9cff, 1.6, 9, 2); l.position.set(0, DAIS_H + 2.8, ORB_Z); root.add(l);
+      // holo layers
+      var fx = new THREE.Group(); fx.position.set(0, DAIS_H, ORB_Z); fx.scale.setScalar(ORB_S / 1.5); root.add(fx);
+      var cone = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 0.35, 2.6, 48, 1, true), add(null, 0x5aa8ff, 0.09)); cone.position.y = 1.5; fx.add(cone);
+      cone.material.side = THREE.DoubleSide;
+      var rings = [0, 1, 2].map(function (i) { var r = new THREE.Mesh(new THREE.TorusGeometry(1.15 + i * 0.18, 0.012, 6, 120), add(null, i === 1 ? 0xb08cff : 0x6ec8ff, 0.55)); r.position.y = 2.05; r.rotation.set(Math.PI / 2 + i * 0.5, i * 0.9, 0); fx.add(r); return r; });
+      var N = 90, pp = new Float32Array(N * 3), sp = []; for (var i = 0; i < N; i++) { var a = Math.random() * 6.28, rr = 0.3 + Math.random() * 0.9; pp[i * 3] = Math.cos(a) * rr; pp[i * 3 + 1] = Math.random() * 3; pp[i * 3 + 2] = Math.sin(a) * rr; sp.push(0.15 + Math.random() * 0.5); }
+      var pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+      var sparks = new THREE.Points(pg, new THREE.PointsMaterial({ map: dot, color: 0x9fd8ff, size: 0.06, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); fx.add(sparks);
+      NAV_FX = { rings: rings, cone: cone, sparks: sparks, sp: sp, light: l, boost: 0, want: 0 };
+      anim.push(function (t) {
+        var F = NAV_FX, dt = 1 / 60; F.boost += (F.want - F.boost) * 0.04;
+        F.rings.forEach(function (r, i) { r.rotation.z += (0.004 + i * 0.003) * (1 + F.boost * 6); r.rotation.x += 0.002 * (i - 1) * (1 + F.boost * 4); r.scale.setScalar(1 + F.boost * 0.25 + 0.02 * Math.sin(t * 2 + i)); r.material.opacity = 0.35 + 0.4 * F.boost; });
+        F.cone.material.opacity = 0.06 + 0.12 * F.boost + 0.02 * Math.sin(t * 3); F.light.intensity = 1.4 + 2.2 * F.boost;
+        var a = F.sparks.geometry.attributes.position, d = a.array; for (var k = 0; k < F.sp.length; k++) { d[k * 3 + 1] += F.sp[k] * dt * (1 + F.boost * 3); if (d[k * 3 + 1] > 3.2) d[k * 3 + 1] = 0; } a.needsUpdate = true;
+      });
     }
-
 
     // ── SIX STATIONS from the kit (console + operator chair + seated droid playing Console_Operate), in the kit's own
     //    arrangement (from Command_Deck_Assembled.glb): three a side, Navigation/Sensors toward the bow. Kit bow = +Z, ours = −Z,
@@ -534,12 +556,12 @@
     function openNav(from) {
       if (navFrom || (mode !== 'standing' && mode !== 'seated')) return false;
       navFrom = from; preMode = mode; navSaved = camPose(); controls({ walk: false, look: false }); setMode('nav-open'); snd('orb_open');
-      orbClip('Orb_Open'); loadMap(); return true;
+      orbClip('Orb_Open'); if (NAV_FX) NAV_FX.want = 1; loadMap(); return true;
     }
-    function closeNav() { if (mode !== 'nav') return; setMode('nav-close'); snd('orb_close'); orbClip('Orb_Close'); }
+    function closeNav() { if (mode !== 'nav') return; setMode('nav-close'); snd('orb_close'); orbClip('Orb_Close'); if (NAV_FX) NAV_FX.want = 0; }
     function orbClip(n) { var A = window.__orbAnim; if (!A) return; var c = T3.AnimationClip.findByName(A.clips, n); if (!c) return; ['Orb_Open', 'Orb_Close'].forEach(function (k) { var cc = T3.AnimationClip.findByName(A.clips, k); if (cc) A.mx.clipAction(cc).stop(); }); var a = A.mx.clipAction(c); a.reset(); a.setLoop(T3.LoopOnce, 1); a.clampWhenFinished = true; a.play(); }
     function navCam(k) {                                       // lean the view in toward the hologram above the navigator
-      var o = wpos(window.__orbEl.object3D).add(V3(0, 1.1, 0)), p = navSaved.p.clone().lerp(o, 0.22);
+      var o = wpos(window.__orbEl.object3D).add(V3(0, 1.1 * ORB_S, 0)), p = navSaved.p.clone().lerp(o, 0.3);
       var q = new T3.Quaternion().setFromRotationMatrix(new T3.Matrix4().lookAt(p, o, V3(0, 1, 0)));
       putCam(navSaved.p.clone().lerp(p, k), navSaved.q.clone().slerp(q, k));
     }
@@ -630,12 +652,17 @@
     });
     sc.setAttribute('wf-cmd', '');
     chair.addEventListener('click', function () { if (mode === 'standing') sit(); });
+    // the chair's menu (user, Nov 26): Cruising = peaceful flight · Hunting = combat · Ship = Ship View · Navigate = the galactic map
+    function fly(m) { try { localStorage.setItem('wf-mode2', m); } catch (er) {} launch(null); }
+    document.getElementById('cmd-cruise').addEventListener('click', function (e) { e.stopPropagation(); fly('explore'); });
+    document.getElementById('cmd-hunt').addEventListener('click', function (e) { e.stopPropagation(); fly('combat'); });
+    document.getElementById('cmd-inspect').addEventListener('click', function (e) { e.stopPropagation(); jump.style.transition = 'opacity .5s'; jump.style.opacity = 1; setTimeout(function () { location.href = 'hangar.html?from=bridge'; }, 520); });
     document.getElementById('cmd-nav').addEventListener('click', function (e) { e.stopPropagation(); openNav('chair'); });
-    document.getElementById('cmd-fly').addEventListener('click', function (e) { e.stopPropagation(); launch(null); });
     document.getElementById('cmd-stand').addEventListener('click', function (e) { e.stopPropagation(); stand(); });
     ['pointerdown', 'touchstart'].forEach(function (n) { hud.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); });
-    addEventListener('keydown', function (e) { if (mode !== 'seated') return; if (e.code === 'KeyN') openNav('chair'); else if (e.code === 'KeyL') launch(null); else if (e.code === 'KeyX' || e.code === 'Escape') stand(); });
-    window.WF_CMD = { sit: sit, stand: stand, launch: launch, openNav: openNav, state: function () { return mode; } };
+    addEventListener('keydown', function (e) { if (mode !== 'seated') return; if (e.code === 'KeyN') openNav('chair'); else if (e.code === 'KeyL') fly('explore'); else if (e.code === 'KeyK') fly('combat'); else if (e.code === 'KeyX' || e.code === 'Escape') stand(); });
+    function navigator() { if (mode === 'seated') openNav('chair'); else if (mode === 'standing') sit(function () { openNav('chair'); }); }
+    window.WF_CMD = { sit: sit, stand: stand, launch: launch, openNav: openNav, navigator: navigator, state: function () { return mode; } };
 
     // arriving from Flight Mode: already seated, streaks racing, the flash fading as the ship drops out of warp
     if (document.documentElement.classList.contains('from-flight')) {

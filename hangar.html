@@ -14,7 +14,7 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126r"></script>
+  <script src="shipskin.js?v=20261126s"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,6 +36,7 @@
 </head>
 <body>
   <a id="back" class="glass" href="minigame.html"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Flight Mode</a>
+  <script>if (/[?&]from=bridge/.test(location.search)) { var bk = document.getElementById('back'); bk.href = 'bridge.html'; bk.lastChild.textContent = 'Bridge'; }</script>
   <div id="bar" class="glass">
     <b id="b-spin" class="on"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>Turntable</b>
     <b id="b-top"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M12 9v6M9 12h6"/></svg>Top</b>

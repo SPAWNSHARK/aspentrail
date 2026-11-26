@@ -58,7 +58,8 @@
     { id: 'peace', text: 'Break up a bar brawl', ev: 'peace', n: 1 },
     { id: 'bounty', text: 'Claim the Bounty Broker\u2019s bounty', ev: 'bounty', n: 1 },
     { id: 'cards', text: 'Win a hand of Starjack against the crew (Lounge table)', ev: 'cardwin', n: 1 },
-    { id: 'scan', text: 'Scan a planet or anomaly in Flight Mode (SCAN button / G)', ev: 'scan', n: 1 }
+    { id: 'scan', text: 'Scan a planet or anomaly in Flight Mode (SCAN button / G)', ev: 'scan', n: 1 },
+    { id: 'ai', text: 'Ask Halcyon, the ship\u2019s mind, for a status report (eye icon / brain)', ev: 'ai', n: 1 }
   ];
   var REG = {};                                   // later features register more goals (WF_LIFE.addGoals)
   function pool() { return POOL.filter(function (g) { return !g.need || REG[g.need]; }); }
