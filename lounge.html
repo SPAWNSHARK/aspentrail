@@ -20,22 +20,23 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261126z"></script>
+  <script src="textures.js?v=20261127a"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126z"></script>
-  <script src="life.js?v=20261126z"></script>
-  <script src="manual.js?v=20261126z"></script>
-  <script src="menubar.js?v=20261126z"></script>
-  <script src="ai.js?v=20261126z"></script>
-  <script src="sound.js?v=20261126z"></script>
-  <script src="avatar.js?v=20261126z"></script>
-  <script src="door.js?v=20261126z"></script>
-  <script src="lcars.js?v=20261126z"></script>
-  <script src="crew.js?v=20261126z"></script>
-  <script src="repairs.js?v=20261126z"></script>
-  <script src="cards.js?v=20261126z"></script>
-  <script src="props.js?v=20261126z"></script>
-  <script src="hyperspace.js?v=20261126z"></script>
+  <script src="mobile.js?v=20261127a"></script>
+  <script src="life.js?v=20261127a"></script>
+  <script src="manual.js?v=20261127a"></script>
+  <script src="menubar.js?v=20261127a"></script>
+  <script src="ai.js?v=20261127a"></script>
+  <script src="sound.js?v=20261127a"></script>
+  <script src="avatar.js?v=20261127a"></script>
+  <script src="door.js?v=20261127a"></script>
+  <script src="lcars.js?v=20261127a"></script>
+  <script src="crew.js?v=20261127a"></script>
+  <script src="repairs.js?v=20261127a"></script>
+  <script src="cards.js?v=20261127a"></script>
+  <script src="alien-tv.js?v=20261127a"></script>
+  <script src="props.js?v=20261127a"></script>
+  <script src="hyperspace.js?v=20261127a"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -117,7 +118,7 @@
 
   <!-- ===================== ROOM SHELL ===================== -->
   <!-- walls: metal panels (amber-tinted) applied via JS -->
-  <a-cylinder id="lounge-walls" radius="9" height="5.5" open-ended="true" position="0 2.75 0" theta-start="201.8" theta-length="316.4" segments-radial="96" segments-height="14"
+  <a-cylinder id="lounge-walls" radius="9" height="5.5" open-ended="true" position="0 2.75 0" theta-start="208.6" theta-length="302.8" segments-radial="96" segments-height="14"
     material="side: back; color: #130a03; roughness: 0.92; metalness: 0.08">
   </a-cylinder>
   <!-- floor: grating applied via JS -->
@@ -138,17 +139,8 @@
   <!-- Deep outer frame -->
   <!-- (the wall has a gap here; buildShell() fills it with a panel that has a round window cut in it) -->
   <!-- Frame bolts -->
-  <a-torus radius="3.2" radius-tubular="0.22" position="0 2.6 -8.28"
-    material="color: #1a1208; emissive: #2a1800; emissiveIntensity: 0.4; roughness: 0.4; metalness: 0.88">
-  </a-torus>
-  <a-torus radius="2.88" radius-tubular="0.055" position="0 2.6 -8.24"
-    material="color: #cc8833; emissive: #ff7722; emissiveIntensity: 1.2; roughness: 0.6">
-  </a-torus>
   <!-- Viewport space scene (texture applied via JS) -->
   <!-- Subtle glass sheen overlay -->
-  <a-circle radius="3.08" position="0 2.6 -8.2" rotation="0 180 0"
-    material="color: #102030; opacity: 0.06; transparent: true; roughness: 0; metalness: 1">
-  </a-circle>
   <!-- Distant nebula wash behind the glass -->
 
   <!-- ===================== TV (brass ring, screen = browser) ===================== -->
@@ -429,8 +421,12 @@
       var wallT = tx(c, 38, 1), wallM = new THREE.MeshStandardMaterial({ map: wallT, roughness: 0.62, metalness: 0.15, side: THREE.BackSide });
       document.getElementById('lounge-walls').getObject3D('mesh').material = wallM;
       // the panel that fills the wall gap, with the round window cut out of it
-      var half = 9 * Math.sin(0.38), zc = -9 * Math.cos(0.38), sh = new THREE.Shape(); sh.moveTo(-half - 0.05, 0); sh.lineTo(half + 0.05, 0); sh.lineTo(half + 0.05, 5.5); sh.lineTo(-half - 0.05, 5.5); sh.lineTo(-half - 0.05, 0);
-      var hole = new THREE.Path(); hole.absarc(0, 2.6, 3.1, 0, Math.PI * 2, true); sh.holes.push(hole);
+      // BIG PANORAMIC WINDOW (user, Nov 26: "the window behind the TV needs to be bigger"): the wall gap is now ±28.6° and the
+      // panel carries an 8 × 4.4 m rounded-rectangle opening, so space shows all round the TV
+      var WW = 8.0, WH = 4.4, WY = 2.75, WR = 0.7;
+      function rrPath(P, w, h, r, cy) { var x0 = -w / 2, y0 = cy - h / 2; P.moveTo(x0 + r, y0); P.lineTo(x0 + w - r, y0); P.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r); P.lineTo(x0 + w, y0 + h - r); P.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h); P.lineTo(x0 + r, y0 + h); P.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r); P.lineTo(x0, y0 + r); P.quadraticCurveTo(x0, y0, x0 + r, y0); return P; }
+      var half = 9 * Math.sin(0.5), zc = -9 * Math.cos(0.5), sh = new THREE.Shape(); sh.moveTo(-half - 0.05, 0); sh.lineTo(half + 0.05, 0); sh.lineTo(half + 0.05, 5.5); sh.lineTo(-half - 0.05, 5.5); sh.lineTo(-half - 0.05, 0);
+      var hole = rrPath(new THREE.Path(), WW, WH, WR, WY); sh.holes.push(hole);
       var pt = wallT.clone(); pt.repeat.set(1 / 1.2, 1 / 5.5); pt.needsUpdate = true;
       var pan = new THREE.Mesh(new THREE.ShapeGeometry(sh, 48), new THREE.MeshStandardMaterial({ map: pt, roughness: 0.62, metalness: 0.15 })); pan.position.z = zc; g.add(pan);
       // deck: polished dark plates + amber inlay rings
@@ -456,12 +452,16 @@
       var cove = new THREE.Mesh(new THREE.TorusGeometry(8.85, 0.04, 6, 192), amber); cove.rotation.x = Math.PI / 2; cove.position.y = 5.32; g.add(cove);
       // bevelled bronze ribs round the wall (clear of the window, the door, the plaques and slot lamps)
       var leg = soft(rr(0.24, 5.3, 0.05), 0.1, 0.03);
-      [32, 58, 112, 140, 160, -32, -45, -112, -140, -160].forEach(function (deg) {
+      [58, 112, 140, 160, -45, -112, -140, -160].forEach(function (deg) {   /* ±32° ribs removed: that's window now */
         var t2 = deg * Math.PI / 180, m = new THREE.Mesh(leg, bronze); m.position.set(8.94 * Math.sin(t2), 2.7, -8.94 * Math.cos(t2)); m.rotation.y = -t2; g.add(m);
         var l = new THREE.Mesh(new THREE.BoxGeometry(0.012, 4.9, 0.01), amber); l.position.set(8.86 * Math.sin(t2), 2.7, -8.86 * Math.cos(t2)); l.rotation.y = -t2; g.add(l);
       });
       // window ring trim in the bronze language
-      var wr = new THREE.Mesh(new THREE.TorusGeometry(3.15, 0.14, 12, 96), bronze); wr.position.set(0, 2.6, zc + 0.05); g.add(wr);
+      var fs = rrPath(new THREE.Shape(), WW + 0.36, WH + 0.36, WR + 0.18, WY); fs.holes.push(rrPath(new THREE.Path(), WW, WH, WR, WY));
+      var wr = new THREE.Mesh(new THREE.ExtrudeGeometry(fs, { depth: 0.14, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2, curveSegments: 10 }), bronze); wr.position.z = zc - 0.02; g.add(wr);
+      var glow = new THREE.Mesh(new THREE.ShapeGeometry((function () { var a = rrPath(new THREE.Shape(), WW + 0.1, WH + 0.1, WR + 0.05, WY); a.holes.push(rrPath(new THREE.Path(), WW - 0.06, WH - 0.06, WR - 0.03, WY)); return a; }()), 10), amber); glow.position.z = zc + 0.13; g.add(glow);
+      for (var mu = -1; mu <= 1; mu += 2) { var mull = new THREE.Mesh(new THREE.BoxGeometry(0.1, WH, 0.12), bronze); mull.position.set(mu * WW / 4, WY, zc + 0.02); g.add(mull); }   // two slim mullions
+      var gl2 = new THREE.Mesh(new THREE.PlaneGeometry(WW, WH), new THREE.MeshStandardMaterial({ color: 0x102030, transparent: true, opacity: 0.06, roughness: 0, metalness: 1 })); gl2.position.set(0, WY, zc - 0.05); g.add(gl2);
       // light speed outside: a frame turned so the ship's forward (+X in this room) is the streams' axis
       var outside = new THREE.Group(); outside.rotation.y = Math.PI / 2; sc.object3D.add(outside);
       var hs = window.WAYFARER.hyperspace(outside, { fwd: 1, arc: [-180, 180], count: (window.WAYFARER && window.WAYFARER.mobile) ? 900 : 1500, minR: 12, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9, seed: 55, center: [0, 2.6], planetDir: [1, 0.12, 0.3], lights: (function () { var e = document.getElementById('win-spill'), l = e && e.getObject3D('light'); return l ? [l] : []; }()) });
@@ -484,18 +484,9 @@
     }());
 
     // click: TV
-    document.querySelector('#tv-screen').addEventListener('click', function () {
-      document.getElementById('tv-panel').classList.add('open');
-      tvGo();
-    });
+    /* the TV is an ALIEN TV now (alien-tv.js): tapping flips channels instead of opening the old browser panel */
     // hover: TV
     const tvEl = document.querySelector('#tv-screen');
-    tvEl.addEventListener('mouseenter', function () {
-      tvEl.setAttribute('material', 'emissiveIntensity', 1.7);
-    });
-    tvEl.addEventListener('mouseleave', function () {
-      tvEl.setAttribute('material', 'emissiveIntensity', 0.9);
-    });
 
     // stars behind the window
     for (let i = 0; i < 280; i++) {

@@ -33,6 +33,7 @@
       'Vesper\u2019s console (port side) opens your Sons of Naphtali website: the live site, or the Reader tab.',
       'The brain is Halcyon, the ship\u2019s mind. Tap it to talk.']],
     ['🃏 Crew Lounge', [
+      'ALIEN TV: tap the big screen to flip channels: KNN news, Glorpo’s Kitchen, the space-whale nature hour, Cryovale weather, Bioship racing, a Mandible Mints ad, and the Talking Rock.',
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],
     ['🪑 The helm (Command Bridge)', [
       'The NAVIGATOR is the giant Milky Way hologram at the bow windows (a cyan pulse marks where you are). Tap it, or the captain’s chair, and you sit down first. When you navigate, the galaxy blooms and spins up.',
@@ -70,7 +71,7 @@
       'The planets’ scan facts each hide one oddity (Selenite hums at 41 Hz at sunrise; Mycelion may be a single organism).',
       'Red alert from the Bridge lights the whole ship.']],
     ['🛠️ Coming next', [
-            'Lounge: alien TV with a bigger window. More props everywhere.',
+            'More props everywhere, more varied bookshelves.',
       'BELOW DECK down the Library staircases: medbay, quarters, galley, cruiser hangar. Holodeck house builder. Busier space, new alien races, a packed Hiveport, and planet landings on foot.']]
   ];
   var css = document.createElement('style');
