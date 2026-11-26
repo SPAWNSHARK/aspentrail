@@ -52,7 +52,11 @@
     { id: 'order1', text: 'Give your crew an order from the Bridge', ev: 'order', n: 1 },
     { id: 'holo1', text: 'Play a Holodeck game', ev: 'holo', n: 1 },
     { id: 'holowin', text: 'Win a Holodeck game', ev: 'win:', n: 1 },
-    { id: 'buy', text: 'Buy something at a Hiveport shop', ev: 'buy', n: 1 }
+    { id: 'buy', text: 'Buy something at a Hiveport shop', ev: 'buy', n: 1 },
+    { id: 'dance', text: 'Hit the Hiveport dance floor', ev: 'dance', n: 1 },
+    { id: 'gamble', text: 'Try your luck at The Comb (gambling den)', ev: 'gamble', n: 2 },
+    { id: 'peace', text: 'Break up a bar brawl', ev: 'peace', n: 1 },
+    { id: 'bounty', text: 'Claim the Bounty Broker\u2019s bounty', ev: 'bounty', n: 1 }
   ];
   var REG = {};                                   // later features register more goals (WF_LIFE.addGoals)
   function pool() { return POOL.filter(function (g) { return !g.need || REG[g.need]; }); }

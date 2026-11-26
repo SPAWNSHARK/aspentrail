@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126n).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126o).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -213,7 +213,7 @@ Rules drawn from them:
   flash to station.html; ?from=station starts in the berth and backs out (undockSeq), turns 180° and hands control back.
 - **SHIP LIFE (Nov 26, user: "I'm bored, not enough to do") — 10-batch plan the user picked ALL of: 1 economy + daily goals + deck
   map [x], 2 Lounge cat play [x], 3 ship repairs + crew orders [x], 4 Holodeck games [x], 5 Hiveport shops + ship upgrades [x], 6 dance floor /
-  K'Vetar gambling / bar brawl + bounties, 7 card game with the crew, 8 science scans, 9 Captain's quarters + galley (behind the
+  K'Vetar gambling / bar brawl + bounties [x], 7 card game with the crew, 8 science scans, 9 Captain's quarters + galley (behind the
   Library's two SEALED wing doors), 10 story missions.** `life.js` (every page incl. station + minigame, after mobile/sound):
   WF_LIFE wallet (= 'wf-credits', shared with contracts), cargo 'wf-inv' (starter treats/laser/wand; +3 treats daily ration),
   event(name) → 3 daily goals/day ('wf-goals', seeded by local date, 150 cr each + 300 bonus; POOL = only things that exist —
@@ -244,6 +244,18 @@ Rules drawn from them:
   (PAINTS copper/gunmetal/verdigris/gold/crimson → uPaintA/B uniforms; 300 cr each, switching owned ones is free; shows in
   Flight Mode + Ship View). PURR & PLENTY = treats ×5 (40), catnip ×3 (90; cat menu 'Catnip': +12% trust, zoomies). ODDS & ENDS =
   5 curios (idol/chart/geode/tooth/model) kept in cargo for the future Captain's quarters trophy shelf. Events 'shop', 'buy'.
+  HIVEPORT GAMES (`hiveport-games.js`, loaded after station.html's script; uses window.HIVE = its NPCS/CROWD/AUD/play/talkTo/
+  alienSay/toast/openP/closeP/makeActor + HIVE.male {base,kit}; station's talkTo calls HIVE_GAMES.talkHook): DANCE FLOOR (x ±6,
+  z −9…−2.5 in front of the stage → .hg-btn DANCE → 32 beats + offbeats; clock = club loop's Web Audio time (AUD.musicAt) chosen ONCE
+  per round, else page clock; PERFECT ±70 ms 100 / GOOD ±140 ms 50; nearby NPCs dance, cheer every 8 combo; pays ≤80 cr; 'wf-dance-best';
+  event 'dance'). THE COMB (tap the 6 GAMING-zone consoles ≤5 m → #hg-den: Hive Dice vs the house, triples ×4 total / Honey Wheel
+  amber·jade ×2, violet ×5; bets 10/50/100; 'gamble', 'gamblewin'). BRAWLS (every 2.5–5 min the closest pair of NPCs <3 m apart
+  shove each other for 40 s: tap → Break it up (shrinking-ring timing ×4, ≥3 good = +40 cr, 'peace') / Join in / Walk away;
+  soldiers & generals offer "Fancy a fight?"). FISTFIGHT #hg-fight: stance GUARD / OPEN! (PUNCH) / SWING! (BLOCK ≤0.6 s), you 5 HP,
+  them 3–4 (bounty 5); win +50 cr 'brawlwin', lose ≤30 cr. NPC animation is driven by setting e.a.state (station's loop plays
+  a.state every frame) with a.wait large to freeze the crowd agent. BOUNTIES: broker NPC (black-eyed general) + red BOUNTIES sign at
+  (4.2, 20.6) by the airlock; one WANTED K'Vetar a day ('wf-bounty' {day, accepted, done}; name/crest/eyes/crime seeded by date);
+  accepting spawns them as an extra crowd member with that variant; talk → "You're coming with me" → fistfight → 200 cr, 'bounty'.
 - **LIVING CREW (Nov 26, SS_Wayfarer_Living_Crew_Expansion.zip; START_HERE + Integration.pdf in reference/living-crew/)** — `crew.js`
   (every room page, after door.js; auto-attaches `wf-crew`) runs the kit's engine (crew/crew-engine.mjs + roster.mjs, vendored
   UNCHANGED) for 6 droids (Aster nav, Forge eng, Vesper sci, Echo com, Sentinel tac, Prism sen; models/crew/Droid_*_Living.glb) and

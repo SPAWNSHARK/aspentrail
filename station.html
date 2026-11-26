@@ -14,12 +14,12 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126n"></script>
-  <script src="life.js?v=20261126n"></script>
-  <script src="sound.js?v=20261126n"></script>
-  <script src="avatar.js?v=20261126n"></script>
-  <script src="lcars.js?v=20261126n"></script>
-  <script src="missions.js?v=20261126n"></script>
+  <script src="mobile.js?v=20261126o"></script>
+  <script src="life.js?v=20261126o"></script>
+  <script src="sound.js?v=20261126o"></script>
+  <script src="avatar.js?v=20261126o"></script>
+  <script src="lcars.js?v=20261126o"></script>
+  <script src="missions.js?v=20261126o"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -115,7 +115,7 @@
       var g = ctx.createGain(); g.gain.value = q[1]; g.connect(master);
       AUD[q[0]] = { set volume(v) { g.gain.setTargetAtTime(v, ctx.currentTime, 0.4); } };
       decode(q[0], 'm4a').catch(function () { return decode(q[0], 'mp3'); })
-        .then(function (buf) { var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); src.start(); AUD.playing = (AUD.playing || 0) + 1; })
+        .then(function (buf) { var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); src.start(); if (q[0] === 'hiveport_club_loop') { AUD.musicAt = ctx.currentTime; AUD.musicLen = buf.duration; } AUD.playing = (AUD.playing || 0) + 1; })
         .catch(function (e) { console.warn('hiveport audio', q[0], e); });
     });
     function wake() { if (ctx.state !== 'running') ctx.resume(); }
@@ -279,6 +279,7 @@
   }
   document.getElementById('shop-close').addEventListener('click', function () { closeP('shop'); });
   function buildShops(base, kit) {
+    window.HIVE.male = { base: base, kit: kit };
     var chit = new THREE.MeshStandardMaterial({ color: 0x1d3a2a, roughness: 0.45, metalness: 0.4 }), brass = new THREE.MeshStandardMaterial({ color: 0xc09048, roughness: 0.3, metalness: 0.9 });
     SHOPS.forEach(function (S) {
       var g = new THREE.Group(); g.position.set(-45.9, 0, S.z); g.rotation.y = Math.PI / 2; g.userData.noCollide = true; sc.object3D.add(g);   // faces +x
@@ -330,6 +331,7 @@
     document.getElementById('talk-line').textContent = '“' + pick(DLG.greetings) + '”';
     var list = document.getElementById('talk-list'); list.innerHTML = '';
     DLG.playerPrompts.forEach(function (q) { var b = document.createElement('button'); b.textContent = q; b.onclick = function () { answer(q); }; list.appendChild(b); });
+    if (window.HIVE_GAMES && HIVE_GAMES.talkHook) HIVE_GAMES.talkHook(e, list);    /* bounty target / pick a fight */
     openP('talk');
   }
   function answer(q) {
@@ -384,6 +386,9 @@
     var c = sc.camera; c.el.object3D.getWorldPosition(_vp); var d = Math.hypot(x - _vp.x, z - _vp.z); if (d > 22 && !loud) return;
     _vp.set(x, 1.7, z).project(c); WF_SOUND.alien(kind || null, Math.max(-1, Math.min(1, _vp.x)) * 0.8, (loud ? 1.2 : 0.9) / (1 + d / 5));
   }
+  // shared with hiveport-games.js (dance floor, gambling den, brawls, bounties)
+  window.HIVE = { get NPCS() { return NPCS; }, get CROWD() { return CROWD; }, get LAYOUT() { return LAYOUT; }, get AUD() { return AUD; }, get BAR() { return BAR; },
+    play: play, talkTo: function (e) { talkTo(e); }, alienSay: alienSay, toast: toast, openP: openP, closeP: closeP, sfx: sfx, makeActor: makeActor, invisibleBox: invisibleBox, sc: sc, talking: function () { return talking; } };
   var DRINK_STATES = ['Drink_Sip', 'Serve_Drink', 'Reach_Grab', 'Toast'], P2 = [0, 0], tmp = new THREE.Vector3();
   AFRAME.registerComponent('wf-hive', {
     init: function () { if (sc.hasLoaded) build(); else sc.addEventListener('loaded', build);
@@ -422,5 +427,6 @@
   }
 }());
 </script>
+<script src="hiveport-games.js?v=20261126o"></script>
 </body>
 </html>
