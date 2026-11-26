@@ -1,7 +1,7 @@
 // SS Wayfarer — INTERIOR RESTYLE: Architecture V8 (user, Nov 26: "the interior of both ships has to change"; exteriors, droids and the
 // Captain stay copper). One shared pass on every interior page (Wayfarer rooms + the Firefly cabin), re-run while models stream in:
 //   • warm copper/bronze/walnut/leather materials → V8 graphite / gunmetal / charcoal; thin trims stay copper (V8's accent line)
-//   • amber/orange emissive glows → V8 white; warm lights → neutral white (same intensities), warm fog → neutral
+//   • amber/orange emissive glows → V8 white; warm lights → neutral white (preserve intensity); V9 neutral fill, warm fog → neutral
 //   • big floors / walls / ceilings (≥ 10 m²) get V8's tiled base + normal + roughness maps (arch-v8/textures; deck kind per room)
 // Never touched: anything under userData.wfPortal (crew, cats, the avatar, door portals), userData.keepLook (screens, art, shelves, the
 // brain), the Firefly's Exterior_Shell / Gear_*, ShaderMaterials, transparent/additive glass and effects, basic-material signage.
@@ -54,8 +54,23 @@
   }
   function pass() {
     var sc = document.querySelector('a-scene'); if (!sc || !sc.object3D) return;
+    // WF_V9_BRIGHT_INTERIORS: neutral, non-shadow-casting fill for readable interiors.
+    // One light per scene, including re-runs as models stream in.
+    if (!sc.object3D.getObjectByName('WF_V9_InteriorFill')) {
+      var fill = new THREE.HemisphereLight(0xfff4e6, 0x929ba8, 0.65);
+      fill.name = 'WF_V9_InteriorFill';
+      fill.userData.v8Skip = true;
+      sc.object3D.add(fill);
+    }
     sc.object3D.traverse(function (o) {
-      if (o.isLight) { if (done.has(o)) return; done.set(o, 1); if (o.color && warm(o.color) && !skip(o)) { o.color.copy(PAL.neutral); o.intensity *= o.isHemisphereLight ? 0.7 : 0.5; }   /* amber on walnut → white on grey reads ~2× brighter */ if (o.isHemisphereLight && o.groundColor) o.groundColor.set(0x14171b); return; }
+      if (o.isLight) {
+        if (done.has(o) || skip(o)) return;
+        done.set(o, 1);
+        if (o.color && warm(o.color)) o.color.copy(PAL.neutral);
+        // Preserve authored light intensity. Do not dim existing fixtures.
+        if (o.isHemisphereLight && o.groundColor) o.groundColor.set(0x858b93);
+        return;
+      }
       if (!o.isMesh || done.get(o) === o.material || skip(o)) return;   /* re-check whenever A-Frame swaps a material in */
       o.material = Array.isArray(o.material) ? o.material.map(function (m) { return restyle(m, o); }) : restyle(o.material, o); done.set(o, o.material);
     });

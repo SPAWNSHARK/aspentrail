@@ -484,6 +484,10 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   cat notices) — its own panels/arcade/journal/wardrobe/refreshments/discoveries; saves 'wayfarer.captain.v1'; star field through the open
   ceiling aperture. Not yet: cats actually visiting the Quarters (crew.js has no quarters graph), real outfit change on the Mk II suit,
   planetside pass-out → wake in the Medbay recovery pod.
+- [x] BRIGHT INTERIORS V9 (Nov 26, user: "lighting across both decks is too dim"; reference/bright-interiors-v9/): its patch applied to
+  interior-v8.js (guarded, idempotent) — converted warm lights keep their authored intensity (no more ×0.5), hemisphere ground lifted to
+  0x858b93, one non-shadow neutral fill HemisphereLight 'WF_V9_InteriorFill' (0.65) per interior scene. Exposure unchanged (1.1).
+  Renders: atrium, Bridge, Lounge, Mess brighter, no clipping. NOT checked on iPhone.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
