@@ -500,6 +500,11 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
 - [x] OTHER ALIEN SPECIES (Nov 26; Argo species V2 pack → hiveport/species/*_v2_01.glb, docs in reference/species-v2/): Khorath, Velari,
   Thalassari, Morren, Nethrak, Serva-7 join the Hiveport crowd (3 on phones, 6 desktop) as CROWD agents with the K'Vetar; Walk aliased to
   Walk_InPlace; tap → talk panel titled with the species and its own line. Only variant 01 of each is loaded.
+- [x] DIRT REALISM (Nov 26; Wayfarer Realism V9 → realism/src/realism.mjs + only the small decal/sprite PNGs; docs in reference/realism-v9/):
+  realism-loader.js on all 13 interior pages (2.5 s after load): dust-mote volume around the spawn, 7 (14 in engine/maint/hangar) grime /
+  scuff / oil / dust / microbe decals on real floor hits, boot prints while walking the dirty decks (engine, maint, firefly, lower atrium),
+  vent smoke in the Engine Room and Maintenance. Pack footstep audio OFF (avatar already steps). Floor rays only hit real meshes (sprites
+  broke raycasts). The pack's 14 MB of PBR material textures are NOT used.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.

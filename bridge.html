@@ -734,5 +734,6 @@
       o.material = arr.map(function (m) { if (!m.isMeshStandardMaterial || m.transparent) return m; var c = m.clone(); c.color.setHex(0xe09a68); c.metalness = 0.92; c.roughness = 0.3; c.envMapIntensity = 0.8; return c; });
       if (!Array.isArray(o.material) || o.material.length === 1) o.material = Array.isArray(o.material) ? o.material[0] : o.material; }); }());</script>
   <script src="interior-v8.js?v=20261127u"></script>
+  <script src="realism-loader.js?v=20261127v"></script>
 </body>
 </html>

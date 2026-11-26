@@ -1,0 +1,18 @@
+{
+  "version": 9,
+  "requires": "Existing Three.js scene and V8 architecture; host integration required",
+  "textures": 27,
+  "audio_clips": 28,
+  "validation": [
+    "PNG decode",
+    "WAV metadata",
+    "JavaScript syntax (Node)",
+    "ZIP integrity"
+  ],
+  "not_validated": [
+    "live rendering",
+    "iOS Safari gameplay",
+    "V8 mesh-specific UV alignment",
+    "repository integration"
+  ]
+}
