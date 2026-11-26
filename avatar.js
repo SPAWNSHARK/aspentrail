@@ -63,9 +63,13 @@
       sc.object3D.add(this.J.root);
       // the user's EXPLORER suit (models/player/explorer.glb, skinned, Idle + Walk_InPlace) replaces the procedural figure once
       // it loads; walk/idle blend by real speed. Model forward = +Z, ours = −Z → turned 180°. Falls back to the procedural body.
-      var self2 = this, holder = document.createElement('a-entity'); holder.setAttribute('gltf-model', 'models/player/explorer_command.glb?v=1');   // + Sit_Down, Stand_Up, Seated_Idle (navigation kit)
+      var self2 = this, holder = document.createElement('a-entity'); holder.setAttribute('gltf-model', 'models/player/explorer_mk2.glb?v=2');
+      holder.addEventListener('model-error', function () { if (!holder._wfFallback) { holder._wfFallback = true; holder.setAttribute('gltf-model', 'models/player/explorer_command.glb?v=1'); } });   // + Sit_Down, Stand_Up, Seated_Idle (navigation kit)
       holder.addEventListener('model-loaded', function () {
-        var m = holder.getObject3D('mesh'), clips = m.animations || [];
+        var m = holder.getObject3D('mesh'); if (!m) return; var clips = m.animations || [];
+        // Warm ship lighting can leave metallic armor black: reuse the room reflection map if available.
+        var env = sc.object3D.environment || (window.WF_KIT && WF_KIT.M && WF_KIT.M.copper && WF_KIT.M.copper.envMap);
+        if (env) m.traverse(function (o) { if (!o.isMesh) return; [].concat(o.material || []).forEach(function (mat) { if (mat.isMeshStandardMaterial && mat.metalness > .35 && !mat.envMap) { mat.envMap = env; mat.envMapIntensity = .85; mat.needsUpdate = true; } }); });
         var box = new THREE.Group(); box.rotation.y = Math.PI; box.add(m); m.traverse(function (o) { if (o.isMesh) o.frustumCulled = false; });
         self2.J.hips.visible = false; self2.J.root.add(box);
         var mx = new THREE.AnimationMixer(m), idle = THREE.AnimationClip.findByName(clips, 'Idle'), walk = THREE.AnimationClip.findByName(clips, 'Walk_InPlace');
@@ -73,7 +77,7 @@
         [self2.kit.idle, self2.kit.walk].forEach(function (a) { if (a) { a.play(); a.setEffectiveWeight(0); } });
       });
       sc.appendChild(holder);
-      this.phase = 0; this.speed = 0; this.yaw = 0; this.last = null; this.hidden = false; this.dist = 0;
+      this.phase = 0; this.speed = 0; this.yaw = 0; this.stepClock = 0; this._camProbeAt = -1; this._camScanAt = -1; this.last = null; this.hidden = false; this.dist = 0;
       var v = 'first'; try { v = localStorage.getItem('wf-view') || 'first'; } catch (e) {} this.view = v;
       // the toggle: in the touch button row if there is one, else its own small glass button
       var b = document.createElement('b'); b.id = 'wf-view'; b.setAttribute('aria-label', 'Camera view');
@@ -101,6 +105,30 @@
     toggle: function () { this.view = this.view === 'third' ? 'first' : 'third'; try { localStorage.setItem('wf-view', this.view); } catch (e) {} this.apply(); },
     apply: function () { if (this.btn) this.btn.classList.toggle('sel', this.view === 'third'); },
     cameraEl: function () { return this.el.camera && this.el.camera.el; },
+    // WAYFARER_PLAYER_MK2: follow the actual room geometry, not the legacy corridor rectangle.
+    cameraClearance: function (t, origin, quaternion, up, back) {
+      if (!this._camRay) { this._camRay = new THREE.Raycaster(); this._camDir = new THREE.Vector3(); this._camMeshes = []; }
+      if (t >= this._camScanAt) {
+        this._camScanAt = t + 1500; var list = [], own = this.J.root, camera = this.cameraEl().object3D;
+        this.el.object3D.traverse(function (o) {
+          if (!o.isMesh || !o.geometry || o.isInstancedMesh || o.isSkinnedMesh || !o.visible) return;
+          for (var q = o; q; q = q.parent) { if (q === own || q === camera || !q.visible || (q.userData && (q.userData.noCollide || q.userData.wfPortal))) return; }
+          var materials = [].concat(o.material || []);
+          if (!materials.length || materials.every(function (m) { return !m.visible || (m.transparent && m.opacity < .3); })) return;
+          list.push(o);
+        }); this._camMeshes = list;
+      }
+      var dir = this._camDir.set(0, up, back).applyQuaternion(quaternion), len = dir.length(); if (len < .01) return 0;
+      dir.multiplyScalar(1 / len);
+      // 15 Hz probe; keep the last result only while the view is nearly unchanged.
+      if (t >= this._camProbeAt || !this._camOrigin || this._camOrigin.distanceToSquared(origin) > .0225 || this._camPrevDir.dot(dir) < .985 || Math.abs(this._camLen - len) > .15) {
+        this._camProbeAt = t + 66; this._camOrigin = (this._camOrigin || new THREE.Vector3()).copy(origin); this._camPrevDir = (this._camPrevDir || new THREE.Vector3()).copy(dir); this._camLen = len;
+        this._camRay.set(origin, dir); this._camRay.near = .04; this._camRay.far = len + .13;
+        var hits = this._camRay.intersectObjects(this._camMeshes, false); var hit = hits.find(function (h) { for (var q = h.object; q; q = q.parent) { if (!q.visible) return false; } return true; });
+        this._camRatio = hit ? Math.max(0, Math.min(1, (hit.distance - .18) / len)) : 1;
+      }
+      return back * this._camRatio;
+    },
     tick: function (t, dt) {
       var cel = this.cameraEl(); if (!cel) return; var cam3 = cel.getObject3D('camera'); if (!cam3) return;
       var J = this.J, s = Math.min(dt || 16, 50) / 1000, o = cel.object3D, wp = this._wp || (this._wp = new THREE.Vector3());
@@ -123,16 +151,19 @@
       // speed from how far the player actually moved this frame
       if (!this.last) this.last = wp.clone();
       var dx = wp.x - this.last.x, dz = wp.z - this.last.z, d = Math.hypot(dx, dz); this.last.copy(wp);
-      var sp = d > 1.2 ? 0 : d / Math.max(s, 1e-3); this.speed += (Math.min(sp, 4) - this.speed) * Math.min(1, s * 8);
+      var sp = d > 1.2 ? 0 : d / Math.max(s, 1e-3); this.speed += (Math.min(sp, 4) - this.speed) * (1 - Math.exp(-s * (sp > this.speed ? 9 : 13)));
+      if (sp === 0 && this.speed < .045) this.speed = 0;
       // facing: toward the walk direction when moving, else the way the camera looks
       var e = new THREE.Euler().setFromQuaternion(o.getWorldQuaternion(this._q || (this._q = new THREE.Quaternion())), 'YXZ'), want = e.y;
       if (this.speed > 0.3 && d > 1e-4) want = Math.atan2(-dx, -dz);
       var df = Math.atan2(Math.sin(want - this.yaw), Math.cos(want - this.yaw)); this.yaw += df * Math.min(1, s * 9);
       if (!SC) { J.root.position.set(wp.x, wp.y - 1.6, wp.z); J.root.rotation.y = this.yaw; }
       if (SC) {} else if (this.kit) {                                       // kit avatar: blend idle → walk, stride rate follows speed
-        var kw = Math.min(1, this.speed / 1.6); if (this.kit.walk) { this.kit.walk.setEffectiveWeight(kw); this.kit.walk.setEffectiveTimeScale(0.6 + this.speed * 0.45); }
+        var kw = Math.min(1, this.speed / 1.35), rate = Math.max(.35, Math.min(2.2, this.speed / 1.22)); kw = kw * kw * (3 - 2 * kw);
+        if (this.kit.walk) { this.kit.walk.setEffectiveWeight(kw); this.kit.walk.setEffectiveTimeScale(rate); }
         if (this.kit.idle) this.kit.idle.setEffectiveWeight(1 - kw); this.kit.mx.update(s);
-        var ph1 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4); if (this.speed > 0.6 && Math.floor(this.phase) !== ph1 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step();
+        // Two foot contacts per cycle, tied to clip cadence rather than an unrelated timer.
+        if (this.speed > .25 && this.kit.walk) { var cycle = this.kit.walk.getClip().duration, prev = Math.floor(this.stepClock); this.stepClock += s * rate * 2 / Math.max(.1, cycle); if (Math.floor(this.stepClock) !== prev && this.speed > .55 && window.WF_SOUND && !this.el.is('vr-mode')) WF_SOUND.step(); } else this.stepClock = 0;
       } else {
       // walk cycle
       var k = Math.min(1, this.speed / 2.6), ph0 = Math.floor(this.phase); this.phase += s * (2.2 + this.speed * 2.4);
@@ -153,12 +184,14 @@
         back = 2.4; up = SC && SC.up ? SC.up : 0.45;   /* seated: lift the lens so you see over the chair back */ var R = 0, mob = this.el.components['wayfarer-mobile']; if (mob) R = mob.data.radius;
         var fx = Math.sin(e.y), fz = Math.cos(e.y);                // camera's backward direction in XZ
         for (var i = 0; i < 12; i++) {
-          var cx = wp.x + fx * back, cz = wp.z + fz * back, BB = window.WAYFARER.bounds, ok = BB ? !window.WAYFARER.clampPoly(BB, cx, cz, 0.35) : R > 0 ? Math.hypot(cx, cz) < R - 0.35 : (Math.abs(cx) < 2.3 && Math.abs(cz) < 12.3);
+          var cx = wp.x + fx * back, cz = wp.z + fz * back, BB = window.WAYFARER.bounds, ok = BB && window.WAYFARER.clampPoly ? !window.WAYFARER.clampPoly(BB, cx, cz, 0.35) : R > 0 ? Math.hypot(cx, cz) < R - 0.35 : true;
           if (ok) break; back *= 0.8;
         }
-        if (back < 1.1) { back = 0; up = 0; third = false; J.root.visible = false; }   // no room behind you (doorways, walls): drop to 1st person
+        back = this.cameraClearance(t, wp, this._q, up * back / 2.4, back);
+        if (back < .85) { back = 0; up = 0; third = false; J.root.visible = !!(SC && SC.show); }   // no room behind you (doorways, walls): drop to 1st person
       }
-      this.dist += (back - this.dist) * Math.min(1, s * 6);
+      // Retract immediately to avoid clipping, ease outward after the obstruction clears.
+      this.dist = back < this.dist ? back : this.dist + (back - this.dist) * (1 - Math.exp(-s * 8));
       cam3.position.set(0, up * (this.dist / 2.4), this.dist);
     }
   });

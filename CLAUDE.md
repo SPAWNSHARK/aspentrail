@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127n).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127o).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -419,6 +419,13 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   console_work / duty_complete / seated_home, no socialising during alerts, talk interrupts work and resumeDuty() resumes it, dialogue
   extension: role greetings + 'Recent duty log' / 'Maintenance register' / 'Personal log' choices); crew.js mixer: droid walk → Run_InPlace
   above 1.65 m/s (warp-alert dash) with time-scaled gait; engine import ?v=3. tests/droid-v2.test.mjs (node --test) 5/5 pass.
+- [x] PLAYER CHARACTER MK II (Nov 26, user's Player_Character.zip; README + installer in reference/player-mk2/): installer RUN (check, then
+  apply) → avatar.js loads models/player/explorer_mk2.glb (≈1.86 m articulated suit, Idle/Walk_InPlace/Sit_Down/Stand_Up/Seated_Idle) with
+  explorer_command.glb kept as the model-error FALLBACK; smoother speed + walk blend, footsteps on clip cadence; 3rd-person camera
+  clearance = 15 Hz ray probe against real room meshes (old corridor rectangle removed), retracts instantly, eases out. The installer's
+  avatar.js?v=player-mk2-2 tags were normalised back to our date version. Headless tests (3rd person): atrium upper walk, stairs (camera
+  pulled in to ~1 m), lower deck, Firefly cabin, Bridge sit → seated → stand; no errors. NOT verified: real iPhone Safari frame rate
+  (swiftshader isn't representative), seat/hip calibration in the chair.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.
