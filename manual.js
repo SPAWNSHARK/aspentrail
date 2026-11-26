@@ -26,8 +26,12 @@
       'Every 5–11 minutes Forge reports a fault somewhere aboard: a sparking conduit, coolant leak or failing power relay in a floor hatch. ⚠ marks it on the deck map.',
       'Walk to it, tap it, and trace the circuit: tap the numbered nodes in order before the bar runs out. +80 cr.']],
     ['🎮 Holodeck', [
-      'SIM LIBRARY on the centre console: TARGET RANGE (tap the drifting orbs — gold 50, violet 10, red −20, combo ×2 after five), QUICK DRAW (wait for DRAW!, tap first; early = foul; best of five), HOLO GOLF (face the flag, hold to charge, release to putt; the console in the middle is solid), STAR GARDEN.',
+      'SIM LIBRARY on the centre console: TARGET RANGE (tap the drifting orbs — gold 50, violet 10, red −20, combo ×2 after five), QUICK DRAW (wait for DRAW!, tap first; early = foul; best of five), HOLO GOLF (face the flag, hold to charge, release to putt; the console in the middle is solid).',
       'The HOUSE PLANNER terminal on the port wall opens the blueprint planner.']],
+    ['📚 The Library', [
+      'STAR MAP: tap the bronze lectern at the centre of the glass floor. The galaxy unfolds across the dome above you; drag to spin it, pinch or scroll to zoom. Each charted system shows its worlds\u2019 emoji, and a cyan ring marks where the Wayfarer is.',
+      'Vesper\u2019s console (port side) opens your Sons of Naphtali website: the live site, or the Reader tab.',
+      'The brain is Halcyon, the ship\u2019s mind. Tap it to talk.']],
     ['🃏 Crew Lounge', [
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],
     ['🪑 The helm (Command Bridge)', [
@@ -66,7 +70,7 @@
       'The planets’ scan facts each hide one oddity (Selenite hums at 41 Hz at sunrise; Mycelion may be a single organism).',
       'Red alert from the Bridge lights the whole ship.']],
     ['🛠️ Coming next', [
-            'Library: galaxy map across the ceiling, your WordPress site on a console. Lounge: alien TV with a bigger window. More props everywhere.',
+            'Lounge: alien TV with a bigger window. More props everywhere.',
       'BELOW DECK down the Library staircases: medbay, quarters, galley, cruiser hangar. Holodeck house builder. Busier space, new alien races, a packed Hiveport, and planet landings on foot.']]
   ];
   var css = document.createElement('style');
