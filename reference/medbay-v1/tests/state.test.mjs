@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {MedbayState} from '../src/medbay-state.mjs';
+test('door and privacy toggles',()=>{const s=new MedbayState();s.interact('door_button');s.interact('privacy');assert.equal(s.door,true);assert.equal(s.privacy,true);s.interact('door_button');assert.equal(s.door,false);});
+test('scan completion and busy handling',()=>{const s=new MedbayState();assert.equal(s.interact('bed_a').type,'job_start');assert.equal(s.interact('lab').type,'busy');s.tick(6);assert.equal(s.job,null);assert.equal(s.history.at(-1).kind,'scan');});
+test('recovery consumes inventory and caps health',()=>{const s=new MedbayState();s.setHealth(80);s.interact('pod');assert.equal(s.supplies,5);assert.equal(s.interact('canopy').type,'busy');s.tick(12);assert.equal(s.health,100);assert.equal(s.canopy,true);});
+test('inventory cannot go below zero',()=>{const s=new MedbayState();for(let i=0;i<6;i++)s.interact('cabinet');assert.equal(s.interact('pod').type,'empty');assert.equal(s.supplies,0);});
+test('cancel recovery safely opens canopy',()=>{const s=new MedbayState();s.interact('pod');assert.equal(s.cancel(),true);assert.equal(s.canopy,true);assert.equal(s.job,null);});
+test('xeno and lab jobs emit completion',()=>{const s=new MedbayState();s.interact('vet');s.tick(5);assert.equal(s.history.at(-1).kind,'xeno_scan');s.interact('lab');s.tick(8);assert.equal(s.history.at(-1).kind,'analyze');});

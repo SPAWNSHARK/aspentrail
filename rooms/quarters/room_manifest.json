@@ -1,0 +1,268 @@
+{
+  "version": "1.0.0",
+  "units": "metres",
+  "axis": "Y-up",
+  "roomSize": [
+    10,
+    3.2,
+    8
+  ],
+  "entry": [
+    0,
+    0,
+    3.8
+  ],
+  "spawn": [
+    0,
+    0,
+    2.9
+  ],
+  "models": [
+    "room_shell",
+    "entry_door",
+    "bed",
+    "lounge_sofa",
+    "coffee_table",
+    "rug",
+    "media_screen",
+    "remote",
+    "desk",
+    "desk_chair",
+    "holotable",
+    "refreshment_station",
+    "mug",
+    "cat_tree",
+    "cat_bed",
+    "display_case",
+    "plant",
+    "wardrobe",
+    "arcade_console",
+    "collectible_crystal",
+    "captains_quarters_assembled"
+  ],
+  "placements": [
+    {
+      "model": "room_shell",
+      "id": "shell",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "entry_door",
+      "id": "entry",
+      "position": [
+        0,
+        0,
+        3.79
+      ],
+      "yaw": 3.141592653589793
+    },
+    {
+      "model": "bed",
+      "id": "bed",
+      "position": [
+        3.38,
+        0,
+        -2.53
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "lounge_sofa",
+      "id": "sofa",
+      "position": [
+        -2.55,
+        0,
+        1.18
+      ],
+      "yaw": -1.5707963267948966
+    },
+    {
+      "model": "rug",
+      "id": "rug",
+      "position": [
+        -3.5,
+        0.02,
+        1.18
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "coffee_table",
+      "id": "coffee",
+      "position": [
+        -3.65,
+        0.04,
+        1.18
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "media_screen",
+      "id": "media",
+      "position": [
+        -4.72,
+        0,
+        1.18
+      ],
+      "yaw": 1.5707963267948966
+    },
+    {
+      "model": "remote",
+      "id": "remote",
+      "position": [
+        -3.55,
+        0.5,
+        1.0
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "desk",
+      "id": "desk",
+      "position": [
+        2.66,
+        0,
+        2.57
+      ],
+      "yaw": 3.141592653589793
+    },
+    {
+      "model": "desk_chair",
+      "id": "chair",
+      "position": [
+        2.66,
+        0,
+        1.58
+      ],
+      "yaw": 3.141592653589793
+    },
+    {
+      "model": "holotable",
+      "id": "holo",
+      "position": [
+        0,
+        0,
+        -0.65
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "refreshment_station",
+      "id": "refresh",
+      "position": [
+        -3.64,
+        0,
+        -3.4
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "mug",
+      "id": "mug",
+      "position": [
+        -3.16,
+        1.0,
+        -3.17
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "cat_tree",
+      "id": "cat_tree",
+      "position": [
+        -2.01,
+        0,
+        -2.95
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "cat_bed",
+      "id": "cat_bed",
+      "position": [
+        -1.95,
+        0,
+        -2.05
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "display_case",
+      "id": "display",
+      "position": [
+        0.45,
+        0,
+        -3.63
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "plant",
+      "id": "plant_a",
+      "position": [
+        -4.55,
+        0,
+        2.92
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "plant",
+      "id": "plant_b",
+      "position": [
+        4.48,
+        0,
+        0.28
+      ],
+      "yaw": 0
+    },
+    {
+      "model": "wardrobe",
+      "id": "wardrobe",
+      "position": [
+        -1.63,
+        0,
+        3.57
+      ],
+      "yaw": 3.141592653589793
+    },
+    {
+      "model": "arcade_console",
+      "id": "arcade",
+      "position": [
+        4.5,
+        0,
+        -0.08
+      ],
+      "yaw": -1.5707963267948966
+    },
+    {
+      "model": "collectible_crystal",
+      "id": "crystal",
+      "position": [
+        0.05,
+        1.91,
+        -3.6
+      ],
+      "yaw": 0
+    }
+  ],
+  "skylight": {
+    "center": [
+      0,
+      3.23,
+      0
+    ],
+    "size": [
+      4.6,
+      3.6
+    ],
+    "useHostSpaceView": true
+  },
+  "assumption": "Proposed new room footprint; confirm hull and corridor alignment before integration."
+}

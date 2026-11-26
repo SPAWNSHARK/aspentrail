@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: door and privacy toggles
+ok 1 - door and privacy toggles
+  ---
+  duration_ms: 1.970165
+  type: 'test'
+  ...
+# Subtest: scan completion and busy handling
+ok 2 - scan completion and busy handling
+  ---
+  duration_ms: 0.280466
+  type: 'test'
+  ...
+# Subtest: recovery consumes inventory and caps health
+ok 3 - recovery consumes inventory and caps health
+  ---
+  duration_ms: 1.451539
+  type: 'test'
+  ...
+# Subtest: inventory cannot go below zero
+ok 4 - inventory cannot go below zero
+  ---
+  duration_ms: 0.201962
+  type: 'test'
+  ...
+# Subtest: cancel recovery safely opens canopy
+ok 5 - cancel recovery safely opens canopy
+  ---
+  duration_ms: 0.673457
+  type: 'test'
+  ...
+# Subtest: xeno and lab jobs emit completion
+ok 6 - xeno and lab jobs emit completion
+  ---
+  duration_ms: 0.465064
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.175136
+GLB decoded: biobed.glb
+GLB decoded: ceiling.glb
+GLB decoded: door_button.glb
+GLB decoded: door_leaf.glb
+GLB decoded: droid_dock.glb
+GLB decoded: exam_lamp.glb
+GLB decoded: floor.glb
+GLB decoded: instrument_trolley.glb
+GLB decoded: lab_bench.glb
+GLB decoded: med_dispenser.glb
+GLB decoded: med_droid.glb
+GLB decoded: medbay_assembled.glb
+GLB decoded: medical_console.glb
+GLB decoded: medkit.glb
+GLB decoded: oxygen_cylinder.glb
+GLB decoded: pod_canopy.glb
+GLB decoded: privacy_screen.glb
+GLB decoded: recovery_pod.glb
+GLB decoded: scanner_arch.glb
+GLB decoded: supply_cabinet.glb
+GLB decoded: visitor_chair.glb
+GLB decoded: wall_monitor.glb
+GLB decoded: walls.glb
+GLB decoded: xeno_vet_bed.glb

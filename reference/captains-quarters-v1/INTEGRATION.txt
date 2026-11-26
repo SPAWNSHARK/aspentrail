@@ -1,0 +1,31 @@
+SS WAYFARER | CAPTAIN'S QUARTERS V1
+Add as a new room pack; do not overwrite existing ship assets.
+
+1. Copy this folder into your project, preserving models/ and runtime/.
+2. Import installCaptainsQuarters from runtime/captains-quarters.mjs in the existing Three.js scene.
+3. Pass the existing THREE namespace, GLTFLoader instance, scene, camera, renderer, and optional position/yaw.
+   Example (inside your existing async room initialization):
+   const suite = await installCaptainsQuarters({THREE, loader, scene, camera, renderer,
+       position: [0,0,0], yaw: 0, hooks: { /* host adapters */ }});
+   In your existing animation loop: suite.update(deltaSeconds).
+   On room unload: suite.dispose().
+4. Use the room manifest to match the 10 x 8 m prototype footprint to your actual ship. Entrance is local +Z; floor is Y=0. Do not add a second deck. The ceiling aperture is open and intended for the existing exterior sky/planet renderer. No side windows.
+5. Bind hooks to your existing controllers; do not create duplicate TV/NPC systems.
+   registerColliders(boxes, room): transform local AABBs to host coordinates; register furniture/walls.
+   onDoor(open, exitWorld): update moving door collision and host navigation; entry must be closed/blocked initially by host.
+   registerRoom({room,anchors,activate,worldPoint,skylight}): wire minimap/navigation/skylight.
+   unregisterRoom(room): remove the room's colliders/nav registration.
+   exit(worldPosition): return to existing corridor.
+   playerPose(pose, worldPosition, yaw): adapt sit/sleep/stand to your animation rig and camera.
+   playerAction(action, worldPosition): drinking animation.
+   setOutfit(outfit): change current avatar appearance.
+   inviteCat(worldPosition, id), petCat(worldPosition): schedule NPC pathing and animation.
+   setTVChannel(index, label): reuse existing media/TV controller, stream and screen texture.
+   openGalaxyMap(): reuse existing bridge map and destination selection.
+   onPanel(open): suspend/resume movement controls or pointer lock.
+   onLighting(mode), notify(text): optional host handlers.
+6. suite.activate('arcade') etc can be called from your existing interaction button. Built-in touch/click picking is included. Use suite.addDiscovery(name) from exploration rewards.
+7. Local save uses wayfarer.captain.v1; no network or account backend. Logs, discoveries, outfit, lighting, channel, high score and drinks persist.
+8. Tests: node runtime/test.mjs; python runtime/validate_models.py. No browser or live ship integration testing performed.
+
+GLBs are procedural low-poly PBR geometry, not the photorealistic reference image. No external textures, streams, player rig, or NPC models included. Concept image is an art direction reference. Confirm exterior roof alignment and collision/nav registration with your real ship before deploying. Independent meshes can be rearranged from room_manifest.json; assembled GLB is provided to avoid loading 20 files at once.

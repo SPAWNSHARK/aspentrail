@@ -137,8 +137,6 @@
   // FURNITURE UPGRADE 01 (furniture.js): the kit's blockout furniture is hidden (still tappable for the room jobs) and the pack's piece is
   // placed at the same spot: long axis matched, front (+Z) facing the room centre — chairs face their nearest table.
   var SWAP = {
-    quarters: [['crew_bed', /^Bed_base/, /^(Bed_base|Mattress|Pillow|Blanket)/, 1.8, 'z'], ['crew_locker', /^Locker(_\d+)?$/, /^Locker/, 0.5], ['library_writing_desk', /^Table_top/, /^Table_(top|base)/, 1.0, 'x'], ['desk_chair', /^Seat(_\d+)?$/, /^Seat/, 0.7, null, 'table']],
-    medbay:   [['crew_bed', /^Bed_base/, /^(Bed_base|Mattress|Pillow|Blanket)/, 1.8, 'z']],
     mess:     [['dining_table', /^Table_top/, /^Table_(top|base)/, 1.0, 'x'], ['dining_chair', /^Seat(_\d+)?$/, /^Seat/, 0.7, null, 'table'], ['bar_counter', /^Galley_counter/, /^Galley_counter/, 0.5, 'x']],
     maint:    [['crew_locker', /^Locker(_\d+)?$/, /^Locker/, 0.5], ['holodeck_utility_table', /^Table_top/, /^Table_(top|base)/, 1.0, 'x']]
   };

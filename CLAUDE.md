@@ -474,6 +474,16 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   hidden but still tappable for room jobs, pack piece at the same spot (long axis matched, front toward the room centre, chairs face the
   nearest table): Quarters bed/5 lockers/desk/chair, Medbay beds, Mess 2 tables/4 chairs/bar counter, Maintenance lockers/utility table.
   Bridge chairs/consoles and Media seats NOT swapped (droid seat calibration, command chair).
+- [x] MEDBAY V1 + CAPTAIN'S QUARTERS V1 (Nov 26; rooms/medbay, rooms/quarters; docs in reference/medbay-v1, reference/captains-quarters-v1):
+  medbay.html + quarters.html now run roompack.js (wf-roompack) instead of kitroom.js — each pack mounted at its own local origin, entrance
+  +Z; door.js PORTALS medbay room (0, 3.4, rot 180) / quarters room (0, 3.85, rot 180) with matching space boxes; the packs' own door
+  leaves/buttons are REMOVED (one door system); WAYFARER.bounds = room rectangles; quarters colliderBoxes → WAYFARER.extraSolids.
+  Medbay: installMedbay + MedbayState (taps via R.pick → bioscan, 12 s recovery pod, xeno vet bed, lab, console/monitor status, supplies →
+  'medkit' cargo item, privacy screen, med droid dialogue + waypoint walking); events → toasts + robot voice, 'medbay' life event.
+  Quarters: installCaptainsQuarters with hooks (onPanel freezes walking, exit → atrium, galaxy table → ship-log map, sleep fade, TV/outfit/
+  cat notices) — its own panels/arcade/journal/wardrobe/refreshments/discoveries; saves 'wayfarer.captain.v1'; star field through the open
+  ceiling aperture. Not yet: cats actually visiting the Quarters (crew.js has no quarters graph), real outfit change on the Mk II suit,
+  planetside pass-out → wake in the Medbay recovery pod.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
