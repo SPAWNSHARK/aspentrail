@@ -3,7 +3,7 @@
 // throws it away and paints the hull in the shader from the model's own shape (object space, model length = 1, nose −Z):
 //   copper plates with dark seams, rivet rows and per-plate tone, light verdigris and grime;
 //   the Library dome (centre x 0, z 0.31, r ≈ 0.135, top of hull) as dark teal glass with bronze ribs and an inner glow;
-//   a lit window strip down the spine, nine framed bridge panes in a U round the nose, lit glass in the flank recesses.
+//   a lit window strip down the spine, bridge windows in the wall under the raised forward deck, lit glass in the flank recesses.
 // It also smooths the shading normals (not the shape) so the crumpled sculpt reads as panels instead of foil.
 // Usage (three r128):  WAYFARER_SHIPSKIN(gltf.scene)
 (function () {
@@ -66,15 +66,14 @@
           // spine window strip
           'float spine = step(abs(P.x), 0.02) * step(-0.24, P.z) * step(P.z, 0.165) * step(0.05, P.y);',
           'float pane = step(0.18, fract((P.z + 0.24) * 26.0)) * step(abs(P.x), 0.015);',
-          // BRIDGE WINDOWS (user, Nov 26: the old flat teal slab across the nose "fucked up"): a U of nine separate rounded panes
-          // that follows the nose outline seen from above, on the upper slope only, in bronze frames — the guitar-pick Bridge's view
-          'vec2 q = vec2(P.x / 0.088, (P.z + 0.30) / 0.092); float e = length(q), phi = atan(q.x, -q.y);',
-          'float upper = smoothstep(0.15, 0.45, normalize(vON).y) * step(P.z, -0.30) * step(-0.02, P.y);',
-          'float cellA = phi / 3.14159 * 9.0 + 4.5, ci = floor(cellA), ca = fract(cellA);',
-          'float inBand = step(1.0, e) * step(e, 1.3) * step(0.0, ci) * step(ci, 8.0) * upper;',
-          'float pe = min(min(ca, 1.0 - ca) * 2.2, min(e - 1.0, 1.3 - e) / 0.3 * 1.0);',
-          'float nose = inBand * smoothstep(0.08, 0.16, pe);',                       // the glass
-          'float noseFrame = inBand * (1.0 - smoothstep(0.08, 0.16, pe));',            // bronze mullions + sill
+          // BRIDGE WINDOWS (user, Nov 26, marked up on a screenshot): the curved WALL under the lip of the raised forward deck — between
+          // the deck top (y ≈ 0.036) and the lower ledge (y ≈ 0.012) — wrapping the bow and running back along both flanks, cut into
+          // tall panes by vertical bronze mullions (arc length round a centre at z −0.12)
+          'float wallY = step(0.012, P.y) * step(P.y, 0.036) * (1.0 - smoothstep(0.75, 0.9, normalize(vON).y)) * step(P.z, -0.11);',
+          'float arcS = atan(P.x, -(P.z + 0.12)) * 0.16, ca = fract(arcS / 0.028 + 0.5), e = (P.y - 0.012) / 0.024;',
+          'float pe = min(min(ca, 1.0 - ca) * 0.028 / 0.0035, min(e, 1.0 - e) * 0.024 / 0.0035);',
+          'float nose = wallY * smoothstep(0.7, 1.0, pe);',                       // the glass
+          'float noseFrame = wallY * (1.0 - smoothstep(0.7, 1.0, pe));',           // bronze mullions, sill and header
           // SIDE WINDOWS: the sculpt's recessed openings along the flanks were painted copper and read as holes — their back faces
           // (inset from the hull envelope, facing sideways: aInset from WAYFARER_SHIPSKIN) are now lit cabin glass
           'float side = smoothstep(0.005, 0.011, vIn) * (1.0 - smoothstep(0.05, 0.07, vIn)) * smoothstep(0.55, 0.8, abs(normalize(vON).x)) * step(abs(P.y), 0.065) * step(-0.33, P.z) * step(P.z, 0.15);',
@@ -83,9 +82,9 @@
           'col = mix(col, mix(vec3(0.35, 0.2, 0.08), vec3(0.02, 0.06, 0.06), pane), spine);',
           'col = mix(col, vec3(0.5, 0.29, 0.13), max(noseFrame, side * (1.0 - sMull)));',
           'col = mix(col, glassC, max(nose, side * sMull));',
-          'diffuseColor.rgb *= col;',
+                    'diffuseColor.rgb *= col;',
           'vec3 shipEmit = vec3(1.0, 0.62, 0.28) * pane * spine * 2.4',
-          '              + nose * (vec3(0.95, 0.5, 0.18) * 0.05 * smoothstep(1.05, 1.3, e) + vec3(0.04, 0.2, 0.24) * 0.05 * (1.0 - smoothstep(1.0, 1.2, e)) + vec3(0.25, 0.5, 0.6) * 0.06 * (1.0 - smoothstep(0.0, 0.05, abs(ca - 0.35 - (e - 1.0)))))',
+          '              + nose * (vec3(0.95, 0.5, 0.18) * 0.09 * smoothstep(0.2, 0.0, e) + vec3(0.04, 0.2, 0.24) * 0.05 * e + vec3(0.25, 0.5, 0.6) * 0.07 * (1.0 - smoothstep(0.0, 0.06, abs(ca - 0.3 - e * 0.4))))',
           '              + side * sMull * vec3(1.0, 0.6, 0.26) * (0.08 + 0.12 * step(0.5, h21(vec2(floor(P.z * 70.0), sign(P.x)))))',
           '              + vec3(0.02, 0.16, 0.15) * dome * (1.0 - max(frame, rim)) * (0.35 + 0.65 * (1.0 - dr / 0.135));',
           'float glassK = max(nose, side * sMull);',
