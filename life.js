@@ -41,7 +41,11 @@
     { id: 'drinks', text: 'Order a drink at the Resin Spire', ev: 'drink', n: 1 },
     { id: 'kvetar', text: 'Talk to 3 K’Vetar', ev: 'kvetar', n: 3 },
     { id: 'laser', text: 'Play laser pointer with a cat', ev: 'laser', n: 1 },
-    { id: 'wand', text: 'Play feather wand with a cat', ev: 'wand', n: 1 }
+    { id: 'wand', text: 'Play feather wand with a cat', ev: 'wand', n: 1 },
+    { id: 'fix1', text: 'Fix a ship fault Forge reports', ev: 'fix', n: 1 },
+    { id: 'order1', text: 'Give your crew an order from the Bridge', ev: 'order', n: 1 },
+    { id: 'holo1', text: 'Play a Holodeck game', ev: 'holo', n: 1 },
+    { id: 'holowin', text: 'Win a Holodeck game', ev: 'win:', n: 1 }
   ];
   var REG = {};                                   // later features register more goals (WF_LIFE.addGoals)
   function pool() { return POOL.filter(function (g) { return !g.need || REG[g.need]; }); }

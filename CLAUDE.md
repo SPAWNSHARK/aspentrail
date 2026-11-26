@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126l).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126m).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -212,7 +212,7 @@ Rules drawn from them:
   docks, engine sprites hidden in the bay, 3 camera shots each way (dockCam), SKIP button / Space / Esc. Arrival ends in the
   flash to station.html; ?from=station starts in the berth and backs out (undockSeq), turns 180° and hands control back.
 - **SHIP LIFE (Nov 26, user: "I'm bored, not enough to do") — 10-batch plan the user picked ALL of: 1 economy + daily goals + deck
-  map [x], 2 Lounge cat play [x], 3 ship repairs + crew orders [x], 4 Holodeck games, 5 Hiveport shops + ship upgrades, 6 dance floor /
+  map [x], 2 Lounge cat play [x], 3 ship repairs + crew orders [x], 4 Holodeck games [x], 5 Hiveport shops + ship upgrades, 6 dance floor /
   K'Vetar gambling / bar brawl + bounties, 7 card game with the crew, 8 science scans, 9 Captain's quarters + galley (behind the
   Library's two SEALED wing doors), 10 story missions.** `life.js` (every page incl. station + minigame, after mobile/sound):
   WF_LIFE wallet (= 'wf-credits', shared with contracts), cargo 'wf-inv' (starter treats/laser/wand; +3 treats daily ration),
@@ -231,6 +231,12 @@ Rules drawn from them:
   timer 6+1.6N s; wrong = restart) → +80 cr, event 'fix'. CREW ORDERS (crew.js, ship-log ORDERS tab via WF_LIFE.addTab; only
   usable on the Bridge): battle stations / red alert (engine alert, #wf-redalert pulsing red vignette on every deck + WF_SOUND.alarm)
   / shore leave (droids wander Lounge + Media spots) / stand down; ShipCrew.decide override; persisted 'wf-order'; event 'order'.
+  HOLODECK GAMES (`holo-games.js`, holodeck.html; SIM LIBRARY entries → simRun('range'|'duel'|'golf'), RESET/END PROGRAM close;
+  hides #hd-house while running): TARGET RANGE 45 s (wireframe holo orbs spawned mostly in front of you; violet 10 / gold 50 / red
+  −20; combo ×2 after 5; pays score/6 ≤ 120 cr), QUICK DRAW (hiveport holographic performer GLB as the duellist: READY… DRAW!, tap
+  first, best of 5, early tap = foul; Brawl_Shove / Brawl_Recoil clips; win 60 cr), HOLO GOLF (3 holes, wireframe walls + the
+  centre console as a solid circle; hold to charge an oscillating power bar, release to putt toward where you face; pays
+  90−6×strokes). Taps: touch = tap point; desktop with pointer lock = screen centre. Bests 'wf-holo-best'; events 'holo', 'win:<game>'.
 - **LIVING CREW (Nov 26, SS_Wayfarer_Living_Crew_Expansion.zip; START_HERE + Integration.pdf in reference/living-crew/)** — `crew.js`
   (every room page, after door.js; auto-attaches `wf-crew`) runs the kit's engine (crew/crew-engine.mjs + roster.mjs, vendored
   UNCHANGED) for 6 droids (Aster nav, Forge eng, Vesper sci, Echo com, Sentinel tac, Prism sen; models/crew/Droid_*_Living.glb) and
