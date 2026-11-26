@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126p).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126q).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -213,7 +213,7 @@ Rules drawn from them:
   flash to station.html; ?from=station starts in the berth and backs out (undockSeq), turns 180° and hands control back.
 - **SHIP LIFE (Nov 26, user: "I'm bored, not enough to do") — 10-batch plan the user picked ALL of: 1 economy + daily goals + deck
   map [x], 2 Lounge cat play [x], 3 ship repairs + crew orders [x], 4 Holodeck games [x], 5 Hiveport shops + ship upgrades [x], 6 dance floor /
-  K'Vetar gambling / bar brawl + bounties [x], 7 card game with the crew [x], 8 science scans, 9 Captain's quarters + galley (behind the
+  K'Vetar gambling / bar brawl + bounties [x], 7 card game with the crew [x], 8 science scans [x], 9 Captain's quarters + galley (behind the
   Library's two SEALED wing doors), 10 story missions.** `life.js` (every page incl. station + minigame, after mobile/sound):
   WF_LIFE wallet (= 'wf-credits', shared with contracts), cargo 'wf-inv' (starter treats/laser/wand; +3 treats daily ration),
   event(name) → 3 daily goals/day ('wf-goals', seeded by local date, 150 cr each + 300 bonus; POOL = only things that exist —
@@ -259,6 +259,11 @@ Rules drawn from them:
   STARJACK (`cards.js`, lounge.html): a card deck + pulsing ring on the brass coffee table (world 0, 0.5, −1.1); tap within 3.6 m →
   #sj blackjack panel, suits ☀☾✦☄, 2 decks; dealer = a droid in the Lounge if any (else random), two more droids play their own
   hands (stand on 17) and quip in character (LINES per droid); bets 10/25/50, Hit/Stand/Double, Starjack 3:2. Events 'cards', 'cardwin'.
+  SCIENCE SCANS (minigame.html updateScan/startScan/finishScan; SCAN button #scan / key G): planets within r×2.6+400 (loses lock past
+  r×3.2+600), 5 s scan with teal rings; 3 daily ANOMALIES (seeded by date: gravitational lens / ion storm / derelict beacon / crystal
+  shoal / dark-matter eddy) parked r×2.6+260 from random planets as spinning additive torus rings; results → 'wf-discoveries'
+  (SCAN_FACTS per planet); planet 80 cr once, anomaly 150 cr; event 'scan'. Ship-log SCIENCE tab lists them; in the Library, tapping
+  Vesper's Science console opens it.
 - **LIVING CREW (Nov 26, SS_Wayfarer_Living_Crew_Expansion.zip; START_HERE + Integration.pdf in reference/living-crew/)** — `crew.js`
   (every room page, after door.js; auto-attaches `wf-crew`) runs the kit's engine (crew/crew-engine.mjs + roster.mjs, vendored
   UNCHANGED) for 6 droids (Aster nav, Forge eng, Vesper sci, Echo com, Sentinel tac, Prism sen; models/crew/Droid_*_Living.glb) and
@@ -350,6 +355,28 @@ Rules drawn from them:
 - **Icons** — Nov 25: the user's new SS WAYFARER art (reference/app-icon-source-v2.png, frame cropped) at 1024/512/192/180 + favicon,
   linked with ?v=2 to beat icon caches. Share image (Nov 25): user's new art (reference/share-image-source.jpg) cropped to
   images/wayfarer-share.jpg 1200×630, og:image ?v=2.
+
+## BIG ROADMAP (user, Nov 26 — second wish list; supersedes batch 9 "quarters/galley behind the Library wing doors")
+Record of everything asked for; tick items off as they ship.
+- [ ] Lounge: ALIEN TV (interdimensional-cable style channel surfing of original alien shows) replaces the Wikipedia browser; the window behind the TV much bigger
+- [ ] More props all over the ship; Library bookshelves with more variety/colour; FEWER bookcases in the corridor
+- [ ] BELOW DECK (new level, industrial alien vibe) for all new rooms (quarters, galley, medbay, cruiser hangar…); the two Library back doors become two STAIRCASES down to it
+- [ ] STAR GARDEN leaves the Holodeck → centre of the Library; activating it fills the Library CEILING with a real, spinnable galaxy map (look-up animation; not an editable game)
+- [ ] NAVIGATOR redesign: much bigger, at the front of the helm, integrated with the captain's chair (not separate consoles); nicer + animations; planets pickable only once inside the navigator; never shoved through the chair; tapping the navigator = sit in the chair. Tapping the CHAIR → menu: Cruising (peaceful) / Hunting (fighter) / Ship inspect (view ship) / Navigate (turn to the navigator, pick a destination, travel)
+- [ ] Galactic map: show the actual ship (not "marked in cyan"), small planet emojis by known/visited planets, planets as spheres not circles
+- [ ] HOLODECK = 3D interactive HOUSE BUILDER filling the whole room (Star Trek holodeck × Sims house builder × Home Depot), the main purpose of the Holodeck
+- [ ] Crew: droids and cats get out of the player's way / stop bumping into you; always ≥2 cats in the Lounge; more droids throughout the ship
+- [ ] Ship hum quieter and on immediately at game start (not after a droid interaction)
+- [ ] Random light-speed jumps: red alert lighting shipwide first (Star Trek), droids in the halls dash to the Bridge before the jump ("escaping a pirate")
+- [ ] SHIP AI: a central computer integrated with the Library brain, reachable from various places on the ship
+- [ ] Consoles do real things: e.g. the Library console = the user's WordPress site, scrollable, with interaction animations
+- [ ] Library tank: fewer bubbles, less lightning, EELS swimming; partly see-through down to the below deck
+- [ ] Ship View model: the front windows are painted wrong
+- [ ] Flight Mode: far more space traffic, more ship types, ships occasionally fighting each other; ZOOM in/out in both modes
+- [ ] A cast of ALIEN RACES, each with a home planet; the Hiveport has all of them; Hiveport much more crowded and detailed ("feel like a damn club")
+- [ ] PLANET LANDINGS: cruiser docked below deck flies down (mothership stays in orbit animation); planets: desert traders, ice world with giant monsters, tropical world with friendly monkey aliens, dead cyber wasteland, lava world with huge monsters; enter/exit animations; on foot with a gun + ammo, red screen edges when hit, pass-out scene (never die) → wake in the MEDBAY with a droid
+- [ ] Space defeat: the ship warps out and hides behind a planet (animation); shields designed properly
+- [ ] HALLWAY CONSOLE = the in-game MANUAL ("how to play"): every system, controls, and all hidden Easter eggs
 
 ## What's next (agreed order: restyle room by room to the reference)
 1. Media Nexus live channels — needs a YouTube Data API key from the user (a key in a Pages site is public:

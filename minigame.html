@@ -22,10 +22,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126p"></script>
-  <script src="missions.js?v=20261126p"></script>
-  <script src="sound.js?v=20261126p"></script>
-  <script src="life.js?v=20261126p"></script>
+  <script src="shipskin.js?v=20261126q"></script>
+  <script src="missions.js?v=20261126q"></script>
+  <script src="sound.js?v=20261126q"></script>
+  <script src="life.js?v=20261126q"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -135,6 +135,7 @@
     #dock { position:absolute; left:50%; transform:translateX(-50%); top:calc(64px + env(safe-area-inset-top,0px)); display:none; padding:10px 22px; border-radius:22px; background:linear-gradient(140deg,rgba(255,200,120,.45),rgba(255,140,60,.3)); border:1px solid rgba(255,210,150,.8); color:#fff; font:700 13px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; box-shadow:0 0 24px rgba(255,160,80,.5); }
     #objective { position:absolute; left:50%; transform:translateX(-50%); top:calc(58px + env(safe-area-inset-top,0px)); max-width:min(90vw,460px); padding:5px 12px; border-radius:12px; background:rgba(20,14,8,.5); border:1px solid rgba(255,190,110,.35); color:#ffd8a8; font:600 11px -apple-system,system-ui,sans-serif; letter-spacing:.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:none; pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
     #fm-mode{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:600 11px -apple-system,system-ui,sans-serif}
+    #scan { position:absolute; left:50%; transform:translateX(-50%); top:calc(108px + env(safe-area-inset-top,0px)); display:none; padding:9px 20px; border-radius:20px; background:linear-gradient(140deg,rgba(80,230,220,.4),rgba(60,120,255,.3)); border:1px solid rgba(140,240,255,.8); color:#fff; font:700 12.5px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; box-shadow:0 0 24px rgba(80,220,255,.45); }
     #dock-skip { position:absolute; left:50%; transform:translateX(-50%); bottom:calc(28px + env(safe-area-inset-bottom,0px)); display:none; padding:9px 18px; border-radius:18px; background:rgba(20,14,10,.45); border:1px solid rgba(255,210,150,.5); color:#ffe2bf; font:700 12px -apple-system,system-ui,sans-serif; letter-spacing:2px; pointer-events:auto; cursor:pointer; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); z-index:30; }
     body.docking #hud > *:not(#dock-skip):not(#hail), body.docking #fm-bar, body.docking #wf-btns-fm { display:none !important; }
     body.explore #score-display, body.explore #lives-display, body.explore #fm-fire, body.explore #reticle, body.explore #lock { display:none !important; }
@@ -174,6 +175,7 @@
     <div id="objective"></div>
     <div id="dock">DOCK AT HIVEPORT</div>
     <div id="dock-skip">SKIP ›</div>
+    <div id="scan">SCAN</div>
     <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">AURALIS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
   </div>
@@ -530,6 +532,83 @@ document.getElementById('dock').addEventListener('click', e => { e.stopPropagati
 document.getElementById('dock-skip').addEventListener('click', e => { e.stopPropagation(); if (dockSeq) dockSeq.skip = true; });
 ['pointerdown', 'touchstart'].forEach(n => document.getElementById('dock-skip').addEventListener(n, e => e.stopPropagation()));
 addEventListener('keydown', e => { if (e.code === 'KeyF' && document.getElementById('dock').style.display === 'block') dockAt(); if (dockSeq && (e.code === 'Escape' || e.code === 'Space')) dockSeq.skip = true; });
+// ── SCIENCE SCANS (user, Nov 26: "Vesper sends you to scan planets/anomalies; results show up as discoveries in the Library") ──
+// Fly within r×2.6+400 of a planet you haven't scanned, or within 60 of one of today's three ANOMALIES (seeded by date, parked
+// near random planets: violet/teal shimmering rings) → the SCAN button. Scanning takes 5 s and needs you to stay in range (sweeping
+// teal rings round the target). Results go to localStorage 'wf-discoveries' (read by the ship log DISCOVERIES tab + Vesper's
+// console in the Library). Planet scans pay 80 cr once each; anomalies 150 cr. Event 'scan'.
+const SCAN_FACTS = {
+  VARKESH: ['Iron-oxide dunes 300 m high', 'Thin CO₂ atmosphere, dust storms every 11 days', 'Subsurface ice at the poles — possible water source'],
+  AURALIS: ['84% ocean, nitrogen–oxygen air', 'Floating kelp forests visible from orbit', 'Life signs: abundant, mostly marine'],
+  ORINTH: ['Hydrogen–helium giant, 9 Jupiter masses', 'Rings of water ice and silicate dust', 'Lightning storms the size of continents'],
+  CRYOVALE: ['Surface −140 °C, nitrogen glaciers', 'Cryovolcanoes venting ammonia slush', 'Under-ice ocean detected by gravimetry'],
+  PYRAXIS: ['Surface 900 °C on the day side', 'Rivers of molten basalt', 'Sulfur dioxide clouds, acid rain'],
+  MYCELION: ['Planet-wide fungal network', 'Spore clouds glow at night', 'Life signs: one single organism?'],
+  NYXARA: ['Bioluminescent violet oceans', 'Tidally locked — eternal twilight band', 'Life signs: complex, nocturnal'],
+  'FERRUM PRIME': ['Artificial structures cover 70% of the surface', 'Power output equals 4 stars', 'Machine civilization — hails ignored'],
+  THALASSA: ['Global ocean 200 km deep', 'No land at all', 'Life signs: very large, very slow'],
+  VESPERA: ['Sulfur seas and yellow hazes', 'Surface pressure 90 atmospheres', 'Extremophile microbes in the cloud layer'],
+  SELENITE: ['Crust of crystalline gypsum', 'Crystal spires up to 2 km tall', 'Resonates at 41 Hz when the sun rises'],
+  'KHARON FRACTURE': ['Shattered by an ancient impact', 'Debris ring re-accreting over millions of years', 'Exposed core metals — prime mining target']
+};
+const ANOM_KINDS = [['GRAVITATIONAL LENS', 0x9a7aff, 'Space folds light round a hidden mass'], ['ION STORM', 0x40e8ff, 'A charged plasma cloud, crackling'], ['DERELICT BEACON', 0xffb040, 'An unknown ship’s distress signal, centuries old'],
+                    ['CRYSTAL SHOAL', 0x8affd0, 'Free-floating crystals singing in the solar wind'], ['DARK-MATTER EDDY', 0xb060ff, 'Something invisible bends the dust lanes']];
+function scanLoad() { try { return JSON.parse(localStorage.getItem('wf-discoveries') || '[]'); } catch (e) { return []; } }
+function scanSave(d) { try { localStorage.setItem('wf-discoveries', JSON.stringify(d.slice(-80))); } catch (e) {} scanDone = d.map(q => q.id); }
+let scanDone = scanLoad().map(d => d.id);
+const SCAN_DAY = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+const anomalies = (() => {
+  let seed = SCAN_DAY * 4813 + 7; const r = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296, out = [];
+  for (let i = 0; i < 3; i++) {
+    const P = planets[1 + Math.floor(r() * (planets.length - 1))], K = ANOM_KINDS[Math.floor(r() * ANOM_KINDS.length)];
+    const dir = new THREE.Vector3(r() - 0.5, (r() - 0.5) * 0.4, r() - 0.5).normalize(), pos = P.group.position.clone().addScaledVector(dir, P.r * 2.6 + 260);
+    const g = new THREE.Group(); g.position.copy(pos); scene.add(g);
+    for (let k = 0; k < 3; k++) { const ring = new THREE.Mesh(new THREE.TorusGeometry(14 + k * 7, 0.6, 8, 64), new THREE.MeshBasicMaterial({ color: K[1], transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); ring.rotation.set(r() * 3, r() * 3, 0); g.add(ring); }
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: K[1], transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(40, 40, 1); g.add(core);
+    fixColors(g);
+    out.push({ id: 'anom-' + SCAN_DAY + '-' + i, name: K[0], note: K[2], near: P.name, group: g, col: K[1] });
+  }
+  return out;
+})();
+let scanT = null;   // { target, t }
+function scanTarget() {
+  const done = scanDone;
+  for (const A of anomalies) if (!done.includes(A.id) && shipPos.distanceTo(A.group.position) < 70) return { kind: 'anomaly', A, pos: A.group.position, id: A.id, range: 90 };
+  for (const P of planets) if (!done.includes('planet-' + P.name) && shipPos.distanceTo(P.group.position) < P.r * 2.6 + 400) return { kind: 'planet', P, pos: P.group.position, id: 'planet-' + P.name, range: P.r * 3.2 + 600 };
+  return null;
+}
+function updateScan(dt, t) {
+  anomalies.forEach((A, i) => { A.group.children.forEach((c, k) => { if (c.isMesh) { c.rotation.x += dt * (0.3 + k * 0.2); c.rotation.y += dt * 0.2; c.material.opacity = 0.35 + 0.25 * Math.sin(t * 2 + k); } }); A.group.visible = !scanDone.includes(A.id); });
+  const btn = document.getElementById('scan');
+  if (scanT) {
+    scanT.t += dt; const d = shipPos.distanceTo(scanT.tg.pos);
+    if (d > scanT.tg.range) { hail('VESPER', 'Scan lost — we drifted out of range.'); scanT.rings.forEach(r => scene.remove(r)); scanT = null; }
+    else {
+      scanT.rings.forEach((r, k) => { r.position.copy(scanT.tg.pos); const s = ((scanT.t * 0.6 + k / 3) % 1); r.scale.setScalar(0.2 + s * (scanT.tg.kind === 'planet' ? scanT.tg.P.r * 1.4 : 40) / 10); r.material.opacity = (1 - s) * 0.7; r.lookAt(shipPos); });
+      btn.textContent = 'SCANNING ' + Math.min(100, Math.round(scanT.t / 5 * 100)) + '%';
+      if (scanT.t >= 5) finishScan();
+    }
+  }
+  const tg = scanT ? null : (state === 'playing' && !warp && !dockSeq ? scanTarget() : null);
+  btn.style.display = scanT || tg ? 'block' : 'none'; if (tg && !scanT) btn.textContent = tg.kind === 'planet' ? 'SCAN ' + tg.P.name : 'SCAN ANOMALY';
+  btn._tg = tg;
+}
+function startScan() {
+  const btn = document.getElementById('scan'); if (scanT || !btn._tg) return;
+  const rings = []; for (let k = 0; k < 3; k++) { const r = new THREE.Mesh(new THREE.RingGeometry(9.2, 10, 64), new THREE.MeshBasicMaterial({ color: 0x40e8d8, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); scene.add(r); rings.push(r); }
+  scanT = { tg: btn._tg, t: 0, rings }; hail('VESPER', btn._tg.kind === 'planet' ? 'Scanning ' + btn._tg.P.name + '… hold steady, Captain.' : 'Fascinating! Scanning the anomaly — stay close.');
+  if (window.WF_SOUND) WF_SOUND.droid('scan', 0, 0.7);
+}
+function finishScan() {
+  const tg = scanT.tg; scanT.rings.forEach(r => scene.remove(r)); scanT = null;
+  const list = scanLoad(), when = new Date().toLocaleDateString();
+  if (tg.kind === 'planet') { const f = SCAN_FACTS[tg.P.name] || [tg.P.note]; list.push({ id: tg.id, kind: 'planet', name: tg.P.name, note: tg.P.note, facts: f, when }); hail('VESPER', tg.P.name + ': ' + f[0] + '. Logged in the Library.'); if (window.WF_LIFE) WF_LIFE.add(80); }
+  else { list.push({ id: tg.id, kind: 'anomaly', name: tg.A.name, note: tg.A.note + ' (near ' + tg.A.near + ')', facts: [tg.A.note], when }); hail('VESPER', tg.A.name + ' catalogued! ' + tg.A.note + '.'); if (window.WF_LIFE) WF_LIFE.add(150); }
+  scanSave(list); if (window.WF_LIFE) WF_LIFE.event('scan'); if (window.WF_SOUND) WF_SOUND.chime(true);
+}
+document.getElementById('scan').addEventListener('click', e => { e.stopPropagation(); startScan(); });
+['pointerdown', 'touchstart'].forEach(n => document.getElementById('scan').addEventListener(n, e => e.stopPropagation()));
+addEventListener('keydown', e => { if (e.code === 'KeyG') startScan(); });
 function updateDock() { const near = state === 'playing' && !warp && !dockSeq && shipPos.distanceTo(STATION.group.position) < 170; document.getElementById('dock').style.display = near ? 'block' : 'none'; }
 function arriveFromBridge() {
   if (/from=station/.test(location.search)) {                       // undocking: just off the Hiveport, nose pointed away from it
@@ -1154,7 +1233,7 @@ if (window.WF_SOUND) { const mc = document.getElementById('fm-midcol');
     const fwd = new THREE.Vector3(0,0,-1)
       .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
     shipPos.addScaledVector(fwd, SHIP_SPEED * dt);
-    collidePlanets(); updateDock(); checkVisits(dt);
+    collidePlanets(); updateDock(); checkVisits(dt); updateScan(dt, clock.elapsedTime);
     if (window.WF_SOUND) { [[enemies, true], [friendlies, false]].forEach(([L, alien]) => L.forEach(e => { const d = e.mesh.position.distanceTo(shipPos); if (d < 22 && !e._fb) { e._fb = true; WF_SOUND.flyby(panOf(e.mesh.position), alien); } else if (d > 40) e._fb = false; })); }
     playerShip.position.copy(shipPos);
     playerShip.rotation.set(shipPitch, shipYaw, shipRoll, 'YXZ');

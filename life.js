@@ -57,7 +57,8 @@
     { id: 'gamble', text: 'Try your luck at The Comb (gambling den)', ev: 'gamble', n: 2 },
     { id: 'peace', text: 'Break up a bar brawl', ev: 'peace', n: 1 },
     { id: 'bounty', text: 'Claim the Bounty Broker\u2019s bounty', ev: 'bounty', n: 1 },
-    { id: 'cards', text: 'Win a hand of Starjack against the crew (Lounge table)', ev: 'cardwin', n: 1 }
+    { id: 'cards', text: 'Win a hand of Starjack against the crew (Lounge table)', ev: 'cardwin', n: 1 },
+    { id: 'scan', text: 'Scan a planet or anomaly in Flight Mode (SCAN button / G)', ev: 'scan', n: 1 }
   ];
   var REG = {};                                   // later features register more goals (WF_LIFE.addGoals)
   function pool() { return POOL.filter(function (g) { return !g.need || REG[g.need]; }); }
@@ -130,11 +131,11 @@
     var c = credits(), rk = window.WF_MISSIONS ? WF_MISSIONS.rank(c).name : '';
     box.innerHTML = '';
     var hd = el('div', 'hd', '<b>SHIP LOG</b><span>' + c + ' cr' + (rk ? ' · ' + rk : '') + '</span>'), x = el('button', 'x', '✕'); x.onclick = close; hd.appendChild(x); box.appendChild(hd);
-    var T = [['goals', 'GOALS'], ['map', 'DECK MAP'], ['cargo', 'CARGO']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
+    var T = [['goals', 'GOALS'], ['map', 'MAP'], ['cargo', 'CARGO'], ['disc', 'SCIENCE']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
     var tabs = el('div', 'tabs'); tabs.style.gridTemplateColumns = 'repeat(' + T.length + ',1fr)';
     T.forEach(function (q) { var b = el('button', tab === q[0] ? 'on' : '', q[1]); b.onclick = function () { tab = q[0]; render(); }; tabs.appendChild(b); }); box.appendChild(tabs);
     var ex = EXTRA.filter(function (x) { return x.id === tab; })[0];
-    if (ex) ex.render(box, el, render); else if (tab === 'goals') renderGoals(); else if (tab === 'map') renderMap(); else renderCargo();
+    if (ex) ex.render(box, el, render); else if (tab === 'goals') renderGoals(); else if (tab === 'map') renderMap(); else if (tab === 'disc') renderDisc(); else renderCargo();
   }
   function renderGoals() {
     var st = goals();
@@ -143,6 +144,13 @@
     if (st.bonus) box.appendChild(el('p', 'sub', 'All done for today — new goals tomorrow.'));
     var FL = load('wf-faults', []), RN = { corridor: 'corridor', bridge: 'Bridge', holodeck: 'Holodeck', lounge: 'Crew Lounge', media: 'Media Nexus', library: 'Library' };
     if (FL.length) box.appendChild(el('p', 'sub', '⚠ Forge reports: ' + FL.map(function (f) { return f.kind === 'spark' ? 'sparking conduit' : f.kind === 'coolant' ? 'coolant leak' : 'power relay'; }).map(function (k, i) { return k + ' (' + RN[FL[i].room] + ')'; }).join(' · ') + ' — 80 cr each'));
+  }
+  function renderDisc() {      // Vesper's science log: what you've scanned in Flight Mode
+    var D = load('wf-discoveries', []), pl = D.filter(function (d) { return d.kind === 'planet'; }).length, an = D.length - pl;
+    box.appendChild(el('p', 'sub', 'Vesper\u2019s science log · ' + pl + ' / 12 worlds scanned · ' + an + ' anomal' + (an === 1 ? 'y' : 'ies') + '<br>New anomalies appear every day near random planets — fly close and press SCAN.'));
+    if (!D.length) box.appendChild(el('p', 'sub', 'Nothing logged yet. In Flight Mode, fly close to a planet and tap SCAN.'));
+    D.slice().reverse().forEach(function (d) { box.appendChild(el('div', 'goal', '<b>' + (d.kind === 'planet' ? '🪐 ' : '✴️ ') + d.name + '</b><small>' + d.when + '</small><br><span style="font-size:12px;color:#d9c4ae">' + d.note + '</span>' +
+      (d.facts ? '<ul style="margin:6px 0 0 16px;padding:0;font-size:12px;color:#f0e2d0">' + d.facts.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>' : ''))); });
   }
   function renderCargo() {
     var v = inv(), any = false;

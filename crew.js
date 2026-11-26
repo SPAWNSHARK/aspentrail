@@ -340,6 +340,7 @@
         var P = s.placement; if (!P || P.room !== PAGE) return;
         var e = document.createElement('a-entity');
         e.setAttribute('gltf-model', 'models/deck/' + s.asset + '?v=1'); e.setAttribute('position', P.x + ' 0 ' + P.z); e.setAttribute('rotation', '0 ' + P.yaw + ' 0');
+        if (/Science/.test(s.asset) && !CAPTURE) { e.setAttribute('class', 'clickable interactive'); e.addEventListener('click', function () { if (window.WF_LIFE) WF_LIFE.open('disc'); }); }   /* Vesper's console = the science log */
         e.addEventListener('model-loaded', function () {
           var m = e.getObject3D('mesh');
           if (W.lcars) { var lc = W.lcars({ w: 512, h: 256, seed: si * 5 + 2, layout: ['readout', 'graph', 'keys'][si % 3], label: s.asset.replace('Console_', '').slice(0, 4).toUpperCase() }); self.lcars = (self.lcars || []).concat(lc.update);
