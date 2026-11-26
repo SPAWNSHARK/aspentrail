@@ -22,7 +22,7 @@
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
     { id: 'media',    name: 'MEDIA NEXUS',       x: 4.6,  z: 9,    rot: -90,  y: 0,   tint: 0x4f8cff },
     { id: 'firefly',  name: 'FIREFLY HANGAR',    x: 0,    z: -24,  rot: 0,    y: LOW, tint: 0x6fd0ff},
-    { id: 'engine',   name: 'ENGINE ROOM',       x: 0,    z: 25.8, rot: 180,  y: LOW, tint: 0x3fe0c8},
+    { id: 'engine',   name: 'ENGINE ROOM',       x: 0,    z: 26.6, rot: 180,  y: LOW, tint: 0x3fe0c8},
     { id: 'medbay',   name: 'MEDBAY',            x: -4.6, z: -14,  rot: 90,   y: LOW, tint: 0x7fffd0},
     { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
     { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
@@ -106,12 +106,12 @@
         }
       }
       var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
-      var w = new THREE.Mesh(g, mat); mat.side = THREE.DoubleSide; root.add(w);
+      var w = new THREE.Mesh(g, mat); mat.side = THREE.DoubleSide; mat.depthWrite = true; root.add(w);
     });
     // the Library (upper) / Engine room (lower) round outer wall at the aft core, gap in front for its door
     var cyl = new THREE.CylinderGeometry(10.2, 10.2, H, 96, 6, true, Math.PI + 0.11, Math.PI * 2 - 0.22);   // θ measured from +z: front (toward the hall) = π
     var cm = mat.clone(); cm.map = T.map.clone(); cm.map.repeat.set(20, 1); cm.map.needsUpdate = true; cm.emissiveMap = T.glow.clone(); cm.emissiveMap.repeat.set(20, 1); cm.emissiveMap.needsUpdate = true;
-    [0, LOW].forEach(function (y0) { var c = new THREE.Mesh(cyl, cm); c.position.set(0, y0 + H / 2, 36); if (y0 !== 0) { c.scale.y = HL / H; c.position.y = y0 + HL / 2; } root.add(c); });
+    [0, LOW].forEach(function (y0) { var c = new THREE.Mesh(cyl, cm); c.position.set(0, y0 + H / 2, 36); if (y0 !== 0) { c.scale.set(9.4 / 10.2, HL / H, 9.4 / 10.2); c.position.y = y0 + HL / 2; } root.add(c); });
     // upper hall ceiling (the kit's roof only covers the middle): the hall outline with the skylight cut out
     var sh = new THREE.Shape(outline.map(function (q) { return new THREE.Vector2(q[0], -q[1]); })), hole = new THREE.Path();
     hole.moveTo(-2.05, 17.55); hole.lineTo(2.05, 17.55); hole.lineTo(2.05, -18.05); hole.lineTo(-2.05, -18.05); hole.lineTo(-2.05, 17.55); sh.holes.push(hole);
@@ -123,6 +123,92 @@
     [0, LOW].forEach(function (y0) { [-1, 1].forEach(function (s) {
       var strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 34), M.amber); strip.position.set(s * 4.52, y0 + (y0 === 0 ? 3.05 : HL - 0.15), 0.75); root.add(strip);
       var sill = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 34), M.bronze); sill.position.set(s * 4.54, y0 + 0.9, 0.75); root.add(sill); }); });
+  }
+
+  // V0.4 — physical landing extensions in the kit's measured stair coordinate system.
+  // Both treads and new landings participate in the same walking raycast.
+  function buildStairLandings(root) {
+    [-1, 1].forEach(function (side) {
+      var vertices = [], indices = [], radius = 11.35, width = 1.8;
+      var a0 = -0.56, a1 = -0.345, steps = 16;
+      for (var i = 0; i <= steps; i++) {
+        var a = a0 + (a1 - a0) * i / steps;
+        [radius - width / 2, radius + width / 2].forEach(function (r) {
+          vertices.push(side * r * Math.cos(a), 0, 36 + r * Math.sin(a));
+        });
+        if (i < steps) { var k = 2 * i; indices.push(k, k+1, k+2, k+1, k+3, k+2); }
+      }
+      var geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geo.setIndex(indices);
+      // Set the actual winding based on its normal rather than assuming mirror orientation.
+      geo.computeVertexNormals();
+      if (geo.attributes.normal.getY(0) < 0) {
+        for (var k = 0; k < indices.length; k += 3) { var tmp = indices[k+1]; indices[k+1] = indices[k+2]; indices[k+2] = tmp; }
+        geo.setIndex(indices); geo.computeVertexNormals();
+      }
+      var mat = M.floor.clone(); mat.side = THREE.DoubleSide;
+      var mesh = new THREE.Mesh(geo, mat); mesh.name = 'V04_Upper_Stair_Landing_' + side;
+      root.add(mesh); walk.push(mesh);
+      // A solid-looking bronze edge and low-profile rails, kept outside walking width.
+      [radius-width/2, radius+width/2].forEach(function (r) {
+        var pts = []; for (var j=0;j<=12;j++) { var a=a0+(a1-a0)*j/12; pts.push(new THREE.Vector3(side*r*Math.cos(a),1.0,36+r*Math.sin(a))); }
+        var curve = new THREE.CatmullRomCurve3(pts);
+        root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,12,0.035,6,false),M.bronze));
+        [a0+0.02,a1-0.02].forEach(function(a){var post=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1,6),M.steel);post.position.set(side*r*Math.cos(a),0.5,36+r*Math.sin(a));root.add(post);});
+      });
+      // Light both approaches, not just the corridor center.
+      [0, LOW].forEach(function (y) {
+        var l = new THREE.PointLight(0xffc78a, 3.5, 12, 1.8);
+        l.position.set(side * 11.35, y + 2.5, 36); root.add(l);
+      });
+    });
+  }
+
+  // An opaque, depth-tested viewport surface. No hyperspace particles or exterior
+  // tunnel geometry exist anywhere else in the atrium scene. Bridge/room effects
+  // remain untouched. Sync with the existing ship-wide wf-warp schedule.
+  function buildSkylightView(root) {
+    var uniforms = { clock: {value:0}, warp: {value:0} };
+    var material = new THREE.ShaderMaterial({
+      uniforms:uniforms, side:THREE.DoubleSide, depthTest:true, depthWrite:true,
+      transparent:false, toneMapped:false, fog:false,
+      vertexShader:'varying vec2 uv0; void main(){uv0=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader:[
+        'uniform float clock; uniform float warp; varying vec2 uv0;',
+        'float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+        'void main(){',
+        'vec2 s=uv0*vec2(80.,700.);vec2 id=floor(s);vec2 f=fract(s)-.5;',
+        'float star=step(.983,h(id))*(1.-smoothstep(.025,.16,length(f)));',
+        'vec3 quiet=vec3(.009,.014,.034)+star*vec3(.72,.83,1.);',
+        'float lane=floor(uv0.x*100.);float n=h(vec2(lane,4.));',
+        'float z=fract(uv0.y*(3.+n*8.)-clock*(1.3+n*2.5)+n*31.);',
+        'float line=pow(max(0.,1.-abs(fract(uv0.x*100.)-.5)*2.),5.);',
+        'float tail=pow(max(0.,1.-z),5.);',
+        'vec3 fast=vec3(.012,.025,.065)+line*tail*vec3(.24,.52,1.)*(.4+n*1.2);',
+        'gl_FragColor=vec4(mix(quiet,fast,warp),1.);}'
+      ].join('\n')
+    });
+    // Existing ceiling cutout spans x ±2.05, z −17.55 to +18.05.
+    var pane = new THREE.Mesh(new THREE.PlaneGeometry(4.1,35.6),material);
+    pane.rotation.x = -Math.PI/2; pane.position.set(0,3.29,0.25);
+    pane.name='V04_Skylight_Only'; root.add(pane);
+    var last=null, nextCheck=-1, target=0, current=0, soundCheck=-1;
+    function scheduled(){
+      var now=Date.now(),w=null;
+      try{w=JSON.parse(localStorage.getItem('wf-warp')||'null');}catch(e){}
+      if(!w){w={until:0,next:now+(4+Math.random()*8)*60000};try{localStorage.setItem('wf-warp',JSON.stringify(w));}catch(e){}}
+      if(now>w.next){w={until:now+75000,next:now+(7+Math.random()*6)*60000,at:now};try{localStorage.setItem('wf-warp',JSON.stringify(w));}catch(e){}}
+      return now<w.until?1:0;
+    }
+    current=target=scheduled(); uniforms.warp.value=current;
+    return {update:function(t){
+      var dt=last===null?0:Math.min(.1,Math.max(0,t-last));last=t;
+      if(Math.floor(t)!==nextCheck){nextCheck=Math.floor(t);target=scheduled();}
+      current+=Math.sign(target-current)*Math.min(Math.abs(target-current),dt/2.5);
+      uniforms.clock.value=t;uniforms.warp.value=current;
+      if(window.WF_SOUND&&Math.floor(t*4)!==soundCheck){soundCheck=Math.floor(t*4);WF_SOUND.warp(current);}
+    }};
   }
 
   // ── lights ──
@@ -149,6 +235,8 @@
   }
   function go(d) { if (navigating || d.locked) return; var P = window.WAYFARER.door.PORTALS[d.id]; if (!P) return; navigating = true; window.WAYFARER.door.leave(P.page, 'images/portals/room-' + d.id + '.jpg', 0); }
   function fromRoom() {
+    var explicit = new URLSearchParams(location.search).get('fromRoom');
+    if (explicit && DOORS.some(function(d){return d.id === explicit;})) return explicit;
     try { var nav = performance.getEntriesByType('navigation')[0]; if (nav && nav.type !== 'navigate') return null; var ref = document.referrer || ''; if (ref.indexOf(location.host) < 0) return null;
       var m = ref.split('?')[0].split('#')[0].split('/').pop(), PT = window.WAYFARER.door.PORTALS; for (var k in PT) if (PT[k].page === m) return k; } catch (e) {}
     return null;
@@ -170,36 +258,54 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat);
-      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length;
-      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var m = merge(g.scene, walk); root.add(m); if (--left === 0) self.ready(); }, null, function (e) { console.error('atrium', n, e); if (--left === 0) self.ready(); }); });
-      fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (LY) { buildWalls(flat, LY.corridor.outerPolygon); }).catch(function (e) { console.error(e); });
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat);
+      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
+      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var m = merge(g.scene, walk); root.add(m); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
+      fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
       buildDoors(sc, flat);
-      // light speed overhead through the skylight (bow = −Z: streaks rush toward +Z)
-      if (window.WAYFARER.hyperspace) this.hyper = window.WAYFARER.hyperspace(flat, { fwd: -1, arc: [-70, 70], count: MOB ? 900 : 1500, minR: 16, maxR: 190, tunnel: 0.6, width: 0.55, bright: 0.9,
-        spill: [{ p: [0, 3.0, -10], i: 1.4, d: 11 }, { p: [0, 3.0, 8], i: 1.4, d: 11 }] });
-      this.spawn();
+      // v0.4: exterior effects are confined to the real skylight.
+      this.hyper = buildSkylightView(flat);
+      this.spawn(); this.loadingPosition=this.cam.object3D.position.clone();
     },
-    ready: function () { walk.forEach(function (m) { m.updateMatrixWorld(true); }); this.walkReady = true; var f = document.getElementById('wf-fade'); if (f) f.style.opacity = '0'; },
+    ready: function (failed) {
+      this.el.object3D.updateMatrixWorld(true);
+      var f=document.getElementById('wf-fade'); if(f)f.style.opacity='0';
+      if(failed && failed.length){this.loadFailed=true;window.WAYFARER.frozen=true; say('ATRIUM LOAD ERROR: '+failed.join(', '),'#ff8f70'); console.error('Atrium missing required assets',failed);return;}
+      var p=this.cam.object3D.position; if(this.loadingPosition)p.copy(this.loadingPosition); var y=floorAt(p.x,p.z,this.floorY);
+      if(y===null){ this.spawnFallback=true; p.x=0; p.z=-21; this.floorY=0; y=floorAt(p.x,p.z,0); }
+      if(y===null){this.loadFailed=true;window.WAYFARER.frozen=true;say('ATRIUM: NO SAFE SPAWN','#ff8f70');return;}
+      this.floorY=y; this.player.object3D.position.y=y; this.last={x:p.x,z:p.z}; this.walkReady=true;
+      say(this.spawnFallback?'SAFE SPAWN · UPPER DECK':(y < -3 ? 'LOWER DECK':'UPPER DECK'));
+    },
     spawn: function () {
       var from = fromRoom(), d = from && DOORS.filter(function (q) { return q.id === from; })[0], p = this.cam.object3D.position, yaw = Math.PI;   // default: facing aft (+Z) down the atrium
       if (d) { var a = d.rot * Math.PI / 180; p.x = d.x + Math.sin(a) * 1.3; p.z = d.z + Math.cos(a) * 1.3; this.floorY = d.y; yaw = Math.atan2(-Math.sin(a), -Math.cos(a)); }   // one step out, facing away from the door
       else { p.x = 0; p.z = -20; this.floorY = 0; }
       var st = (location.search.match(/[?&]stairs=(port|starboard)/) || [])[1];   // through a Library stairs door: top of that staircase
-      if (st) { p.x = st === 'port' ? -10.2 : 10.2; p.z = 31.6; this.floorY = 0; yaw = Math.PI; if (this.last) { this.last.x = p.x; this.last.z = p.z; } }
+      if (st) { var side = st === 'port' ? -1 : 1, angle = -0.51; p.x = side * 11.35 * Math.cos(angle); p.z = 36 + 11.35 * Math.sin(angle); this.floorY = 0; yaw = Math.atan2(side * Math.sin(angle), -Math.cos(angle)); if (this.last) { this.last.x = p.x; this.last.z = p.z; } }
       this.player.object3D.position.y = this.floorY;
       var lc = this.cam.components['look-controls']; if (lc && lc.yawObject) lc.yawObject.rotation.y = yaw;
     },
     tick: function (t, dt) {
       var p = this.cam.object3D.position, s = Math.min(dt, 60) / 1000, wp = new THREE.Vector3();
       if (this.hyper) this.hyper.update(t / 1000);
+      if(!this.walkReady){if(this.loadingPosition)p.copy(this.loadingPosition);return;}
       if (this.walkReady && !window.WAYFARER.frozen) {
         if (!this.last) this.last = { x: p.x, z: p.z };
         var moved = Math.abs(p.x - this.last.x) + Math.abs(p.z - this.last.z) > 1e-5;
         if (moved) {
-          var y = floorAt(p.x, p.z, this.floorY), lib = Math.hypot(p.x, p.z - 36) < 10.5 && p.z > 25.5;
-          if (y === null || lib) { p.x = this.last.x; p.z = this.last.z; }
-          else { this.floorY = y; this.last.x = p.x; this.last.z = p.z; }
+          // Sweep short segments to prevent skipping treads or jumping across holes at low FPS.
+          var dx = p.x - this.last.x, dz = p.z - this.last.z;
+          var n = Math.max(1, Math.ceil(Math.hypot(dx,dz) / 0.09));
+          var sx = this.last.x, sz = this.last.z;
+          for (var i=1;i<=n;i++) {
+            var x=sx+dx*i/n, z=sz+dz*i/n, y=floorAt(x,z,this.floorY);
+            var radius = this.floorY < -3 ? 9.4 : 10.2;
+            var insideCore = Math.hypot(x,z-36) < radius && z > 25.5;
+            if (y===null || insideCore) break;
+            this.floorY=y; this.last.x=x; this.last.z=z;
+          }
+          p.x=this.last.x; p.z=this.last.z;
         }
         var py = this.player.object3D.position; py.y += (this.floorY - py.y) * Math.min(1, s * 12);   // ease up/down the stairs
       }

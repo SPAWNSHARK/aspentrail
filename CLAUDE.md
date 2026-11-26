@@ -426,6 +426,33 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   avatar.js?v=player-mk2-2 tags were normalised back to our date version. Headless tests (3rd person): atrium upper walk, stairs (camera
   pulled in to ~1 m), lower deck, Firefly cabin, Bridge sit → seated → stand; no errors. NOT verified: real iPhone Safari frame rate
   (swiftshader isn't representative), seat/hip calibration in the chair.
+- [x] ATRIUM v0.4 (Nov 26, user's Ship_Layout_Problems.zip; installer + helpers in reference/atrium-v04/): installer dry run → apply (anchors
+  matched). Upper stair landing extensions (walkable), movement swept in 9 cm segments (never onto unsupported floor), walking withheld until
+  every required asset has loaded (missing asset → 'ATRIUM LOAD ERROR', frozen), skylight-only warp pane (V04_Skylight_Only shader; the old
+  free hyperspace tunnel is gone from the atrium), engine threshold z 26.6 + lower core r 9.4, room exits pass ?fromRoom=<id> (return deck/
+  heading without the referrer), Library stair shortcuts land on the new landings. Its ?v=atrium-v04 tags were normalised to the date version.
+  ACCEPTANCE (headless, scratchpad acc.js/acc2.js): both staircases down AND up at a 15 fps step (0.17 m/frame) with no stall/void; walking into
+  the opening blocked; crossover loop OK; Library shortcuts port/starboard; returns from all 12 rooms land on the right deck at the right door
+  facing away; warp streaks only through the skylight; missing Twin_Curved_Stairs → load error + frozen; Engine door z 26.6, spawn outside the
+  core. NOT done: live iPhone Safari.
+- [x] FIREFLY v1.1 CABIN (Nov 26, Firefly_Cabin_Upgrade_v11.zip; reference/firefly-v11/): models/atrium/Firefly_WF01_Mobile_v11.glb (64k tris,
+  textured, 16 clips) in the hangar with v1.0 Firefly_WF01_Mobile.glb as load-error fallback; patched deck GLBs replaced; crew/firefly-cabin.mjs
+  (= cabin_runtime.mjs): six live displays fed by real state (cabinState: NAV last world/berth, SYSTEMS upgrades + faults, MISSION wf-mission,
+  QUARANTINE wf-discoveries, HATCH docked/pressure, COMMS credits), boarding plays Boarding_Hatch_Open then closes; cabin menu toggles
+  Locker_1/2/3, Quarantine, Work_Tray, Mission_Display and shows each display. Flight Mode keeps the lighter v1.0 model.
+- [x] CREW SOCIAL INTELLIGENCE V3 (Cat_droid_Intelligence_V3.zip; reference/crew-social-v3/): crew/social-controller.mjs attached to the ONE
+  CrewEngine (attachSocial, bonds saved in 'wf-social-v3'; its 6 tests pass) + crew/social-behaviours.mjs (attachBehaviours wraps decide/
+  arrive/update/setShip — no second loop): petting contact alignment (cat at droid hand reach 0.55 / seated 0.68, facing; purr + chatter with
+  cooldowns), FEEDING (hunger rises; bowl node l_bowl at the Lounge feeding station, engine lock 'bowl', Eat, hunger drops only after eating,
+  released on finish/interrupt/alert), NAP beside a seated/working droid (wakes when it leaves), FOLLOW the Captain (trust ≥ 0.6, hysteresis
+  2.6/1.6 m, same room only, 60 s; Rub_Legs/Sit on arrival), PLAY chase (3 rounds, engine-time phases, Pounce/Roll), EMERGENCY (cancel all
+  social + reservations, cats shelter in Lounge rest spots and Crouch; droids keep Droid V2 duties). Verified on the live Lounge page with a
+  fast-forwarded engine: all of the above. NOT done: true IK hand-on-head contact, live iPhone.
+- [x] ANIMATION LIBRARY V6 (reference/animation-v6/; crew/anim-v6/ adapter + cat/droid JSON): crew.js addV6() binds the procedural clips to
+  the real joints (cats: the pack's felineMap; droids: Torso/HeadPivot/L|R_Shoulder/Elbow/Hip/Knee) and adds ONLY clips the GLB lacks
+  (authored win): cats +17 (Run, Stair_Up/Down, Rub_Legs, Feed…), droids +33 (Salute, Scan, Repair, Recharge, Emergency_Run…). Tests 4/4.
+- [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
+  needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.

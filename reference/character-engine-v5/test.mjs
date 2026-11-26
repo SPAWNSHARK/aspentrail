@@ -1,0 +1,12 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {Character,footTargets} from './engine.mjs';import {route,stair,StairLocks} from './navigation.mjs';
+const flat={ground:()=>({y:0}),clear:()=>true};const run=(c,i,w=flat,n=120)=>{for(let j=0;j<n;j++)c.tick(1/120,i,w);};
+for(const k of ['player','cat','droid','kvetar'])test(k+' jump and land',()=>{const c=new Character(k);run(c,{},flat,2);run(c,{jump:true},flat,20);assert.ok(c.pos.y>.2);run(c,{},flat,200);assert.equal(c.pos.y,0);assert.ok(c.grounded)});
+test('held jump does not repeat',()=>{const c=new Character();run(c,{},flat,2);run(c,{jump:true},flat,300);assert.equal(c.pos.y,0)});
+test('run faster than walk',()=>{const a=new Character(),b=new Character();run(a,{z:1});run(b,{z:1,run:true});assert.ok(b.pos.z>a.pos.z)});
+test('collision',()=>{const c=new Character();run(c,{z:1},{...flat,clear:p=>p.z<.5});assert.ok(c.pos.z<.5)});
+test('stairs both directions',()=>{const c=new Character();const w={...flat,ground:p=>({y:Math.max(0,Math.min(1,p.z*.5)),stair:true})};run(c,{z:1},w,200);assert.ok(c.pos.y>.9);run(c,{z:-1},w,300);assert.equal(c.pos.y,0)});
+test('zero g',()=>{const c=new Character();run(c,{up:1},{...flat,gravity:0});assert.ok(c.pos.y>0)});
+test('camera does not mutate position',()=>{const c=new Character();const a={...c.pos};c.camera('first',flat);c.camera('third',flat);assert.deepEqual(c.pos,a)});
+test('foot targets',()=>assert.equal(footTargets([{x:0,y:2,z:0}],flat)[0].y,0));
+test('stair locks',()=>{const l=new StairLocks();assert.ok(l.acquire('s','a',1));assert.ok(!l.acquire('s','b',-1));});
+test('species route limits',()=>assert.equal(route({a:{x:0,y:0,z:0},b:{x:0,y:1,z:1}},[{a:'a',b:'b',step:.3}],'a','b','droid'),null));

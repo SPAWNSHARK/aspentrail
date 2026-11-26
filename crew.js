@@ -88,6 +88,7 @@
     N('com_work', 'lounge', 6.0, -1.05); E('l_e2', 'com_work'); E('l_ne', 'com_work');
     L.stations.push({ id: 'com_remote', node: 'com_work', owner: 'com', type: 'console', yaw: 98 * Math.PI / 180, asset: 'Console_Communications.glb', placement: { room: 'lounge', x: 6.75, z: -1.15, yaw: 98 } });
     N('l_r1', 'lounge', -2.8, 4.3); N('l_r2', 'lounge', 2.6, 4.4); E('l_s', 'l_r1'); E('l_s', 'l_r2');
+    N('l_bowl', 'lounge', 4.5, 5.1); E('l_e', 'l_bowl');   /* the cats' bowl at the feeding station (lounge.html prop at 5.0, 5.8) */
     spot('l_r1', 'rest'); spot('l_r2', 'rest'); spot('l_nw', 'rest'); spot('l_w2', 'rest'); spot('l_ne', 'explore'); spot('l_e', 'explore');
 
     // MEDIA NEXUS — Tactical console at the back, port side, facing the wall
@@ -167,7 +168,8 @@
       this.ready = false; this.objs = {}; this.hits = {}; this.loading = {}; this.want = {}; this.mix = {}; this.acts = {}; this.cur = {}; this.vis = {};
       this.tmp = new THREE.Vector3(); this.lastSave = 0; this.talk = null; this.consoleBoxes = [];
       if (CAPTURE) { var go = function () { self.placeConsoles(); }; if (sc.hasLoaded) go(); else sc.addEventListener('loaded', go); return; }
-      import('./crew/crew-engine.mjs?v=3').then(function (M) { self.boot(M); }).catch(function (e) { console.warn('crew engine', e); });
+      Promise.all([import('./crew/crew-engine.mjs?v=3'), import('./crew/social-controller.mjs?v=1'), import('./crew/social-behaviours.mjs?v=3')])
+        .then(function (L) { self.boot(L[0]); self.attachSocial(L[1], L[2]); }).catch(function (e) { console.warn('crew engine', e); });
       addEventListener('pagehide', function () { self.save(); });
       document.addEventListener('visibilitychange', function () { if (document.hidden) self.save(); });
     },
@@ -240,6 +242,26 @@
         WF_LIFE.addGoals('orders', [{ id: 'order1', text: 'Give your crew an order from the Bridge', ev: 'order', n: 1 }]);
         WF_LIFE.addTab('orders', 'ORDERS', function (box, el, rerender) { self.ordersTab(box, el, rerender); });
       }
+    },
+    // ── ANIMATION LIBRARY V6 (crew/anim-v6: adapter.mjs + cat.json / droid.json): procedural in-place clips bound to the real joints ──
+    addV6: function (n, root, mx, acts) {
+      var kind = n.kind, self = this;
+      this._v6 = this._v6 || Promise.all([import('./crew/anim-v6/adapter.mjs?v=1'), fetch('crew/anim-v6/cat.json?v=1').then(function (r) { return r.json(); }), fetch('crew/anim-v6/droid.json?v=1').then(function (r) { return r.json(); })]);
+      this._v6.then(function (R) {
+        var A = R[0], lib = kind === 'cat' ? R[1] : R[2], get = function (nm) { return root.getObjectByName(nm); };
+        var map = kind === 'cat' ? A.felineMap(root) : { body: get('Torso'), head: get('HeadPivot'), leftArm: get('L_Shoulder'), leftArmElbow: get('L_Elbow'), rightArm: get('R_Shoulder'), rightArmElbow: get('R_Elbow'), leftLeg: get('L_Hip'), leftLegKnee: get('L_Knee'), rightLeg: get('R_Hip'), rightLegKnee: get('R_Knee') };
+        var res = A.buildClips(THREE, lib, map), clips = res.clips || res, added = [];
+        clips.forEach(function (c) { if (acts[c.name]) return; acts[c.name] = A.configureAction(THREE, mx.clipAction(c), c); added.push(c.name); });
+        (self.v6added = self.v6added || {})[n.id] = added;
+        var w = self.want[n.id]; if (w && !self.cur[n.id] && acts[w.clip]) self.playClip(n.id, w.clip, w.loop, 0);
+      }).catch(function (e) { console.warn('anim v6', e); });
+    },
+    // ── CREW SOCIAL INTELLIGENCE V3 + behaviours on the SAME engine (crew/social-controller.mjs, crew/social-behaviours.mjs) ──
+    attachSocial: function (SC, BH) {
+      var eng = this.eng; if (!eng) return; var saved = {}; try { saved = JSON.parse(localStorage.getItem('wf-social-v3') || '{}'); } catch (e) {}
+      var social = SC.attachSocial(eng, { saved: saved, hooks: { end: function () { try { localStorage.setItem('wf-social-v3', JSON.stringify(social.snapshot())); } catch (e) {} } } });
+      this.behaviours = BH.attachBehaviours(eng, { social: social, bowlNode: 'l_bowl' }); W.crew.social = social; W.crew.behaviours = this.behaviours;
+      if (eng.ship.alert) this.behaviours.shelter();
     },
     // ── CREW ORDERS (user, Nov 26): battle stations · red alert · shore leave · stand down — given from the Bridge, obeyed shipwide ──
     ordersTab: function (box, el, rerender) {
@@ -319,6 +341,7 @@
         root.add(g.scene); self.el.object3D.add(root); self.objs[id] = root; root.visible = false;
         var mx = new THREE.AnimationMixer(g.scene), acts = {}; g.animations.forEach(function (c) { acts[c.name] = mx.clipAction(c); });
         self.mix[id] = mx; self.acts[id] = acts; self.cur[id] = null;
+        self.addV6(n, g.scene, mx, acts);   /* Animation Library V6: only clips this rig lacks (authored clips always win) */
         var w = self.want[id]; if (w) self.playClip(id, w.clip, w.loop, 0);
         if (n.kind === 'droid' && w && /Console_Operate|Standing_Console/.test(w.clip)) mx.setTime(Math.random() * 2);
         // tap target: a plain invisible box that follows them (raycasting the GLB every frame would cost too much on a phone)

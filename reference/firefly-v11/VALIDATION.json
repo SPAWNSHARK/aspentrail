@@ -1,0 +1,190 @@
+{
+  "models/Firefly_WF01_HD.glb": {
+    "parse": true,
+    "reachable_firefly_count": 1,
+    "triangles_instanced": 145568,
+    "renderable_nodes": 834,
+    "clips": [
+      "Boarding_Hatch_Open",
+      "Boarding_Hatch_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Locker_1_Open",
+      "Locker_1_Close",
+      "Locker_2_Open",
+      "Locker_2_Close",
+      "Locker_3_Open",
+      "Locker_3_Close",
+      "Quarantine_Open",
+      "Quarantine_Close",
+      "Mission_Display_Open",
+      "Mission_Display_Close",
+      "Work_Tray_Open",
+      "Work_Tray_Close"
+    ],
+    "bytes": 5200148,
+    "embedded_images": 20,
+    "bounds": [
+      [
+        -2.8495657314336964,
+        -0.5600000002980232,
+        -5.0
+      ],
+      [
+        2.8495657314336964,
+        2.6142573566695444,
+        5.004000000052154
+      ]
+    ],
+    "cabin_vertices_checked": 27884,
+    "max_section_value": 0.9102888968910826,
+    "cabin_closed_containment": true
+  },
+  "models/Firefly_WF01_Mobile.glb": {
+    "parse": true,
+    "reachable_firefly_count": 1,
+    "triangles_instanced": 63874,
+    "renderable_nodes": 79,
+    "clips": [
+      "Boarding_Hatch_Open",
+      "Boarding_Hatch_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Locker_1_Open",
+      "Locker_1_Close",
+      "Locker_2_Open",
+      "Locker_2_Close",
+      "Locker_3_Open",
+      "Locker_3_Close",
+      "Quarantine_Open",
+      "Quarantine_Close",
+      "Mission_Display_Open",
+      "Mission_Display_Close",
+      "Work_Tray_Open",
+      "Work_Tray_Close"
+    ],
+    "bytes": 5636436,
+    "embedded_images": 20,
+    "bounds": [
+      [
+        -2.8369998931884766,
+        -0.5600000002980232,
+        -5.0
+      ],
+      [
+        2.8369998931884766,
+        2.6106772422790527,
+        5.004000000052154
+      ]
+    ],
+    "cabin_vertices_checked": 24716,
+    "max_section_value": 0.9095865408723983,
+    "cabin_closed_containment": true
+  },
+  "patched/Lower_Deck_Complete.glb": {
+    "parse": true,
+    "reachable_firefly_count": 1,
+    "triangles_instanced": 90726,
+    "renderable_nodes": 1091,
+    "clips": [
+      "Hangar_Pressure_Gate_Door_Open",
+      "Hangar_Pressure_Gate_Door_Close",
+      "Jaw_Open",
+      "Jaw_Close",
+      "Boarding_Hatch_Open",
+      "Boarding_Hatch_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Locker_1_Open",
+      "Locker_1_Close",
+      "Locker_2_Open",
+      "Locker_2_Close",
+      "Locker_3_Open",
+      "Locker_3_Close",
+      "Quarantine_Open",
+      "Quarantine_Close",
+      "Mission_Display_Open",
+      "Mission_Display_Close",
+      "Work_Tray_Open",
+      "Work_Tray_Close"
+    ],
+    "bytes": 6318820,
+    "embedded_images": 20,
+    "bounds": [
+      [
+        -16.286959115621546,
+        -5.6,
+        -55.0
+      ],
+      [
+        16.286959115621546,
+        0.7000000000000002,
+        49.11
+      ]
+    ],
+    "dock_translation": [
+      0.0,
+      2.36,
+      -6.0
+    ]
+  },
+  "patched/Wayfarer_Dual_Deck_Assembled.glb": {
+    "parse": true,
+    "reachable_firefly_count": 1,
+    "triangles_instanced": 147178,
+    "renderable_nodes": 3133,
+    "clips": [
+      "Command_Bridge_Door_Open",
+      "Command_Bridge_Door_Close",
+      "Holodeck_Door_Open",
+      "Holodeck_Door_Close",
+      "Captains_Quarters_Door_Open",
+      "Captains_Quarters_Door_Close",
+      "Crew_Lounge_Door_Open",
+      "Crew_Lounge_Door_Close",
+      "Media_Nexus_Door_Open",
+      "Media_Nexus_Door_Close",
+      "Library_Halcyon_Door_Open",
+      "Library_Halcyon_Door_Close",
+      "Hangar_Pressure_Gate_Door_Open",
+      "Hangar_Pressure_Gate_Door_Close",
+      "Jaw_Open",
+      "Jaw_Close",
+      "Boarding_Hatch_Open",
+      "Boarding_Hatch_Close",
+      "Landing_Gear_Deploy",
+      "Landing_Gear_Retract",
+      "Locker_1_Open",
+      "Locker_1_Close",
+      "Locker_2_Open",
+      "Locker_2_Close",
+      "Locker_3_Open",
+      "Locker_3_Close",
+      "Quarantine_Open",
+      "Quarantine_Close",
+      "Mission_Display_Open",
+      "Mission_Display_Close",
+      "Work_Tray_Open",
+      "Work_Tray_Close"
+    ],
+    "bytes": 7556496,
+    "embedded_images": 20,
+    "bounds": [
+      [
+        -18.71,
+        -5.6,
+        -55.0
+      ],
+      [
+        18.71,
+        8.452387068003288,
+        49.11
+      ]
+    ],
+    "dock_translation": [
+      0.0,
+      2.36,
+      -6.0
+    ]
+  }
+}

@@ -13,7 +13,7 @@
     xeno:     { glb: 'Xenobiology', key: 'Xenobiology', fy: -5.3, hello: 'Xenobiology — specimen tanks for whatever you bring back from the surface.' },
     mess:     { glb: 'Mess_Hall', key: 'Mess_Hall', fy: -5.3, hello: 'Mess Hall & Galley.' },
     maint:    { glb: 'Maintenance_Storage', key: 'Maintenance_Storage', fy: -5.3, hello: 'Maintenance & Storage.' },
-    firefly:  { glb: 'Firefly_Hangar', key: 'Firefly_Hangar', fy: -5.3, extra: [['Triangular_Jaw_Dock', 0, 0, 0, 'jaw'], ['Firefly_WF01_Mobile', 0, 0, 0, 'ship']], hello: 'Firefly Hangar — the Pathfinder cruiser WF-01. Tap her to board. Planet landings launch from here (coming soon).' },
+    firefly:  { glb: 'Firefly_Hangar', key: 'Firefly_Hangar', fy: -5.3, extra: [['Triangular_Jaw_Dock', 0, 0, 0, 'jaw'], ['Firefly_WF01_Mobile_v11', 0, 0, 0, 'ship', 'Firefly_WF01_Mobile']], hello: 'Firefly Hangar — the Pathfinder cruiser WF-01. Tap her to board. Planet landings launch from here (coming soon).' },
     engine:   { glb: 'Engine_Room_Halcyon_Lower', circle: [0, 36, 9.0], core: 3.2, fy: -5.3, hello: 'Engine Room — the Halcyon power core, right under the Library.' }
   };
   var R = ROOMS[ID]; if (!R) return;
@@ -90,12 +90,38 @@
     var lc = cam.components['look-controls']; if (lc && yaw != null) { lc.yawObject.rotation.y = yaw; lc.pitchObject.rotation.x = -0.05; } }
   function shell(show) { var S = JOBS.models.ship && JOBS.models.ship.scene; if (!S) return; S.traverse(function (o) { if (/^Exterior_Shell|^Gear_/.test(o.name) && o.parent && !/^Exterior_Shell|^Gear_/.test(o.parent.name)) o.visible = show; }); }
   function board(on) {
+    if (on && !JOBS.aboard && !JOBS.hatchDone) { return cabinRuntime(function (C) { if (!C) { JOBS.hatchDone = true; return board(true); }
+      L() && L().toast('Boarding hatch opening…'); C.set('Boarding_Hatch', true).then(function () { JOBS.hatchDone = true; board(true); setTimeout(function () { C.set('Boarding_Hatch', false).catch(function () {}); }, 1500); }).catch(function () { JOBS.hatchDone = true; board(true); }); }); }
     var S = JOBS.models.ship && JOBS.models.ship.scene; if (!S) return; JOBS.aboard = on; window.WAYFARER.frozen = on;
     if (on) { shell(false); var sp = S.getObjectByName('Cabin_Spawn') || S.getObjectByName('Pilot_Anchor') || S, p = wpos(sp); placeEye(new THREE.Vector3(p.x, p.y + (sp === S ? 1.2 : 1.55), p.z), 0);
       L() && L().toast('Aboard the Firefly — look around. Tap the cabin for the pilot’s seat or to step out.'); if (window.WF_SOUND) WF_SOUND.droid('servo', 0, 0.4); JOBS.menuT = setTimeout(cabinMenu, 1400); }
-    else { shell(true); document.getElementById('player').object3D.position.y = 0; placeEye(new THREE.Vector3(5.5, 1.6, -33), Math.atan2(5.5, 5)); }
+    else { JOBS.hatchDone = false; shell(true); document.getElementById('player').object3D.position.y = 0; placeEye(new THREE.Vector3(5.5, 1.6, -33), Math.atan2(5.5, 5)); }
   }
-  function cabinMenu() { panel('FIREFLY CABIN', '<p>Pilot and co-pilot seats up front, lockers and the quarantine alcove aft.</p>', [['🧑‍✈️ Take the pilot’s seat & launch', function () { closeP(); launch(); }], ['🚪 Step out', function () { closeP(); board(false); }]]); }
+  // FIREFLY v1.1 CABIN (crew/firefly-cabin.mjs = the pack's cabin_runtime.mjs): six live displays fed from real game state, and the
+  // animated lockers / quarantine door / work tray / mission display / boarding hatch. allowBoarding = docked in the hangar (pressurised).
+  function cabinState() {
+    var near = load('wf-near', null), up = load('wf-upgrades', {}), mis = load('wf-mission', null), disc = load('wf-discoveries', []), F = load('wf-faults', []), cr = load('wf-credits', 0);
+    return { mode: 'docked', allowBoarding: true,
+      NAV: { 'LAST WORLD': near || 'VARKESH', 'BERTH': 'WAYFARER BOW', 'GEAR': 'DOWN', 'JAW': 'CLOSED' },
+      SYSTEMS: { 'ENGINE': 'MK ' + ((up.engine || 0) + 1), 'SHIELD': 'MK ' + ((up.shield || 0) + 1), 'GUNS': 'MK ' + ((up.gun || 0) + 1), 'HULL PAINT': (up.paint || 'copper').toUpperCase(), 'SHIP FAULTS': F.length ? F.length + ' OPEN' : 'NONE' },
+      MISSION: mis ? { 'CONTRACT': String(mis.title || mis.type || 'ACTIVE').toUpperCase(), 'TARGET': String(mis.target || mis.planet || '-').toUpperCase(), 'PROGRESS': (mis.progress || 0) + ' / ' + (mis.need || mis.n || 1), 'REWARD': (mis.reward || '?') + ' CR' } : { 'CONTRACT': 'NONE', 'BOARD': 'HIVEPORT JOBS' },
+      QUARANTINE: { 'SPECIMENS': disc.length, 'LATEST': disc.length ? String(disc[disc.length - 1].name).toUpperCase() : '-', 'SEAL': 'NOMINAL', 'BIOHAZARD': 'NONE' },
+      HATCH: { 'PRESSURE': '1.00 ATM', 'STATUS': 'DOCKED · SAFE', 'BOARDING': 'PERMITTED' },
+      COMMS: { 'WAYFARER': 'LINK OK', 'HIVEPORT': near && /hive/i.test(near) ? 'IN RANGE' : 'RELAY', 'CREDITS': cr + ' CR' } };
+  }
+  function cabinRuntime(cb) {
+    if (JOBS.cabin) return cb && cb(JOBS.cabin); var S = JOBS.models.ship; if (!S || !S.scene.getObjectByName('Display_NAV')) return cb && cb(null);   /* v1.0 fallback has no cabin rig */
+    import('./crew/firefly-cabin.mjs?v=1').then(function (Mo) { try { JOBS.cabin = Mo.bindFireflyCabin({ THREE: THREE, root: S.scene, clips: S.animations, getState: cabinState, onDisplay: function (n) { showDisplay(n); } }); } catch (e) { console.warn('firefly cabin', e); JOBS.cabin = null; } cb && cb(JOBS.cabin); }).catch(function (e) { console.warn(e); cb && cb(null); });
+  }
+  function showDisplay(n) { var st = cabinState()[n] || {}; panel('WF-01 · ' + n, Object.keys(st).map(function (k) { return '<div class="row"><b style="font-size:13px;color:#ffc98a;min-width:120px">' + k + '</b><span>' + st[k] + '</span></div>'; }).join('')); }
+  var MECH = { Locker_1: '🧰 Locker 1', Locker_2: '🧰 Locker 2', Locker_3: '🧰 Locker 3', Quarantine: '🧪 Quarantine door', Work_Tray: '🛠 Work tray', Mission_Display: '🖥 Mission display' };
+  function toggle(name) { var C = JOBS.cabin; if (!C) return; JOBS.mech = JOBS.mech || {}; var open = !JOBS.mech[name]; C.set(name, open).then(function () { JOBS.mech[name] = open; }).catch(function (e) { L() && L().toast(String(e.message || e)); }); if (window.WF_SOUND) WF_SOUND.droid('servo', 0, 0.5); }
+  function cabinMenu() { cabinRuntime(function (C) {
+    var b = [['🧑‍✈️ Take the pilot’s seat & launch', function () { closeP(); launch(); }]];
+    if (C) { Object.keys(MECH).forEach(function (k) { b.push([MECH[k] + ' — ' + ((JOBS.mech || {})[k] ? 'close' : 'open'), function () { toggle(k); setTimeout(cabinMenu, 1400); return false; }]); });
+      ['NAV', 'SYSTEMS', 'MISSION', 'QUARANTINE', 'HATCH', 'COMMS'].forEach(function (n) { b.push(['📟 ' + n + ' display', function () { showDisplay(n); return false; }]); }); }
+    b.push(['🚪 Step out', function () { closeP(); board(false); }]);
+    panel('FIREFLY CABIN', '<p>Two pilot seats up front, three lockers, the quarantine alcove, a folding work tray and six live displays.</p>', b); }); }
 
   // the hangar launch: the lower bow jaw swings open (kit Jaw_Open), the Firefly rides the dock down and away, then Flight Mode
   function launch() {
@@ -133,6 +159,7 @@
     });
   };
   JOBS.tick = function (t, dt) {
+    if (this.cabin) this.cabin.update(Math.min(dt, 50) / 1000);
     var k = 0.5 + 0.5 * Math.sin(t / 400); this.spots.forEach(function (s) { s.ring.material.opacity = 0.3 + 0.35 * k; });
     if (this.launchT != null) { var s = Math.min(dt, 50) / 1000; this.launchT += s; this.mix.update(s); this.smix.update(s);
       var sh = this.models.ship.scene; if (this.launchT > 3.2) { var u = this.launchT - 3.2; sh.position.z -= u * u * 1.8 * s * 10; sh.position.y -= u * 0.4 * s * 10; }
@@ -145,13 +172,15 @@
     init: function () { var self = this, sc = this.el.sceneEl; if (sc.hasLoaded) this.build(sc); else sc.addEventListener('loaded', function () { self.build(sc); }); },
     build: function (sc) {
       var K = window.WF_KIT, M = K.mats(K.envMap(sc.renderer)); M.floor.roughness = 0.42; M.floor.envMapIntensity = 0.7; var root = new THREE.Group(), self = this; root.position.y = -R.fy; this.el.object3D.add(root);
-      var walk = [], loader = new THREE.GLTFLoader(), list = [[R.glb, 0, 0, 0]].concat(R.extra || []), left = list.length;
+      var walk = [], loader = new THREE.GLTFLoader(), list = [[R.glb, 0, 0, 0]].concat(R.extra || []), left = list.length, failed = [];
       list.forEach(function (q) {
         loader.load('models/atrium/' + q[0] + '.glb?v=1', function (g) {
-          if (q[4]) { JOBS.models[q[4]] = g; root.add(g.scene); if (q[4] !== 'ship') reskin(g.scene, M);   /* the Firefly keeps its own PBR copper */ if (--left === 0) self.ready(); return; }   // animated pieces stay whole
+          if (q[4]) { JOBS.models[q[4]] = g; root.add(g.scene); if (q[4] !== 'ship') reskin(g.scene, M);   /* the Firefly keeps its own PBR copper */ if (--left === 0) self.ready(failed); return; }   // animated pieces stay whole
           var m = K.merge(g.scene, walk, function (o) { return !SHELL.test(o.name) && !SHELL.test((o.parent && o.parent.name) || ''); });
-          m.position.set(q[1], q[2], q[3]); root.add(m); JOBS.meshes = JOBS.meshes.concat(m.children); if (--left === 0) self.ready();
-        }, null, function (e) { console.error('kitroom', q[0], e); if (--left === 0) self.ready(); });
+          m.position.set(q[1], q[2], q[3]); root.add(m); JOBS.meshes = JOBS.meshes.concat(m.children); if (--left === 0) self.ready(failed);
+        }, null, function (e) {
+          if (q[5]) { console.warn('kitroom: ' + q[0] + ' failed, falling back to ' + q[5]); var fb = q.slice(); fb[0] = q[5]; fb[5] = null; loader.load('models/atrium/' + fb[0] + '.glb?v=1', function (g) { JOBS.models[fb[4]] = g; root.add(g.scene); if (--left === 0) self.ready(failed); }, null, function () { failed.push(q[0]); if (--left === 0) self.ready(failed); }); return; }   /* Firefly v1.1 → v1.0 */
+          console.error('kitroom', q[0], e); failed.push(q[0]); if (--left === 0) self.ready(failed); });
       });
       // lights: warm amber pools over the room
       var flat = new THREE.Group(); this.el.object3D.add(flat); flat.add(new THREE.HemisphereLight(0xffd8b0, 0x1a0e06, 0.5));
@@ -165,7 +194,7 @@
       window.WAYFARER.door.roomExit(ID);
       this.spawn();
     },
-    ready: function () { var f = document.getElementById('wf-fade'); if (f) f.style.opacity = '0'; toast(R.hello); JOBS.setup(this.el.sceneEl); if (window.WF_LIFE) WF_LIFE.event('room:' + ID); },
+    ready: function (failed) { var f = document.getElementById('wf-fade'); if (f) f.style.opacity = '0'; if(failed && failed.length){toast('ROOM LOAD ERROR: '+failed.join(', '));console.error('Room missing required assets',failed);return;} toast(R.hello); JOBS.setup(this.el.sceneEl); if (window.WF_LIFE) WF_LIFE.event('room:' + ID); },
     spawn: function () {
       if (ID === 'firefly' && /[?&]from=fly/.test(location.search)) { var cam0 = document.getElementById('cam'); cam0.object3D.position.set(5.5, 1.6, -33); var l0 = cam0.components['look-controls']; if (l0 && l0.yawObject) l0.yawObject.rotation.y = Math.atan2(5.5, 5); setTimeout(function () { toast('The Firefly is back in her cradle. Welcome home, Captain.'); }, 1200); return; }
       var P = window.WAYFARER.door.PORTALS[ID].room, a = P.rot * Math.PI / 180, cam = document.getElementById('cam'), p = cam.object3D.position;

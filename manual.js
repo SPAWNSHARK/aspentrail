@@ -17,6 +17,15 @@
       'Each droid greets you in character. Talk to one for three new topics: Recent duty log (what they’ve actually been doing), Maintenance register (the live fault list) and Personal log.',
       'Talking interrupts their work — they go back to it afterwards (unless you order them back to station). On red alert they drop everything and run home; no chit-chat until it’s over.'
     ]],
+    ['🐾 Crew life (cats + droids)', [
+      'Cats get hungry and walk to the bowl at the Lounge feeding station to eat. They curl up and nap beside a droid at its station, and wake when it leaves.',
+      'A cat that trusts you (60 %+) sometimes follows you around the room and rubs your legs. Two rested cats play chase — pounces and rolls.',
+      'Droids pet the cats in passing (the cat comes right up to the droid’s hand); their bond grows each time.',
+      'Red alert: every cat runs to shelter in the Lounge and crouches; droids run to their stations.'
+    ]],
+    ['🚀 Firefly cabin', [
+      'Board through the animated rear hatch. Inside: pilot seats, three lockers, the quarantine alcove, a folding work tray and six live displays (NAV, SYSTEMS, MISSION, QUARANTINE, HATCH, COMMS) showing your real ship data — tap the cabin for the menu.'
+    ]],
     ['🛋 Crew Lounge', [
       'Alien aquarium in the port wall: glowing fish, a drifting ray, swaying kelp. Star-fire hearth on the starboard wall. Brass pendants over the table, bar cabinet by the door. Alien TV on the window wall (tap to change channel), Starjack on the coffee table.'
     ]],
