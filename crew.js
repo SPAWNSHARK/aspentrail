@@ -51,7 +51,7 @@
     // BRIDGE — ring round the dais (r 2.05), the six home chairs (kit arrangement ×1.45, same as bridge.html buildStations)
     N('b_door', 'bridge', 0, 7.0); N('b_back', 'bridge', 0, 4.6); gate('b_door', 0, 1);
     var ring = [];
-    for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2, id = 'b_r' + i, rr = 3.0 + 2.6 * Math.max(0, -Math.cos(a)); N(id, 'bridge', Math.sin(a) * rr, Math.cos(a) * rr); ring.push(id); }   /* bulges round the navigator plinth at the front of the helm (z −3.5, r 1.64) */
+    for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2, id = 'b_r' + i, rr = 3.0; N(id, 'bridge', Math.sin(a) * rr, Math.cos(a) * rr); ring.push(id); }   /* plain ring round the dais (the navigator now stands at the bow, z −6.4) */
     chain(ring.concat(['b_r0'])); chain(['b_door', 'b_back', 'b_r0']);
     BRIDGE_ST.forEach(function (st) {
       var K = 1.45, cx = -st[2][0] * K, cz = -st[2][1] * K, yaw = (st[4] + 180) * Math.PI / 180;

@@ -21,19 +21,19 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126u"></script>
-  <script src="life.js?v=20261126u"></script>
-  <script src="manual.js?v=20261126u"></script>
-  <script src="menubar.js?v=20261126u"></script>
-  <script src="ai.js?v=20261126u"></script>
-  <script src="sound.js?v=20261126u"></script>
-  <script src="avatar.js?v=20261126u"></script>
-  <script src="door.js?v=20261126u"></script>
-  <script src="hyperspace.js?v=20261126u"></script>
-  <script src="shipskin.js?v=20261126u"></script>
-  <script src="lcars.js?v=20261126u"></script>
-  <script src="crew.js?v=20261126u"></script>
-  <script src="repairs.js?v=20261126u"></script>
+  <script src="mobile.js?v=20261126v"></script>
+  <script src="life.js?v=20261126v"></script>
+  <script src="manual.js?v=20261126v"></script>
+  <script src="menubar.js?v=20261126v"></script>
+  <script src="ai.js?v=20261126v"></script>
+  <script src="sound.js?v=20261126v"></script>
+  <script src="avatar.js?v=20261126v"></script>
+  <script src="door.js?v=20261126v"></script>
+  <script src="hyperspace.js?v=20261126v"></script>
+  <script src="shipskin.js?v=20261126v"></script>
+  <script src="lcars.js?v=20261126v"></script>
+  <script src="crew.js?v=20261126v"></script>
+  <script src="repairs.js?v=20261126v"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -115,7 +115,7 @@
   (function () {
     var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
     var MOB = window.WAYFARER && window.WAYFARER.mobile;
-    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22, CHAIR_Z = 0.65, ORB_Z = -3.5, ORB_S = 2.0;
+    var R = 8.2, WALL_H = 4.6, WIN_ARC = 140 * Math.PI / 180, WIN_Y0 = 0.95, WIN_Y1 = 3.7, DAIS_R = 2.05, DAIS_H = 0.22, CHAIR_Z = 0.65, ORB_Z = -6.4, ORB_S = 1;
 
     // ───────── helpers ─────────
     function cv(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
@@ -264,7 +264,7 @@
         var q = P[i2].clone().addScaledVector(Nrm[i2], 0.06), ry = Math.atan2(Nrm[i2].x, Nrm[i2].z), lg = mesh(leg, M.bronze, root, q.x, (WALL_H - 0.4) / 2, q.z); lg.rotation.y = ry;
         var j2 = r2[Math.min(r2.length - 1, k2 + Math.round(r2.length > 12 ? 9 : 4))]; if (P[j2].z > 6.9 && Math.abs(P[j2].x) < 2.2) return;
         var qs = P[j2].clone().addScaledVector(Nrm[j2], 0.03), ry2 = Math.atan2(Nrm[j2].x, Nrm[j2].z);
-        if (Math.abs(P[j2].x) > 5.6 && Math.abs(P[j2].x) < 7.6 && P[j2].z > 3 && shelfAt.length < 2 && !shelfAt.some(function (z) { return Math.sign(z) === Math.sign(P[j2].x); })) { shelfAt.push(P[j2].x); plantShelfAt(P[j2], Nrm[j2]); return; }
+        wallDisplays(P[j2], Nrm[j2]);   /* user, Nov 26: no bookshelves on the Bridge — every wall crowded with displays */
         var b1 = mesh(sc0, M.bronze, root, qs.x, 2.55, qs.z); b1.rotation.y = ry2;
         var q2 = P[j2].clone().addScaledVector(Nrm[j2], 0.05), b2 = mesh(scL, M.lamp, root, q2.x, 2.54, q2.z); b2.rotation.y = ry2;
         var gq = P[j2].clone().addScaledVector(Nrm[j2], 0.01), gl = mesh(new THREE.PlaneGeometry(1.2, 1.2), add(dot, 0xff9a3c, 0.4), root, gq.x, 2.55, gq.z); gl.rotation.y = ry2;
@@ -304,7 +304,25 @@
     }
     function radialRing() { var c = cv(256, 4), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 4); var t = new THREE.CanvasTexture(c); return t; }
 
-    // ── wall-hung shelf with plants and a few books ──
+    // ── WALL DISPLAYS (user, Nov 26): each wall bay gets a big LCARS screen, two small ones under it and a thin status strip,
+    //    in bronze frames. Six shared animated textures (lcars.js) keep it cheap on a phone however many screens there are.
+    var DISP = null, dispN = 0;
+    function dispTex(i) {
+      if (!DISP) { DISP = []; for (var k = 0; k < 6; k++) { var lc = WAYFARER.lcars({ w: 512, h: k % 3 === 2 ? 128 : 288, seed: 40 + k * 7, layout: ['graph', 'readout', 'keys', 'graph', 'readout', 'keys'][k], label: ['NAV', 'HULL', 'COMM', 'SENS', 'POWR', 'TACT'][k] }); anim.push(lc.update); DISP.push(lc.texture); } }
+      return DISP[i % 6];
+    }
+    function wallDisplays(pt, nr) {
+      var g = new THREE.Group(), p = pt.clone().addScaledVector(nr, 0.07); p.y = 0; g.position.copy(p); g.rotation.y = Math.atan2(nr.x, nr.z); root.add(g);
+      function screen(w, h, x, y, ti) {
+        var fr = mesh(new THREE.BoxGeometry(w + 0.08, h + 0.08, 0.05), M.bronze, g, x, y, 0);
+        var sc2 = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: dispTex(ti), toneMapped: false })); sc2.position.set(x, y, 0.03); g.add(sc2);
+        var gl = new THREE.Mesh(new THREE.PlaneGeometry(w * 1.25, h * 1.4), new THREE.MeshBasicMaterial({ color: 0xff9a40, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false })); gl.position.set(x, y, 0.005); g.add(gl);
+      }
+      var n = dispN++; screen(1.5, 0.84, 0, 1.75, n);
+      screen(0.68, 0.42, -0.4, 0.95, n + 1); screen(0.68, 0.42, 0.4, 0.95, n + 2);
+      screen(1.5, 0.16, 0, 2.38, n + 5);
+    }
+    // ── wall-hung shelf with plants and a few books (no longer used on the Bridge) ──
     function plantShelfAt(pt, nr) {
       var th = Math.atan2(pt.x, -pt.z), g = new THREE.Group(), p = pt.clone().addScaledVector(nr, 0.2); p.y = 0; g.position.copy(p); g.rotation.y = Math.atan2(nr.x, nr.z); root.add(g);   // local +z faces the room
       mesh(new THREE.BoxGeometry(1.5, 2.3, 0.04), M.wood, g, 0, 1.75, -0.16);
@@ -343,40 +361,48 @@
       var ce = kitModel('Commander_Chair_Animated.glb', [0, DAIS_H, CHAIR_Z], 180); ce.setAttribute('id', 'cmd-chair'); window.__chairEl = ce;
     }
 
-    // ── THE HELM (user, Nov 26): the NAVIGATOR is part of the captain's station — a big holographic planet selector (×1.5) on its
-    //    own bronze plinth at the front of the helm, joined to the command dais by a raised neck, so chair + navigator read as one
-    //    console. Its own holo layers (light cone, three gyroscope rings, rising sparks) idle softly and SPIN UP while you navigate.
-    //    Tapping it seats you in the chair first, then turns you to the map. Planets are only picked inside the map.
-    var NAV_FX = null;
+    // ── THE NAVIGATOR (user, Nov 26, 2nd pass: "at the very front of the ship near the windows, much larger, less lame — like the
+    //    original Holodeck Milky Way galaxy animation"): a giant barred-spiral galaxy hologram (r ≈ 2.4 m) floating over a bronze
+    //    emitter by the bow glass, with a pulsing YOU-ARE-HERE marker, light cone and gyroscope rings. Idle it turns slowly; while
+    //    you navigate it blooms (spins up, grows, brightens). Tap it → you sit in the captain's chair, then the galactic map opens.
+    var NAV_FX = null, NAV_C = new THREE.Vector3(0, 2.35, ORB_Z);
     function buildOrb(add, dot) {
-      var cu = M.bronze, pl = new THREE.Group(); pl.position.set(0, 0, ORB_Z); root.add(pl);
-      mesh(lathe([[0, 0], [1.6, 0], [1.64, 0.04], [1.64, DAIS_H - 0.05], [1.58, DAIS_H], [0, DAIS_H]], 64), M.floor, pl);           // plinth
-      var rim = mesh(new THREE.TorusGeometry(1.61, 0.03, 8, 96), M.amber, pl, 0, DAIS_H - 0.06, 0); rim.rotation.x = Math.PI / 2;
-      var rim2 = mesh(new THREE.TorusGeometry(1.56, 0.035, 8, 96), cu, pl, 0, DAIS_H, 0); rim2.rotation.x = Math.PI / 2;
-      var neck = mesh(new THREE.BoxGeometry(1.3, DAIS_H, 0.6), M.floor, root, 0, DAIS_H / 2, (ORB_Z + 1.6 + (-DAIS_R + 0.05)) / 2);    // dais ⇄ plinth
-      [-0.66, 0.66].forEach(function (x) { mesh(new THREE.BoxGeometry(0.04, 0.03, 0.9), M.amber, root, x, DAIS_H + 0.005, neck.position.z); });
-      var e = kitModel('Planet_Selector_Animated.glb', [0, DAIS_H, ORB_Z], 180); e.setAttribute('scale', ORB_S + ' ' + ORB_S + ' ' + ORB_S); e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb'); window.__orbEl = e;
-      e.addEventListener('model-loaded', function () {
-        var m = e.getObject3D('mesh'), clips = (e.components['gltf-model'].model || m).animations || [], mx = new THREE.AnimationMixer(m); mixers.push(mx);
-        ['Hologram_Rotation', 'Galaxy_Spin'].forEach(function (n) { var c = THREE.AnimationClip.findByName(clips, n); if (c) mx.clipAction(c).play(); });
-        window.__orbAnim = { mx: mx, clips: clips };
-      });
+      var base = new THREE.Group(); base.position.set(0, 0, ORB_Z); root.add(base);
+      mesh(lathe([[0, 0], [0.95, 0], [0.98, 0.05], [0.7, 0.16], [0.42, 0.34], [0.36, 0.62], [0.48, 0.7], [0, 0.7]], 64), M.bronze, base);
+      var lens = mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.04, 48), add(dot, 0xb08cff, 0.9), base, 0, 0.72, 0);
+      var rimL = mesh(new THREE.TorusGeometry(0.97, 0.025, 8, 96), M.amber, base, 0, 0.03, 0); rimL.rotation.x = Math.PI / 2;
+      var fx = new THREE.Group(); fx.position.copy(NAV_C); root.add(fx);
+      var gal = new THREE.Group(); gal.rotation.x = 0.78; fx.add(gal);   /* tipped toward the helm so you see the spiral face-on */
+      var N = MOB ? 6000 : 14000, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), r = rng(11), R = 3.3;
+      for (var i = 0; i < N; i++) {
+        var t = r(), x, z, y, c;
+        if (t < 0.12) { var bl = (r() - 0.5) * 1.1, bw = (r() - 0.5) * 0.22; x = bl * Math.cos(0.5) - bw * Math.sin(0.5); z = bl * Math.sin(0.5) + bw * Math.cos(0.5); y = (r() - 0.5) * 0.12; c = [1, 0.85, 0.6]; }   // central bar
+        else { var arm = i % 4, d = 0.35 + Math.pow(r(), 0.8) * (R - 0.35), a = arm * Math.PI / 2 + Math.log(d / 0.35) * 2.25 + (r() - 0.5) * 0.55 / (d * 0.6 + 0.4);
+          x = Math.cos(a) * d + (r() - 0.5) * 0.12; z = Math.sin(a) * d + (r() - 0.5) * 0.12; y = (r() - 0.5) * 0.14 * (1.2 - d / R);
+          c = d < 0.7 ? [1, 0.82, 0.62] : r() < 0.5 ? [0.55, 0.65, 1] : r() < 0.55 ? [0.75, 0.55, 1] : r() < 0.3 ? [1, 0.5, 0.7] : [0.85, 0.9, 1]; }
+        var br = 0.25 + r() * 0.5; pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; col[i * 3] = c[0] * br; col[i * 3 + 1] = c[1] * br; col[i * 3 + 2] = c[2] * br;
+      }
+      var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      var pts = new THREE.Points(geo, new THREE.PointsMaterial({ map: dot, size: 0.06, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); gal.add(pts);
+      var core = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0xffe2b0, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); core.scale.set(1.8, 1.8, 1); gal.add(core);
+      var neb = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x5a3cff, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); neb.scale.set(7.6, 7.6, 1); gal.add(neb);
+      var here = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: 0x6ffff0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); here.position.set(1.45, 0.02, 0.6); here.scale.set(0.22, 0.22, 1); gal.add(here);
+      var hereRing = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.14, 32), new THREE.MeshBasicMaterial({ color: 0x6ffff0, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false, toneMapped: false })); hereRing.rotation.x = -Math.PI / 2; hereRing.position.copy(here.position); gal.add(hereRing);
+      var cone = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 0.42, NAV_C.y - 0.72, 64, 1, true), add(null, 0x7a8cff, 0.05)); cone.material.side = THREE.DoubleSide; cone.position.y = -(NAV_C.y - 0.72) / 2; fx.add(cone);
+      var rings = [0, 1, 2].map(function (k) { var rg = new THREE.Mesh(new THREE.TorusGeometry(3.6 + k * 0.25, 0.016, 6, 160), add(null, k === 1 ? 0xb08cff : 0x6ec8ff, 0.35)); rg.rotation.set(Math.PI / 2 + 0.78 + k * 0.35, k * 0.8, 0); fx.add(rg); return rg; });
+      var l = new THREE.PointLight(0x8a7cff, 1.6, 10, 2); fx.add(l);
+      // tap target: the whole hologram
+      var e = document.createElement('a-entity'); e.setAttribute('class', 'interactive'); e.setAttribute('id', 'nav-orb'); e.setObject3D('mesh', new THREE.Mesh(new THREE.SphereGeometry(3.4, 16, 12), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })));
+      e.object3D.position.copy(NAV_C); sc.appendChild(e); window.__orbEl = e;
       e.addEventListener('click', function () { if (window.WF_CMD) window.WF_CMD.navigator(); });
-      var l = new THREE.PointLight(0x4a9cff, 1.6, 9, 2); l.position.set(0, DAIS_H + 2.8, ORB_Z); root.add(l);
-      // holo layers
-      var fx = new THREE.Group(); fx.position.set(0, DAIS_H, ORB_Z); fx.scale.setScalar(ORB_S / 1.5); root.add(fx);
-      var cone = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 0.35, 2.6, 48, 1, true), add(null, 0x5aa8ff, 0.09)); cone.position.y = 1.5; fx.add(cone);
-      cone.material.side = THREE.DoubleSide;
-      var rings = [0, 1, 2].map(function (i) { var r = new THREE.Mesh(new THREE.TorusGeometry(1.15 + i * 0.18, 0.012, 6, 120), add(null, i === 1 ? 0xb08cff : 0x6ec8ff, 0.55)); r.position.y = 2.05; r.rotation.set(Math.PI / 2 + i * 0.5, i * 0.9, 0); fx.add(r); return r; });
-      var N = 90, pp = new Float32Array(N * 3), sp = []; for (var i = 0; i < N; i++) { var a = Math.random() * 6.28, rr = 0.3 + Math.random() * 0.9; pp[i * 3] = Math.cos(a) * rr; pp[i * 3 + 1] = Math.random() * 3; pp[i * 3 + 2] = Math.sin(a) * rr; sp.push(0.15 + Math.random() * 0.5); }
-      var pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-      var sparks = new THREE.Points(pg, new THREE.PointsMaterial({ map: dot, color: 0x9fd8ff, size: 0.06, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); fx.add(sparks);
-      NAV_FX = { rings: rings, cone: cone, sparks: sparks, sp: sp, light: l, boost: 0, want: 0 };
+      NAV_FX = { rings: rings, cone: cone, gal: gal, pts: pts, core: core, neb: neb, here: here, hereRing: hereRing, light: l, boost: 0, want: 0, spin: 0 };
       anim.push(function (t) {
-        var F = NAV_FX, dt = 1 / 60; F.boost += (F.want - F.boost) * 0.04;
-        F.rings.forEach(function (r, i) { r.rotation.z += (0.004 + i * 0.003) * (1 + F.boost * 6); r.rotation.x += 0.002 * (i - 1) * (1 + F.boost * 4); r.scale.setScalar(1 + F.boost * 0.25 + 0.02 * Math.sin(t * 2 + i)); r.material.opacity = 0.35 + 0.4 * F.boost; });
-        F.cone.material.opacity = 0.06 + 0.12 * F.boost + 0.02 * Math.sin(t * 3); F.light.intensity = 1.4 + 2.2 * F.boost;
-        var a = F.sparks.geometry.attributes.position, d = a.array; for (var k = 0; k < F.sp.length; k++) { d[k * 3 + 1] += F.sp[k] * dt * (1 + F.boost * 3); if (d[k * 3 + 1] > 3.2) d[k * 3 + 1] = 0; } a.needsUpdate = true;
+        var F = NAV_FX; F.boost += (F.want - F.boost) * 0.035; F.spin += 0.0022 * (1 + F.boost * 7);
+        F.pts.rotation.y = -F.spin; F.here.position.set(Math.cos(-F.spin + 0.4) * 2.15, 0.02, Math.sin(-F.spin + 0.4) * 2.15); F.hereRing.position.copy(F.here.position);
+        var pulse = 0.5 + 0.5 * Math.sin(t * 4); F.here.scale.setScalar(0.18 + 0.1 * pulse); F.hereRing.scale.setScalar(1 + 1.5 * ((t * 0.8) % 1)); F.hereRing.material.opacity = 0.8 * (1 - (t * 0.8) % 1);
+        F.gal.scale.setScalar(1 + F.boost * 0.22); F.core.material.opacity = 0.75 + 0.2 * Math.sin(t * 1.6) + 0.1 * F.boost; F.neb.material.opacity = 0.26 + 0.2 * F.boost;
+        F.rings.forEach(function (rg, k) { rg.rotation.z += (0.002 + k * 0.0015) * (1 + F.boost * 8); rg.material.opacity = 0.18 + 0.45 * F.boost; rg.scale.setScalar(1 + F.boost * 0.15); });
+        F.cone.material.opacity = 0.035 + 0.08 * F.boost; F.light.intensity = 1.4 + 2.4 * F.boost;
       });
     }
 
@@ -562,7 +588,7 @@
     function closeNav() { if (mode !== 'nav') return; setMode('nav-close'); snd('orb_close'); orbClip('Orb_Close'); if (NAV_FX) NAV_FX.want = 0; }
     function orbClip(n) { var A = window.__orbAnim; if (!A) return; var c = T3.AnimationClip.findByName(A.clips, n); if (!c) return; ['Orb_Open', 'Orb_Close'].forEach(function (k) { var cc = T3.AnimationClip.findByName(A.clips, k); if (cc) A.mx.clipAction(cc).stop(); }); var a = A.mx.clipAction(c); a.reset(); a.setLoop(T3.LoopOnce, 1); a.clampWhenFinished = true; a.play(); }
     function navCam(k) {                                       // lean the view in toward the hologram above the navigator
-      var o = wpos(window.__orbEl.object3D).add(V3(0, 1.1 * ORB_S, 0)), p = navSaved.p.clone().lerp(o, 0.3);
+      var o = NAV_C.clone(), p = navSaved.p.clone().lerp(o, 0.28);
       var q = new T3.Quaternion().setFromRotationMatrix(new T3.Matrix4().lookAt(p, o, V3(0, 1, 0)));
       putCam(navSaved.p.clone().lerp(p, k), navSaved.q.clone().slerp(q, k));
     }

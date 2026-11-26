@@ -31,7 +31,7 @@
     ['🃏 Crew Lounge', [
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],
     ['🪑 The helm (Command Bridge)', [
-      'The captain’s chair and the big holographic NAVIGATOR in front of it are one station. Tap either one and you sit down first.',
+      'The NAVIGATOR is the giant Milky Way hologram at the bow windows (a cyan pulse marks where you are). Tap it, or the captain’s chair, and you sit down first. When you navigate, the galaxy blooms and spins up.',
       'Seated menu: CRUISING (peaceful flight) · HUNTING (combat) · SHIP (inspect the Wayfarer in Ship View) · NAVIGATE (turn to the navigator and open the galactic map) · STAND.',
       'In the galactic map your ship sits at your current system. Planet emojis mark each world, and ✓ marks the ones you’ve visited. Confirm a destination and the ship jumps there.',
       'Keys while seated: N navigate · L cruise · K hunt · X / Esc stand.']],
