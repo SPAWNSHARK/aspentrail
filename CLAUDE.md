@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127i).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127j).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -382,6 +382,15 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   crew/map/repairs on these pages (crew.js + life.js PAGE tables), room jobs (medbay recovery, xeno specimens, galley, reactor, landings).
 - [ ] (was STEP 3) lower-deck room pages from the kit GLBs (Firefly_Hangar, Medbay, Xenobiology, Mess_Hall, Maintenance_Storage,
   Engine_Room_Halcyon_Lower) + Captain's Quarters (upper) — restyled; unlock their atrium doors; PORTALS entries + photos; crew/map.
+- [x] ROOM JOBS (Nov 26, kitroom.js ACTIONS/JOBS; tap furniture ≤ 4.5 m, pulsing amber floor ring; glass #kr-panel bottom sheet):
+  quarters Bed=sleep (blackout, Halcyon good-morning, 'sleep') · Locker=trophy curios (idol/chart/geode/tooth/model) · Console/Table=Captain's
+  log textarea ('wf-captains-log', 'log'); medbay Bed=check-up ('medbay') · Console=record; xeno Specimen/Console = 'wf-discoveries' list
+  ('xeno'); mess Replicator = 4 dishes ('cook') + cat treats ×3 for 20 cr; maint Console = 'wf-faults' ('maint'); engine Console = core
+  status + spin-up jump (wf-warp.next = now+25 s, 'reactor'); firefly = LAUNCH: Triangular_Jaw_Dock (Jaw_Open via AnimationMixer) with the
+  Firefly parented to Firefly_Docking_Anchor (gear retracts), camera on the starboard side, stars below, then minigame.html ('launch').
+  window.WF_ROOMJOBS for tests. life.js PAGE knows the new pages (room:<id> events); MAP has UPPER/LOWER DECK tabs (renderLower: layout.json
+  polygons in ship coords, engine ring, twin stairs, you) and the Captain's Quarters is a tappable room on the upper map with your arrow.
+- [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.
 
