@@ -145,7 +145,14 @@
     '#wf-crew-talk .ch{display:grid;grid-template-columns:1fr 1fr;gap:6px}' +
     '#wf-crew-talk button{padding:10px 8px;border-radius:13px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:600 12.5px -apple-system,system-ui,sans-serif;text-align:left}' +
     '#wf-crew-talk button.x{grid-column:1/-1;text-align:center;color:#e8d4bf;background:none}' +
-    'body.wf-crew-talking #wf-joy,body.wf-crew-talking #room-prompt{opacity:0;pointer-events:none}';
+    'body.wf-crew-talking #wf-joy,body.wf-crew-talking #room-prompt{opacity:0;pointer-events:none}' +
+    '#wf-cat-menu{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:57;display:none;width:min(94vw,440px);padding:12px 12px 10px;border-radius:20px;box-sizing:border-box;' +
+      'background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.03)),rgba(30,16,22,.6);-webkit-backdrop-filter:blur(22px) saturate(185%);backdrop-filter:blur(22px) saturate(185%);border:1px solid rgba(255,180,210,.3);color:#fff;font:600 13px -apple-system,system-ui,sans-serif}' +
+    '#wf-cat-menu h3{margin:0 0 8px;font:800 13px -apple-system,system-ui,sans-serif;letter-spacing:1px;display:flex;gap:8px;align-items:baseline}#wf-cat-menu h3 small{color:#e6c8d8;font-weight:500;flex:1}#wf-cat-menu h3 span{color:#ff8ab8;letter-spacing:2px}' +
+    '#wf-cat-menu div{display:flex;flex-wrap:wrap;gap:6px}#wf-cat-menu button{flex:1 1 28%;padding:10px 6px;border-radius:13px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:700 13px -apple-system,system-ui,sans-serif}' +
+    '#wf-cat-menu button.x{flex:0 0 44px;background:none}' +
+    '#wf-toy-stop{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:57;display:none;padding:10px 20px;border-radius:18px;border:1px solid rgba(255,180,210,.45);' +
+      'background:rgba(30,16,22,.55);color:#ffd6e8;font:800 12px -apple-system,system-ui,sans-serif;letter-spacing:2px;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}';
   document.head.appendChild(css);
 
   // ───────────────────────── the component ─────────────────────────
@@ -213,7 +220,7 @@
       if (!this.eng) return; var e = this.eng;
       var s = { v: VER, wall: Date.now(), time: e.time, seed: e.seed, ship: e.ship, locks: Array.from(e.locks.entries()), npcs: [] };
       e.npcs.forEach(function (n) {
-        s.npcs.push({ id: n.id, node: n.node, pos: n.pos, yaw: n.yaw, state: n.state, clip: n.clip, until: n.until, next: n.next, route: n.route, goal: n.goal, station: n.station,
+        s.npcs.push({ id: n.id, node: n.node, pos: n.pos, yaw: n.yaw, state: n.state === 'TOY' ? 'IDLE' : n.state, clip: n.clip, until: n.until, next: n.next, route: n.route, goal: n.goal, station: n.station,
           memory: n.memory, needs: n.needs, nextSound: n.nextSound, lastSocial: n.lastSocial, xferAt: n.xferAt || 0, xferFrom: n.xferFrom || null });
       });
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (err) {}
@@ -296,11 +303,103 @@
     // ── talking / petting ──
     tap: function (id) {
       if (!this.eng || this.talk) return; var n = this.eng.npcs.get(id); if (!n) return;
+      if (n.kind === 'cat') { this.catMenu(n); return; }
       var r = this.eng.interact(id);
       if (!r) { var p = this.eng.player(); if (p && Math.hypot(p.x - n.pos.x, p.z - n.pos.z) > 2.3) toast(n.kind === 'cat' ? n.name + ' is too far away to pet' : 'Walk closer to talk to ' + n.name); return; }
       if (r.kind === 'cat') { toast(n.name + (r.trust > 0.75 ? ' purrs and leans into your hand' : r.trust > 0.55 ? ' purrs' : ' lets you pet them')); this.purr(n); return; }
-      this.show(r); this.say(id, 'greeting');
+      this.show(r); this.say(id, 'greeting'); if (window.WF_LIFE) WF_LIFE.event('talk');
     },
+
+    // ── LOUNGE CAT PLAY (user, Nov 26): tap a cat → Pet · Treat · Laser · Wand · Trick (trust ≥ 70 %) ──
+    pdist: function (n) { var p = this.eng.player(); return p ? Math.hypot(p.x - n.pos.x, p.z - n.pos.z) : 99; },
+    catMenu: function (n) {
+      var self = this, L = window.WF_LIFE, box = document.getElementById('wf-cat-menu');
+      if (!box) { box = document.createElement('div'); box.id = 'wf-cat-menu'; document.body.appendChild(box);
+        ['pointerdown', 'touchstart', 'mousedown'].forEach(function (e) { box.addEventListener(e, function (ev) { ev.stopPropagation(); }, { passive: true }); }); }
+      var tr = n.memory.trust, hearts = '♥♥♥♥♥'.slice(0, Math.max(1, Math.round(tr * 5))) + '<span style="opacity:.3">' + '♥♥♥♥♥'.slice(Math.max(1, Math.round(tr * 5))) + '</span>';
+      var treats = L ? L.count('treat') : 0, opts = [['pet', '✋ Pet'], ['treat', '🐟 Treat ×' + treats], ['laser', '🔴 Laser'], ['wand', '🪶 Wand']];
+      if (tr >= 0.7) opts.push(['trick', '✨ Trick']);
+      box.innerHTML = '<h3>' + n.name + ' <small>' + n.personality + '</small><span>' + hearts + '</span></h3><div></div>';
+      var row = box.querySelector('div');
+      opts.concat([['x', '✕']]).forEach(function (o) { var b = document.createElement('button'); b.innerHTML = o[1]; if (o[0] === 'x') b.className = 'x';
+        b.addEventListener('click', function (ev) { ev.stopPropagation(); box.style.display = 'none'; if (o[0] !== 'x') self.catDo(n, o[0]); }); row.appendChild(b); });
+      box.style.display = 'block';
+    },
+    catDo: function (n, what) {
+      var L = window.WF_LIFE, d = this.pdist(n), self = this;
+      if (this.toy) this.stopToy();
+      if (what === 'pet' || what === 'treat' || what === 'trick') {
+        if (d > 2.3) { toast('Walk closer to ' + n.name); return; }
+        if (what === 'treat' && !(L && L.take('treat'))) { toast('No treats left — new ration tomorrow (and soon at the Hiveport shops)'); return; }
+        var r = this.eng.interact(n.id); if (!r) return;
+        var bump = what === 'treat' ? 0.06 : what === 'trick' ? 0.01 : 0; n.memory.trust = Math.min(1, n.memory.trust + bump);
+        if (what === 'pet') { toast(n.name + (r.trust > 0.75 ? ' purrs and leans into your hand' : r.trust > 0.55 ? ' purrs' : ' lets you pet them')); this.purr(n); if (L) L.event('pet'); }
+        if (what === 'treat') { toast(n.name + ' crunches the treat happily (' + (L ? L.count('treat') : 0) + ' left)'); this.sound(n, 'chirp'); setTimeout(function () { self.sound(n, 'purr'); }, 900); if (L) L.event('treat'); }
+        if (what === 'trick') { n.state = 'TOY'; this.toy = { n: n, kind: 'trick', t: 0, dur: 1.6 }; this.animate(n, 'Play', { loop: false, fade: 0.15 }); this.sound(n, 'trill'); toast(n.name + ' does a twirl!'); if (L) L.event('trick'); }
+        return;
+      }
+      if (d > 8) { toast(n.name + ' is too far away to see it'); return; }
+      n.route = []; n.goal = null; this.eng.release(n); n.state = 'TOY';
+      this.toy = { n: n, kind: what, t: 0, dur: what === 'laser' ? 22 : 14, dot: null, pounce: 0 };
+      if (what === 'laser') this.makeDot(); else this.makeWand();
+      toast(what === 'laser' ? 'Look around to move the dot — ' + n.name + ' is watching it…' : 'Wiggle the feather — ' + n.name + ' wants it!');
+      if (L) L.event(what);
+      this.toyBtn(true);
+    },
+    makeDot: function () {
+      var g = new THREE.Group(), core = new THREE.Mesh(new THREE.CircleGeometry(0.035, 16), new THREE.MeshBasicMaterial({ color: 0xff2a2a, toneMapped: false, depthWrite: false }));
+      var glow = new THREE.Mesh(new THREE.CircleGeometry(0.16, 24), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+      [core, glow].forEach(function (m) { m.rotation.x = -Math.PI / 2; m.position.y = 0.012; g.add(m); }); g.userData.noCollide = true; this.el.object3D.add(g); this.toy.dot = g;
+    },
+    makeWand: function () {
+      var cam = this.el.camera, g = new THREE.Group(), rod = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.7, 6), new THREE.MeshStandardMaterial({ color: 0xc08848, metalness: 0.7, roughness: 0.35 }));
+      rod.rotation.x = -1.0; rod.position.set(0.18, -0.25, -0.45); g.add(rod);
+      var str = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.002, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0xffe8c0 })); g.add(str);
+      var fe = new THREE.Group(); [0xff6aa0, 0xffd070, 0x7fd8ff].forEach(function (c, i) { var f = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshStandardMaterial({ color: c, roughness: 0.9 })); f.scale.set(0.5, 2.4, 0.5); f.rotation.z = (i - 1) * 0.5; f.position.y = -0.05; fe.add(f); }); g.add(fe);
+      g.userData.noCollide = true; cam.add(g); this.toy.wand = { g: g, str: str, fe: fe };
+    },
+    toyBtn: function (on) {
+      var b = document.getElementById('wf-toy-stop'), self = this;
+      if (!b) { b = document.createElement('button'); b.id = 'wf-toy-stop'; b.textContent = 'STOP PLAYING'; document.body.appendChild(b);
+        ['pointerdown', 'touchstart'].forEach(function (e) { b.addEventListener(e, function (ev) { ev.stopPropagation(); }, { passive: true }); });
+        b.addEventListener('click', function (ev) { ev.stopPropagation(); self.stopToy(); }); }
+      b.style.display = on ? 'block' : 'none';
+    },
+    stopToy: function () {
+      var T = this.toy; if (!T) return; this.toy = null; this.toyBtn(false);
+      if (T.dot) T.dot.removeFromParent(); if (T.wand) T.wand.g.removeFromParent();
+      var n = T.n; if (n.state === 'TOY') { n.state = 'IDLE'; n.next = this.eng.time + 2; this.eng.set(n, 'IDLE', 'Idle'); }
+      if (T.kind !== 'trick') { n.memory.trust = Math.min(1, n.memory.trust + 0.03); toast(n.name + ' had fun · trust ' + Math.round(n.memory.trust * 100) + '%'); }
+    },
+    toyTick: function (dt) {
+      var T = this.toy; if (!T) return; var n = T.n, ox = OFF[PAGE] * 100, cam = this.el.camera; T.t += dt;
+      if (roomOf(n) !== PAGE || T.t > T.dur) { this.stopToy(); return; }
+      if (T.kind === 'trick') { n.yaw += dt * Math.PI * 2 / T.dur * 1.0; return; }
+      var tx, tz;
+      if (T.kind === 'laser') {                                   // the dot: where you're looking on the floor, with a nervous jitter
+        var o = new THREE.Vector3(), dir = new THREE.Vector3(); cam.getWorldPosition(o); cam.getWorldDirection(dir);
+        var dist = dir.y < -0.08 ? Math.min(7, o.y / -dir.y) : 3.5, hl = Math.hypot(dir.x, dir.z) || 1;
+        tx = o.x + dir.x / hl * dist; tz = o.z + dir.z / hl * dist;
+        tx += Math.sin(T.t * 23) * 0.04; tz += Math.cos(T.t * 19) * 0.04;
+        var B = W.bounds, rr = Math.hypot(tx, tz), R = this.roomR();
+        if (B && B.length > 2 && W.clampPoly) { var q = W.clampPoly(B, tx, tz, 0.6); if (q) { tx = q[0]; tz = q[1]; } }
+        else if (R && rr > R - 0.6) { tx *= (R - 0.6) / rr; tz *= (R - 0.6) / rr; }
+        if (PAGE === 'corridor') { tx = Math.max(-1.9, Math.min(1.9, tx)); tz = Math.max(-11.5, Math.min(11.5, tz)); }
+        T.dot.position.set(tx, 0, tz);
+      } else {                                                    // the wand: dangle in front of you, cat jumps at it
+        var w = T.wand, sw = Math.sin(T.t * 3.1) * 0.12; w.fe.position.set(0.18 + sw, -0.62 - Math.abs(Math.sin(T.t * 5)) * 0.08, -0.7); w.str.position.set(0.18 + sw / 2, -0.47, -0.6);
+        var c2 = new THREE.Vector3(); w.fe.getWorldPosition(c2); tx = c2.x; tz = c2.z;
+        var p0 = new THREE.Vector3(); cam.getWorldPosition(p0); var ddx = tx - p0.x, ddz = tz - p0.z, dl = Math.hypot(ddx, ddz) || 1; tx = p0.x + ddx / dl * 0.75; tz = p0.z + ddz / dl * 0.75;
+      }
+      var px = n.pos.x - ox, pz = n.pos.z, dx = tx - px, dz = tz - pz, d = Math.hypot(dx, dz);
+      if (T.pounce > 0) { T.pounce -= dt; return; }
+      if (d > 0.35) {
+        var sp = (T.kind === 'laser' ? 2.4 : 1.6) * (d > 1.5 ? 1 : 0.6), st = Math.min(d, sp * dt), nx = px + dx / d * st, nz = pz + dz / d * st;
+        if (this.canMove(n, { x: nx + ox, z: nz }) !== false) { n.pos.x = nx + ox; n.pos.z = nz; }
+        n.yaw = Math.atan2(dx, dz); this.animate(n, d > 1.2 ? 'Run_InPlace' : 'Walk_InPlace', { loop: true, fade: 0.15 });
+      } else { T.pounce = 0.9; this.animate(n, 'Play', { loop: false, fade: 0.1 }); if (Math.random() < 0.5) this.sound(n, Math.random() < 0.5 ? 'chirp' : 'chatter'); n.yaw = Math.atan2(dx, dz); }
+    },
+    roomR: function () { var m = this.el.components['wayfarer-mobile']; return m && m.data.radius > 0 ? m.data.radius : 0; },
     show: function (r) {
       var self = this, box = document.getElementById('wf-crew-talk');
       if (!box) { box = document.createElement('div'); box.id = 'wf-crew-talk'; document.body.appendChild(box); }
@@ -348,7 +447,7 @@
     tick: function (t, dtm) {
       if (!this.ready) return;
       var dt = Math.min(dtm || 16, 100) / 1000, eng = this.eng, self = this, ox = OFF[PAGE] * 100, dyn = [];
-      eng.update(dt); this.ambient(t / 1000);
+      eng.update(dt); this.ambient(t / 1000); this.toyTick(dt);
       if (this.lcars) this.lcars.forEach(function (f) { f(t / 1000); });
       eng.npcs.forEach(function (n) {
         var here = roomOf(n) === PAGE, o;
