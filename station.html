@@ -219,6 +219,18 @@
           BAR = makeActor(G[0], K[0], bi < 0 ? 3 : bi); BAR.model.position.set(0, 0, 7.9); BAR.model.rotation.y = 0; play(BAR, 'Idle');
           var bh = document.getElementById('bartender'); bh.setObject3D('mesh', invisibleBox(1.4, 3.2, 1.2)); bh.object3D.position.set(0, 1.6, 8.2);
           buildShops(G[0], K[0]);
+          // OTHER ALIEN SPECIES (user, Nov 26; Argo species V2 pack, hiveport/species/*_v2_01.glb): patrons in the same crowd, tap to talk
+          var SPEC = [['khorath', 'Khorath', 'Stone-skinned miners from the deep rifts. Says little; tips well.'], ['velari', 'Velari', 'Winged diplomats. Every sentence is a negotiation.'], ['thalassari', 'Thalassari', 'Ocean-world traders. Smells faintly of brine and money.'],
+                      ['morren', 'Morren', 'Fungal scholars who remember everything — including your debts.'], ['nethrak', 'Nethrak', 'Chitin-armoured bounty hunters. Do not spill their drink.'], ['serva-7', 'Serva-7', 'A synthetic courier unit on shore leave. It is enjoying itself, statistically.']];
+          SPEC.slice(0, MOB ? 3 : 6).forEach(function (sp) {
+            load('hiveport/species/' + sp[0] + '_v2_01.glb?v=1').then(function (g) {
+              var p = grid.splice(Math.floor(Math.random() * grid.length), 1)[0]; if (!p) return; var a = CROWD.add('sp_' + sp[0], p); if (!a) return;
+              var m = g.scene; m.userData.noCollide = true; m.traverse(function (o) { o.userData.noCollide = true; if (o.isMesh) o.frustumCulled = false; }); sc.object3D.add(m);
+              var mx = new THREE.AnimationMixer(m), acts = {}; g.animations.forEach(function (c) { acts[c.name] = mx.clipAction(c); }); if (acts.Walk && !acts.Walk_InPlace) acts.Walk_InPlace = acts.Walk;
+              var e = { model: m, mixer: mx, actions: acts, hand: null, current: null, drink: null, a: a, caste: 'blue_civilian_male', species: sp[1], blurb: sp[2] };
+              e.hit = hitBox(e); NPCS.push(e);
+            }).catch(function (er) { console.warn('species', sp[0], er); });
+          });
         });
       });
       // the violet holographic performer on the stage
@@ -343,8 +355,8 @@
     if (!DLG) return; talking = e; var cam = sc.camera.el.object3D.position;
     e.a.path = []; CROWD.release(e.a); e.a.wait = 6; e.a.state = 'Talk'; e.a.heading = Math.atan2(cam.x - e.a.p[0], cam.z - e.a.p[1]);
     sfx('mandible_click', 0.5); setTimeout(function () { alienSay(e.a.p[0], e.a.p[1], e.caste === 'red_general_king' ? 'growl' : e.caste === 'purple_female' ? 'trill' : 'query', true); }, 250);
-    document.getElementById('talk-who').textContent = (CASTE[e.caste] || CASTE.blue_civilian_male)[1];
-    var gl = pick(DLG.greetings); document.getElementById('talk-line').textContent = '“' + gl + '”'; if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(gl, 'kvetar');
+    document.getElementById('talk-who').textContent = e.species ? e.species.toUpperCase() : (CASTE[e.caste] || CASTE.blue_civilian_male)[1];
+    var gl = e.species ? e.blurb : pick(DLG.greetings); document.getElementById('talk-line').textContent = '“' + gl + '”'; if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(gl, 'kvetar');
     var list = document.getElementById('talk-list'); list.innerHTML = '';
     DLG.playerPrompts.forEach(function (q) { var b = document.createElement('button'); b.textContent = q; b.onclick = function () { answer(q); }; list.appendChild(b); });
     if (window.HIVE_GAMES && HIVE_GAMES.talkHook) HIVE_GAMES.talkHook(e, list);    /* bounty target / pick a fight */

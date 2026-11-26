@@ -494,6 +494,12 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   (both decks, x ±4.55). Not re-done: portal photos of Media/Lounge/Library/Holodeck (props only), maps/deck.json footprints.
   UNUSED UPLOADS (by choice): Character Engine V5 (motor migration), Part 01–03 kit GLBs (0.6–1.3 MB each), Firefly/Spaceship HD, Medbay
   assembled preview, bronze TV, orbital station interiors, Kvetar 140 variants, V8 geometry builders, remaining Furniture 01 pieces.
+- [x] INTERACTION V11 (Nov 26; installer run, backups in .interaction-v11-backup/ git-ignored; interaction-v11/core.js + runtime.js; its 7
+  tests + installer test pass): the Mk II avatar reaches out to press door buttons, crouches to pet/feed cats (trust/treats on contact),
+  head/upper-body gestures in dialogue; WAYFARER.interaction.start(kind,{target,contact,finish}). Pages load ?v=11.0.0 tags.
+- [x] OTHER ALIEN SPECIES (Nov 26; Argo species V2 pack → hiveport/species/*_v2_01.glb, docs in reference/species-v2/): Khorath, Velari,
+  Thalassari, Morren, Nethrak, Serva-7 join the Hiveport crowd (3 on phones, 6 desktop) as CROWD agents with the K'Vetar; Walk aliased to
+  Walk_InPlace; tap → talk panel titled with the species and its own line. Only variant 01 of each is loaded.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
