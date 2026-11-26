@@ -21,12 +21,13 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126e"></script>
-  <script src="sound.js?v=20261126e"></script>
-  <script src="avatar.js?v=20261126e"></script>
-  <script src="door.js?v=20261126e"></script>
-  <script src="hyperspace.js?v=20261126e"></script>
-  <script src="lcars.js?v=20261126e"></script>
+  <script src="mobile.js?v=20261126f"></script>
+  <script src="sound.js?v=20261126f"></script>
+  <script src="avatar.js?v=20261126f"></script>
+  <script src="door.js?v=20261126f"></script>
+  <script src="hyperspace.js?v=20261126f"></script>
+  <script src="lcars.js?v=20261126f"></script>
+  <script src="crew.js?v=20261126f"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -362,7 +363,7 @@
       KIT.forEach(function (st, si) {
         var cx = -st[1][0] * K, cz = -st[1][1] * K, dx = -(st[2][0] - st[1][0]), dz = -(st[2][1] - st[1][1]), yaw = st[3] + 180;
         kitModel('Operator_Chair.glb', [cx, 0, cz], yaw);
-        kitModel('Droid_' + st[0] + '_Seated.glb', [cx, 0, cz], yaw, 'Console_Operate', si * 0.7);
+        /* the seated kit droids are gone: the LIVING CREW (crew.js) sit in these chairs now, and get up to work elsewhere */
         var con = kitModel('Console_' + st[0] + '.glb', [cx + dx, 0, cz + dz], yaw);
         con.addEventListener('model-loaded', function () {          // the console screens run our animated LCARS panels
           var lc = WAYFARER.lcars({ w: 512, h: 256, seed: si * 3 + 1, layout: ['readout', 'graph', 'keys'][si % 3], label: st[0].slice(0, 4).toUpperCase() }); anim.push(lc.update);

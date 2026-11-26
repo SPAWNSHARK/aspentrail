@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126e).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126f).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -207,6 +207,21 @@ Rules drawn from them:
   3.6 MB) at scale 0.45, its 'Rotor' habitation belt turning slowly; STATION.name 'HIVEPORT' (map id Argo_Hiveport); collision
   sphere 42; DOCK AT HIVEPORT. The orbital-kit wheel (models/station/orbital_station.glb) is no longer loaded. Pack's scripted
   docking controller (42 s path, bay doors/clamps clips) NOT used yet — docking is still the flash into station.html.
+- **LIVING CREW (Nov 26, SS_Wayfarer_Living_Crew_Expansion.zip; START_HERE + Integration.pdf in reference/living-crew/)** — `crew.js`
+  (every room page, after door.js; auto-attaches `wf-crew`) runs the kit's engine (crew/crew-engine.mjs + roster.mjs, vendored
+  UNCHANGED) for 6 droids (Aster nav, Forge eng, Vesper sci, Echo com, Sentinel tac, Prism sen; models/crew/Droid_*_Living.glb) and
+  4 cats (Ember, Nimbus, Orbit, Pixel; models/crew/Kitty_*.glb at scale 0.6). The kit's consoles/operator chair are byte-identical
+  to models/deck → reused, not copied. Bridge's old seated droids (models/deck/Droid_*_Seated.glb) are no longer loaded; the living
+  droids sit in those same operator chairs. SHIP GRAPH (buildLayout in crew.js): nodes in each room's own metres, shifted by
+  OFF[room]×100 m for the engine so rooms never overlap; doorway = `xfer` edge (wait for that page's real door.js door, walk in,
+  vanish 1.4 s, appear on the other side; doors not on this page count as open). Satellite consoles: nav+sen Holodeck starboard
+  wall, eng corridor port wall z −6, sci Library port side, com Lounge starboard, tac Media back-left (placement in LAYOUT.stations;
+  shown in portal captures too). Whole crew simulates on every page, only those in THIS room are loaded/drawn; full state in
+  localStorage 'wf-crew' (v 2) every 4 s + pagehide (a graph change resets them home). Tap a droid ≤2.3 m → glass dialogue
+  panel (kit's 7 choices; walking frozen, view eases to them); tap a cat → petted/purr + trust. Player can't walk through them
+  (WAYFARER.dynSolids → mobile.js collide, also in the corridor; bump → engine.bump). canMove = never step INTO a mobile.js
+  solid, except the last 1.4 m to its own chair/console. GOTCHA: never name a component method `play`/`pause` (A-Frame lifecycle).
+  Route check: scratchpad lay.js validated every in-room edge against the scanned solids (0 hits). Old Lounge alien cats kept.
 - **HIVEPORT INTERIOR (Nov 26, Hiveport_Argo_Station_Prototype.zip; README + concept in reference/hiveport-interior/)** —
   station.html is now the K'Vetar HIVEPORT (old Ember Room club kept as station-ember-room.html, unlinked). hiveport/rooms/
   Hiveport_complete.glb (96 × 44 m deck: nexus with the Resin Spire bar + holo stage, 8 side zones; hex-pattern ceilings added per
