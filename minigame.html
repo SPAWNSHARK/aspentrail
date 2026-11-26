@@ -22,9 +22,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126c"></script>
-  <script src="missions.js?v=20261126c"></script>
-  <script src="sound.js?v=20261126c"></script>
+  <script src="shipskin.js?v=20261126d"></script>
+  <script src="missions.js?v=20261126d"></script>
+  <script src="sound.js?v=20261126d"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -169,7 +169,7 @@
     <div id="boss"><span>BIOSHIP</span><i><u id="boss-fill"></u></i></div>
     <div id="hail"></div>
     <div id="objective"></div>
-    <div id="dock">DOCK AT ARGO</div>
+    <div id="dock">DOCK AT HIVEPORT</div>
     <div id="nav"><b id="nav-prev">‹</b><span><i id="nav-name">AURALIS</i><small id="nav-dist"></small></span><b id="nav-next">›</b><b id="nav-warp">WARP</b></div>
     <div id="hint-shoot">ARROWS / WASD — FLY · SPACE / CLICK — FIRE · ESC — BRIDGE</div>
   </div>
@@ -369,7 +369,7 @@ function collidePlanets() {
   planets.forEach(P => {
     const bodies = [[P.group.position, P.r * 1.04 + 4]];
     P.moons.forEach(M => { M.mesh.getWorldPosition(_pc); bodies.push([_pc.clone(), M.mesh.geometry.parameters.radius * 1.05 + 3]); });
-    if (P === planets[0]) bodies.push([STATION.group.position, 26]);
+    if (P === planets[0]) bodies.push([STATION.group.position, 42]);
     bodies.forEach(([c, R]) => { const d = shipPos.distanceTo(c); if (d < R) { const n = shipPos.clone().sub(c).normalize(); shipPos.copy(c).addScaledVector(n, R); hit = true; } });
   });
   if (hit) { shake = Math.max(shake, 0.25); if (skimWarn <= 0) { announce('PULL UP'); skimWarn = 3; } }
@@ -401,19 +401,24 @@ const STATION = (() => {
   }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: DOT, color: 0xffa050, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(150, 150, 1); g.add(glow);
   fixColors(g);
-  // the user's ORBITAL STATION model (orbital kit, Nov 25): a wheel station (hub dome, six spokes, ring with module pods),
-  // ~185 m across → scaled to ~150 m. Replaces the procedural build once loaded (that stays as the fallback). No PMREM on r128 GLBs.
-  if (THREE.GLTFLoader) new THREE.GLTFLoader().load('models/station/orbital_station.glb?v=1', gl => {
-    const m = gl.scene; m.scale.setScalar(0.8); m.rotation.x = 0.18;
-    m.traverse(o => { if (o.isMesh) { [].concat(o.material).forEach(mt => { if (mt.metalness !== undefined) { mt.metalness = Math.min(mt.metalness, 0.45); mt.roughness = Math.max(mt.roughness, 0.4); } if (/Glass|Amber|Cyan|Light/i.test(mt.name) && mt.emissive) { mt.emissive.copy(mt.color); mt.emissiveIntensity = 0.8; } }); } });
+  // THE HIVEPORT (user, Nov 26): Argo Station rebuilt as the K'Vetar Confederation's trade station — emerald-chitin spine,
+  // a rotating habitation belt of pods (the 'Rotor' node turns slowly), the Hiveport envelope and the docking bay
+  // (models/station/hiveport_exterior.glb = the exterior pack's Argo_Station_Master, ~337 m → scaled 0.45). The old orbital
+  // wheel is retired; the procedural build stays as the fallback. No PMREM on r128 GLBs (renders black) — metal is capped instead.
+  if (THREE.GLTFLoader) new THREE.GLTFLoader().load('models/station/hiveport_exterior.glb?v=1', gl => {
+    const m = gl.scene; m.scale.setScalar(0.45); m.rotation.y = Math.PI * 0.85; m.position.y = -10;
+    m.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(mt => { if (mt.metalness !== undefined) { mt.metalness = Math.min(mt.metalness, 0.35); mt.roughness = Math.max(mt.roughness, 0.45); }
+      if (/emissive|glazing/i.test(mt.name) && mt.emissive) { mt.emissive.copy(mt.color); mt.emissiveIntensity = 1.4; } }); });
     g.children.slice().forEach(c => { if (!c.isLight && c !== glow) c.visible = false; }); g.add(m);
+    glow.material.color.setHex(0x9a5aff); glow.material.opacity = 0.18;
+    STATION.rotor = m.getObjectByName('Rotor');
   });
-  return { name: 'ARGO WAYSTATION', group: g, r: 30, isStation: true };
+  return { name: 'HIVEPORT', group: g, r: 30, isStation: true };
 })();
 const NAV = planets.concat([STATION]);
 // ── friendly traffic: haulers and shuttles plying lanes to and from the station. Tap one to hail it (never shoots it). ──
 const FRIEND_NAMES = ['HAULER KESTREL', 'SHUTTLE MERIDIAN', 'FREIGHTER OLD TOM', 'COURIER WREN', 'TENDER HALCYON', 'HAULER BRASS GULL'];
-const HAILS = ['Safe travels, Wayfarer.', 'Docking queue is clear — Argo is open.', 'Fair winds, Captain. Watch the drone swarms near Thalos.', 'Cargo for the Argo. Mind your wake.', 'Good to see a friendly hull out here.', 'Drinks are on me at the Argo.'];
+const HAILS = ['Safe travels, Wayfarer.', 'Docking queue is clear — the Hiveport is open.', 'Fair winds, Captain. Watch the drone swarms near Thalos.', 'Cargo for the K\u2019Vetar. Mind your wake.', 'Good to see a friendly hull out here.', 'Drinks are on me at the Hiveport.'];
 const friendlies = [];
 for (let i = 0; i < 6; i++) {
   const f = new THREE.Group(), hull = new THREE.MeshStandardMaterial({ color: i % 2 ? 0x8a9098 : 0xb08a60, metalness: 0.7, roughness: 0.45 });
@@ -433,7 +438,7 @@ function updateFriendlies(dt, t) {
   friendlies.forEach(F => { const L = F.a.distanceTo(F.b); F.t += F.dir * F.sp * dt / L; if (F.t > 1 || F.t < 0) { F.dir *= -1; F.t = Math.max(0, Math.min(1, F.t)); }
     const p = F.a.clone().lerp(F.b, F.t); F.mesh.position.copy(p).add(new THREE.Vector3(Math.sin(t * 0.3 + F.sp) * 6, Math.sin(t * 0.5 + F.sp) * 3, 0));
     F.mesh.lookAt(F.mesh.position.clone().add(F.b.clone().sub(F.a).multiplyScalar(-F.dir))); });
-  STATION.group.rotation.y = t * 0.03;
+  if (STATION.rotor) STATION.rotor.rotation.y = t * 0.025; else STATION.group.rotation.y = t * 0.03;   /* only the habitation belt turns */
   [STATION.group].concat(friendlies.map(F => F.mesh)).forEach(g => g.children.forEach(c => { if (c.userData.blink !== undefined) c.visible = ((t + c.userData.blink) % 1.4) < 0.25; }));
 }
 function updateSystem(t) {
@@ -477,7 +482,7 @@ function arriveFromBridge() {
     startGame(); const away = new THREE.Vector3(0, 0.15, 1).normalize(); shipPos.copy(STATION.group.position).addScaledVector(away, 150); shipYaw = Math.PI; shipPitch = 0;
     const wf = document.getElementById('warp-flash'); wf.style.transition = 'opacity 1.1s ease-out';
     requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.classList.remove('from-bridge'); wf.style.opacity = 0; }));
-    hail('ARGO CONTROL', 'Undocking complete. Come back any time, Wayfarer.'); return;
+    hail('HIVEPORT CONTROL', 'Undocking complete. The Confederation wishes you a profitable voyage.'); return;
   }
   startGame();
   const dest = decodeURIComponent((location.search.match(/[?&]dest=([^&]+)/) || [])[1] || ''), dN = dest.toUpperCase().replace(/_/g, ' '), D = NAV.find(P => P.name === dN || (P.isStation && /HIVEPORT|ARGO/.test(dN)));   // galactic-map ids (Ferrum_Prime, Argo_Hiveport) or names
