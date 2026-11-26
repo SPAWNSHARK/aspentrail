@@ -22,10 +22,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126t"></script>
-  <script src="missions.js?v=20261126t"></script>
-  <script src="sound.js?v=20261126t"></script>
-  <script src="life.js?v=20261126t"></script>
+  <script src="shipskin.js?v=20261126u"></script>
+  <script src="missions.js?v=20261126u"></script>
+  <script src="sound.js?v=20261126u"></script>
+  <script src="life.js?v=20261126u"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1013,7 +1013,7 @@ function missionEvent(ev) { if (window.WF_LIFE) WF_LIFE.event(ev); if (!window.W
 const visited = {}; let visitT = 0;
 function saveNear() { let best = null, bd = 1e12; NAV.forEach(P => { const d = shipPos.distanceTo(P.group.position) - (P.r || 0); if (d < bd) { bd = d; best = P; } }); if (best) try { localStorage.setItem('wf-near', best.name); } catch (e) {} }   // the ship's windows show this world
 function checkVisits(dt) { visitT -= dt; if (visitT > 0) return; visitT = 0.5; if (Math.random() < 0.25) saveNear(); planets.forEach(P => { const near = shipPos.distanceTo(P.group.position) < P.r * 1.8 + 80; if (near && !visited[P.name]) { visited[P.name] = true; missionEvent('visit:' + P.name); try { const V = JSON.parse(localStorage.getItem('wf-visited') || '[]'); if (!V.includes(P.name)) { V.push(P.name); localStorage.setItem('wf-visited', JSON.stringify(V)); } } catch (e) {} } else if (!near) visited[P.name] = false; }); }
-function hail(who, text) { const h = document.getElementById('hail'); h.innerHTML = '<b>' + who + '</b><br>' + text; h.style.opacity = 1; clearTimeout(hail.t); hail.t = setTimeout(() => h.style.opacity = 0, 4200); }
+function hail(who, text) { if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(text, /HIVEPORT|K\u2019VETAR/i.test(who) ? 'kvetar' : /VESPER|FORGE|ASTER|ECHO|SENTINEL|PRISM/.test(who) ? 'intercom' : 'robot'); const h = document.getElementById('hail'); h.innerHTML = '<b>' + who + '</b><br>' + text; h.style.opacity = 1; clearTimeout(hail.t); hail.t = setTimeout(() => h.style.opacity = 0, 4200); }
 function tapShoot(cx, cy) {
   if (state !== 'playing' || (warp && !warp.arrive)) return;
   const r = renderer.domElement.getBoundingClientRect(), touchR = TOUCH ? 70 : 45; let best = null, bd = 1e9;

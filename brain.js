@@ -59,14 +59,14 @@
 
   // ── One cerebral hemisphere. side = +1 (right) / -1 (left) ────────────────
   function hemisphere(side, low) {
-    var W = 3.2, H = 2.8, L = 4.5, GAP = 0.05, WS = low ? 96 : 170, HS = low ? 64 : 116, ox = side < 0 ? 31.7 : 0;
+    var W = 3.2, H = 2.8, L = 4.5, GAP = 0.012,   /* hemispheres nearly touch: a narrow fissure, not a split (user, Nov 26) */ WS = low ? 96 : 170, HS = low ? 64 : 116, ox = side < 0 ? 31.7 : 0;
     var g = new THREE.SphereGeometry(1, WS, HS);
     g.rotateZ(Math.PI / 2);                       // poles on ±x (medial/lateral): hidden spots
     var pos = g.attributes.position, n = pos.count, col = new Float32Array(n * 3), i;
     for (i = 0; i < n; i++) {
       var dx = pos.getX(i), dy = pos.getY(i), dz = pos.getZ(i);
       // base lobe shape (right hemisphere; lateral = +x, front = +z)
-      var lx = dx < 0 ? dx * W * 0.20 : dx * W;
+      var lx = dx < 0 ? dx * W * 0.07 : dx * W;
       var ly = dy < 0 ? dy * H * 0.60 : dy * H * 0.96;
       var lz = dz * L;
       // temporal lobe bulging down and out
@@ -75,7 +75,7 @@
       // narrower frontal pole, tapered occipital pole
       lx *= 1 - 0.15 * smooth(0.3, 1, dz) - 0.10 * smooth(-0.3, -1, dz);
       ly -= 0.35 * smooth(0.5, 1, dz);
-      var px = lx + W * 0.20 + GAP, py = ly, pz = lz;
+      var px = lx + W * 0.07 + GAP, py = ly, pz = lz;
 
       // folds: three noise scales, domain-warped; grooves live on the noise zero-set
       var wx = noise(px * 0.6 + ox + 5, py * 0.6, pz * 0.6) * 0.9;
@@ -170,7 +170,7 @@
         ? new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.42, metalness: 0,
             emissive: new THREE.Color(0x2a1012), emissiveIntensity: 0.22 })        // phones: no clearcoat pass
         : new THREE.MeshPhysicalMaterial({ vertexColors: true, color: 0xffffff, roughness: 0.52, metalness: 0,
-            clearcoat: 1.0, clearcoatRoughness: 0.18,
+            clearcoat: 1.0, clearcoatRoughness: 0.18, sheen: 0.6, sheenRoughness: 0.45, sheenColor: new THREE.Color(0xffc8c0),   /* soft subsurface-ish glow on the gyri */
             emissive: new THREE.Color(0x2a1012), emissiveIntensity: 0.20 });
       this.mat = tissue;
       [hemisphere(1, low), hemisphere(-1, low), cerebellum(low), stem(low)].forEach(function (g) { grp.add(new THREE.Mesh(g, tissue)); });
@@ -405,7 +405,7 @@
       var NE = low ? 3 : 5, SEG = 18, eelM = new THREE.MeshStandardMaterial({ color: 0x0e2a2c, roughness: 0.35, metalness: 0.2, emissive: 0x0a6a60, emissiveIntensity: 0.55 });
       this.eel = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), eelM, NE * SEG); this.eel.frustumCulled = false; this.eel.renderOrder = -1; grp.add(this.eel);
       var eyeM = new THREE.MeshBasicMaterial({ color: 0x9fffe8, toneMapped: false }); this.eyes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 6, 4), eyeM, NE * 2); this.eyes.frustumCulled = false; grp.add(this.eyes);
-      this.eels = []; for (i = 0; i < NE; i++) { var hist = []; for (var k = 0; k < 160; k++) { var a0 = i * 1.7 - k * 0.012; hist.push(new THREE.Vector3(Math.cos(a0) * (3.6 + i * 0.75), -4.5 - i * 1.6, Math.sin(a0) * (3.6 + i * 0.75))); } this.eels.push({ r: 3.6 + i * 0.75, y: -4.5 - i * 1.6, sp: 0.22 + i * 0.05, ph: i * 1.7, dir: i % 2 ? 1 : -1, hist: hist, seg: SEG, size: 0.24 + (i % 3) * 0.05 }); }
+      this.eels = []; for (i = 0; i < NE; i++) { var hist = []; for (var k = 0; k < 160; k++) { var a0 = i * 1.7 - k * 0.012, r0 = 5.9 + (i % 3) * 0.55; hist.push(new THREE.Vector3(Math.cos(a0) * r0, [-2.6, -12.6, -7.5, -3.4, -11.8][i], Math.sin(a0) * r0)); } this.eels.push({ r: 5.9 + (i % 3) * 0.55, y: [-2.6, -12.6, -7.5, -3.4, -11.8][i], sp: 0.22 + i * 0.05, ph: i * 1.7, dir: i % 2 ? 1 : -1, hist: hist, seg: SEG, size: 0.24 + (i % 3) * 0.05 }); }
       this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._v = new THREE.Vector3(); this._sc = new THREE.Vector3(); this._up = new THREE.Vector3(0, 0, 1);
       this.el.setObject3D('tank', grp);
     },
@@ -413,6 +413,10 @@
       var T = t / 1000, M = this._m, Q = this._q, V = this._v, SC = this._sc;
       for (var e = 0; e < this.eels.length; e++) {
         var E = this.eels[e], a = E.ph + T * E.sp * E.dir, head = new THREE.Vector3(Math.cos(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2), E.y + Math.sin(T * 0.5 + e * 2) * 2.2, Math.sin(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2));
+        head.y = E.y + Math.sin(T * 0.5 + e * 2) * 1.2;
+        var ex = head.x / 5.4, ey = (head.y + 7.4) / 4.4, ez = (head.z + 0.4) / 6.4, ed = Math.sqrt(ex * ex + ey * ey + ez * ez);   /* never through the brain */
+        if (ed < 1) { head.x /= ed; head.y = (head.y + 7.4) / ed - 7.4; head.z = (head.z + 0.4) / ed - 0.4; }
+        var hr = Math.hypot(head.x, head.z); if (hr > 7.3) { head.x *= 7.3 / hr; head.z *= 7.3 / hr; }
         if (head.distanceTo(E.hist[0]) > 0.03) { E.hist.unshift(head); E.hist.pop(); } else E.hist[0].copy(head);
         // body segments sit at fixed ARC LENGTHS behind the head (so the eel stays joined at any frame rate)
         var gap = E.size * 1.1, hi = 0, acc = 0, PTS = this._pts || (this._pts = []);

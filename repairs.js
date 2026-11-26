@@ -26,7 +26,7 @@
     var a = Math.random() * Math.PI * 2, f = { id: 'f' + Date.now(), node: id, room: nd.room, x: nd.lx + Math.cos(a) * 0.45, z: nd.lz + Math.sin(a) * 0.45, kind: k, born: Date.now() };
     if (nd.room === 'corridor') f.x = Math.max(-1.6, Math.min(1.6, f.x));
     list.push(f); save('wf-faults', list);
-    say('Forge: "Captain, a ' + KINDS[k].name + ' in ' + NAMES[nd.room] + '. Could you take a look?"');
+    say('Forge: "Captain, a ' + KINDS[k].name + ' in ' + NAMES[nd.room] + '. Could you take a look?"'); if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak('Forge to the Captain. A ' + KINDS[k].name + ' in ' + NAMES[nd.room] + '. Could you take a look?', 'intercom');
     if (window.WF_SOUND && !WF_SOUND.muted()) WF_SOUND.droid('negative', 0, 0.8);
     return f;
   }

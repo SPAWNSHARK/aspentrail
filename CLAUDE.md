@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126t).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126u).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -360,8 +360,8 @@ Rules drawn from them:
 Record of everything asked for; tick items off as they ship.
 - [x] MENU BAR iOS-style (`menubar.js`, loaded last on every #wf-btns page): clock + 💰 credits top-left; 📍 map (Google-pin) · 📋 log · 🧠 Halcyon · 📖 manual · 🔊 sound · ⚙️ settings drop-down (#wf-set: 🥽 VR/gyro, 📐 level, 👤 1st/3rd — the original mobile.js / avatar.js buttons moved in); re-dresses every 700 ms
 - [x] Invisible obstacle in the middle of the hallway = the corridor console's dyn box computed before its world matrix existed (crew.js updateMatrixWorld first)
-- [ ] VOICES: droids speak over the intercom in a robotic TTS voice (+ beep-boop), K'Vetar lines come with clicking; voices in general
-- [ ] Eels must avoid the brain; the brain must look more real and less split in half
+- [x] VOICES: sound.js WF_SOUND.speak(text, 'robot'|'intercom'|'kvetar'|'ai'): device TTS with the most robotic voice available (Zarvox/Trinoids/Fred/Ralph, else pitch 0.35) wrapped in chirps; 'intercom' adds crackle + two-tone chime; K'Vetar = a click/chitter per word. Used by droid dialogue, Forge fault reports, red alert, orders, Starjack quips, Flight Mode hails (Vesper = intercom, Hiveport Control = K'Vetar), Hiveport conversations
+- [x] Eels avoid the brain (pushed off a padded ellipsoid, orbits r 5.9–7, bands above/below/middle); brain hemispheres now meet at a narrow fissure (medial extent 0.07·W, GAP 0.012) + MeshPhysical sheen
 - [ ] COMMAND DECK: no bookshelves; every wall crowded with display panels; navigator at the VERY FRONT near the windows, much larger, like the original Holodeck Milky-Way galaxy hologram
 - [ ] Ship/deck map: far more detailed and realistic, and LIVE
 - [ ] Lounge: ALIEN TV (interdimensional-cable style channel surfing of original alien shows) replaces the Wikipedia browser; the window behind the TV much bigger

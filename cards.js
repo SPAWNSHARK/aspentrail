@@ -50,7 +50,7 @@
     talk(G.dealer, 0); snd('chatter', 0.4);
     if (val(G.me) === 21) { finish(); return; } render();
   }
-  function talk(id, k) { var l = LINES[id] || ['…']; G.say = NAMES[id] + ': “' + l[k == null ? Math.floor(Math.random() * l.length) : Math.min(k, l.length - 1)] + '”'; }
+  function talk(id, k) { var l = LINES[id] || ['…'], line = l[k == null ? Math.floor(Math.random() * l.length) : Math.min(k, l.length - 1)]; G.say = NAMES[id] + ': “' + line + '”'; if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(line, 'robot', { vol: 0.8 }); }
   function hit() { G.me.push(draw()); snd('chatter', 0.3); if (val(G.me) > 21) finish(); else if (G.double) finish(); else render(); }
   function stand() { finish(); }
   function dbl() { if (!L().spend(G.bet)) return; G.bet *= 2; G.double = true; hit(); }

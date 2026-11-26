@@ -266,7 +266,7 @@
       else if (ra) ra.style.display = 'none';
       if (!quiet) {
         var msg = { stations: 'All droids to battle stations.', redalert: 'RED ALERT — all hands to the Bridge!', shoreleave: 'Shore leave granted. Enjoy yourselves, crew.', standdown: 'Standing down. Normal duty.' }[kind];
-        if (window.WF_LIFE) { WF_LIFE.toast(msg); WF_LIFE.event('order'); }
+        if (window.WF_LIFE) { WF_LIFE.toast(msg); WF_LIFE.event('order'); } if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(msg, 'intercom');
         var d = []; e.npcs.forEach(function (n) { if (n.kind === 'droid') d.push(n); }); d.forEach(function (n, i) { setTimeout(function () { self.sound(n, kind === 'standdown' || kind === 'shoreleave' ? 'whistle' : 'affirm'); }, 200 + i * 260); });
       }
     },
@@ -491,7 +491,7 @@
       r.choices.forEach(function (c) { var b = document.createElement('button'); b.textContent = c[1]; if (c[0] === 'exit') b.className = 'x';
         b.addEventListener('click', function (ev) { ev.stopPropagation(); self.say(r.id, c[0]);
           if (c[0] === 'exit') { self.endTalk(); return; } var nx = self.eng.dialogue(r.id, c[0]); if (nx) self.show(nx); }); ch.appendChild(b); });
-      box.style.display = 'block'; this.talk = r.id; document.body.classList.add('wf-crew-talking');
+      box.style.display = 'block'; this.talk = r.id; document.body.classList.add('wf-crew-talking'); if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(r.line, 'robot');
     },
     endTalk: function () { var box = document.getElementById('wf-crew-talk'); if (box) box.style.display = 'none'; this.talk = null; document.body.classList.remove('wf-crew-talking'); if (this.eng) this.eng.endDialogue(); },
     cam: function (n, on) {                                     // kit hook: freeze walking and turn the view to whoever you're talking to
@@ -534,6 +534,7 @@
       if (on && !this._escape) {
         this._escape = true; if (window.WF_SOUND) { WF_SOUND.alarm(); setTimeout(function () { if (self._escape) WF_SOUND.alarm(); }, 1700); }
         if (window.WF_LIFE) WF_LIFE.toast(pre ? 'RED ALERT — pirates on sensors! All hands to the Bridge, jumping to light speed…' : 'Jumping to light speed!');
+        if (window.WF_SOUND && WF_SOUND.speak) setTimeout(function () { WF_SOUND.speak(pre ? 'Red alert. Pirate vessel on sensors. All hands to the Bridge. Preparing light speed jump.' : 'Engaging light speed.', 'intercom'); }, 900);
         e.setShip({ alert: true });
         e.npcs.forEach(function (n) { if (n.kind !== 'droid' || n.state === 'CONVERSATION') return; n._spd = n._spd || n.speed; n.speed = n._spd * 2.6;
           if (n.state !== 'SEATED' && n.state !== 'SIT') { e.release(n); e.set(n, 'IDLE', 'Idle'); n.next = e.time; e.home(n); } });

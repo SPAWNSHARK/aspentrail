@@ -4,6 +4,7 @@
 //   WF_SOUND.hum(on)        interior ship hum (auto on A-Frame pages)      WF_SOUND.warp(0..1)   light-speed whoosh layer
 //   WF_SOUND.door() .step() .beep() .meow() .murmur(on)                     interior one-shots / beds
 //   WF_SOUND.droid(kind,pan,vol) .cat(kind,pan,vol) .alien(kind,pan,vol)    varied voices (kind omitted = random)
+//   WF_SOUND.speak(text, 'robot'|'intercom'|'kvetar'|'ai')                    spoken lines (device TTS / alien clicks)
 //   WF_SOUND.laser() .enemyLaser() .boom(big) .flyby(pan) .engine(on) .warpRise()   Flight Mode
 //   WF_SOUND.music(mode|null)  'explore' | 'combat' | null (fade out)        WF_SOUND.button(parent)  adds the mute toggle
 (function () {
@@ -80,6 +81,31 @@
     alarm: function () { ready(function () { var t = now(); for (var i = 0; i < 2; i++) { var o = osc('sawtooth', 620), lp = ctx.createBiquadFilter(), g = ctx.createGain(); lp.type = 'lowpass'; lp.frequency.value = 1800;
       o.frequency.setValueAtTime(620, t); o.frequency.linearRampToValueAtTime(880, t + 0.45); o.connect(lp); lp.connect(g); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.05); g.gain.setValueAtTime(0.12, t + 0.42); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); out(g); o.start(t); o.stop(t + 0.6); t += 0.7; } }); },
     chime: function (ok) { ready(function () { var t = now(); (ok ? [660, 880, 1320] : [300, 220]).forEach(function (f, i) { var o = osc('triangle', f), g = ctx.createGain(); o.connect(g); env(g, t + i * 0.09, 0.005, 0.12, ok ? 0.35 : 0.25); out(g); o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.5); }); }); },
+    // SPOKEN VOICES (user, Nov 26: "any time a droid speaks over the intercom it needs a robotic voice… beep boop for robots,
+    // clicking for K'Vetar"). speak(text, 'robot' | 'intercom' | 'kvetar' | 'ai'). Robots use the device's text-to-speech with the
+    // most robotic voice it has (Apple's Zarvox / Trinoids / Fred / Ralph novelty voices, else a low flat pitch) wrapped in
+    // chirps; 'intercom' adds a crackle + chime first. K'Vetar don't speak our language: a click/chitter per word, timed like speech.
+    speak: function (text, kind, o) {
+      if (muted || !text) return; o = o || {}; kind = kind || 'robot'; var pan = o.pan || 0, vol = o.vol == null ? 1 : o.vol;
+      var words = String(text).split(/\s+/).filter(Boolean);
+      if (kind === 'kvetar') { var K = ['click', 'chitter', 'query', 'click', 'hum']; words.slice(0, 14).forEach(function (w, i) { setTimeout(function () { S.alien(i === words.length - 1 && /\?$/.test(text) ? 'query' : K[(w.length + i) % K.length], pan, vol * 0.8); }, i * (140 + Math.min(w.length, 8) * 22)); }); return; }
+      var tts = window.speechSynthesis;
+      if (kind === 'intercom') { ready(function () { var t = now(), n = noise(), bp = ctx.createBiquadFilter(), g = ctx.createGain(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8; n.connect(bp); bp.connect(g); env(g, t, 0.005, 0.18, 0.18); out(g, pan); n.start(t, Math.random()); n.stop(t + 0.25);
+        [880, 1320].forEach(function (f, i) { var oo = osc('sine', f), gg = ctx.createGain(); oo.connect(gg); env(gg, t + 0.12 + i * 0.12, 0.005, 0.08, 0.16); out(gg, pan); oo.start(t + 0.12 + i * 0.12); oo.stop(t + 0.5 + i * 0.12); }); }); }
+      if (kind !== 'ai') S.droid(Math.random() < 0.5 ? 'chatter' : 'whistle', pan, vol * 0.6);
+      if (!tts) return;
+      setTimeout(function () {
+        try {
+          if (kind !== 'ai') tts.cancel();
+          var u = new SpeechSynthesisUtterance(String(text).replace(/[“”"✓·]/g, ' ')), vs = tts.getVoices(), pick = null;
+          if (kind === 'ai') { pick = vs.filter(function (v) { return /Samantha|Karen|Moira|Serena|Ava|Google UK English Female/.test(v.name); })[0]; u.pitch = 0.92; u.rate = 1.02; }
+          else { pick = vs.filter(function (v) { return /Zarvox|Trinoids|Fred|Ralph|Albert|Junior/.test(v.name); })[0]; u.pitch = pick ? 1 : 0.35; u.rate = pick ? 1 : 0.95; }
+          if (pick) u.voice = pick; u.volume = Math.min(1, vol);
+          u.onend = function () { if (kind !== 'ai') S.droid('affirm', pan, vol * 0.4); };
+          tts.speak(u);
+        } catch (e) {}
+      }, kind === 'intercom' ? 520 : 260);
+    },
     // ── VOICES (user, Nov 26: "more than one type of sound") ──
     // droid(kind, pan, vol): chatter · whistle · affirm · negative · ponder · servo · scan   (no kind = random)
     droid: function (kind, pan, vol) { ready(function () {
