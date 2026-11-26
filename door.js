@@ -286,13 +286,15 @@
     tap.addEventListener('loaded', function () { g.add(tap.object3D); });
 
     var D = { g: g, lL: lL, lR: lR, p: 0, target: 0, openAt: 0, flash: 0, face: face, glow: glow, holder: holder, portal: portal, mats: [leafM].concat(R.mats), passed: false, opts: o };
-    D.open = function (silent) { if (D.target === 1) return; D.target = 1; D.openAt = performance.now(); loadImg(); if (!silent) { if (window.WF_SOUND) WF_SOUND.door(); else { beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); } o.say && o.say('OPENING — ' + o.name); } };
+    D.open = function (silent) { if (D.target === 1) return; D.target = 1; D.openAt = performance.now(); loadImg(); /* WF_INTERACTION_V11 */ if (!silent && o.page && window.WAYFARER.interaction) window.WAYFARER.interaction.prefetch(o.page); if (!silent) { if (window.WF_SOUND) WF_SOUND.door(); else { beep(880, 0.12, 'triangle'); setTimeout(function () { beep(520, 0.2, 'sine'); }, 90); } o.say && o.say('OPENING — ' + o.name); } };
     D.close = function () { if (D.target === 0) return; D.target = 0; if (window.WF_SOUND) WF_SOUND.door(); else beep(520, 0.12, 'triangle'); };
     D.pass = function () { if (D.passed || !o.onPass) return; D.passed = true; o.onPass(); };
     ent.addEventListener('click', function () {
       if (D.p > 0.25) return; D.flash = 0.22; face.material.map = R.faces.press;
       if (o.locked) { beep(220, 0.25, 'square'); o.say && o.say(o.locked); return; }       // a doorway that doesn't lead anywhere yet
-      if (D.target === 0) D.open(); else { D.close(); o.say && o.say('CLOSING — ' + o.name); } });
+      /* WF_INTERACTION_V11 */ var I = window.WAYFARER.interaction; if (I && I.active()) return;
+      var operate = function () { if (D.target === 0) D.open(); else { D.close(); o.say && o.say('CLOSING — ' + o.name); } };
+      if (!I || !I.door(holder, operate)) operate(); });
     tap.addEventListener('click', function () { if (D.p > 0.85) D.pass(); });
     if (o.startOpen) { D.p = 1; D.target = 1; D.openAt = performance.now(); loadImg(); }
 
@@ -330,7 +332,7 @@
       var fromCorr = false;
       try { var nav = performance.getEntriesByType('navigation')[0]; fromCorr = (!nav || nav.type === 'navigate') && /index\.html$|\/aspentrail\/?$|\/$/.test((document.referrer || '').split('?')[0].split('#')[0]) && document.referrer.indexOf(location.host) >= 0; } catch (e) {}
       var D = create({ sc: sc, frame: P.room, name: '← ATRIUM', tint: 0xffd090, depth: 0.45, other: P.corr, space: P.corrSpace || CORRIDOR, img: 'images/portals/corr-' + id + '.jpg',
-        autoPass: true, onPass: go, startOpen: fromCorr, holdMs: fromCorr ? 900 : 8000, say: opts.say });
+        page: 'index.html?fromRoom=' + encodeURIComponent(id), /* WF_INTERACTION_V11 */ autoPass: true, onPass: go, startOpen: fromCorr, holdMs: fromCorr ? 900 : 8000, say: opts.say });
       window.WAYFARER.roomDoor = D;
       var cam = sc.camera, wp = new THREE.Vector3();
       AFRAME.registerComponent('wf-door-tick-' + id, { tick: function (t, dt) { if (!sc.camera) return; /* the player, not the 3rd-person lens */ (sc.camera.el ? sc.camera.el.object3D : sc.camera).getWorldPosition(wp); D.update(dt, wp); } });

@@ -392,6 +392,7 @@
 
     // ── talking / petting ──
     tap: function (id) {
+      /* WF_INTERACTION_V11 */ if (W.interaction && W.interaction.active()) return;
       if (!this.eng || this.talk) return; var n = this.eng.npcs.get(id); if (!n) return;
       if (n.kind === 'cat') { this.catMenu(n); return; }
       var r = this.eng.interact(id);
@@ -416,8 +417,14 @@
         b.addEventListener('click', function (ev) { ev.stopPropagation(); box.style.display = 'none'; if (o[0] !== 'x') self.catDo(n, o[0]); }); row.appendChild(b); });
       box.style.display = 'block';
     },
-    catDo: function (n, what) {
+    catDo: function (n, what, v11Commit) {
       var L = window.WF_LIFE, d = this.pdist(n), self = this;
+      /* WF_INTERACTION_V11 */ var I = W.interaction;
+      if (!v11Commit && I && (what === 'pet' || what === 'treat')) {
+        if (I.active()) return;
+        if (what === 'treat' && !(L && L.count('treat'))) { toast('No treats left'); return; }
+        if (I.cat(this,n,what,function(){self.catDo(n,what,true);})) return;
+      }
       if (this.toy) this.stopToy();
       if (what === 'catnip') {
         if (d > 2.3) { toast('Walk closer to ' + n.name); return; }
@@ -518,9 +525,9 @@
       r.choices.forEach(function (c) { var b = document.createElement('button'); b.textContent = c[1]; if (c[0] === 'exit') b.className = 'x';
         b.addEventListener('click', function (ev) { ev.stopPropagation(); self.say(r.id, c[0]);
           if (c[0] === 'exit') { self.endTalk(); return; } var nx = self.eng.dialogue(r.id, c[0]); if (nx) self.show(nx); }); ch.appendChild(b); });
-      box.style.display = 'block'; this.talk = r.id; document.body.classList.add('wf-crew-talking'); if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(r.line, 'robot');
+      box.style.display = 'block'; this.talk = r.id; /* WF_INTERACTION_V11 */ if (W.interaction) W.interaction.talk(r.id); document.body.classList.add('wf-crew-talking'); if (window.WF_SOUND && WF_SOUND.speak) WF_SOUND.speak(r.line, 'robot');
     },
-    endTalk: function () { var box = document.getElementById('wf-crew-talk'); if (box) box.style.display = 'none'; this.talk = null; document.body.classList.remove('wf-crew-talking'); if (this.eng) this.eng.endDialogue(); },
+    endTalk: function () { /* WF_INTERACTION_V11 */ if (W.interaction) W.interaction.endTalk(); var box = document.getElementById('wf-crew-talk'); if (box) box.style.display = 'none'; this.talk = null; document.body.classList.remove('wf-crew-talking'); if (this.eng) this.eng.endDialogue(); },
     cam: function (n, on) {                                     // kit hook: freeze walking and turn the view to whoever you're talking to
       if (on) { this._wasFrozen = !!W.frozen; W.frozen = true; this.face = n.id; }
       else { if (!this._wasFrozen) W.frozen = false; this.face = null; }

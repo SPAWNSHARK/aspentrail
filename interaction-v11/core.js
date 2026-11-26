@@ -1,0 +1,8 @@
+/* SS Wayfarer V11 — deterministic interaction lifecycle, no dependencies. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.WFInteractionCore=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const profiles=Object.freeze({door:{in:.28,hold:.16,out:.30,contact:.28},pet:{in:.65,hold:1.65,out:.65,contact:.8},treat:{in:.65,hold:.7,out:.55,contact:.8},reach:{in:.35,hold:.35,out:.35,contact:.4},greet:{in:.3,hold:.6,out:.4,contact:.4},read:{in:.45,hold:1.8,out:.45,contact:.5},drink:{in:.45,hold:1.2,out:.45,contact:.5},repair:{in:.45,hold:2.2,out:.45,contact:.6}});
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));const ease=x=>{x=clamp(x);return x*x*(3-2*x);};
+function sample(kind,time){const p=profiles[kind];if(!p)throw Error('Unknown interaction '+kind);const total=p.in+p.hold+p.out;const t=clamp(time,0,total);return {t,total,weight:t<p.in?ease(t/p.in):t<p.in+p.hold?1:ease((total-t)/p.out),contact:t>=p.contact,done:t>=total,hold:t>=p.in&&t<p.in+p.hold};}
+class Controller{constructor(){this.active=null;}begin(kind,opts={}){if(this.active||!profiles[kind])return false;this.active={kind,opts,t:0,fired:false};return true;}end(reason='cancelled'){const a=this.active;if(!a)return;this.active=null;if(a.opts.finish)a.opts.finish(reason,a.fired);}step(dt){const a=this.active;if(!a)return null;if(!Number.isFinite(dt)||dt<0)return null;a.t+=Math.min(dt,.1);const s=sample(a.kind,a.t);if(s.contact&&!a.fired){a.fired=true;try{if(a.opts.contact)a.opts.contact();}catch(e){this.end('error');throw e;}}if(this.active!==a)return null;if(s.done){this.end('complete');return null;}return {...s,kind:a.kind,opts:a.opts};}}
+return {profiles,clamp,ease,sample,Controller};});

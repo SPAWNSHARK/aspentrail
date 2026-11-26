@@ -227,7 +227,7 @@
       var P = PT[d.id];
       var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1,
         other: P ? P.room : null, space: P ? P.space : null, img: P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null, locked: !!d.locked,
-        autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
+        page: P && !d.locked ? P.page : null, /* WF_INTERACTION_V11 */ autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);
     });
     window.WAYFARER.corridorDoors = doors;

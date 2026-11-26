@@ -130,6 +130,7 @@
       return back * this._camRatio;
     },
     tick: function (t, dt) {
+      /* WF_INTERACTION_V11 */ if (window.WAYFARER.interaction) window.WAYFARER.interaction.pre(this);
       var cel = this.cameraEl(); if (!cel) return; var cam3 = cel.getObject3D('camera'); if (!cam3) return;
       var J = this.J, s = Math.min(dt || 16, 50) / 1000, o = cel.object3D, wp = this._wp || (this._wp = new THREE.Vector3());
       o.getWorldPosition(wp);
@@ -193,6 +194,7 @@
       // Retract immediately to avoid clipping, ease outward after the obstruction clears.
       this.dist = back < this.dist ? back : this.dist + (back - this.dist) * (1 - Math.exp(-s * 8));
       cam3.position.set(0, up * (this.dist / 2.4), this.dist);
+      /* WF_INTERACTION_V11 */ if (window.WAYFARER.interaction) window.WAYFARER.interaction.post(this,t,dt,cam3,third);
     }
   });
   function attach() { var sc = document.querySelector('a-scene'); if (sc && !sc.hasAttribute('wf-avatar')) sc.setAttribute('wf-avatar', ''); }
