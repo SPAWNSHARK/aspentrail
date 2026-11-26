@@ -13,6 +13,10 @@
       'Ship Log → MAP has ⬆ UPPER DECK / ⬇ LOWER DECK; it opens on the deck you’re on.',
       'Forge’s Engineering console on the port walkway (labelled GUIDE) still opens this manual.'
     ]],
+    ['🤖 Droid crew (V2)', [
+      'Each droid greets you in character. Talk to one for three new topics: Recent duty log (what they’ve actually been doing), Maintenance register (the live fault list) and Personal log.',
+      'Talking interrupts their work — they go back to it afterwards (unless you order them back to station). On red alert they drop everything and run home; no chit-chat until it’s over.'
+    ]],
     ['🛋 Crew Lounge', [
       'Alien aquarium in the port wall: glowing fish, a drifting ray, swaying kelp. Star-fire hearth on the starboard wall. Brass pendants over the table, bar cabinet by the door. Alien TV on the window wall (tap to change channel), Starjack on the coffee table.'
     ]],

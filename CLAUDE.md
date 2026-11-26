@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127m).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261127n).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -412,6 +412,13 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   installer's patches were applied BY HAND (its anchors matched; no backup dir in the repo): crew.js kitty ?v=2, missing-clip warning, cat
   y from n.pos.y, walk clip time-scaled to speed; crew-engine.mjs (now ?v=2) cats accelerate/settle, rest = Sleep 20–75 s, idle variety
   (Groom/Stretch/Sniff/LookAround/Knead), play variety (Play/Pounce/TailFlick/Roll). Our cat-play calls' Run_InPlace → Sprint (new rigs lack it).
+- [x] DROID UPGRADE V2 (Nov 26, user's Droid_Upgrade_V2.zip; README/install.py/build_models.py in reference/droid-upgrade-v2/): six new
+  articulated Droid_*_Living.glb (titanium/graphite/copper, role-coloured plates, 12 clips incl. Run_InPlace; old 'Inspect' clip gone, unused)
+  → crew.js ?v=2. crew/droid-v2.mjs (vendored) + its install.py patches applied BY HAND, merged with Felines 2.0 where both touched the same
+  lines: engine imports droid-v2 (dutyRecall on red alert, stride() role-tempo acceleration for droids while cats keep their own, records
+  console_work / duty_complete / seated_home, no socialising during alerts, talk interrupts work and resumeDuty() resumes it, dialogue
+  extension: role greetings + 'Recent duty log' / 'Maintenance register' / 'Personal log' choices); crew.js mixer: droid walk → Run_InPlace
+  above 1.65 m/s (warp-alert dash) with time-scaled gait; engine import ?v=3. tests/droid-v2.test.mjs (node --test) 5/5 pass.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.
