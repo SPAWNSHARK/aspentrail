@@ -357,7 +357,7 @@
           if (W.lcars) { var lc = W.lcars({ w: 512, h: 256, seed: si * 5 + 2, layout: ['readout', 'graph', 'keys'][si % 3], label: P.room === 'corridor' ? 'GUIDE' : s.asset.replace('Console_', '').slice(0, 4).toUpperCase() }); self.lcars = (self.lcars || []).concat(lc.update);
             m.traverse(function (o) { if (!o.isMesh) return; [].concat(o.material).forEach(function (mt) { if (mt && /Screen/i.test(mt.name)) { mt.map = lc.texture; mt.emissiveMap = lc.texture; mt.emissive && mt.emissive.setRGB(1, 1, 1); mt.emissiveIntensity = 1; mt.needsUpdate = true; } }); }); }
           var mob = self.el.components['wayfarer-mobile']; if (mob && mob.scanSolids && mob.data.collide) mob.scanSolids();
-          else { var bb = new THREE.Box3().setFromObject(m); self.consoleBoxes.push([bb.min.x, bb.min.z, bb.max.x, bb.max.z]); }   /* corridor: no furniture scan there, so this console blocks you via dynSolids */
+          else { e.object3D.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(m);   /* world matrix first: computing it straight away put an invisible box in the MIDDLE of the hallway (user, Nov 26) */ self.consoleBoxes.push([bb.min.x, bb.min.z, bb.max.x, bb.max.z]); }   /* corridor: no furniture scan there, so this console blocks you via dynSolids */
         });
         self.el.appendChild(e);
       });

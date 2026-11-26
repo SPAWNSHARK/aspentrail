@@ -5,10 +5,10 @@
   var S = [
     ['🧭 Getting around', [
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',
-      'Top bar (left → right): 📋 Ship Log · Gyro (phone) · Level (phone) · 🔈 Sound · 👤 1st / 3rd person.',
+      'Top bar (left → right): 📋 Ship Log · 👁 Halcyon · Gyro (phone) · Level (phone) · 🔈 Sound · 👤 1st / 3rd person.',
       'Doors: walk up and tap the glowing hub button, or just walk through an open one. The coloured half-round rug in front of each door matches its room.',
       'Ship Log (📋 or J): GOALS · MAP (live deck map — tap a room to go straight there) · CARGO · SCIENCE · ORDERS.',
-      'Keys: J log · H this manual · M mute · V view · Esc closes panels.']],
+      'Keys: J log · H this manual · I Halcyon · M mute · V view · Esc closes panels.']],
     ['💰 Credits, rank & daily goals', [
       'One wallet for everything. Contracts, goals, repairs, scans, games and bounties pay into it; shops and bets take from it.',
       'Three DAILY GOALS every day (150 cr each, +300 for all three). They reset at local midnight. Rank rises with total credits: Ensign → Lieutenant (600) → Lt Cdr (1,800) → Commander (4,000) → Captain (8,000) → Commodore (15,000).',
@@ -30,6 +30,18 @@
       'The HOUSE PLANNER terminal on the port wall opens the blueprint planner.']],
     ['🃏 Crew Lounge', [
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],
+    ['🪑 The helm (Command Bridge)', [
+      'The captain’s chair and the big holographic NAVIGATOR in front of it are one station. Tap either one and you sit down first.',
+      'Seated menu: CRUISING (peaceful flight) · HUNTING (combat) · SHIP (inspect the Wayfarer in Ship View) · NAVIGATE (turn to the navigator and open the galactic map) · STAND.',
+      'In the galactic map your ship sits at your current system. Planet emojis mark each world, and ✓ marks the ones you’ve visited. Confirm a destination and the ship jumps there.',
+      'Keys while seated: N navigate · L cruise · K hunt · X / Esc stand.']],
+    ['🚨 Red alert & light-speed escapes', [
+      'Every 7–13 minutes the ship makes an evasive light-speed jump (pirates on sensors!). Twenty seconds before it, klaxons sound, every deck turns red, and any droid away from the Bridge sprints back to its chair.',
+      'You can also call Red alert yourself from the Bridge (Ship Log → ORDERS).']],
+    ['🧠 Halcyon, the ship’s mind', [
+      'The living brain under the Library is HALCYON, the ship’s AI. Tap the brain, the eye icon in the top bar (any deck), or press I.',
+      'Ask for a status report, where everyone is, what to do next, or the next light-speed jump. Or say "take me to the Lounge" and it walks you there. It also searches this manual. The brain flickers while it talks.',
+      'It speaks aloud (🔊 to mute it). Ask it about the eels.']],
     ['🚀 Flight Mode (the captain’s chair)', [
       'Explore (peaceful) or Combat. Steer with the stick / WASD. Zoom: pinch, mouse wheel, or Z / X.',
       'NAV chip: ‹ › pick a destination, WARP to jump there. Fly near the Hiveport → DOCK AT HIVEPORT (F) plays the docking sequence (SKIP to cut it short).',
@@ -54,8 +66,7 @@
       'The planets’ scan facts each hide one oddity (Selenite hums at 41 Hz at sunrise; Mycelion may be a single organism).',
       'Red alert from the Bridge lights the whole ship.']],
     ['🛠️ Coming next', [
-      'The helm rebuild (chair menu: Cruising / Hunting / Ship inspect / Navigate, a big navigator built into the helm), red-alert light-speed jumps with droids running for the Bridge, the ship’s AI in the brain.',
-      'Library: galaxy map across the ceiling, your WordPress site on a console. Lounge: alien TV with a bigger window. More props everywhere.',
+            'Library: galaxy map across the ceiling, your WordPress site on a console. Lounge: alien TV with a bigger window. More props everywhere.',
       'BELOW DECK down the Library staircases: medbay, quarters, galley, cruiser hangar. Holodeck house builder. Busier space, new alien races, a packed Hiveport, and planet landings on foot.']]
   ];
   var css = document.createElement('style');
