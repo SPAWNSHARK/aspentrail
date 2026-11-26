@@ -21,15 +21,17 @@
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126q"></script>
-  <script src="life.js?v=20261126q"></script>
-  <script src="sound.js?v=20261126q"></script>
-  <script src="avatar.js?v=20261126q"></script>
-  <script src="door.js?v=20261126q"></script>
-  <script src="hyperspace.js?v=20261126q"></script>
-  <script src="lcars.js?v=20261126q"></script>
-  <script src="crew.js?v=20261126q"></script>
-  <script src="repairs.js?v=20261126q"></script>
+  <script src="mobile.js?v=20261126r"></script>
+  <script src="life.js?v=20261126r"></script>
+  <script src="manual.js?v=20261126r"></script>
+  <script src="sound.js?v=20261126r"></script>
+  <script src="avatar.js?v=20261126r"></script>
+  <script src="door.js?v=20261126r"></script>
+  <script src="hyperspace.js?v=20261126r"></script>
+  <script src="shipskin.js?v=20261126r"></script>
+  <script src="lcars.js?v=20261126r"></script>
+  <script src="crew.js?v=20261126r"></script>
+  <script src="repairs.js?v=20261126r"></script>
   <script>if (/[?&]from=flight/.test(location.search)) document.documentElement.className += ' from-flight';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -520,7 +522,7 @@
     function nearId() { var n = 'VARKESH'; try { n = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {} if (/HIVEPORT/.test(n)) return 'Hiveport'; return n.toLowerCase().split(' ').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join('_'); }
     function loadMap() {
       if (mapLoading) return mapLoading;
-      mapLoading = Promise.all([import('./nav/galaxy-map.mjs?v=1'), fetch('nav/galaxy.json?v=1').then(function (r) { return r.json(); })]).then(function (res) {
+      mapLoading = Promise.all([import('./nav/galaxy-map.mjs?v=2'), fetch('nav/galaxy.json?v=2').then(function (r) { return r.json(); })]).then(function (res) {
         MAP = res[0].createGalaxyMap({ THREE: T3, GLTFLoader: T3.GLTFLoader || function () {}, galaxy: res[1], assetBase: '', initialDestination: nearId(),
           sound: snd, save: function () {},
           onClose: function () { closeNav(); },

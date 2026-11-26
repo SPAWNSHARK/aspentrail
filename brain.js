@@ -269,10 +269,10 @@
       if (this.mat) { this.mat.emissive.setRGB(0.32, 0.03, 0.05); this.mat.emissiveIntensity = 0.08 + 0.22 * beat; }
       // electrical discharges every few seconds: flicker for ~0.35 s
       var ts = t / 1000;
-      if (this.zapT < 0 && ts > this.nextZap) { this.strike(); this.nextZap = ts + 2.5 + Math.random() * 5; }
+      if (this.zapT < 0 && ts > this.nextZap) { this.strike(); this.nextZap = ts + 10 + Math.random() * 14; }   /* toned down (user, Nov 26) */
       if (this.zapT >= 0) {
         this.zapT += s; var f = this.zapT < 0.35 ? (Math.random() < 0.7 ? 1 : 0.15) * (1 - this.zapT / 0.35) : 0;
-        this.arcMat.opacity = f; this.spark.material.opacity = f * 0.9; this.zap.intensity = f * 3.5;
+        this.arcMat.opacity = f * 0.6; this.spark.material.opacity = f * 0.5; this.zap.intensity = f * 1.6;
         if (this.zapT >= 0.35) { this.zapT = -1; this.arcMat.opacity = 0; this.spark.material.opacity = 0; this.zap.intensity = 0; }
       }
     },
@@ -390,18 +390,45 @@
       }
 
       // rising bubbles / plankton
-      var n = low ? 200 : 420, p = new Float32Array(n * 3); this.sp = new Float32Array(n); this.ph = new Float32Array(n);
+      var n = low ? 60 : 120, p = new Float32Array(n * 3);   /* fewer bubbles (user, Nov 26) */ this.sp = new Float32Array(n); this.ph = new Float32Array(n);
       for (i = 0; i < n; i++) {
         var vent = i % 3 === 0, r = vent ? 5.8 + Math.random() * 0.4 : Math.sqrt(Math.random()) * 7.4, th = vent ? Math.floor(Math.random() * 8) / 8 * 6.283 + Math.random() * 0.08 : Math.random() * 6.283;   // a third rise in streams from vents
         p[i * 3] = Math.cos(th) * r; p[i * 3 + 1] = -15.5 + Math.random() * 15; p[i * 3 + 2] = Math.sin(th) * r;
         this.sp[i] = 0.9 + Math.random() * 1.6; this.ph[i] = Math.random() * 6.283;
       }
       var bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.BufferAttribute(p, 3));
-      this.bub = new THREE.Points(bg, new THREE.PointsMaterial({ map: sprite(), size: 0.42, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xd8fff4, fog: false }));
+      this.bub = new THREE.Points(bg, new THREE.PointsMaterial({ map: sprite(), size: 0.3, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xd8fff4, fog: false }));
       this.bub.frustumCulled = false; this.bub.renderOrder = -2; grp.add(this.bub);   // before the glass floor (it writes depth)
+      // EELS (user, Nov 26): long dark electrogel eels with glowing stripes, swimming lazy loops round the brain.
+      //   One InstancedMesh of tapered body segments; each eel's head follows a wandering path and the body trails its history.
+      var NE = low ? 3 : 5, SEG = 18, eelM = new THREE.MeshStandardMaterial({ color: 0x0e2a2c, roughness: 0.35, metalness: 0.2, emissive: 0x0a6a60, emissiveIntensity: 0.55 });
+      this.eel = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), eelM, NE * SEG); this.eel.frustumCulled = false; this.eel.renderOrder = -1; grp.add(this.eel);
+      var eyeM = new THREE.MeshBasicMaterial({ color: 0x9fffe8, toneMapped: false }); this.eyes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 6, 4), eyeM, NE * 2); this.eyes.frustumCulled = false; grp.add(this.eyes);
+      this.eels = []; for (i = 0; i < NE; i++) { var hist = []; for (var k = 0; k < 160; k++) { var a0 = i * 1.7 - k * 0.012; hist.push(new THREE.Vector3(Math.cos(a0) * (3.6 + i * 0.75), -4.5 - i * 1.6, Math.sin(a0) * (3.6 + i * 0.75))); } this.eels.push({ r: 3.6 + i * 0.75, y: -4.5 - i * 1.6, sp: 0.22 + i * 0.05, ph: i * 1.7, dir: i % 2 ? 1 : -1, hist: hist, seg: SEG, size: 0.24 + (i % 3) * 0.05 }); }
+      this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._v = new THREE.Vector3(); this._sc = new THREE.Vector3(); this._up = new THREE.Vector3(0, 0, 1);
       this.el.setObject3D('tank', grp);
     },
+    tickEels: function (t) {
+      var T = t / 1000, M = this._m, Q = this._q, V = this._v, SC = this._sc;
+      for (var e = 0; e < this.eels.length; e++) {
+        var E = this.eels[e], a = E.ph + T * E.sp * E.dir, head = new THREE.Vector3(Math.cos(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2), E.y + Math.sin(T * 0.5 + e * 2) * 2.2, Math.sin(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2));
+        if (head.distanceTo(E.hist[0]) > 0.03) { E.hist.unshift(head); E.hist.pop(); } else E.hist[0].copy(head);
+        // body segments sit at fixed ARC LENGTHS behind the head (so the eel stays joined at any frame rate)
+        var gap = E.size * 1.1, hi = 0, acc = 0, PTS = this._pts || (this._pts = []);
+        for (var k2 = 0; k2 <= E.seg; k2++) { var want = k2 * gap; while (hi < E.hist.length - 2 && acc + E.hist[hi].distanceTo(E.hist[hi + 1]) < want) { acc += E.hist[hi].distanceTo(E.hist[hi + 1]); hi++; }
+          var seglen = E.hist[hi].distanceTo(E.hist[hi + 1]) || 1e-6, f = Math.min(1, Math.max(0, (want - acc) / seglen)); PTS[k2] = (PTS[k2] || new THREE.Vector3()).lerpVectors(E.hist[hi], E.hist[hi + 1], f); }
+        for (var k = 0; k < E.seg; k++) {
+          var p0 = PTS[k], p1 = PTS[k + 1], w = Math.sin(T * 6 - k * 0.6) * 0.12 * (k / E.seg);   // a swimming wiggle that grows toward the tail
+          V.subVectors(p0, p1); if (V.lengthSq() < 1e-6) V.set(1, 0, 0); V.normalize(); Q.setFromUnitVectors(this._up, V);
+          var taper = E.size * (k < 2 ? 0.8 + k * 0.15 : 1 - (k - 2) / (E.seg - 1) * 0.85);
+          SC.set(taper, taper * 0.75, taper * 1.9); M.compose(new THREE.Vector3(p0.x + V.z * w, p0.y, p0.z - V.x * w), Q, SC); this.eel.setMatrixAt(e * E.seg + k, M);
+          if (k === 0) { for (var s2 = 0; s2 < 2; s2++) { var side = new THREE.Vector3(V.z, 0, -V.x).normalize().multiplyScalar((s2 ? 1 : -1) * taper * 0.6); M.makeTranslation(p0.x + side.x + V.x * taper, p0.y + taper * 0.4, p0.z + side.z + V.z * taper); this.eyes.setMatrixAt(e * 2 + s2, M); } }
+        }
+      }
+      this.eel.instanceMatrix.needsUpdate = true; this.eyes.instanceMatrix.needsUpdate = true;
+    },
     tick: function (t, dt) {
+      if (this.eel) this.tickEels(t);
       var s = Math.min(dt, 50) / 1000, a = this.bub.geometry.attributes.position, d = a.array, i, n = a.count;
       for (i = 0; i < n; i++) {
         d[i * 3 + 1] += this.sp[i] * s;

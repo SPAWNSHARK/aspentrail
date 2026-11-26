@@ -192,6 +192,16 @@
         }
         decide(n) {                                          // CREW ORDERS from the Bridge override the droids' own routine
           var o = self.order && self.order.kind;
+          if (n.kind === 'cat') {                             // the Lounge always keeps at least two cats (user, Nov 26)
+            var eng = this, inLounge = function (c) { var last = c.route.length ? c.route[c.route.length - 1] : c.node; return eng.layout.nodes[last] && eng.layout.nodes[last].room === 'lounge'; };
+            var cats = Array.from(this.npcs.values()).filter(function (c) { return c.kind === 'cat'; });
+            var others = cats.filter(function (c) { return c !== n && inLounge(c); }).length;
+            var here = this.layout.nodes[n.node] && this.layout.nodes[n.node].room === 'lounge';
+            if (others < 2 && !here) { var rs = this.layout.spots.filter(function (q) { return q.room === 'lounge'; }); if (this.go(n, this.pick(rs).node, { type: 'rest' })) return; }
+            super.decide(n);
+            if (here && others < 2 && !inLounge(n)) { n.route = []; n.goal = null; this.set(n, 'GROOM', 'Groom', 2.4, false); }   // stay put
+            return;
+          }
           if (n.kind !== 'droid' || !o) return super.decide(n);
           if (o === 'shoreleave') {
             if (this.social(n)) return;
@@ -340,10 +350,11 @@
         var P = s.placement; if (!P || P.room !== PAGE) return;
         var e = document.createElement('a-entity');
         e.setAttribute('gltf-model', 'models/deck/' + s.asset + '?v=1'); e.setAttribute('position', P.x + ' 0 ' + P.z); e.setAttribute('rotation', '0 ' + P.yaw + ' 0');
+        if (/Engineering/.test(s.asset) && P.room === 'corridor' && !CAPTURE) { e.setAttribute('class', 'clickable interactive'); e.addEventListener('click', function () { if (window.WF_MANUAL) WF_MANUAL.open(); }); }   /* the hallway console = the CAPTAIN'S MANUAL */
         if (/Science/.test(s.asset) && !CAPTURE) { e.setAttribute('class', 'clickable interactive'); e.addEventListener('click', function () { if (window.WF_LIFE) WF_LIFE.open('disc'); }); }   /* Vesper's console = the science log */
         e.addEventListener('model-loaded', function () {
           var m = e.getObject3D('mesh');
-          if (W.lcars) { var lc = W.lcars({ w: 512, h: 256, seed: si * 5 + 2, layout: ['readout', 'graph', 'keys'][si % 3], label: s.asset.replace('Console_', '').slice(0, 4).toUpperCase() }); self.lcars = (self.lcars || []).concat(lc.update);
+          if (W.lcars) { var lc = W.lcars({ w: 512, h: 256, seed: si * 5 + 2, layout: ['readout', 'graph', 'keys'][si % 3], label: P.room === 'corridor' ? 'GUIDE' : s.asset.replace('Console_', '').slice(0, 4).toUpperCase() }); self.lcars = (self.lcars || []).concat(lc.update);
             m.traverse(function (o) { if (!o.isMesh) return; [].concat(o.material).forEach(function (mt) { if (mt && /Screen/i.test(mt.name)) { mt.map = lc.texture; mt.emissiveMap = lc.texture; mt.emissive && mt.emissive.setRGB(1, 1, 1); mt.emissiveIntensity = 1; mt.needsUpdate = true; } }); }); }
           var mob = self.el.components['wayfarer-mobile']; if (mob && mob.scanSolids && mob.data.collide) mob.scanSolids();
           else { var bb = new THREE.Box3().setFromObject(m); self.consoleBoxes.push([bb.min.x, bb.min.z, bb.max.x, bb.max.z]); }   /* corridor: no furniture scan there, so this console blocks you via dynSolids */
@@ -458,6 +469,19 @@
         n.yaw = Math.atan2(dx, dz); this.animate(n, d > 1.2 ? 'Run_InPlace' : 'Walk_InPlace', { loop: true, fade: 0.15 });
       } else { T.pounce = 0.9; this.animate(n, 'Play', { loop: false, fade: 0.1 }); if (Math.random() < 0.5) this.sound(n, Math.random() < 0.5 ? 'chirp' : 'chatter'); n.yaw = Math.atan2(dx, dz); }
     },
+    // GET OUT OF THE WAY (user, Nov 26): anyone standing/walking within 1.3 m of you steps aside (away from you and off your heading)
+    dodge: function (dt) {
+      var cam = this.el.camera; if (!cam || W.frozen) return; var c = cam.el.object3D, cp = this.tmp; c.getWorldPosition(cp);
+      var ox = OFF[PAGE] * 100, fwd = new THREE.Vector3(); cam.getWorldDirection(fwd); var fl = Math.hypot(fwd.x, fwd.z) || 1, fx = fwd.x / fl, fz = fwd.z / fl, self = this;
+      this.eng.npcs.forEach(function (n) {
+        if (n._dodged > 0 && (n._dodged -= dt) <= 0) self.animate(n, n.clip || 'Idle', { loop: true, fade: 0.2 });   // back to what the engine thinks they're doing
+        if (roomOf(n) !== PAGE || n.xferAt || /SEATED|SIT|STAND|WORK|CONVERSATION|TOY|SOCIAL|PLAYER_PET/.test(n.state)) return;
+        var x = n.pos.x - ox, z = n.pos.z, dx = x - cp.x, dz = z - cp.z, d = Math.hypot(dx, dz); if (d > 1.3 || d < 1e-3) return;
+        var side = (dx * fz - dz * fx) >= 0 ? 1 : -1, ax = dx / d * 0.6 + fz * side * 0.8, az = dz / d * 0.6 - fx * side * 0.8, al = Math.hypot(ax, az) || 1, sp = (n.kind === 'cat' ? 2.2 : 1.6) * dt;
+        var p = { x: n.pos.x + ax / al * sp, y: 0, z: n.pos.z + az / al * sp };
+        if (self.canMove(n, p) !== false) { n.pos.x = p.x; n.pos.z = p.z; if (n.state === 'YIELD' || n.state === 'IDLE') self.animate(n, 'Walk_InPlace', { loop: true, fade: 0.15 }); n.yaw = Math.atan2(ax, az); n._dodged = 0.6; }
+      });
+    },
     roomR: function () { var m = this.el.components['wayfarer-mobile']; return m && m.data.radius > 0 ? m.data.radius : 0; },
     show: function (r) {
       var self = this, box = document.getElementById('wf-crew-talk');
@@ -508,6 +532,7 @@
       var dt = Math.min(dtm || 16, 100) / 1000, eng = this.eng, self = this, ox = OFF[PAGE] * 100, dyn = [];
       eng.update(dt); this.ambient(t / 1000); this.toyTick(dt);
       if (this.lcars) this.lcars.forEach(function (f) { f(t / 1000); });
+      this.dodge(dt);
       eng.npcs.forEach(function (n) {
         var here = roomOf(n) === PAGE, o;
         if (here) self.model(n);
@@ -528,7 +553,7 @@
         o.rotation.y += (Math.abs(dy) > 2.6 && n.state === 'SEATED') ? dy : dy * Math.min(1, dt * 7);
         if (self.mix[n.id]) self.mix[n.id].update(dt);
         var h = self.hits[n.id]; if (h) { h.object3D.visible = true; h.object3D.position.set(x, n.kind === 'cat' ? 0.28 : 0.9, z); }
-        var r = n.radius * 0.9; dyn.push([x - r, z - r, x + r, z + r, n.id]);
+        var r = n.radius * (n.kind === 'cat' ? 0.6 : 0.8); dyn.push([x - r, z - r, x + r, z + r, n.id]);
       });
       W.dynSolids = this.consoleBoxes.length ? dyn.concat(this.consoleBoxes) : dyn;
       if (this.face && this.el.camera) {                         // ease the view round to the droid you're talking to

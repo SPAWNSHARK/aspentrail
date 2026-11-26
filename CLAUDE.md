@@ -60,7 +60,7 @@ Rules drawn from them:
 - A-Frame 1.5.0 from the aframe.io CDN, no build step, plain HTML/JS
 - GitHub Pages deploys from branch `claude/hello-mssbj4` (site: spawnshark.github.io/aspentrail).
   Session work happens on a `claude/...` branch; it is live only after it reaches `claude/hello-mssbj4`.
-- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126q).
+- Local scripts are loaded with `?v=<date+letter>` (Safari cached old door.js/mobile.js) — bump it in every page on each push (now 20261126r).
 - Shared scripts: `textures.js` (procedural textures), `mobile.js` (touch controls, Nov 24 v3 — user: "like it was in the
   beginning"): NO bar. Two floating frosted-glass thumbsticks in the bottom corners: left = analog walk joystick, right = look
   stick. MENU BAR (Nov 25, user: "like the Mac's menu bar"): #wf-btns is a slim 30 px frosted bar across the TOP on every
@@ -363,20 +363,20 @@ Record of everything asked for; tick items off as they ship.
 - [ ] BELOW DECK (new level, industrial alien vibe) for all new rooms (quarters, galley, medbay, cruiser hangar…); the two Library back doors become two STAIRCASES down to it
 - [ ] STAR GARDEN leaves the Holodeck → centre of the Library; activating it fills the Library CEILING with a real, spinnable galaxy map (look-up animation; not an editable game)
 - [ ] NAVIGATOR redesign: much bigger, at the front of the helm, integrated with the captain's chair (not separate consoles); nicer + animations; planets pickable only once inside the navigator; never shoved through the chair; tapping the navigator = sit in the chair. Tapping the CHAIR → menu: Cruising (peaceful) / Hunting (fighter) / Ship inspect (view ship) / Navigate (turn to the navigator, pick a destination, travel)
-- [ ] Galactic map: show the actual ship (not "marked in cyan"), small planet emojis by known/visited planets, planets as spheres not circles
+- [x] Galactic map (nav/galaxy-map.mjs patched, ?v=2): the Wayfarer GLB (shipskin) marks your position; lit 32×20 sphere stars; system-view planets wear their textures; planet emojis in the lists + ✓ for visited ('wf-visited', written by minigame checkVisits + station dock)
 - [ ] HOLODECK = 3D interactive HOUSE BUILDER filling the whole room (Star Trek holodeck × Sims house builder × Home Depot), the main purpose of the Holodeck
-- [ ] Crew: droids and cats get out of the player's way / stop bumping into you; always ≥2 cats in the Lounge; more droids throughout the ship
-- [ ] Ship hum quieter and on immediately at game start (not after a droid interaction)
+- [~] Crew: droids and cats get out of the player's way (crew.js dodge(): anyone idle/walking within 1.3 m sidesteps away from you and off your heading) [x]; always ≥2 cats in the Lounge (ShipCrew.decide cat rule) [x]; more droids throughout the ship [ ]
+- [x] Ship hum quieter (0.045) and on at the first touch: the real cause was iOS's silent switch muting Web Audio until an <audio> file played — sound.js now sets navigator.audioSession.type='playback', plays a silent clip on the first touch, creates the context at load and resumes it on every touch/click/key
 - [ ] Random light-speed jumps: red alert lighting shipwide first (Star Trek), droids in the halls dash to the Bridge before the jump ("escaping a pirate")
 - [ ] SHIP AI: a central computer integrated with the Library brain, reachable from various places on the ship
 - [ ] Consoles do real things: e.g. the Library console = the user's WordPress site, scrollable, with interaction animations
-- [ ] Library tank: fewer bubbles, less lightning, EELS swimming; partly see-through down to the below deck
+- [~] Library tank: fewer bubbles (120), lightning every 10–24 s and dimmer, EELS (brain.js gel-tank: InstancedMesh tapered segments placed by arc length along each eel's path history, glowing eyes) [x]; partly see-through down to the below deck [ ] (with Phase D)
 - [ ] Ship View model: the front windows are painted wrong
-- [ ] Flight Mode: far more space traffic, more ship types, ships occasionally fighting each other; ZOOM in/out in both modes
+- [~] Flight Mode: ZOOM (wheel / pinch / Z X, 0.4–2.6×, 'wf-zoom') [x]; far more space traffic, more ship types, ships fighting each other [ ]
 - [ ] A cast of ALIEN RACES, each with a home planet; the Hiveport has all of them; Hiveport much more crowded and detailed ("feel like a damn club")
 - [ ] PLANET LANDINGS: cruiser docked below deck flies down (mothership stays in orbit animation); planets: desert traders, ice world with giant monsters, tropical world with friendly monkey aliens, dead cyber wasteland, lava world with huge monsters; enter/exit animations; on foot with a gun + ammo, red screen edges when hit, pass-out scene (never die) → wake in the MEDBAY with a droid
 - [ ] Space defeat: the ship warps out and hides behind a planet (animation); shields designed properly
-- [ ] HALLWAY CONSOLE = the in-game MANUAL ("how to play"): every system, controls, and all hidden Easter eggs
+- [x] HALLWAY CONSOLE = the CAPTAIN'S MANUAL (`manual.js`, every A-Frame page; corridor Engineering console labelled GUIDE, or key H): collapsible sections for every system + Easter eggs + coming next. KEEP IT CURRENT with every feature.
 
 ## What's next (agreed order: restyle room by room to the reference)
 1. Media Nexus live channels — needs a YouTube Data API key from the user (a key in a Pages site is public:

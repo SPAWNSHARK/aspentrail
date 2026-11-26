@@ -19,9 +19,16 @@
     for (var i = 0; i < d.length; i++) { var w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = w * 0.5 + last * 3.0; }   // white + brown
     return true;
   }
-  function unlock() { if (!init()) return; if (ctx.state === 'suspended') ctx.resume(); var p = pending; pending = []; p.forEach(function (f) { f(); }); }
-  ['pointerdown', 'touchend', 'keydown', 'click'].forEach(function (n) { addEventListener(n, unlock, { capture: true, passive: true }); });
-  function ready(f) { if (ctx && ctx.state === 'running') f(); else { pending.push(f); if (ctx) ctx.resume(); } }
+  // iOS: Web Audio obeys the SILENT SWITCH unless the page's audio session is 'playback' — so the hum/music stayed silent until some
+  // <audio> file happened to play (a door / nav sound). Ask for playback up front (Safari 16.4+) and, on the first touch, play a
+  // tiny silent <audio> clip, which flips the session on older iOS too. Every touch/click/key keeps nudging the context awake.
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  var silentDone = false;
+  function silent() { if (silentDone) return; silentDone = true; try { var a = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='); a.setAttribute('playsinline', ''); a.volume = 0.01; a.play().catch(function () { silentDone = false; }); } catch (e) {} }
+  function unlock() { silent(); if (!init()) return; if (ctx.state !== 'running') ctx.resume(); var p = pending; pending = []; p.forEach(function (f) { f(); }); }
+  ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'mousedown', 'keydown', 'click'].forEach(function (n) { addEventListener(n, unlock, { capture: true, passive: true }); });
+  try { init(); } catch (e) {}                                  // desktop browsers that remember you may let it start right away
+  function ready(f) { if (ctx && ctx.state === 'running') f(); else { pending.push(f); if (ctx) ctx.resume().then(function () { var p = pending; pending = []; p.forEach(function (g) { g(); }); }).catch(function () {}); } }
   function now() { return ctx.currentTime; }
   function noise(dur) { var s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = dur == null; return s; }
   function env(g, t, a, peak, dcy) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + dcy); }
@@ -37,7 +44,7 @@
         var o1 = osc('sawtooth', 48), o2 = osc('sawtooth', 48.6), o3 = osc('sine', 96); [o1, o2].forEach(function (o) { o.connect(lp); o.start(); }); var g3 = ctx.createGain(); g3.gain.value = 0.25; o3.connect(g3); g3.connect(g); o3.start();
         var n = noise(), nl = ctx.createBiquadFilter(); nl.type = 'lowpass'; nl.frequency.value = 340; var ng = ctx.createGain(); ng.gain.value = 0.35; n.connect(nl); nl.connect(ng); ng.connect(g); n.start();
         var lfo = osc('sine', 0.13), lg = ctx.createGain(); lg.gain.value = 40; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
-        g.gain.setTargetAtTime(0.11, now(), 1.2); humNodes = { g: g, stop: [o1, o2, o3, n, lfo] }; }
+        g.gain.setTargetAtTime(0.045, now(), 1.2); humNodes = { g: g, stop: [o1, o2, o3, n, lfo] }; }
       if (!on && humNodes) { humNodes.g.gain.setTargetAtTime(0, now(), 0.4); var h = humNodes; humNodes = null; setTimeout(function () { h.stop.forEach(function (o) { try { o.stop(); } catch (e) {} }); }, 1500); }
     }); },
     warp: function (v) { if (!ctx || ctx.state !== 'running') return;   // light-speed whoosh layer, 0..1
