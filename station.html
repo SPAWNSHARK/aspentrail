@@ -14,12 +14,12 @@
   <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
   <script>if (/[?&]from=dock/.test(location.search)) document.documentElement.className += ' from-dock';</script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261126m"></script>
-  <script src="life.js?v=20261126m"></script>
-  <script src="sound.js?v=20261126m"></script>
-  <script src="avatar.js?v=20261126m"></script>
-  <script src="lcars.js?v=20261126m"></script>
-  <script src="missions.js?v=20261126m"></script>
+  <script src="mobile.js?v=20261126n"></script>
+  <script src="life.js?v=20261126n"></script>
+  <script src="sound.js?v=20261126n"></script>
+  <script src="avatar.js?v=20261126n"></script>
+  <script src="lcars.js?v=20261126n"></script>
+  <script src="missions.js?v=20261126n"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -56,6 +56,13 @@
   <h2 id="talk-who">K'VETAR</h2>
   <p class="say" id="talk-line"></p>
   <div id="talk-list"></div>
+</div>
+<div class="panel" id="shop">
+  <h2 id="shop-name">SHOP</h2>
+  <p class="say" id="shop-line"></p>
+  <p id="shop-wallet"></p>
+  <div id="shop-list"></div>
+  <button class="close" id="shop-close">Leave</button>
 </div>
 <div class="panel" id="job-board">
   <h2>HIVEPORT JOB BOARD</h2>
@@ -202,6 +209,7 @@
           var bi = K[0].names.indexOf('dark_green / blue eyes / blue_civilian_male');
           BAR = makeActor(G[0], K[0], bi < 0 ? 3 : bi); BAR.model.position.set(0, 0, 7.9); BAR.model.rotation.y = 0; play(BAR, 'Idle');
           var bh = document.getElementById('bartender'); bh.setObject3D('mesh', invisibleBox(1.4, 3.2, 1.2)); bh.object3D.position.set(0, 1.6, 8.2);
+          buildShops(G[0], K[0]);
         });
       });
       // the violet holographic performer on the stage
@@ -216,6 +224,81 @@
     var h = document.createElement('a-entity'); h.setAttribute('class', 'clickable'); sc.appendChild(h);
     h.setObject3D('mesh', invisibleBox(1.0, 3.2, 1.0)); h.addEventListener('click', function () { talkTo(e); }); return h;
   }
+
+  // ── SHOPS (user, Nov 26): three K'Vetar traders along the TRADE LOUNGE's west wall (x −46, z −8.5 / −5.5 / −2.5) ──
+  //    CHITIN & THRUST (ship upgrades + hull paint → localStorage 'wf-upgrades', read by minigame.html and shipskin.js) ·
+  //    PURR & PLENTY (cat treats, catnip) · ODDS & ENDS (curios → trophies for the Captain's quarters). Wallet = WF_LIFE.
+  var UPG_KEY = 'wf-upgrades';
+  function upg() { try { return JSON.parse(localStorage.getItem(UPG_KEY) || '{}'); } catch (e) { return {}; } }
+  function setUpg(u) { try { localStorage.setItem(UPG_KEY, JSON.stringify(u)); } catch (e) {} }
+  var PAINT_NAMES = { copper: 'Copper (stock)', gunmetal: 'Gunmetal', verdigris: 'Verdigris', gold: 'Gold leaf', crimson: 'Crimson' };
+  var SHOPS = [
+    { id: 'ship', name: 'CHITIN & THRUST', sub: 'Shipwright', z: -8.5, col: '#7fffb0', caste: 'orange_commander', line: 'Your hull sings of copper, Captain. Shall we make it sing louder?' },
+    { id: 'pets', name: 'PURR & PLENTY', sub: 'Companion goods', z: -5.5, col: '#ff9ad0', caste: 'purple_female', line: 'Small furred ones on your ship? The hive approves. Treats?' },
+    { id: 'curio', name: 'ODDS & ENDS', sub: 'Curios & trophies', z: -2.5, col: '#ffd27a', caste: 'blue_civilian_male', line: 'Every object here has outlived three owners. Perhaps you will be the fourth.' }
+  ];
+  function shopItems(id) {
+    var u = upg(), L = window.WF_LIFE;
+    if (id === 'ship') {
+      var out = [], e = u.engine || 0, sh = u.shield || 0, g = u.gun || 0, owned = u.paints || ['copper'];
+      if (e < 3) out.push({ name: 'Engine tuning Mk ' + ['I', 'II', 'III'][e], note: '+12% flight speed (now +' + (e * 12) + '%)', price: [400, 900, 1800][e], buy: function () { u.engine = e + 1; setUpg(u); } });
+      else out.push({ name: 'Engines', note: 'Fully tuned (+36%)', done: true });
+      if (sh < 2) out.push({ name: 'Shield lattice Mk ' + ['I', 'II'][sh], note: '+1 hull bar in combat (now ' + (3 + sh) + ')', price: [600, 1400][sh], buy: function () { u.shield = sh + 1; setUpg(u); } });
+      else out.push({ name: 'Shields', note: 'Maxed (5 hull bars)', done: true });
+      if (g < 2) out.push({ name: 'Cannon capacitors Mk ' + ['I', 'II'][g], note: 'Fire 20% faster', price: [500, 1200][g], buy: function () { u.gun = g + 1; setUpg(u); } });
+      else out.push({ name: 'Cannons', note: 'Maxed', done: true });
+      Object.keys(PAINT_NAMES).forEach(function (k) {
+        var have = owned.indexOf(k) >= 0, cur = (u.paint || 'copper') === k;
+        out.push({ name: 'Hull paint: ' + PAINT_NAMES[k], note: cur ? 'On the hull now' : have ? 'Owned — tap to repaint (free)' : 'Repaints the Wayfarer (Flight Mode + Ship View)', price: have ? 0 : 300, done: cur,
+          buy: function () { if (!have) owned.push(k); u.paints = owned; u.paint = k; setUpg(u); } });
+      });
+      return out;
+    }
+    if (id === 'pets') return [
+      { name: 'Cat treats ×5', note: 'You have ' + (L ? L.count('treat') : 0), price: 40, buy: function () { L.give('treat', 5); } },
+      { name: 'K’Vetar catnip ×3', note: 'A cat goes wild for it: +12% trust (you have ' + (L ? L.count('catnip') : 0) + ')', price: 90, buy: function () { L.give('catnip', 3); } }
+    ];
+    return [
+      ['idol', 'Resin idol of the Hive Mother', 250], ['chart', 'Hand-inked star chart', 180], ['geode', 'Singing crystal geode', 320], ['tooth', 'Bioship tooth', 500], ['model', 'Brass model of the Wayfarer', 650]
+    ].map(function (q) { var have = L && L.count(q[0]); return { name: q[1], note: have ? 'In your cargo — it will go on your trophy shelf' : 'A trophy for the Captain’s quarters', price: have ? 0 : q[2], done: !!have, buy: function () { L.give(q[0], 1); } }; });
+  }
+  function openShop(S) {
+    var L = window.WF_LIFE; if (!L) return;
+    document.getElementById('shop-name').textContent = S.name; document.getElementById('shop-line').textContent = '“' + S.line + '”';
+    alienSay(-46, S.z, 'query', true); renderShop(S); openP('shop'); L.event('shop');
+  }
+  function renderShop(S) {
+    var L = window.WF_LIFE, list = document.getElementById('shop-list'); list.innerHTML = '';
+    document.getElementById('shop-wallet').innerHTML = '<b>' + L.credits() + ' cr</b>';
+    shopItems(S.id).forEach(function (it) {
+      var b = document.createElement('button'); if (it.done) b.className = 'done';
+      b.innerHTML = it.name + '<small>' + it.note + (it.done ? '' : ' · ' + (it.price ? it.price + ' cr' : 'free')) + '</small>';
+      if (!it.done) b.onclick = function () { if (it.price && !L.spend(it.price, it.name)) { alienSay(-46, S.z, 'growl', true); return; } it.buy(); alienSay(-46, S.z, 'click', true); sfx('glass_clink', 0.4); L.event('buy'); renderShop(S); };
+      list.appendChild(b);
+    });
+  }
+  document.getElementById('shop-close').addEventListener('click', function () { closeP('shop'); });
+  function buildShops(base, kit) {
+    var chit = new THREE.MeshStandardMaterial({ color: 0x1d3a2a, roughness: 0.45, metalness: 0.4 }), brass = new THREE.MeshStandardMaterial({ color: 0xc09048, roughness: 0.3, metalness: 0.9 });
+    SHOPS.forEach(function (S) {
+      var g = new THREE.Group(); g.position.set(-45.9, 0, S.z); g.rotation.y = Math.PI / 2; g.userData.noCollide = true; sc.object3D.add(g);   // faces +x
+      var top = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.7), brass); top.position.y = 1.05; g.add(top);
+      var body = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.0, 0.6), chit); body.position.y = 0.5; g.add(body);
+      var c = document.createElement('canvas'); c.width = 512; c.height = 160; var x = c.getContext('2d'); x.fillStyle = 'rgba(0,0,0,0)'; x.fillRect(0, 0, 512, 160);
+      x.fillStyle = S.col; x.shadowColor = S.col; x.shadowBlur = 16; x.font = '800 54px -apple-system, Helvetica, sans-serif'; x.textAlign = 'center'; x.fillText(S.name, 256, 78); x.shadowBlur = 0; x.font = '600 30px -apple-system, Helvetica, sans-serif'; x.fillStyle = '#fff'; x.fillText(S.sub, 256, 124);
+      var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+      var sign = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.75), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })); sign.position.set(0, 2.95, -0.2); g.add(sign);
+      var gl = new THREE.PointLight(new THREE.Color(S.col), 1.2, 6, 2); gl.position.set(0, 2.2, 0.6); g.add(gl);
+      // the trader, behind the counter (x −47), with its caste's colours
+      var vi = kit.names.findIndex(function (n) { return n.indexOf(S.caste) >= 0; }); var v = makeActor(base, kit, vi < 0 ? 0 : vi);
+      v.model.position.set(-47.1, 0, S.z); v.model.rotation.y = Math.PI / 2; play(v, 'Idle'); SHOPKEEPERS.push(v);
+      var hit = document.createElement('a-entity'); hit.setAttribute('class', 'clickable'); hit.setObject3D('mesh', invisibleBox(2.4, 3.2, 1.8)); hit.object3D.position.set(-46.4, 1.6, S.z); sc.appendChild(hit);
+      hit.addEventListener('click', function () { var p = sc.camera.el.object3D.position; if (Math.hypot(p.x + 46, p.z - S.z) > 6) { toast('Walk up to ' + S.name.toLowerCase() + ' in the Trade Lounge (west side)'); return; } openShop(S); });
+    });
+    window.WAYFARER.extraSolids = (window.WAYFARER.extraSolids || []).concat(SHOPS.map(function (S) { return [-46.3, S.z - 1.15, -45.5, S.z + 1.15]; }));
+    var mob = sc.components['wayfarer-mobile']; if (mob && mob.scanSolids) mob.scanSolids();
+  }
+  var SHOPKEEPERS = [];
 
   // ── airlock home + job board, at the entrance (+Z) ──
   function buildAirlockAndBoard() {
@@ -316,7 +399,7 @@
         AUD.hiveport_club_loop.volume = 0.3 + 0.22 * (1 - k);   /* always playing; a little louder by the stage */
       }
       if (HOLO) { HOLO.mx.update(dt); HOLO.s.position.y = LAYOUT.hologram[1] + 0.055 * Math.sin(s * 2); }
-      if (BAR) BAR.mixer.update(dt);
+      if (BAR) BAR.mixer.update(dt); SHOPKEEPERS.forEach(function (v) { v.mixer.update(dt); });
       if (!CROWD) return; CROWD.update(dt, P2);
       if (s > (this._voice || 2) && NPCS.length) {                 // the crowd talks: someone nearby clicks, hums or chitters every few seconds
         this._voice = s + 1.8 + Math.random() * 4; var vn = NPCS[Math.floor(Math.random() * NPCS.length)];

@@ -38,17 +38,22 @@
     '  return vec4(seam, rivet, h21(c), h21(c + 7.0)); }',
   ].join('\n');
 
+  // HULL PAINT (user, Nov 26 — ship upgrades): bought at the Hiveport shipwright, stored in localStorage 'wf-upgrades'.paint
+  var PAINTS = { copper: [0.2, 0.07, 0.028, 0.34, 0.13, 0.05], gunmetal: [0.05, 0.055, 0.065, 0.13, 0.14, 0.16], verdigris: [0.035, 0.11, 0.085, 0.09, 0.24, 0.18],
+                 gold: [0.32, 0.2, 0.035, 0.6, 0.4, 0.08], crimson: [0.17, 0.02, 0.02, 0.33, 0.045, 0.04] };
+  function paintName() { try { return (JSON.parse(localStorage.getItem('wf-upgrades') || '{}').paint) || 'copper'; } catch (e) { return 'copper'; } }
   function skinMaterial(THREE) {
     var m = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.55, roughness: 0.5 });
     m.onBeforeCompile = function (sh) {
       sh.vertexShader = VERT_DECL + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vOP = position; vON = normal;');
-      sh.fragmentShader = FRAG + '\n' + sh.fragmentShader
+      var P = PAINTS[paintName()] || PAINTS.copper; sh.uniforms.uPaintA = { value: new THREE.Vector3(P[0], P[1], P[2]) }; sh.uniforms.uPaintB = { value: new THREE.Vector3(P[3], P[4], P[5]) };
+      sh.fragmentShader = 'uniform vec3 uPaintA; uniform vec3 uPaintB;\n' + FRAG + '\n' + sh.fragmentShader
         .replace('#include <map_fragment>', [
           'vec3 P = vOP, An = abs(normalize(vON)); An = pow(An, vec3(4.0)); An /= (An.x + An.y + An.z);',
           'vec4 pt = plates(P.zx) * An.y + plates(P.zy * vec2(1.0, 2.0)) * An.x + plates(P.xy * vec2(2.0, 2.0)) * An.z;',
           'float seam = clamp(pt.x, 0.0, 1.0), rivet = clamp(pt.y, 0.0, 1.0), tone = pt.z;',
           'float grime = vnoise(P.zx * 14.0 + P.y * 9.0) * 0.6 + vnoise(P.zx * 47.0) * 0.4, verd = smoothstep(0.62, 0.8, vnoise(P.zx * 9.0 + 31.0));',
-          'vec3 cu = mix(vec3(0.2, 0.07, 0.028), vec3(0.34, 0.13, 0.05), tone);',              // copper (linear)
+          'vec3 cu = mix(uPaintA, uPaintB, tone);',              // hull paint (linear): copper unless bought at the Hiveport shipwright
           'cu = mix(cu, vec3(0.20, 0.32, 0.26), verd * 0.35); cu *= 0.75 + 0.35 * grime;',
           'cu = mix(cu, vec3(0.05, 0.025, 0.012), seam * 0.85); cu = mix(cu, vec3(0.55, 0.3, 0.14), rivet * 0.6);',
           // the Library dome

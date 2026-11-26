@@ -22,10 +22,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="shipskin.js?v=20261126m"></script>
-  <script src="missions.js?v=20261126m"></script>
-  <script src="sound.js?v=20261126m"></script>
-  <script src="life.js?v=20261126m"></script>
+  <script src="shipskin.js?v=20261126n"></script>
+  <script src="missions.js?v=20261126n"></script>
+  <script src="sound.js?v=20261126n"></script>
+  <script src="life.js?v=20261126n"></script>
   <script>if (/[?&]from=(bridge|station)/.test(location.search)) document.documentElement.className += ' from-bridge';</script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -854,7 +854,9 @@ const enemies    = [];
 const bullets    = [];
 const explosions = [];
 
-const SHIP_SPEED   = 18;
+// SHIP UPGRADES (user, Nov 26) bought at the Hiveport shipwright: localStorage 'wf-upgrades' {engine 0-3, shield 0-2, gun 0-2, paint}
+const UPG = (() => { try { return JSON.parse(localStorage.getItem('wf-upgrades') || '{}'); } catch (e) { return {}; } })();
+const SHIP_SPEED   = 18 * (1 + 0.12 * (UPG.engine || 0));
 const TURN_SPD     = 1.45;
 const BULLET_SPD   = 85;
 const ENEMY_SPD    = 8;
@@ -943,8 +945,7 @@ addEventListener('pointerdown', e => { if (state !== 'playing' || (e.target.clos
 // ----------------------------------------------------------------
 function hud_score()  { document.getElementById('score').textContent = score; }
 function hud_lives() {
-  const bars = ['',' ■','■ ■','■ ■ ■'];
-  document.getElementById('lives').textContent = bars[Math.max(0, Math.min(3, lives))];
+  document.getElementById('lives').textContent = Array(Math.max(0, lives)).fill('■').join(' ');   /* shield upgrades add bars */
 }
 
 function announce(text) {
@@ -973,7 +974,7 @@ function startGame() {
   if (window.WF_SOUND) { WF_SOUND.engine(true); WF_SOUND.music(mode); }
   document.getElementById('title-screen').style.display = 'none';
   state = 'playing';
-  score = 0; lives = 3; wave = 1; waveClearing = false;
+  score = 0; lives = 3 + (UPG.shield || 0); wave = 1; waveClearing = false;
   shipPos.set(0, 0, 0);
   shipYaw = 0; shipPitch = 0; shipRoll = 0;
   invincible = 0; shootCD = 0;
@@ -1018,7 +1019,7 @@ BOLT.core.rotateX(Math.PI / 2); BOLT.glow.rotateX(Math.PI / 2);
 let gunSide = 1;
 function tryShoot(target, aimDir) {
   if (shootCD > 0 || state !== 'playing' || mode === 'explore') return;
-  shootCD = SHOOT_DELAY; if (window.WF_SOUND) WF_SOUND.laser();
+  shootCD = SHOOT_DELAY * Math.pow(0.8, UPG.gun || 0); if (window.WF_SOUND) WF_SOUND.laser();
   const dir = new THREE.Vector3(0, 0, -1)
     .applyEuler(new THREE.Euler(shipPitch, shipYaw, 0, 'YXZ'));
   const mesh = new THREE.Group(), len = 11;

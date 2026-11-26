@@ -369,6 +369,7 @@
         ['pointerdown', 'touchstart', 'mousedown'].forEach(function (e) { box.addEventListener(e, function (ev) { ev.stopPropagation(); }, { passive: true }); }); }
       var tr = n.memory.trust, hearts = '♥♥♥♥♥'.slice(0, Math.max(1, Math.round(tr * 5))) + '<span style="opacity:.3">' + '♥♥♥♥♥'.slice(Math.max(1, Math.round(tr * 5))) + '</span>';
       var treats = L ? L.count('treat') : 0, opts = [['pet', '✋ Pet'], ['treat', '🐟 Treat ×' + treats], ['laser', '🔴 Laser'], ['wand', '🪶 Wand']];
+      if (L && L.count('catnip')) opts.push(['catnip', '🌿 Catnip ×' + L.count('catnip')]);
       if (tr >= 0.7) opts.push(['trick', '✨ Trick']);
       box.innerHTML = '<h3>' + n.name + ' <small>' + n.personality + '</small><span>' + hearts + '</span></h3><div></div>';
       var row = box.querySelector('div');
@@ -379,6 +380,12 @@
     catDo: function (n, what) {
       var L = window.WF_LIFE, d = this.pdist(n), self = this;
       if (this.toy) this.stopToy();
+      if (what === 'catnip') {
+        if (d > 2.3) { toast('Walk closer to ' + n.name); return; }
+        if (!(L && L.take('catnip'))) return; n.memory.trust = Math.min(1, n.memory.trust + 0.12);
+        n.route = []; n.goal = null; this.eng.release(n); n.state = 'TOY'; this.toy = { n: n, kind: 'trick', t: 0, dur: 4 }; this.animate(n, 'Run_InPlace', { loop: true, fade: 0.15 });
+        this.sound(n, 'yowl'); setTimeout(function () { self.sound(n, 'chatter'); }, 1400); toast(n.name + ' rolls in the catnip and zooms in circles! · trust ' + Math.round(n.memory.trust * 100) + '%'); if (L) L.event('catnip'); return;
+      }
       if (what === 'pet' || what === 'treat' || what === 'trick') {
         if (d > 2.3) { toast('Walk closer to ' + n.name); return; }
         if (what === 'treat' && !(L && L.take('treat'))) { toast('No treats left — new ration tomorrow (and soon at the Hiveport shops)'); return; }

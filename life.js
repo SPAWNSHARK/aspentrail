@@ -19,7 +19,13 @@
   var ITEMS = {
     treat:   { name: 'Cat treats', icon: '🐟', note: 'Tap a cat with treats in your cargo to feed it (Lounge cat play).' },
     laser:   { name: 'Laser pointer', icon: '🔴', note: 'Cats chase the dot. Lounge cat play.' },
-    wand:    { name: 'Feather wand', icon: '🪶', note: 'Cats pounce on it. Lounge cat play.' }
+    wand:    { name: 'Feather wand', icon: '🪶', note: 'Cats pounce on it. Lounge cat play.' },
+    catnip:  { name: 'K’Vetar catnip', icon: '🌿', note: 'A cat goes wild: +12% trust. From Purr & Plenty at the Hiveport.' },
+    idol:    { name: 'Resin idol of the Hive Mother', icon: '🗿', note: 'Trophy · Odds & Ends, Hiveport' },
+    chart:   { name: 'Hand-inked star chart', icon: '🗺️', note: 'Trophy · Odds & Ends, Hiveport' },
+    geode:   { name: 'Singing crystal geode', icon: '💎', note: 'Trophy · Odds & Ends, Hiveport' },
+    tooth:   { name: 'Bioship tooth', icon: '🦷', note: 'Trophy · Odds & Ends, Hiveport' },
+    model:   { name: 'Brass model of the Wayfarer', icon: '🚀', note: 'Trophy · Odds & Ends, Hiveport' }
   };
   function credits() { return load('wf-credits', 0); }
   function add(n, why) { var c = credits() + n; save('wf-credits', c); if (why) toast('+' + n + ' cr · ' + why); refresh(); return c; }
@@ -45,7 +51,8 @@
     { id: 'fix1', text: 'Fix a ship fault Forge reports', ev: 'fix', n: 1 },
     { id: 'order1', text: 'Give your crew an order from the Bridge', ev: 'order', n: 1 },
     { id: 'holo1', text: 'Play a Holodeck game', ev: 'holo', n: 1 },
-    { id: 'holowin', text: 'Win a Holodeck game', ev: 'win:', n: 1 }
+    { id: 'holowin', text: 'Win a Holodeck game', ev: 'win:', n: 1 },
+    { id: 'buy', text: 'Buy something at a Hiveport shop', ev: 'buy', n: 1 }
   ];
   var REG = {};                                   // later features register more goals (WF_LIFE.addGoals)
   function pool() { return POOL.filter(function (g) { return !g.need || REG[g.need]; }); }
@@ -137,6 +144,9 @@
     Object.keys(v).forEach(function (k) { if (!v[k]) return; any = true; var it = ITEMS[k] || { name: k, icon: '▪', note: '' };
       box.appendChild(el('div', 'item', '<em>' + it.icon + '</em><div><b>' + it.name + '</b><small>' + it.note + '</small></div><b>×' + v[k] + '</b>')); });
     if (!any) box.appendChild(el('p', 'sub', 'Your cargo hold is empty.'));
+    var u = load('wf-upgrades', {}); var up = [];
+    if (u.engine) up.push('Engines Mk ' + u.engine); if (u.shield) up.push('Shields Mk ' + u.shield); if (u.gun) up.push('Cannons Mk ' + u.gun); if (u.paint && u.paint !== 'copper') up.push(u.paint + ' paint');
+    box.appendChild(el('p', 'sub', up.length ? '🛠 Ship: ' + up.join(' · ') : '🛠 Ship upgrades: buy them at Chitin & Thrust in the Hiveport'));
   }
 
   // ── DECK MAP: the ship from above (bow up), live crew dots, tap a room to go there ──
