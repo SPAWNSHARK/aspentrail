@@ -20,13 +20,13 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261125v"></script>
+  <script src="textures.js?v=20261126a"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="mobile.js?v=20261125v"></script>
-  <script src="sound.js?v=20261125v"></script>
-  <script src="avatar.js?v=20261125v"></script>
-  <script src="door.js?v=20261125v"></script>
-  <script src="hyperspace.js?v=20261125v"></script>
+  <script src="mobile.js?v=20261126a"></script>
+  <script src="sound.js?v=20261126a"></script>
+  <script src="avatar.js?v=20261126a"></script>
+  <script src="door.js?v=20261126a"></script>
+  <script src="hyperspace.js?v=20261126a"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #000; }
@@ -580,20 +580,14 @@
       fm.map.repeat.set(5, 25); fm.map.anisotropy = aniso;
       var fl = new THREE.Mesh(new THREE.PlaneGeometry(5, 25), fm); fl.rotation.x = -Math.PI / 2; root.add(fl); state.floorMat = fm;
       var add = function (tex, col, op) { return new THREE.MeshBasicMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); };
-      // a long woven runner down the middle instead of a dashed "road" line (user, Nov 24: "why is the hallway a road")
-      var rc = cv(256, 512), rx = rc.getContext('2d'), rr2 = rng(41);
-      rx.fillStyle = '#2a0f0c'; rx.fillRect(0, 0, 256, 512);
-      for (var k = 0; k < 6000; k++) { rx.fillStyle = 'rgba(' + (rr2() < 0.5 ? '0,0,0' : '200,120,90') + ',' + (0.05 + rr2() * 0.06) + ')'; rx.fillRect(rr2() * 256, rr2() * 512, 1, 2 + rr2() * 3); }   // wool
-      rx.strokeStyle = '#b8823e'; rx.lineWidth = 10; rx.strokeRect(18, -10, 220, 540); rx.strokeStyle = '#1c0a08'; rx.lineWidth = 4; rx.strokeRect(34, -10, 188, 540);
-      rx.fillStyle = '#b8823e'; for (var y = 0; y < 512; y += 32) { rx.beginPath(); rx.moveTo(26, y + 4); rx.lineTo(32, y + 16); rx.lineTo(26, y + 28); rx.lineTo(20, y + 16); rx.fill(); rx.beginPath(); rx.moveTo(230, y + 4); rx.lineTo(236, y + 16); rx.lineTo(230, y + 28); rx.lineTo(224, y + 16); rx.fill(); }
-      rx.strokeStyle = 'rgba(190,130,62,0.6)'; rx.lineWidth = 2; rx.beginPath(); rx.moveTo(128, 150); rx.lineTo(166, 256); rx.lineTo(128, 362); rx.lineTo(90, 256); rx.closePath(); rx.stroke();      // a medallion per repeat
-      rx.beginPath(); rx.moveTo(128, 196); rx.lineTo(148, 256); rx.lineTo(128, 316); rx.lineTo(108, 256); rx.closePath(); rx.fillStyle = 'rgba(70,24,18,0.9)'; rx.fill(); rx.stroke();
-      rx.fillStyle = '#b8823e'; rx.beginPath(); rx.arc(128, 256, 5, 0, 7); rx.fill();
-      var rt = mkTex(rc); rt.repeat.set(1, 9); rt.anisotropy = aniso;
-      var runner = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 24.2, 1, 24), new THREE.MeshStandardMaterial({ map: rt, roughness: 0.95, metalness: 0, color: 0xb8a8a0 }));
+      // STAINED-GLASS RUNNER (user, Nov 25 — replaces the woven runner; reference: an ammonite-spiral stained-glass rug):
+      // images/runner.jpg (1024×4096, tiles along its length) — a warm amber/red ammonite set in cool blue/teal/violet glass
+      // shards with dark leading. 3 m wide (most of the 5 m deck), repeats twice down the hall; brass rods on both edges.
+      var rt = new THREE.TextureLoader().load('images/runner.jpg?v=1'); rt.colorSpace = THREE.SRGBColorSpace; rt.wrapT = THREE.RepeatWrapping; rt.repeat.set(1, 2); rt.anisotropy = aniso;
+      var runner = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 24.2, 1, 24), new THREE.MeshStandardMaterial({ map: rt, roughness: 0.55, metalness: 0.1, emissive: 0xffffff, emissiveMap: rt, emissiveIntensity: 0.12 }));
       runner.rotation.x = -Math.PI / 2; runner.position.y = 0.006; root.add(runner);
       var rodM = new THREE.MeshStandardMaterial({ color: 0xc08a48, roughness: 0.3, metalness: 0.9 });
-      [-0.78, 0.78].forEach(function (xx) { var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 24.2, 8), rodM); rod.rotation.x = Math.PI / 2; rod.position.set(xx, 0.018, 0); root.add(rod); });
+      [-1.53, 1.53].forEach(function (xx) { var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 24.2, 8), rodM); rod.rotation.x = Math.PI / 2; rod.position.set(xx, 0.02, 0); root.add(rod); });
       var edge = rampTexture(false);
       [-1, 1].forEach(function (s) { var m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 25), add(edge, 0xff9a40, 0.32)); m.rotation.x = -Math.PI / 2; m.rotation.z = s > 0 ? Math.PI : 0; m.position.set(s * (2.5 - 0.4), 0.003, 0); root.add(m); });
     }
