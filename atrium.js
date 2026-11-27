@@ -16,13 +16,11 @@
   // id = existing room page (PORTALS in door.js) or a new room (locked until its page exists)
   var DOORS = [
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
-    { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
     { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
     { id: 'media',    name: 'MEDIA NEXUS',       x: 4.6,  z: 9,    rot: -90,  y: 0,   tint: 0x4f8cff },
     { id: 'firefly',  name: 'FIREFLY HANGAR',    x: 0,    z: -24,  rot: 0,    y: LOW, tint: 0x6fd0ff},
-    { id: 'engine',   name: 'ENGINE ROOM',       x: 0,    z: 26.6, rot: 180,  y: LOW, tint: 0x3fe0c8},
     { id: 'medbay',   name: 'MEDBAY',            x: -4.6, z: -14,  rot: 90,   y: LOW, tint: 0x7fffd0},
     { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
     { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
@@ -177,7 +175,7 @@
 
   // upper core (the Library's outer wall, r 10.2): solid except the front gap and a doorway at each staircase top (θ ±1.38 rad)
   function buildUpperCore(root, cm, H) {
-    var R = 10.2, hw = 1.05 / R, gaps = [-1.38, 1.38], cur = -Math.PI + 0.11, parts = [];
+    var R = 10.2, hw = 1.05 / R, gaps = [-2.02, 2.02], cur = -Math.PI + 0.11, parts = [];
     gaps.forEach(function (c) { parts.push([cur, c - hw]); cur = c + hw; }); parts.push([cur, Math.PI - 0.11]);
     function seg(a, b, y0, y1) { var g = new THREE.CylinderGeometry(R, R, y1 - y0, Math.max(4, Math.ceil((b - a) / 0.05)), Math.max(1, Math.round((y1 - y0) / 1.2)), true, a, b - a), m = new THREE.Mesh(g, cm); m.position.set(0, (y0 + y1) / 2, 36); root.add(m); }
     parts.forEach(function (q) { seg(q[0], q[1], 0, H); });
@@ -237,12 +235,65 @@
       [w[0], w[1]].forEach(function (t) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, wh, 0.14), M.bronze); p.position.set((R + 0.03) * Math.sin(t), wy0 + wh / 2, 36 + (R + 0.03) * Math.cos(t)); p.rotation.y = t; root.add(p); });
     });
   }
-  // the electrogel tank + brain behind those windows (the same two components the Library uses), centred on the core
-  function buildBrainTank(sc, root) {
-    if (!AFRAME.components['gel-tank'] || !AFRAME.components['brain-mesh']) return;
-    var gt = document.createElement('a-entity'); gt.setAttribute('gel-tank', ''); gt.setAttribute('position', '0 0 36'); sc.appendChild(gt);
-    var br = document.createElement('a-entity'); br.id = 'brain'; br.setAttribute('position', '0 -7.3 36'); br.setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' }); sc.appendChild(br);
-    [[0, -3.0, 1.5, 0x7dffd0, 3.2, 13], [-5, -8, 3, 0x00cc88, 2.6, 11], [3, -8.5, -7.5, 0x3fd0ff, 3.2, 12]].forEach(function (q) { var l = new THREE.PointLight(q[3], q[4], q[5], 2); l.position.set(q[0], q[1], 36 + q[2]); root.add(l); });
+  // ── Nov 27: ONE VERTICAL CORE (user: brain over reactor, one structure) ──
+  // upper: green-hydrogel chamber (glass, r CR) holding the brain, y CB…CT; lower: plasma-column reactor rising from a pit through the engineering
+  // gallery to the chamber base; conduits + buttresses tie them together. Gallery ring (walkable, r GI…9.6) at the lower deck.
+  var CR = 5.0, CB = -4.6, CT = 2.9, GI = 5.55, PIT = -11.5, CZ = 36, plasma = null;
+  function buildCore(sc, root) {
+    var g = new THREE.Group(); g.position.set(0, 0, CZ); root.add(g);
+    function cyl(r0, r1, y0, y1, mat, open, seg) { var m = new THREE.Mesh(new THREE.CylinderGeometry(r0, r1, y1 - y0, seg || (MOB ? 40 : 72), 1, !!open), mat); m.position.y = (y0 + y1) / 2; g.add(m); return m; }
+    function ring(r, y, t, mat) { var m = new THREE.Mesh(new THREE.TorusGeometry(r, t, 8, MOB ? 48 : 96), mat); m.rotation.x = Math.PI / 2; m.position.y = y; g.add(m); return m; }
+    var gm = M.glass.clone(); gm.color.set(0x7dffb8); gm.opacity = 0.16; gm.side = THREE.DoubleSide; gm.depthWrite = false;
+    cyl(CR, CR, CB, CT, gm, true);                                                                                         // chamber glass
+    var gel = new THREE.MeshBasicMaterial({ color: 0x0c9a4c, transparent: true, opacity: 0.42, side: THREE.BackSide, depthWrite: false, fog: false });
+    cyl(CR - 0.06, CR - 0.06, CB, CT, gel, true);                                                                          // hydrogel glow
+    var cap = new THREE.Mesh(new THREE.CircleGeometry(CR, 64), gm); cap.rotation.x = -Math.PI / 2; cap.position.y = CT; g.add(cap);
+    var plate = new THREE.Mesh(new THREE.CircleGeometry(CR + 0.35, 64), M.steel); plate.rotation.x = Math.PI / 2; plate.position.y = CB - 0.02; g.add(plate);   // chamber floor (faces down = underside seen from the gallery)
+    var plate2 = new THREE.Mesh(new THREE.CircleGeometry(CR, 64), new THREE.MeshStandardMaterial({ color: 0x0c1a16, roughness: 0.5, metalness: 0.7, emissive: 0x0a3a2a, emissiveIntensity: 0.6 })); plate2.rotation.x = -Math.PI / 2; plate2.position.y = CB + 0.02; g.add(plate2);
+    [CB, CB + 1.6, 0, CT - 0.05].forEach(function (y, i) { ring(CR + 0.05, y, i === 1 ? 0.07 : 0.16, i === 1 ? M.teal : M.bronze); });
+    // reactor: dark housing in the pit, glass plasma column from pit floor to the chamber base
+    var pitM = M.steel.clone(); pitM.side = THREE.DoubleSide; pitM.color.set(0x2a2e32);
+    cyl(GI - 0.05, GI - 0.05, PIT, LOW, pitM, true);                                                                       // pit wall
+    var pf = new THREE.Mesh(new THREE.CircleGeometry(GI, 64), M.steel); pf.rotation.x = -Math.PI / 2; pf.position.y = PIT; g.add(pf);
+    var RC = 1.35, cg = gm.clone(); cg.opacity = 0.2; cyl(RC, RC, PIT, CB, cg, true, 40);
+    plasma = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+      vertexShader: 'varying vec3 p; void main(){ p = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
+      fragmentShader: 'uniform float t; varying vec3 p; void main(){ float a = atan(p.z,p.x); float f = .5+.5*sin(p.y*3.2 - t*2.4 + sin(a*3.+t)*1.5); float g = .5+.5*sin(a*6.+p.y*1.7+t*1.3); float c = f*.6+g*.4; vec3 col = mix(vec3(.05,.45,.9), vec3(.55,1.,.95), c*c); gl_FragColor = vec4(col, .35+.5*c); }' });
+    cyl(RC * 0.62, RC * 0.62, PIT, CB, plasma, true, 28);                                                                    // plasma spine
+    var spine = cyl(0.3, 0.3, CB, CB + 3.1, new THREE.MeshBasicMaterial({ color: 0x9cffe0, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }), true, 16);   // reactor → brain stem
+    [PIT + 0.5, -9.5, -7.8, -6.2, CB - 0.35].forEach(function (y) { ring(RC + 0.08, y, 0.12, M.bronze); });
+    ring(RC + 0.1, PIT + 1.4, 0.05, M.teal);
+    // conduits: 8 pipes up the outside of the chamber from the pit to the chamber top, bracketed by the three rings
+    var pipe = new THREE.MeshStandardMaterial({ color: 0x3b4146, roughness: 0.4, metalness: 0.85 }), i;
+    for (i = 0; i < 8; i++) {
+      var an = i / 8 * Math.PI * 2 + 0.2, c = Math.cos(an), s2 = Math.sin(an);
+      var curve = new THREE.CatmullRomCurve3([new THREE.Vector3(c * (RC + 0.2), PIT + 1.6, s2 * (RC + 0.2)), new THREE.Vector3(c * 3.2, -9.0, s2 * 3.2), new THREE.Vector3(c * (CR + 0.45), -6.0, s2 * (CR + 0.45)), new THREE.Vector3(c * (CR + 0.45), CB + 0.6, s2 * (CR + 0.45)), new THREE.Vector3(c * (CR + 0.45), CT - 0.3, s2 * (CR + 0.45))]);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.13, 8, false), pipe));
+    }
+    // structural buttresses: 4 struts from the gallery rail line up to the chamber base ring
+    for (i = 0; i < 4; i++) {
+      var ab = i / 4 * Math.PI * 2 + Math.PI / 4, p0 = new THREE.Vector3(Math.cos(ab) * (GI + 0.1), LOW, Math.sin(ab) * (GI + 0.1)), p1 = new THREE.Vector3(Math.cos(ab) * (CR + 0.1), CB, Math.sin(ab) * (CR + 0.1));
+      var mid = p0.clone().add(p1).multiplyScalar(0.5), len = p0.distanceTo(p1), st = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.22, len, 10), M.bronze);
+      st.position.copy(mid); st.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p1.clone().sub(p0).normalize()); g.add(st);
+    }
+    // engineering gallery: walkable ring + inner rail + underside of the mezzanine above
+    var gal = new THREE.Mesh(new THREE.RingGeometry(GI, 9.6, MOB ? 72 : 128, 6), (function () { var m = M.floor.clone(); m.side = THREE.DoubleSide; return m; })());
+    gal.rotation.x = -Math.PI / 2; gal.position.set(0, LOW + 0.01, CZ); gal.name = 'Floor_gallery'; root.add(gal); walk.push(gal);
+    ring(GI + 0.08, LOW + 1.05, 0.04, M.bronze); ring(GI + 0.08, LOW + 0.55, 0.025, M.teal);
+    for (i = 0; i < 36; i++) { var ap = i / 36 * Math.PI * 2, po = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.05, 6), M.steel); po.position.set(Math.cos(ap) * (GI + 0.08), LOW + 0.52, Math.sin(ap) * (GI + 0.08)); g.add(po); }
+    var ce = new THREE.Mesh(new THREE.RingGeometry(CR + 0.35, 9.6, 96, 2), (function () { var m = M.steel.clone(); m.side = THREE.DoubleSide; m.color.set(0x30343a); return m; })()); ce.rotation.x = -Math.PI / 2; ce.position.set(0, -0.23, CZ); root.add(ce);
+    // upper mezzanine = the Library ring: walkable annulus round the chamber (Library door is gone: the hall opens straight onto it), inner rail, ceiling + cove
+    var mz = new THREE.Mesh(new THREE.RingGeometry(CR + 0.8, 10.45, MOB ? 72 : 128, 6), (function () { var m = M.floor.clone(); m.side = THREE.DoubleSide; m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; return m; })());
+    mz.rotation.x = -Math.PI / 2; mz.position.set(0, 0.02, CZ); mz.name = 'Floor_mezz'; root.add(mz); walk.push(mz);
+    var MR = CR + 0.85; ring(MR, 1.05, 0.04, M.bronze); ring(MR, 0.55, 0.025, M.teal);
+    for (i = 0; i < 36; i++) { var aq = i / 36 * Math.PI * 2, pq = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.05, 6), M.steel); pq.position.set(Math.cos(aq) * MR, 0.52, Math.sin(aq) * MR); g.add(pq); }
+    var mc = M.steel.clone(); mc.side = THREE.DoubleSide; mc.color.set(0x30343a); mc.polygonOffset = true; mc.polygonOffsetFactor = 2; mc.polygonOffsetUnits = 2;
+    var mcm = new THREE.Mesh(new THREE.CircleGeometry(10.2, MOB ? 72 : 128), mc); mcm.rotation.x = Math.PI / 2; mcm.position.set(0, 3.24, CZ); root.add(mcm);
+    ring(8.6, 3.1, 0.07, new THREE.MeshBasicMaterial({ color: 0xd8f0ff, fog: false })); ring(CR + 0.5, 3.1, 0.06, M.teal);
+    [[0, 8], [90, 8], [180, 8], [270, 8]].forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 4.5, 14, 1.6); l.position.set(Math.cos(a) * q[1], 2.5, CZ + Math.sin(a) * q[1]); root.add(l); });
+    // brain in the chamber (scaled to sit inside it), lights: green in the chamber, cool white on the gallery, blue on the reactor
+    if (AFRAME.components['brain-mesh']) { var br = document.createElement('a-entity'); br.id = 'brain'; br.setAttribute('position', '0 -0.4 ' + CZ); br.setAttribute('scale', '0.55 0.55 0.55'); br.setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' }); sc.appendChild(br); }
+    [[0, -0.4, 0, 0x2dff7a, 2.2, 9], [0, -3.4, 0, 0x2dffa0, 1.6, 8], [0, -8.2, 0, 0x3fb8ff, 5, 12], [0, LOW + 2.4, 7.2, 0xd8e8ff, 4, 12], [0, LOW + 2.4, -7.2, 0xd8e8ff, 4, 12], [7.2, LOW + 2.4, 0, 0xd8e8ff, 4, 12], [-7.2, LOW + 2.4, 0, 0xd8e8ff, 4, 12]].forEach(function (q) { var l = new THREE.PointLight(q[3], q[4], q[5], 1.6); l.position.set(q[0], q[1], CZ + q[2]); root.add(l); });
   }
   // movement limits the floor ray can't see: the shaft wall, the hall-mouth jambs and the lower partition (door open = passable)
   function wallBlocked(fy, x0, z0, x1, z1, lowDoor) {
@@ -345,7 +396,7 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat); buildBrainTank(sc, flat);
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat); buildCore(sc, flat);
       var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
       parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var m = merge(g.scene, walk); root.add(m); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
@@ -376,7 +427,7 @@
     },
     tick: function (t, dt) {
       var p = this.cam.object3D.position, s = Math.min(dt, 60) / 1000, wp = new THREE.Vector3();
-      if (this.hyper) this.hyper.update(t / 1000);
+      if (this.hyper) this.hyper.update(t / 1000); if (plasma) plasma.uniforms.t.value = t / 1000;
       if(!this.walkReady){if(this.loadingPosition)p.copy(this.loadingPosition);return;}
       if (this.walkReady && !window.WAYFARER.frozen) {
         if (!this.last) this.last = { x: p.x, z: p.z };
@@ -390,6 +441,8 @@
             var x=sx+dx*i/n, z=sz+dz*i/n, y=floorAt(x,z,this.floorY);
             var radius = this.floorY < -3 ? 9.4 : 10.2;
             var insideCore = Math.hypot(x,z-36) < radius && z > 25.5;
+            if (this.floorY >= -3) { var u0 = Math.hypot(this.last.x, this.last.z - 36), u1 = Math.hypot(x, z - 36), th = Math.atan2(x, z - 36); insideCore = (u0 - 10.2) * (u1 - 10.2) < 0 && !((Math.abs(x) < 0.95 && z < 36) || Math.abs(Math.abs(th) - 2.02) < 0.1); }   // upper deck: the Library wall is crossed only at the hall gap and the two stair doorways
+            if (this.floorY < -3) { var rr0 = Math.hypot(this.last.x, this.last.z - 36), rr1 = Math.hypot(x, z - 36); insideCore = (rr0 - 9.4) * (rr1 - 9.4) < 0 && !(Math.abs(x) < 0.95 && z < 36); }   // lower deck: the core is the open engineering gallery, entered only by the old Engine doorway
             if (y===null || insideCore || wallBlocked(this.floorY, this.last.x, this.last.z, x, z, doors.filter(function (q) { return q.d.id === 'lowerhall'; })[0])) break;
             this.floorY=y; this.last.x=x; this.last.z=z;
           }
