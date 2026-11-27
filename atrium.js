@@ -209,7 +209,7 @@
     scene.traverse(function (o) {
       if (!/^(Handrail|Rail_post)/.test(o.name)) return; new THREE.Box3().setFromObject(o).getCenter(v);
       var y = v.y + 0.65;   /* kit y → ship y (the whole kit is lowered 0.65) */
-      if (y > -1.4 && [9.195, -9.195].some(function (dx) { return Math.hypot(v.x - dx, v.z - 31.59) < 2.6; })) kill.push(o);
+      kill.push(o);   /* Nov 27: ALL kit rails go (stepped ribbon floating off its posts); buildStairTunnels draws smooth ones on the tread slope */
     });
     kill.forEach(function (o) { o.parent && o.parent.remove(o); }); console.log('atrium: door rails removed', kill.length);
   }
@@ -248,6 +248,19 @@
       (function () { var cw = new THREE.Mesh(new THREE.PlaneGeometry(ro - ri, HT + 0.3), wallM), cc = Math.cos(TE), sc2 = Math.sin(TE); cw.name = 'TunnelCap'; cw.userData.v8Skip = true;
         cw.position.set(sg * (ri + ro) / 2 * sc2, LY - 0.3 + (HT + 0.3) / 2, 36 + (ri + ro) / 2 * cc); cw.rotation.y = Math.atan2(-cc, sg * sc2) + Math.PI; root.add(cw);
         var ll = new THREE.PointLight(0xd8e8ff, 0.35, 6, 1.6); ll.position.set(sg * rm * Math.sin(2.12), LY + 2.2, 36 + rm * Math.cos(2.12)); root.add(ll); })();   // pale-blue light line along the top of each wall
+      // Nov 27 (user: handrail geometry detached/chunky): smooth gunmetal rail tube + posts on both sides of each flight, following the smoothed tread slope
+      (function () {
+        var rm2 = new THREE.MeshStandardMaterial({ color: 0x59626b, metalness: 0.85, roughness: 0.35 });
+        [rr[0], rr[1]].forEach(function (R) {
+          var cp = all.filter(function (q) { return !(R === rr[0] && q[0] >= 1.9 && q[0] <= 2.14); }).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); });
+          var seg = [cp]; if (R === rr[0]) { var ix = all.findIndex(function (q) { return q[0] >= 1.9; }), iy = all.findIndex(function (q) { return q[0] >= 2.14; }); seg = [all.slice(0, ix).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); }), all.slice(iy).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); })]; }
+          seg.forEach(function (pp) {
+            if (pp.length < 3) return; var tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp), pp.length * 2, 0.028, 8, false), rm2); tube.name = 'StairHandrail'; tube.userData.v8Skip = true; root.add(tube);
+            var k, last = -9; for (k = 0; k < pp.length; k++) { var d = k ? pp[k].distanceTo(pp[last < 0 ? 0 : last]) : 9; if (k && d < 1.1 && k < pp.length - 1) continue; last = k;
+              var post = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.92, 6), rm2); post.position.set(pp[k].x, pp[k].y - 0.46, pp[k].z); post.name = 'StairPost'; post.userData.v8Skip = true; root.add(post); }
+          });
+        });
+      })();
       // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
       var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
       sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
