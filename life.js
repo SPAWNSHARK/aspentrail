@@ -174,7 +174,7 @@
     holodeck: { c: [185, 345], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK', em: '🎮' },
     lounge:   { c: [416, 345], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE', em: '🐈' },
     media:    { c: [416, 585], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS', em: '🎬' },
-    library:  { c: [300, 836], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY', em: '🧠' },
+    library:  { c: [300, 836], m: function (x, z) { return [-x, -z]; }, page: 'index.html?mezz=1', name: 'THE LIBRARY', em: '🧠' },
     corridor: { c: [300, 500], m: function (x, z) { return [x * 12, (z - 0.9) * 10.5]; }, page: 'index.html', name: 'ATRIUM', em: '🚪' },
     quarters: { c: [300, 500], m: function (x, z) { return [x * 12, (z - 0.9) * 10.5]; }, page: 'quarters.html', name: "CAPTAIN'S QTRS", em: '🎖', nolabel: true }   /* ship coords, like the atrium */
   };

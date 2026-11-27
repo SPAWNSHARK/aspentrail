@@ -55,10 +55,11 @@
     ['🎮 Holodeck', [
       'SIM LIBRARY on the centre console: TARGET RANGE (tap the drifting orbs — gold 50, violet 10, red −20, combo ×2 after five), QUICK DRAW (wait for DRAW!, tap first; early = foul; best of five), HOLO GOLF (face the flag, hold to charge, release to putt; the console in the middle is solid).',
       'The HOUSE PLANNER terminal on the port wall opens the blueprint planner.']],
-    ['📚 The Library', [
-      'STAR MAP: tap the bronze lectern at the centre of the glass floor. The galaxy unfolds across the dome above you; drag to spin it, pinch or scroll to zoom. Each charted system shows its worlds\u2019 emoji, and a cyan ring marks where the Wayfarer is.',
-      'Vesper\u2019s console (port side) opens your Sons of Naphtali website: the live site, or the Reader tab.',
-      'The brain is Halcyon, the ship\u2019s mind. Tap it to talk.']],
+    ['📚 The Library (upper-deck mezzanine)', [
+      'The Library now wraps the brain on the mezzanine ring at the aft end of the atrium: walk straight on from the hall. Painted bookcases line the outer wall, four glowing scrolls stand on pedestals (tap to read), and the study corner has the desk, chair and armchair.',
+      'STAR MAP: tap the bronze lectern on the ring behind the brain. The galaxy unfolds above the brain; drag to spin it, pinch or scroll to zoom. Each charted system shows its worlds\u2019 emoji, and a cyan ring marks where the Wayfarer is.',
+      'Vesper\u2019s console (starboard side of the ring) opens your Sons of Naphtali website: the live site, or the Reader tab.',
+      'The brain is Halcyon, the ship\u2019s mind. Tap the eye icon or press I to talk. Droids and cats now use the twin staircases and the engineering gallery too.']],
     ['🃏 Crew Lounge', [
       'ALIEN TV: tap the big screen to flip channels: KNN news, Glorpo’s Kitchen, the space-whale nature hour, Cryovale weather, Bioship racing, a Mandible Mints ad, and the Talking Rock.',
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],

@@ -422,6 +422,7 @@
       else { p.x = 0; p.z = -20; this.floorY = 0; }
       var st = (location.search.match(/[?&]stairs=(port|starboard)/) || [])[1];   // through a Library stairs door: top of that staircase
       if (st) { var side = st === 'port' ? -1 : 1, angle = -0.51; p.x = side * 11.35 * Math.cos(angle); p.z = 36 + 11.35 * Math.sin(angle); this.floorY = 0; yaw = Math.atan2(side * Math.sin(angle), -Math.cos(angle)); if (this.last) { this.last.x = p.x; this.last.z = p.z; } }
+      if (/[?&]mezz=1/.test(location.search)) { p.x = 0; p.z = 28.6; this.floorY = 0; yaw = Math.PI; if (this.last) { this.last.x = p.x; this.last.z = p.z; } }   /* Library link: the mezzanine, facing the brain */
       this.player.object3D.position.y = this.floorY;
       var lc = this.cam.components['look-controls']; if (lc && lc.yawObject) lc.yawObject.rotation.y = yaw;
     },
