@@ -319,8 +319,11 @@
     WIN.forEach(function (w) { wins.push(w); wins.push([-w[1], -w[0]]); }); wins.sort(function (a, b) { return a[0] - b[0]; });
     var cursor = -Math.PI + 0.11, solid = [];
     wins.forEach(function (w) { solid.push([cursor, w[0]]); cursor = w[1]; }); solid.push([cursor, Math.PI - 0.11]);
+    // Nov 27: gap for the 'core' door (θ 0, z 45.4) — the wall was solid behind the open door, so the portal photo sat inside it (user: 'flat grey wall in the arch')
+    var GAPW = 0.118; solid = solid.reduce(function (o, q) { if (q[0] < 0 && q[1] > 0) { o.push([q[0], -GAPW]); o.push([GAPW, q[1]]); } else o.push(q); return o; }, []);
     function seg(a, b, mat, r, hh, yc) { var g = new THREE.CylinderGeometry(r, r, hh, Math.max(4, Math.ceil((b - a) / 0.05)), Math.max(1, Math.round(hh / 1.2)), true, a, b - a), m = new THREE.Mesh(g, mat); m.position.set(0, yc, 36); root.add(m); return m; }
     solid.forEach(function (s) { if (s[1] - s[0] > 0.01) seg(s[0], s[1], cm, R, h, y0 + h / 2); });
+    seg(-GAPW, GAPW, cm, R, h - 3.1, y0 + 3.1 + (h - 3.1) / 2);   // lintel over the core door
     var wy0 = y0 + 0.25, wy1 = -1.2, wh = wy1 - wy0;
     wins.forEach(function (w) {
       var gm = M.glass.clone(); gm.opacity = 0.10; seg(w[0], w[1], gm, R, wh, wy0 + wh / 2);                       // the pane
