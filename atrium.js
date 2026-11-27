@@ -17,7 +17,7 @@
   var DOORS = [
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
     { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },   // Nov 27 segmentation: own page again
-    { id: 'core',     name: 'THE CORE',          x: 0,    z: 26.6, rot: 180,  y: LOW, tint: 0x3fe0c8 },   // brain + reactor = core.html
+    { id: 'core',     name: 'THE CORE',          x: 0,    z: 45.4, rot: 0,    y: LOW, tint: 0x3fe0c8 },   // brain + reactor = core.html; Nov 27 (user sketch): the arch in the core wall at the foot of the stairs (was the forward door at z 26.6)
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
     { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
@@ -293,14 +293,10 @@
     [[LOW + 0.55, M.teal], [-0.34, M.bronze], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
     // Nov 27 (user sketch IMG_7403: two stair arches left/right + a CENTRE ARCH both paths lead to): the stair feet open into a pocket closed by a wall across x at z 48.0 (x ±3.4, between the two tunnel mouths) with an arched doorway at x 0; the aft ring beyond leads round the core to the lower hall
     (function () {
-      var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, AW = 1.3, AH = 2.4, sh = new THREE.Shape(), k;
+      var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, sh = new THREE.Shape(), k;
       sh.moveTo(0, 0); sh.lineTo(2 * HW, 0); sh.lineTo(2 * HW, H); sh.lineTo(0, H); sh.lineTo(0, 0);
-      var ho = new THREE.Path(); ho.moveTo(HW - AW, 0); ho.lineTo(HW + AW, 0); ho.lineTo(HW + AW, AH);
-      for (k = 1; k <= 24; k++) { var an = k / 24 * Math.PI; ho.lineTo(HW + AW * Math.cos(an), AH + AW * Math.sin(an)); } ho.lineTo(HW - AW, 0); sh.holes.push(ho);
       var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
       var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.position.set(-HW, LOW, ZW); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
-      var arc = new THREE.Mesh(new THREE.TorusGeometry(AW + 0.04, 0.05, 6, 28, Math.PI), M.bronze); arc.position.set(0, LOW + AH, ZW); arc.userData.v8Skip = true; root.add(arc);
-      [-1, 1].forEach(function (d) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, AH, 0.1), M.bronze); p.position.set(d * (AW + 0.04), LOW + AH / 2, ZW); p.userData.v8Skip = true; root.add(p); });
       var lt = new THREE.PointLight(0xd8e8ff, 1.5, 7, 1.5); lt.position.set(0, LOW + 2.5, ZW - 1.2); root.add(lt);
     })();
     // lights: white-blue, spread down the shaft (fewer on phones)
@@ -391,7 +387,7 @@
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
-    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; if (Math.abs(x3) > 1.3) return true; }   // centre-arch wall at the stair feet
+    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) return true;   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
     return false;
   }
 

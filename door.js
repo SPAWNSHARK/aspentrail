@@ -33,7 +33,7 @@
     mess:     { name: 'MESS HALL',   page: 'mess.html',    tint: 0xffc070, corr: { x: 4.6, y: -5.95, z: -14, rot: -90 },  room: { x: 4.6, z: -14, rot: 90 },   space: { kind: 'box', bmin: [2.5, 0, -24], bmax: [14.2, 3.2, -1] }, corrSpace: LOWS },
     maint:    { name: 'MAINTENANCE', page: 'maint.html',   tint: 0xd0a080, corr: { x: 4.6, y: -5.95, z: 9, rot: -90 },    room: { x: 4.6, z: 9, rot: 90 },     space: { kind: 'box', bmin: [2.5, 0, -1], bmax: [16.2, 3.2, 25.8] }, corrSpace: LOWS },
     firefly:  { name: 'FIREFLY HANGAR', page: 'firefly.html', tint: 0x6fd0ff, corr: { x: 0, y: -5.95, z: -24, rot: 0 },   room: { x: 0, z: -24, rot: 180 },    space: { kind: 'box', bmin: [-13.1, 0, -49], bmax: [13.1, 3.2, -24] }, corrSpace: LOWS },
-    core:     { name: 'THE CORE', page: 'core.html', tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 26.6, rot: 180 }, room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 10.4, bmin: [-10.4, 0, -10.4], bmax: [10.4, 9.4, 10.4] }, corrSpace: LOWS },
+    core:     { name: 'THE CORE', page: 'core.html', tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 45.4, rot: 0 }, room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 10.4, bmin: [-10.4, 0, -10.4], bmax: [10.4, 9.4, 10.4] }, corrSpace: { kind: 'box', bmin: [-3.4, -5.95, 45.4], bmax: [3.4, -0.23, 48.0] } },
     engine:   { name: 'ENGINE ROOM', page: 'engine.html',  tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 26.6, rot: 180 },  room: { x: 0, z: 26.6, rot: 0 },     space: { kind: 'box', bmin: [-9.4, 0, 26.6], bmax: [9.4, 3.2, 45.4] }, corrSpace: LOWS }
   };
   function frameMatrix(f) { return new THREE.Matrix4().makeRotationY(f.rot * Math.PI / 180).setPosition(f.x, f.y || 0, f.z); }   // y: lower-deck doors (atrium −5.95)
@@ -384,7 +384,7 @@
   // Leaving: remember which 360° photo shows the other side + which way you'll face, and go straight away (no black fade).
   // Arriving: before the heavy room has built, a tiny second renderer shows that photo at your arrival heading, then
   // crossfades into the live scene. You see the destination the whole time.
-  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0, core: 0 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
+  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0, core: 180 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
   function leave(page, img, yaw) {
     try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
     document.documentElement.style.background = '#120c08'; location.href = page;
