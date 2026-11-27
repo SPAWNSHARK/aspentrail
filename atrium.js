@@ -225,20 +225,27 @@
     var lineM = new THREE.MeshBasicMaterial({ color: 0xa9d2f0, fog: false, side: THREE.DoubleSide });
     [1, -1].forEach(function (sg) {
       var pts = [], t;
-      for (t = 0.28; t <= 2.0; t += STEP) {
+      for (t = 0.28; t <= 2.6; t += STEP) {
         o3.set(sg * rm * Math.sin(t), 4, 36 + rm * Math.cos(t)); rc.set(o3, dn); var h = rc.intersectObject(stairMesh, true)[0];
-        if (!h) { if (pts.length) break; else continue; } var y = h.point.y; if (y > -1.25) break; pts.push([t, y]);
+        if (!h) { if (pts.length) break; else continue; } var y = h.point.y; if (y > 0.12) break; pts.push([t, y]);
       }
       if (pts.length < 6) { console.warn('stair tunnel: probe failed', sg, pts.length); return; }
-      function P(r, k) { var t = pts[k][0]; return [sg * r * Math.sin(t), 36 + r * Math.cos(t)]; }
-      function strip(rA, yA, rB, yB, mat, name) {                      // ribbon between two radius/height offsets along the flight
-        var pos = [], idx = [], k; for (k = 0; k < pts.length; k++) { var a = P(rA, k), b = P(rB, k); pos.push(a[0], pts[k][1] + yA, a[1], b[0], pts[k][1] + yB, b[1]); }
-        for (k = 0; k < pts.length - 1; k++) { var q = k * 2; idx.push(q, q + 1, q + 3, q, q + 3, q + 2); }
+      function P(r, k, arr) { var t = (arr || pts)[k][0]; return [sg * r * Math.sin(t), 36 + r * Math.cos(t)]; }
+      function strip(rA, yA, rB, yB, mat, name, arr) {                 // ribbon between two radius/height offsets along the flight
+        arr = arr || pts; var pos = [], idx = [], k; for (k = 0; k < arr.length; k++) { var a = P(rA, k, arr), b = P(rB, k, arr); pos.push(a[0], arr[k][1] + yA, a[1], b[0], arr[k][1] + yB, b[1]); }
+        for (k = 0; k < arr.length - 1; k++) { var q = k * 2; idx.push(q, q + 1, q + 3, q, q + 3, q + 2); }
         var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
         var mm = new THREE.Mesh(g, mat); mm.name = name; mm.userData.v8Skip = true; root.add(mm); return mm;
       }
-      strip(ri, -0.3, ri, HT, wallM, 'TunnelInner'); strip(ro, -0.3, ro, HT, wallM, 'TunnelOuter'); strip(ri, HT, ro, HT, wallM, 'TunnelRoof');
-      strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI'); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO');   // pale-blue light line along the top of each wall
+      // Nov 27 (user: "should feel like a stairwell, you shouldn't see around it"): the tunnel runs on over the top landing, a closed vestibule in front of the Library door (end cap at θ TE; core wall = inner side, gap kept at the door)
+      var TE = 2.3, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]);
+      var all = pts.concat(land), innerA = pts.filter(function (q) { return q[0] <= 1.9; }), innerB = land.filter(function (q) { return q[0] >= 2.14; });
+      strip(ri, -0.3, ri, HT, wallM, 'TunnelInner', innerA); if (innerB.length > 1) strip(ri, -0.3, ri, HT, wallM, 'TunnelInnerL', innerB);
+      strip(ro, -0.3, ro, HT, wallM, 'TunnelOuter', all); strip(ri, HT, ro, HT, wallM, 'TunnelRoof', all);
+      strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI', innerA); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO', all);
+      (function () { var cw = new THREE.Mesh(new THREE.PlaneGeometry(ro - ri, HT + 0.3), wallM), cc = Math.cos(TE), sc2 = Math.sin(TE); cw.name = 'TunnelCap'; cw.userData.v8Skip = true;
+        cw.position.set(sg * (ri + ro) / 2 * sc2, LY - 0.3 + (HT + 0.3) / 2, 36 + (ri + ro) / 2 * cc); cw.rotation.y = Math.atan2(-cc, sg * sc2) + Math.PI; root.add(cw);
+        var ll = new THREE.PointLight(0xd8e8ff, 1.4, 6, 1.6); ll.position.set(sg * rm * Math.sin(2.12), LY + 2.2, 36 + rm * Math.cos(2.12)); root.add(ll); })();   // pale-blue light line along the top of each wall
       // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
       var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
       sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
@@ -249,7 +256,7 @@
       var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.bronze); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
       var mid = [sg * rm * sn, y0 + ah, 36 + rm * cs]; arc.position.set(mid[0], mid[1], mid[2]); root.add(arc);
       [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 1.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
-      console.log('atrium: stair tunnel', sg, pts.length, 'steps');
+      console.log('atrium: stair tunnel', sg, pts.length, 'steps', pts[0][0].toFixed(2), pts[pts.length-1][0].toFixed(2), pts[pts.length-1][1].toFixed(2));
     });
   }
   // Nov 27 (user: stairs not looking right): the kit's glow strips went blown-out white under the shaft lights and the treads read as pale slabs
@@ -388,6 +395,9 @@
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
     if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) return true;   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
+    if (fy > -1.0) { var sgn = x0 >= 0 ? 1 : -1, a0 = Math.atan2(sgn * x0, z0 - 36), a1 = Math.atan2(sgn * x1, z1 - 36), r0 = Math.hypot(x0, z0 - 36), r1 = Math.hypot(x1, z1 - 36);
+      var in0 = a0 > 1.5 && a0 < 2.3 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.3 && r1 > 10.2 && r1 < 12.4;
+      if (in0 && !in1 && (r1 >= 12.4 || a1 >= 2.3)) return true; if (!in0 && in1 && (r0 >= 12.4 || a0 >= 2.3)) return true; }   // stair-top vestibule: the Library door and the flight are the only ways in or out
     return false;
   }
 
