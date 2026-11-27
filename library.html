@@ -36,7 +36,7 @@
   <!-- WF_INTERACTION_V11 -->
   <script src="interaction-v11/core.js?v=11.0.0"></script>
   <script src="interaction-v11/runtime.js?v=11.0.0"></script>
-  <script src="door.js?v=20261127s"></script>
+  <script src="door.js?v=20261127w"></script>
   <script src="lcars.js?v=20261127s"></script>
   <script src="starmap.js?v=20261127s"></script>
   <script src="wp-console.js?v=20261127s"></script>
@@ -684,10 +684,19 @@
       let going = false;
       const go = side => { if (going) return; going = true; const f = document.createElement('div'); f.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;transition:opacity .35s;z-index:80'; document.body.appendChild(f);
         requestAnimationFrame(() => { f.style.opacity = 1; }); setTimeout(() => { location.href = 'index.html?stairs=' + side; }, 380); };
+      // Nov 27: the doors face the CENTRE of the round room (rot ±79.1°, not ±90° — the old frames sat skewed against the curved wall) and
+      // preview the atrium landing they lead to (images/portals/lib-stairs-*.jpg, captured from the atrium by tools/capture-stairs.js)
+      const wingSide = (location.search.match(/[?&]wing=(port|starboard)/) || [])[1];
       const wings = [
-        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 90 }, name: 'STAIRS · LOWER DECK', tint: 0xffb040, depth: 0.45, noPockets: true, onPass: () => go('starboard'), say: say }),
-        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -90 }, name: 'STAIRS · LOWER DECK', tint: 0x4f8cff, depth: 0.45, noPockets: true, onPass: () => go('port'), say: say })
+        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 79.1 }, name: 'STAIRS · LOWER DECK', tint: 0xffb040, depth: 0.45, noPockets: true, noRecess: true, img: 'images/portals/lib-stairs-starboard.jpg', startOpen: wingSide === 'starboard', holdMs: wingSide === 'starboard' ? 900 : 8000, onPass: () => go('starboard'), say: say }),
+        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -79.1 }, name: 'STAIRS · LOWER DECK', tint: 0x4f8cff, depth: 0.45, noPockets: true, noRecess: true, img: 'images/portals/lib-stairs-port.jpg', startOpen: wingSide === 'port', holdMs: wingSide === 'port' ? 900 : 8000, onPass: () => go('port'), say: say })
       ];
+      if (wingSide) {   // arriving from the stairs: one step inside that door, facing away from it
+        const sgn = wingSide === 'starboard' ? -1 : 1, pl = document.getElementById('player'), camEl = pl && pl.querySelector('a-camera'), lc = camEl && camEl.components['look-controls'];
+        if (pl) pl.setAttribute('position', (sgn * 9.14) + ' 0 -1.76');
+        if (lc && lc.yawObject) lc.yawObject.rotation.y = (sgn < 0 ? -100.8 : 100.8) * Math.PI / 180;
+        else setTimeout(() => { const l2 = camEl && camEl.components['look-controls']; if (l2 && l2.yawObject) l2.yawObject.rotation.y = (sgn < 0 ? -100.8 : 100.8) * Math.PI / 180; }, 600);
+      }
       const wp = new THREE.Vector3();
       AFRAME.registerComponent('wf-lib-wings', { tick: function (t, dt) { if (!scene.camera) return; scene.camera.getWorldPosition(wp);
         wings.forEach((D, i) => { const lp = D.update(dt, wp); if (lp && D.p > 0.92 && Math.abs(lp.x) < 0.7 && lp.z < 0.45 && lp.z > -1.5) go(i ? 'port' : 'starboard'); }); } });

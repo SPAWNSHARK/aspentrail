@@ -50,13 +50,14 @@
     fog="type: exponential; color: #0c0a08; density: 0.012" background="color: #02030a" vr-mode-ui="enabled: true"
     renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.1">
     <a-entity id="player" position="0 0 0">
-      <a-camera id="cam" wasd-controls="acceleration: 22; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 -18">
+      <a-camera id="cam" near="0.12" far="400" wasd-controls="acceleration: 22; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 -18">
         <a-cursor color="#ffcc66" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .interactive"></a-cursor>
       </a-camera>
     </a-entity>
     <a-entity id="atrium" wf-atrium></a-entity>
   </a-scene>
-  <script src="atrium.js?v=20261127s"></script>
+  <script src="brain.js?v=20261127w"></script>
+  <script src="atrium.js?v=20261127w"></script>
   <script src="interior-v8.js?v=20261127u"></script>
   <script src="furniture.js?v=20261127u"></script>
   <script src="realism-loader.js?v=20261127v"></script>

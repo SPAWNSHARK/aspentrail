@@ -26,7 +26,10 @@
     { id: 'medbay',   name: 'MEDBAY',            x: -4.6, z: -14,  rot: 90,   y: LOW, tint: 0x7fffd0},
     { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
     { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
-    { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080}
+    { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080},
+    { id: 'libstair-starboard', name: 'THE LIBRARY', x: 10.02, z: 37.92, rot: 79,  y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
+    { id: 'libstair-port',      name: 'THE LIBRARY', x: -10.02, z: 37.92, rot: -79, y: 0, tint: 0x4f8cff, wing: 'port' },
+    { id: 'lowerhall', name: 'LOWER ATRIUM',     x: 0,    z: 24.9, rot: 180,  y: LOW, tint: 0x6fd0ff, pass: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
   ];
   window.WAYFARER = window.WAYFARER || {}; window.WAYFARER.atriumDoors = DOORS;
   window.WF_KIT = { M: M, mats: function (env) { mats(env); return M; }, envMap: function (r) { return envMap(r); }, merge: function (root, walk, keep) { return merge(root, walk, keep); } };   /* kitroom.js */
@@ -67,6 +70,7 @@
       if (/^Ceiling_/.test(o.name)) name = 'steel';
       var key = (walk ? 'walk:' : '') + name, g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
       g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+      if (/^(Upper|Lower)_Landing/.test(o.name)) g.translate(0, 0.012, 0);   /* Nov 27: the kit landings are coplanar with the apron floor slabs (both top faces at the deck height) = the pixel-smear flicker at the top of the stairs */
       (buckets[key] = buckets[key] || []).push(g);
     });
     var out = new THREE.Group(), kept = buckets.__keep || []; delete buckets.__keep;
@@ -111,13 +115,19 @@
     // the Library (upper) / Engine room (lower) round outer wall at the aft core, gap in front for its door
     var cyl = new THREE.CylinderGeometry(10.2, 10.2, H, 96, 6, true, Math.PI + 0.11, Math.PI * 2 - 0.22);   // θ measured from +z: front (toward the hall) = π
     var cm = mat.clone(); cm.map = T.map.clone(); cm.map.repeat.set(20, 1); cm.map.needsUpdate = true; cm.emissiveMap = T.glow.clone(); cm.emissiveMap.repeat.set(20, 1); cm.emissiveMap.needsUpdate = true;
-    [0, LOW].forEach(function (y0) { var c = new THREE.Mesh(cyl, cm); c.position.set(0, y0 + H / 2, 36); if (y0 !== 0) { c.scale.set(9.4 / 10.2, HL / H, 9.4 / 10.2); c.position.y = y0 + HL / 2; } root.add(c); });
+    buildUpperCore(root, cm, H);   // Library wall (upper deck) with the two stair-top doorways
+    buildLowerCore(root, cm, HL);   // lower deck: the same wall, but with glass windows onto the brain tank beside the stairs
     // upper hall ceiling (the kit's roof only covers the middle): the hall outline with the skylight cut out
     var sh = new THREE.Shape(outline.map(function (q) { return new THREE.Vector2(q[0], -q[1]); })), hole = new THREE.Path();
     hole.moveTo(-2.05, 17.55); hole.lineTo(2.05, 17.55); hole.lineTo(2.05, -18.05); hole.lineTo(-2.05, -18.05); hole.lineTo(-2.05, 17.55); sh.holes.push(hole);
     var hc = new THREE.Mesh(new THREE.ShapeGeometry(sh), M.steel); hc.rotation.x = -Math.PI / 2; hc.position.y = 3.24; root.add(hc);
     // ceiling over the upper aft apron (the kit leaves it open), with an amber ring round the Library wall
-    var cg = new THREE.RingGeometry(10.2, 21.5, 96, 4), ceil = new THREE.Mesh(cg, M.steel); M.steel.side = THREE.DoubleSide; ceil.rotation.x = Math.PI / 2; ceil.position.set(0, 3.22, 36); root.add(ceil);
+    var rs = new THREE.Shape(), ra = Math.asin(-10.3 / 21.5), k;   // outer arc (through +z) closed by the line z = 25.7; the Library wall is the hole
+    for (k = 0; k <= 96; k++) { var aa = ra + (Math.PI - 2 * ra) * k / 96, px = 21.5 * Math.cos(aa), pz = 36 + 21.5 * Math.sin(aa); if (k === 0) rs.moveTo(px, -pz); else rs.lineTo(px, -pz); }
+    rs.lineTo(-21.5 * Math.cos(ra), -25.7); rs.lineTo(21.5 * Math.cos(ra), -25.7);
+    var rh = new THREE.Path(); for (k = 0; k <= 96; k++) { var ab = 2 * Math.PI * k / 96, hx = 10.2 * Math.cos(ab), hz = 36 + 10.2 * Math.sin(ab); if (k === 0) rh.moveTo(hx, -hz); else rh.lineTo(hx, -hz); } rs.holes.push(rh);
+    var cmat = M.steel.clone(); cmat.side = THREE.DoubleSide; cmat.polygonOffset = true; cmat.polygonOffsetFactor = 2; cmat.polygonOffsetUnits = 2;
+    var ceil = new THREE.Mesh(new THREE.ShapeGeometry(rs, 24), cmat); ceil.rotation.x = -Math.PI / 2; ceil.position.set(0, 3.22, 0); root.add(ceil);   // (rotation.x −90°: shape y → world −z, so z was negated above)
     var ring = new THREE.Mesh(new THREE.TorusGeometry(10.35, 0.04, 6, 128), M.amber); ring.rotation.x = Math.PI / 2; ring.position.set(0, 3.12, 36); root.add(ring);
     // amber cove strips along the top of the hall walls (both decks) and a bronze sill line
     [0, LOW].forEach(function (y0) { [-1, 1].forEach(function (s) {
@@ -147,8 +157,8 @@
         for (var k = 0; k < indices.length; k += 3) { var tmp = indices[k+1]; indices[k+1] = indices[k+2]; indices[k+2] = tmp; }
         geo.setIndex(indices); geo.computeVertexNormals();
       }
-      var mat = M.floor.clone(); mat.side = THREE.DoubleSide;
-      var mesh = new THREE.Mesh(geo, mat); mesh.name = 'V04_Upper_Stair_Landing_' + side;
+      var mat = M.floor.clone(); mat.side = THREE.DoubleSide; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2;   /* Nov 27: coplanar with the kit floor = pixel flicker */
+      var mesh = new THREE.Mesh(geo, mat); mesh.position.y = 0.03; mesh.name = 'V04_Upper_Stair_Landing_' + side;
       root.add(mesh); walk.push(mesh);
       // A solid-looking bronze edge and low-profile rails, kept outside walking width.
       [radius-width/2, radius+width/2].forEach(function (r) {
@@ -163,6 +173,83 @@
         l.position.set(side * 11.35, y + 2.5, 36); root.add(l);
       });
     });
+  }
+
+  // upper core (the Library's outer wall, r 10.2): solid except the front gap and a doorway at each staircase top (θ ±1.38 rad)
+  function buildUpperCore(root, cm, H) {
+    var R = 10.2, hw = 1.05 / R, gaps = [-1.38, 1.38], cur = -Math.PI + 0.11, parts = [];
+    gaps.forEach(function (c) { parts.push([cur, c - hw]); cur = c + hw; }); parts.push([cur, Math.PI - 0.11]);
+    function seg(a, b, y0, y1) { var g = new THREE.CylinderGeometry(R, R, y1 - y0, Math.max(4, Math.ceil((b - a) / 0.05)), Math.max(1, Math.round((y1 - y0) / 1.2)), true, a, b - a), m = new THREE.Mesh(g, cm); m.position.set(0, (y0 + y1) / 2, 36); root.add(m); }
+    parts.forEach(function (q) { seg(q[0], q[1], 0, H); });
+    gaps.forEach(function (c) { seg(c - hw, c + hw, 2.95, H); });                // lintel over each doorway
+  }
+  // ── Nov 27: STAIRWELL SHAFT, BRAIN WINDOWS, LIGHTING ─────────────────────────────────────────────────────────────
+  // The twin stairs spiral round the Library/Engine core inside a shaft: outer wall r 16 from the lower floor to the upper ceiling
+  // (D-shaped: it meets the hall mouth at z 25.8), lights, and glass windows in the lower core wall onto the electrogel tank + brain.
+  var SH_R = 16.0, SH_TOP = 3.24, MOUTH = 25.8;
+  function polyWall(root, mat, pts, y0, y1, rows, name) {
+    var pos = [], uv = [], idx = [], run = 0, i, j;
+    for (i = 0; i < pts.length - 1; i++) {
+      var a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      for (j = 0; j < rows; j++) {
+        var ya = y0 + (y1 - y0) * j / rows, yb = y0 + (y1 - y0) * (j + 1) / rows, v = pos.length / 3;
+        pos.push(a[0], ya, a[1], b[0], ya, b[1], b[0], yb, b[1], a[0], yb, a[1]);
+        uv.push(run / 3, ya / 3, (run + L) / 3, ya / 3, (run + L) / 3, yb / 3, run / 3, yb / 3); idx.push(v, v + 1, v + 2, v, v + 2, v + 3);
+      }
+      run += L;
+    }
+    var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    var m = new THREE.Mesh(g, mat); m.name = name || 'wall'; root.add(m); return m;
+  }
+  function arcPts(r, d0, d1, step, cx, cz) { var p = [], n = Math.max(2, Math.ceil(Math.abs(d1 - d0) / step)), k; for (k = 0; k <= n; k++) { var a = (d0 + (d1 - d0) * k / n) * Math.PI / 180; p.push([cx + r * Math.cos(a), cz + r * Math.sin(a)]); } return p; }
+  function buildStairShaft(root) {
+    var mat = M.steel.clone(); mat.side = THREE.DoubleSide; mat.color.set(0x34373b);
+    var a0 = Math.asin(-(36 - MOUTH) / SH_R) * 180 / Math.PI;                 // where r 16 crosses z 25.8  (≈ −40.8°)
+    var xE = SH_R * Math.cos(a0 * Math.PI / 180);
+    polyWall(root, mat, arcPts(SH_R, a0, 180 - a0, 2, 0, 36), LOW, SH_TOP, 9, 'ShaftArc');               // round outer wall, through +z
+    polyWall(root, mat, [[xE, MOUTH], [2.62, MOUTH]], LOW, SH_TOP, 9, 'ShaftFrontE');                     // flat front either side of the hall mouth
+    polyWall(root, mat, [[-xE, MOUTH], [-2.62, MOUTH]], LOW, SH_TOP, 9, 'ShaftFrontW');
+    // upper-deck lintel over the hall mouth + lower-deck partition with its doorway (door 'lowerhall' at z 24.9)
+    var pm = mat;
+    polyWall(root, pm, [[-2.62, 24.9], [-1.05, 24.9]], LOW, -0.23, 3, 'PartL'); polyWall(root, pm, [[1.05, 24.9], [2.62, 24.9]], LOW, -0.23, 3, 'PartR');
+    polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
+    // thin light lines round the shaft + a bronze band at each deck
+    [[LOW + 0.55, M.teal], [-0.34, M.bronze], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
+    // lights: white-blue, spread down the shaft (fewer on phones)
+    var L = MOB ? [[0, -4.6], [90, -3.2], [180, -4.6], [60, 0.8], [120, 0.8]] : [[0, -4.6], [45, -3.0], [90, -4.6], [135, -3.0], [180, -4.6], [30, 0.8], [90, 0.8], [150, 0.8], [60, -1.6], [120, -1.6]];
+    L.forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 5, 13, 1.5); l.position.set(12.9 * Math.cos(a), q[1], 36 + 12.9 * Math.sin(a)); root.add(l); });
+    var mid = new THREE.PointLight(0xd8e8ff, 4, 14, 1.5); mid.position.set(0, -2.8, 44.5); root.add(mid);       // base of the stairs, between the two flights
+  }
+  // glass portholes in the lower core wall (r 9.4, y LOW … −0.23): θ is CylinderGeometry's (from +z toward +x)
+  function buildLowerCore(root, cm, HL) {
+    var R = 9.4, h = HL, y0 = LOW, WIN = [[-1.92, -1.58], [-1.42, -1.08], [-0.97, -0.63]], wins = [], k;
+    WIN.forEach(function (w) { wins.push(w); wins.push([-w[1], -w[0]]); }); wins.sort(function (a, b) { return a[0] - b[0]; });
+    var cursor = -Math.PI + 0.11, solid = [];
+    wins.forEach(function (w) { solid.push([cursor, w[0]]); cursor = w[1]; }); solid.push([cursor, Math.PI - 0.11]);
+    function seg(a, b, mat, r, hh, yc) { var g = new THREE.CylinderGeometry(r, r, hh, Math.max(4, Math.ceil((b - a) / 0.05)), Math.max(1, Math.round(hh / 1.2)), true, a, b - a), m = new THREE.Mesh(g, mat); m.position.set(0, yc, 36); root.add(m); return m; }
+    solid.forEach(function (s) { if (s[1] - s[0] > 0.01) seg(s[0], s[1], cm, R, h, y0 + h / 2); });
+    var wy0 = y0 + 0.25, wy1 = -1.2, wh = wy1 - wy0;
+    wins.forEach(function (w) {
+      var gm = M.glass.clone(); gm.opacity = 0.10; seg(w[0], w[1], gm, R, wh, wy0 + wh / 2);                       // the pane
+      seg(w[0], w[1], cm, R, y0 + h - wy1, (wy1 + y0 + h) / 2 - 0.0 + 0.0);                                         // wall above the window
+      seg(w[0], w[1], cm, R, 0.25, y0 + 0.125);                                                                    // wall below it
+      seg(w[0], w[1], M.bronze, R + 0.03, 0.1, wy1 - 0.05); seg(w[0], w[1], M.bronze, R + 0.03, 0.1, wy0 + 0.05); // bronze rails
+      [w[0], w[1]].forEach(function (t) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, wh, 0.14), M.bronze); p.position.set((R + 0.03) * Math.sin(t), wy0 + wh / 2, 36 + (R + 0.03) * Math.cos(t)); p.rotation.y = t; root.add(p); });
+    });
+  }
+  // the electrogel tank + brain behind those windows (the same two components the Library uses), centred on the core
+  function buildBrainTank(sc, root) {
+    if (!AFRAME.components['gel-tank'] || !AFRAME.components['brain-mesh']) return;
+    var gt = document.createElement('a-entity'); gt.setAttribute('gel-tank', ''); gt.setAttribute('position', '0 0 36'); sc.appendChild(gt);
+    var br = document.createElement('a-entity'); br.id = 'brain'; br.setAttribute('position', '0 -7.3 36'); br.setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' }); sc.appendChild(br);
+    [[0, -3.0, 1.5, 0x7dffd0, 3.2, 13], [-5, -8, 3, 0x00cc88, 2.6, 11], [3, -8.5, -7.5, 0x3fd0ff, 3.2, 12]].forEach(function (q) { var l = new THREE.PointLight(q[3], q[4], q[5], 2); l.position.set(q[0], q[1], 36 + q[2]); root.add(l); });
+  }
+  // movement limits the floor ray can't see: the shaft wall, the hall-mouth jambs and the lower partition (door open = passable)
+  function wallBlocked(fy, x0, z0, x1, z1, lowDoor) {
+    if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
+    if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
+    if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
+    return false;
   }
 
   // An opaque, depth-tested viewport surface. No hyperspace particles or exterior
@@ -191,7 +278,7 @@
     });
     // Existing ceiling cutout spans x ±2.05, z −17.55 to +18.05.
     var pane = new THREE.Mesh(new THREE.PlaneGeometry(4.1,35.6),material);
-    pane.rotation.x = -Math.PI/2; pane.position.set(0,3.29,0.25);
+    pane.rotation.x = -Math.PI/2; pane.position.set(0,3.40,0.25);   /* Nov 27: was 3.29 = 1 cm over the kit's Skylight_glass (top 3.28) and inside its cross ribs (3.21–3.37): z-fight */
     pane.name='V04_Skylight_Only'; root.add(pane);
     var last=null, nextCheck=-1, target=0, current=0, soundCheck=-1;
     function scheduled(){
@@ -226,14 +313,14 @@
     DOORS.forEach(function (d) {
       var P = PT[d.id];
       var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1,
-        other: P ? P.room : null, space: P ? P.space : null, img: P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null, locked: !!d.locked,
-        page: P && !d.locked ? P.page : null, /* WF_INTERACTION_V11 */ autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
+        other: P ? P.room : null, space: P ? P.space : null, img: d.wing ? 'images/portals/wing-' + d.wing + '.jpg' : (P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null), locked: !!d.locked,
+        page: d.wing ? 'library.html' : (P && !d.locked ? P.page : null), /* WF_INTERACTION_V11 */ autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);
     });
     window.WAYFARER.corridorDoors = doors;
    /* crew.js waits on these when droids/cats pass a doorway */
   }
-  function go(d) { if (navigating || d.locked) return; var P = window.WAYFARER.door.PORTALS[d.id]; if (!P) return; navigating = true; window.WAYFARER.door.leave(P.page, 'images/portals/room-' + d.id + '.jpg', 0); }
+  function go(d) { if (navigating || d.locked) return; if (d.wing) { navigating = true; window.WAYFARER.door.leave('library.html?wing=' + d.wing, 'images/portals/wing-' + d.wing + '.jpg', d.wing === 'starboard' ? -100.8 : 100.8); return; } var P = window.WAYFARER.door.PORTALS[d.id]; if (!P) return; navigating = true; window.WAYFARER.door.leave(P.page, 'images/portals/room-' + d.id + '.jpg', 0); }
   function fromRoom() {
     var explicit = new URLSearchParams(location.search).get('fromRoom');
     if (explicit && DOORS.some(function(d){return d.id === explicit;})) return explicit;
@@ -258,7 +345,7 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat);
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat); buildBrainTank(sc, flat);
       var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
       parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var m = merge(g.scene, walk); root.add(m); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
@@ -303,7 +390,7 @@
             var x=sx+dx*i/n, z=sz+dz*i/n, y=floorAt(x,z,this.floorY);
             var radius = this.floorY < -3 ? 9.4 : 10.2;
             var insideCore = Math.hypot(x,z-36) < radius && z > 25.5;
-            if (y===null || insideCore) break;
+            if (y===null || insideCore || wallBlocked(this.floorY, this.last.x, this.last.z, x, z, doors.filter(function (q) { return q.d.id === 'lowerhall'; })[0])) break;
             this.floorY=y; this.last.x=x; this.last.z=z;
           }
           p.x=this.last.x; p.z=this.last.z;
@@ -315,6 +402,7 @@
       doors.forEach(function (D) {
         var d = D.d; if (Math.abs(fy - d.y) > 1.5) { D.update(dt, new THREE.Vector3(1e4, 0, 1e4)); return; }
         D.update(dt, wp);
+        if (d.pass) { if (Math.hypot(p.x - d.x, p.z - d.z) < 3 && D.target === 0) D.open(true); return; }
         var a = d.rot * Math.PI / 180, dx = p.x - d.x, dz = p.z - d.z, lx = Math.cos(a) * dx - Math.sin(a) * dz, lz = Math.sin(a) * dx + Math.cos(a) * dz;
         if (D.p > 0.92 && Math.abs(lx) < 0.65 && lz < 0.55 && lz > -1.2) go(d);
       });

@@ -241,7 +241,7 @@
     var fr = new THREE.Mesh(soft(frameShape(), depth, 0.025), [R.frame, R.side]); fr.position.z = 0.12 - depth; g.add(fr);
     // a dark recess behind every doorway (user, Nov 26: the sky showed round the frames): back plate + sides + top, behind the portal
     var rb = R.recess || (R.recess = new THREE.MeshStandardMaterial({ color: 0x0c0806, roughness: 0.9 }));
-    [[0, 1.55, -0.9, 2.5, 3.1, 0.05], [-1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [0, 3.08, -0.45, 2.5, 0.05, 0.9]].forEach(function (q) {
+    (o.noRecess ? [] : [[0, 1.55, -0.9, 2.5, 3.1, 0.05], [-1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [0, 3.08, -0.45, 2.5, 0.05, 0.9]]).forEach(function (q) {   // noRecess (Nov 27): doors set in front of a solid wall (Library stairs doors) showed the box as a dark frame
       var b = new THREE.Mesh(new THREE.BoxGeometry(q[3], q[4], q[5]), rb); b.position.set(q[0], q[1], q[2]); g.add(b); });
     var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.12, 0.36), new THREE.MeshBasicMaterial({ map: plate(o.name, 1024, 330), transparent: true, alphaTest: 0.02, fog: false, toneMapped: false }));
     nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);

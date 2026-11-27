@@ -505,6 +505,7 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
   scuff / oil / dust / microbe decals on real floor hits, boot prints while walking the dirty decks (engine, maint, firefly, lower atrium),
   vent smoke in the Engine Room and Maintenance. Pack footstep audio OFF (avatar already steps). Floor rays only hit real meshes (sprites
   broke raycasts). The pack's 14 MB of PBR material textures are NOT used.
+- [x] STAIRWELL PASS (Nov 27, user videos): atrium.js buildUpperCore/buildStairShaft/buildLowerCore/buildBrainTank (shaft walls, lighting, brain visible through glass windows, base door 'lowerhall', wallBlocked); Library wing doors = rot ±79.1, noRecess, preview photos wing-*/lib-stairs-* (tools/capture-stairs.js), ?wing= arrival spawn. Z-FIGHT FIX: kit landings +1.2 cm, V04 landing y 0.03, skylight pane 3.40, apron ceiling = ShapeGeometry clipped to z>=25.7 with polygonOffset, camera near 0.12. Headless: stair top/mid clean. NOT verified: live iPhone, full walk-through of lower ring -> hall door. NOT pushed.
 - [ ] CHARACTER ENGINE V5 (reference/character-engine-v5/): NOT integrated — it replaces the player/NPC motors ("never run both motors");
   needs a deliberate migration of mobile.js + atrium walking + crew movement. Kept for that.
 - [ ] Crew (crew.js PAGE/OFF/graph) + repairs on the new rooms; lower-deck goals; planet landings from the Firefly.
