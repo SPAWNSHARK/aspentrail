@@ -114,12 +114,18 @@
     '#wf-log .goal small{float:right;color:#ffd58a;font-weight:700}#wf-log p.sub{color:#d9c4ae;font-size:12px;margin:2px 0 10px;text-align:center}' +
     '#wf-log svg.map{width:100%;height:auto;max-height:calc(100vh - 190px);display:block;margin:0 auto;border-radius:14px;background:#06121e}#wf-log svg.map .rm{cursor:pointer}#wf-log svg.map .rm:hover path,#wf-log svg.map .rm:hover rect,#wf-log svg.map .rm:hover circle{fill:rgba(255,180,90,.28)}' +
     '#wf-log .item{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.06);margin-bottom:7px}#wf-log .item em{font-style:normal;font-size:22px}#wf-log .item div{flex:1}#wf-log .item small{display:block;color:#d9c4ae;font-size:11.5px}#wf-log .item b{color:#ffe6b0}' +
+    '#wf-log.bp{background:linear-gradient(160deg,rgba(60,140,255,.10),rgba(10,20,50,.0)),rgba(5,10,26,.94);border:1px solid rgba(77,227,255,.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 18px 44px rgba(0,0,0,.6),0 0 22px rgba(60,140,255,.18)}' +
+    '#wf-log.bp .hd b{color:#7fe8ff;text-shadow:0 0 8px rgba(77,227,255,.5)}#wf-log.bp .hd span{color:#8fb4d8;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .x{color:#9fd8f0}' +
+    '#wf-log.bp p.sub{color:#8fb4d8;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.4px}' +
+    '#wf-log.bp svg.map{background:#040a1a;border:1px solid rgba(77,227,255,.30);box-shadow:inset 0 0 30px rgba(40,120,255,.15);max-height:calc(100vh - 210px)}' +
+    '#wf-log.bp svg.map .rm:hover path,#wf-log.bp svg.map .rm:hover rect,#wf-log.bp svg.map .rm:hover circle,#wf-log.bp svg.map .rm:hover polygon{fill:rgba(77,227,255,.22)}' +
     '#wf-btns b.wf-logbtn{position:relative}#wf-btns b.wf-logbtn i{position:absolute;right:3px;top:2px;width:7px;height:7px;border-radius:50%;background:#ffb040;box-shadow:0 0 6px #ffb040;display:none}#wf-btns b.wf-logbtn.new i{display:block}';
   document.head.appendChild(css);
   var tab = 'goals', box = null, EXTRA = [];
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function open(t) {
-    if (t) tab = t;
+    if (t) tab = t; else if (tab === 'map') tab = 'goals';    // the Ship Log has no MAP tab (user, Nov 27) — the map has its own button
+
     if (!box) { box = el('div'); box.id = 'wf-log'; document.body.appendChild(box);
       ['pointerdown', 'touchstart', 'mousedown', 'click', 'wheel'].forEach(function (n) { box.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); }); }
     box.style.display = 'block'; document.body.classList.add('reading'); render();
@@ -131,10 +137,11 @@
   function render() {
     var c = credits(), rk = window.WF_MISSIONS ? WF_MISSIONS.rank(c).name : '';
     box.innerHTML = '';
-    var hd = el('div', 'hd', '<b>SHIP LOG</b><span>' + c + ' cr' + (rk ? ' · ' + rk : '') + '</span>'), x = el('button', 'x', '✕'); x.onclick = close; hd.appendChild(x); box.appendChild(hd);
-    var T = [['goals', 'GOALS'], ['map', 'MAP'], ['cargo', 'CARGO'], ['disc', 'SCIENCE']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
-    var tabs = el('div', 'tabs'); tabs.style.gridTemplateColumns = 'repeat(' + T.length + ',1fr)';
-    T.forEach(function (q) { var b = el('button', tab === q[0] ? 'on' : '', q[1]); b.onclick = function () { tab = q[0]; render(); }; tabs.appendChild(b); }); box.appendChild(tabs);
+    var isMap = tab === 'map'; box.classList.toggle('bp', isMap);
+    var hd = el('div', 'hd', isMap ? '<b>DECK MAP</b><span>SS WAYFARER · NCC-WF01</span>' : '<b>SHIP LOG</b><span>' + c + ' cr' + (rk ? ' · ' + rk : '') + '</span>'), x = el('button', 'x', '✕'); x.onclick = close; hd.appendChild(x); box.appendChild(hd);
+    var T = [['goals', 'GOALS'], ['cargo', 'CARGO'], ['disc', 'SCIENCE']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
+    if (!isMap) { var tabs = el('div', 'tabs'); tabs.style.gridTemplateColumns = 'repeat(' + T.length + ',1fr)';
+    T.forEach(function (q) { var b = el('button', tab === q[0] ? 'on' : '', q[1]); b.onclick = function () { tab = q[0]; render(); }; tabs.appendChild(b); }); box.appendChild(tabs); }
     var ex = EXTRA.filter(function (x) { return x.id === tab; })[0];
     if (ex) ex.render(box, el, render); else if (tab === 'goals') renderGoals(); else if (tab === 'map') renderMap(); else if (tab === 'disc') renderDisc(); else renderCargo();
   }
@@ -233,7 +240,7 @@
   var mapDeck = null;
   function onLower() { if (LOWER.indexOf(PAGE) >= 0) return true; if (PAGE !== 'corridor') return false; var p = document.getElementById('player'); return !!(p && p.object3D.position.y < -3); }
   function deckTabs() { var row = el('div', 'sub', ''); row.style.cssText = 'display:flex;gap:8px;justify-content:center;margin:0 0 6px';
-    [['upper', '⬆ UPPER DECK'], ['lower', '⬇ LOWER DECK']].forEach(function (q) { var b = el('button', '', q[1]); b.style.cssText = 'padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);font:700 11px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#fff;background:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(255,190,110,.35)' : 'rgba(255,255,255,.08)');
+    [['upper', '⬆ UPPER DECK'], ['lower', '⬇ LOWER DECK']].forEach(function (q) { var b = el('button', '', q[1]); b.style.cssText = 'padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);font:700 11px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#fff;background:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.22)' : 'rgba(255,255,255,.06)') + ';border-color:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.7)' : 'rgba(255,255,255,.2)');
       b.onclick = function () { mapDeck = q[0]; render(); }; row.appendChild(b); }); box.appendChild(row); }
   function renderLower() {
     fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (LY) {
@@ -271,11 +278,20 @@
       var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '40 80 520 860'); svg.setAttribute('class', 'map');
       function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
       var defs = add('defs', {}); var pat = add('pattern', { id: 'bpgrid', width: 14, height: 14, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M14 0H0V14', fill: 'none', stroke: 'rgba(120,200,255,.07)', 'stroke-width': 1 }, pat);
-      add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpgrid)' });
+      var hp = add('pattern', { id: 'bphatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs); add('rect', { width: 6, height: 6, fill: 'rgba(40,120,220,.07)' }, hp); add('path', { d: 'M0 0V6', stroke: 'rgba(120,200,255,.16)', 'stroke-width': 1 }, hp);
+      var mp2 = add('pattern', { id: 'bpmajor', width: 70, height: 70, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M70 0H0V70', fill: 'none', stroke: 'rgba(120,200,255,.16)', 'stroke-width': 1 }, mp2);
+      add('rect', { x: 40, y: 80, width: 520, height: 860, fill: '#040a1a' }); add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpgrid)' }); add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpmajor)' });
+      add('rect', { x: 46, y: 86, width: 508, height: 848, fill: 'none', stroke: 'rgba(120,200,255,.35)', 'stroke-width': 1 });      // drawing border
+      // title block, compass, scale bar
+      add('rect', { x: 396, y: 892, width: 156, height: 40, fill: 'rgba(6,16,40,.85)', stroke: 'rgba(120,200,255,.5)', 'stroke-width': 1 });
+      [['SS WAYFARER · DECK PLAN', 902, 8, '#cfeeff'], ['UPPER / LOWER · SCALE 1:200', 913, 6.5, '#7fa8d8'], ['REV 27.11.2026 · BOW ▲', 924, 6.5, '#7fa8d8']].forEach(function (q) { var t = add('text', { x: 402, y: q[1], fill: q[3], 'font-size': q[2], 'font-family': 'ui-monospace,Menlo,monospace', 'font-weight': 700, 'letter-spacing': 0.6 }); t.textContent = q[0]; });
+      add('circle', { cx: 86, cy: 126, r: 17, fill: 'none', stroke: 'rgba(120,225,255,.6)', 'stroke-width': 1 }); add('path', { d: 'M86 106 L91 128 L86 124 L81 128 Z', fill: '#7fe8ff' }); var nt = add('text', { x: 86, y: 101, 'text-anchor': 'middle', fill: '#7fe8ff', 'font-size': 8, 'font-weight': 800 }); nt.textContent = 'BOW';
+      add('path', { d: 'M60 912 H130 M60 908 V916 M95 909.5 V914.5 M130 908 V916', stroke: 'rgba(160,220,255,.8)', 'stroke-width': 1.2, fill: 'none' }); var st2 = add('text', { x: 95, y: 925, 'text-anchor': 'middle', fill: '#7fa8d8', 'font-size': 6.5, 'font-family': 'ui-monospace,Menlo,monospace' }); st2.textContent = '10 m';
       // hull: a teardrop with the engine pods and the dome
-      add('path', { d: 'M300 92 C220 100 150 190 132 300 L100 360 L100 760 C100 900 200 935 300 935 C400 935 500 900 500 760 L500 360 L468 300 C450 190 380 100 300 92 Z', fill: 'rgba(140,80,40,.13)', stroke: 'rgba(230,150,80,.55)', 'stroke-width': 2.2 });
+      add('path', { d: 'M300 92 C220 100 150 190 132 300 L100 360 L100 760 C100 900 200 935 300 935 C400 935 500 900 500 760 L500 360 L468 300 C450 190 380 100 300 92 Z', fill: 'rgba(40,100,200,.07)', stroke: 'rgba(120,200,255,.55)', 'stroke-width': 2.4 });
+      add('path', { d: 'M300 104 C228 112 164 196 146 302 L116 362 L116 758 C116 886 208 920 300 920 C392 920 484 886 484 758 L484 362 L454 302 C436 196 372 112 300 104 Z', fill: 'none', stroke: 'rgba(120,200,255,.22)', 'stroke-width': 1, 'stroke-dasharray': '2 3' });   // inner hull line
       [[68, 780], [532, 780]].forEach(function (q) { add('rect', { x: q[0] - 18, y: q[1] - 70, width: 36, height: 140, rx: 16, fill: 'rgba(80,200,255,.08)', stroke: 'rgba(120,220,255,.45)', 'stroke-width': 1.4 }); add('circle', { cx: q[0], cy: q[1] + 74, r: 9, fill: 'rgba(120,230,255,.6)' }); });
-      var WALL = 'rgba(255,200,140,.9)', FILL = 'rgba(255,170,90,.07)', FURN = 'rgba(255,214,170,.42)';
+      var WALL = 'rgba(120,225,255,.95)', FILL = 'url(#bphatch)', FURN = 'rgba(140,205,255,.34)';
       function roomG(id) { var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { var R = ROOMS[id]; if (PAGE === id) { close(); return; } close(); toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, 250); }); return g; }
       function poly(room, pts, g, at) { return add('polygon', Object.assign({ points: pts.map(function (p) { var q = mapPt(room, p[0], p[1]); return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') }, at), g); }
       function circle(room, r, g, at) { var c = ROOMS[room].c; return add('circle', Object.assign({ cx: c[0], cy: c[1], r: r * SR }, at), g); }
@@ -283,24 +299,24 @@
       // corridor
       var gc = roomG('corridor');   // the split-level atrium (upper deck): walkways round the opening down to the lower deck
       poly('corridor', [[-2.5, -24], [-4.6, -17], [-4.6, 18.5], [-2.5, 25.8], [2.5, 25.8], [4.6, 18.5], [4.6, -17], [2.5, -24]], gc, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
-      poly('corridor', [[-2.05, -16], [2.05, -16], [2.05, 16], [-2.05, 16]], gc, { fill: 'rgba(60,200,220,.10)', stroke: 'rgba(120,230,255,.5)', 'stroke-width': 1, 'stroke-dasharray': '3 2' });
+      poly('corridor', [[-2.05, -16], [2.05, -16], [2.05, 16], [-2.05, 16]], gc, { fill: 'rgba(60,200,255,.12)', stroke: 'rgba(160,240,255,.7)', 'stroke-width': 1.2, 'stroke-dasharray': '4 2' });
       var qa = mapPt('corridor', -4.6, -1), qb = mapPt('corridor', -4.6, 25.8);   // Captain's Quarters (sealed until its page exists)
       var gq = roomG('quarters'); qa = mapPt('quarters', -15, -1); qb = mapPt('quarters', -4.6, 25.8);
-      add('rect', { x: qa[0], y: qa[1], width: qb[0] - qa[0], height: qb[1] - qa[1], fill: 'rgba(255,170,90,.06)', stroke: 'rgba(255,200,140,.45)', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, gq);
-      var tq = add('text', { x: (qa[0] + qb[0]) / 2, y: (qa[1] + qb[1]) / 2, 'text-anchor': 'middle', fill: '#d9c4ae', 'font-size': 8.5, 'font-weight': 800 }); tq.textContent = "🎖 CAPTAIN'S QTRS"; gq.appendChild(tq);
+      add('rect', { x: qa[0], y: qa[1], width: qb[0] - qa[0], height: qb[1] - qa[1], fill: 'rgba(60,160,255,.05)', stroke: 'rgba(120,200,255,.45)', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, gq);
+      var tq = add('text', { x: (qa[0] + qb[0]) / 2, y: (qa[1] + qb[1]) / 2, 'text-anchor': 'middle', fill: '#9fc4e8', 'font-size': 8.5, 'font-weight': 800 }); tq.textContent = "🎖 CAPTAIN'S QTRS"; gq.appendChild(tq);
       furniture('corridor', gc);
       // rooms
       var gb = roomG('bridge'); if (D && D.bridge && D.bridge.bounds) poly('bridge', D.bridge.bounds, gb, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); furniture('bridge', gb);
       add('circle', { cx: ROOMS.bridge.c[0], cy: ROOMS.bridge.c[1] - 6.4 * SR, r: 3.3 * SR * 0.55, fill: 'rgba(150,120,255,.18)', stroke: 'rgba(170,150,255,.6)', 'stroke-dasharray': '2 2' }, gb);   // navigator galaxy
-      var gh = roomG('holodeck'); poly('holodeck', [[-9, -9], [9, -9], [9, 9], [-9, 9]], gh, { fill: 'rgba(255,170,60,.05)', stroke: WALL, 'stroke-width': 2 });
-      for (var gx = -6; gx <= 6; gx += 3) { poly('holodeck', [[gx, -9], [gx + 0.02, -9], [gx + 0.02, 9], [gx, 9]], gh, { fill: 'rgba(255,170,60,.18)' }); poly('holodeck', [[-9, gx], [9, gx], [9, gx + 0.02], [-9, gx + 0.02]], gh, { fill: 'rgba(255,170,60,.18)' }); }
+      var gh = roomG('holodeck'); poly('holodeck', [[-9, -9], [9, -9], [9, 9], [-9, 9]], gh, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
+      for (var gx = -6; gx <= 6; gx += 3) { poly('holodeck', [[gx, -9], [gx + 0.02, -9], [gx + 0.02, 9], [gx, 9]], gh, { fill: 'rgba(120,200,255,.22)' }); poly('holodeck', [[-9, gx], [9, gx], [9, gx + 0.02], [-9, gx + 0.02]], gh, { fill: 'rgba(120,200,255,.22)' }); }
       furniture('holodeck', gh);
-      ['lounge', 'media', 'library'].forEach(function (id) { var g = roomG(id); circle(id, id === 'library' ? 10.6 : 9.2, g, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); if (id === 'library') circle(id, 7.6, g, { fill: 'rgba(60,230,200,.12)', stroke: 'rgba(80,240,210,.45)', 'stroke-width': 1 }); furniture(id, g); });
+      ['lounge', 'media', 'library'].forEach(function (id) { var g = roomG(id); circle(id, id === 'library' ? 10.6 : 9.2, g, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); if (id === 'library') circle(id, 7.6, g, { fill: 'rgba(60,230,255,.14)', stroke: 'rgba(120,240,255,.7)', 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }); furniture(id, g); });
       // doorways
-      [['bridge', 0, 7.9], ['holodeck', 0, 8.7], ['lounge', 0, 8.7], ['media', 0, 8.9], ['library', 0, 10.7]].forEach(function (q) { var p = mapPt(q[0], q[1], q[2]); add('circle', { cx: p[0], cy: p[1], r: 4.5, fill: '#ffd27a' }); });
+      [['bridge', 0, 7.9], ['holodeck', 0, 8.7], ['lounge', 0, 8.7], ['media', 0, 8.9], ['library', 0, 10.7]].forEach(function (q) { var p = mapPt(q[0], q[1], q[2]); add('circle', { cx: p[0], cy: p[1], r: 5.5, fill: 'rgba(77,227,255,.18)', stroke: '#7fe8ff', 'stroke-width': 1 }); add('circle', { cx: p[0], cy: p[1], r: 2, fill: '#dffaff' }); });
       // labels
       Object.keys(ROOMS).forEach(function (id) { var R = ROOMS[id]; if (R.nolabel) return; var y = id === 'bridge' ? R.c[1] + 46 : id === 'corridor' ? 500 : R.c[1] + 4, x = id === 'corridor' ? 300 : R.c[0];
-        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#fff2dc', 'font-size': id === 'corridor' ? 8 : 10, 'font-weight': 800, 'letter-spacing': 1.2, stroke: 'rgba(0,0,0,.55)', 'stroke-width': 2.5, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 500)' : '' }); t.textContent = R.em + ' ' + R.name; });
+        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#dff6ff', 'font-family': 'ui-monospace,Menlo,monospace', 'font-size': id === 'corridor' ? 8 : 9.5, 'font-weight': 800, 'letter-spacing': 1.4, stroke: 'rgba(2,8,24,.85)', 'stroke-width': 2.5, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 500)' : '' }); t.textContent = R.em + ' ' + R.name; });
       // live layer
       var live = add('g', {});
       box.appendChild(el('p', 'sub', 'Live · tap a room to go there · <span style="color:#6ff">▲</span> you · <span style="color:#7fd8ff">●</span> droids · <span style="color:#ffb0e0">●</span> cats · ⚠ faults'));

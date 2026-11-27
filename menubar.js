@@ -37,7 +37,7 @@
     map:    ['#4de3ff', '<path d="M12 21.5s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10.5" r="2.3"/>'],
     log:    ['#8aa4ff', '<rect x="5.5" y="4" width="13" height="17" rx="2.2"/><path d="M9.5 4V2.8h5V4M8.8 9.5h6.4M8.8 13h6.4M8.8 16.5h3.6"/>'],
     ai:     ['#c58bff', '<path d="M12 5.4v14.2"/><path d="M12 6c-1-1.8-3.8-2.2-5-.6-1.7-.2-3 1.3-2.6 2.9-1.4.9-1.4 3 0 4-.6 1.7.6 3.4 2.3 3.4.5 1.6 2.4 2.4 3.9 1.6"/><path d="M12 6c1-1.8 3.8-2.2 5-.6 1.7-.2 3 1.3 2.6 2.9 1.4.9 1.4 3 0 4 .6 1.7-.6 3.4-2.3 3.4-.5 1.6-2.4 2.4-3.9 1.6"/><path d="M8.2 10.4c1 0 1.9.5 2.1 1.6M15.8 10.4c-1 0-1.9.5-2.1 1.6M8.6 15c.8-.3 1.6 0 2 .7M15.4 15c-.8-.3-1.6 0-2 .7"/>'],
-    manual: ['#6ff0c4', '<path d="M12 6.8C10 5.2 7 4.8 4.2 5.2v12.3c2.8-.4 5.8 0 7.8 1.6 2-1.6 5-2 7.8-1.6V5.2C17 4.8 14 5.2 12 6.8z"/><path d="M12 6.8v12.3"/>'],
+    manual: ['#6ff0c4', '<circle cx="12" cy="12" r="9"/><path d="M9.3 9.5a2.8 2.8 0 1 1 4 2.5c-1 .5-1.3 1.1-1.3 2.1"/><path d="M12 17.2v.3"/>'],
     sound:  ['#4de3ff', '<path d="M4 9.6h3.2L12 5.8v12.4l-4.8-3.8H4z"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6M17.8 6.6a7.6 7.6 0 0 1 0 10.8"/>'],
     mute:   ['#ff6f9a', '<path d="M4 9.6h3.2L12 5.8v12.4l-4.8-3.8H4z"/><path d="M15.6 9.6l5 4.8M20.6 9.6l-5 4.8"/>'],
     gear:   ['#b6c6ff', '<circle cx="12" cy="12" r="3.1"/><circle cx="12" cy="12" r="7.6" stroke-dasharray="3.3 2.55"/><circle cx="12" cy="12" r="9.6" opacity=".45"/>'],
@@ -75,7 +75,8 @@
       var szB = setRow('stick', 'Thumbstick size', function () { cfg.s = (cfg.s + 1) % 3; }), opB = setRow('eye', 'Thumbstick opacity', function () { cfg.o = (cfg.o + 1) % 3; }); applyStick(); }
     // new buttons
     if (!row.querySelector('.wf-mapbtn') && window.WF_LIFE) { var mp = mk('Deck map', 'map', function () { WF_LIFE.open('map'); }); mp.classList.add('wf-mapbtn'); row.appendChild(mp); }
-    if (!row.querySelector('.wf-manbtn') && window.WF_MANUAL) { var mn = mk('Manual', 'manual', function () { WF_MANUAL.open(); }); mn.classList.add('wf-manbtn'); row.appendChild(mn); }
+    if (!set.querySelector('.wf-manrow') && window.WF_MANUAL) { var mn = document.createElement('b'); mn.className = 'wf-manrow'; mn.innerHTML = em('manual') + '<span class="lb">Captain\u2019s Manual</span><span class="st"></span>';
+      mn.addEventListener('click', function (e) { e.stopPropagation(); set.classList.remove('open'); gear.classList.remove('open'); WF_MANUAL.open(); }); set.insertBefore(mn, set.children[1] || null); }
     // re-dress the existing ones
     var log = row.querySelector('.wf-logbtn'); if (log && !log.querySelector('.em')) { log.innerHTML = em('log') + '<i></i>'; }
     var ai = row.querySelector('.wf-aibtn'); if (ai && !ai.querySelector('.em')) ai.innerHTML = em('ai');
@@ -91,8 +92,8 @@
     var sn = document.querySelector('.wf-snd'); if (sn) { var mu = !!(window.WF_SOUND && WF_SOUND.muted()), sh = em(mu ? 'mute' : 'sound') + '<span class="lb">Sound</span><span class="st">' + (mu ? 'off' : 'on') + '</span>';
       if (sn.parentNode !== set) { set.insertBefore(sn, set.children[1] || null); sn.style.cssText = ''; }
       if (sn.getAttribute('data-h') !== sh) { sn.innerHTML = sh; sn.setAttribute('data-h', sh); } }
-    // order on the bar: map · log · Halcyon (brain) · manual · settings (sound lives in settings) (spread out)
-    ['.wf-mapbtn', '.wf-logbtn', '.wf-aibtn', '.wf-manbtn'].forEach(function (sel) { var b = row.querySelector(sel); if (b) row.appendChild(b); });
+    // order on the bar: map · log · Halcyon (brain) · settings (sound + the ? manual live in settings) (spread out)
+    ['.wf-mapbtn', '.wf-logbtn', '.wf-aibtn'].forEach(function (sel) { var b = row.querySelector(sel); if (b) row.appendChild(b); });
     row.appendChild(gear);
     return true;
   }
