@@ -251,9 +251,22 @@
     polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
     // thin light lines round the shaft + a bronze band at each deck
     [[LOW + 0.55, M.teal], [-0.34, M.bronze], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
+    // Nov 27 (user screenshots: stair foot open to the void): an ARCHED partition at x 0 between the two flights' feet, lower deck (z 45.2…16 wall, doorway z 45.9…48.5)
+    (function () {
+      var H = -0.23 - LOW, Z0 = 45.2, Z1 = SH_R + 36 - 0.05, AW = 1.3, ZC = 47.2, AH = 2.6, sh = new THREE.Shape(), k;
+      sh.moveTo(0, 0); sh.lineTo(Z1 - Z0, 0); sh.lineTo(Z1 - Z0, H); sh.lineTo(0, H); sh.lineTo(0, 0);
+      var ho = new THREE.Path(), cz = ZC - Z0; ho.moveTo(cz - AW, 0); ho.lineTo(cz + AW, 0); ho.lineTo(cz + AW, AH);
+      for (k = 1; k <= 24; k++) { var an = k / 24 * Math.PI; ho.lineTo(cz + AW * Math.cos(an), AH + AW * Math.sin(an)); } ho.lineTo(cz - AW, 0); sh.holes.push(ho);
+      var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
+      var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.rotation.y = -Math.PI / 2; w.position.set(0, LOW, Z0); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
+      var arc = new THREE.Mesh(new THREE.TorusGeometry(AW + 0.04, 0.05, 6, 28, Math.PI), M.bronze); arc.rotation.y = Math.PI / 2; arc.position.set(0, LOW + AH, ZC); arc.userData.v8Skip = true; root.add(arc);
+      [-1, 1].forEach(function (d) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, AH, 0.1), M.bronze); p.rotation.y = Math.PI / 2; p.position.set(0, LOW + AH / 2, ZC + d * (AW + 0.04)); p.userData.v8Skip = true; root.add(p); });
+      var lt = new THREE.PointLight(0xd8e8ff, 1.4, 7, 1.5); lt.position.set(0, LOW + 2.4, ZC + 0.0); root.add(lt);
+    })();
     // lights: white-blue, spread down the shaft (fewer on phones)
     var L = MOB ? [[0, -4.6], [90, -3.2], [180, -4.6], [60, 0.8], [120, 0.8]] : [[0, -4.6], [45, -3.0], [90, -4.6], [135, -3.0], [180, -4.6], [30, 0.8], [90, 0.8], [150, 0.8], [60, -1.6], [120, -1.6]];
     L.forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 2.2, 13, 1.5); l.position.set(12.9 * Math.cos(a), q[1], 36 + 12.9 * Math.sin(a)); root.add(l); });
+    [-1, 1].forEach(function (d) { var ll = new THREE.PointLight(0xd8e8ff, 1.6, 8, 1.5); ll.position.set(d * 9.9, 1.9, 30.2); root.add(ll); });   // upper landings: the Library wall beside the door read black
     var mid = new THREE.PointLight(0xd8e8ff, 1.8, 14, 1.5); mid.position.set(0, -2.8, 44.5); root.add(mid);       // base of the stairs, between the two flights
   }
   // glass portholes in the lower core wall (r 9.4, y LOW … −0.23): θ is CylinderGeometry's (from +z toward +x)
@@ -338,6 +351,7 @@
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
+    if (fy < -3 && (x0 > 0) !== (x1 > 0) && z1 > 45.2) { var t3 = (0 - x0) / (x1 - x0), z3 = z0 + (z1 - z0) * t3; if (z3 < 45.9 || z3 > 48.5) return true; }   // arched partition between the flights' feet
     return false;
   }
 
