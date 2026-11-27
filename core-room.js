@@ -44,12 +44,24 @@
       var st = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.22, p0.distanceTo(p1), 10), bronze); st.position.copy(p0.clone().add(p1).multiplyScalar(0.5)); st.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p1.clone().sub(p0).normalize()); g.add(st);
     }
     // walkable gallery + inner rail
-    var gal = new THREE.Mesh(new THREE.RingGeometry(GI, 10.45, MOB ? 72 : 128, 6), floor); gal.rotation.x = -Math.PI / 2; gal.position.y = 0.0; g.add(gal);
+    // Nov 27 (user: the floor was random squares not following the room): POLAR deck plates — UVs run round the ring (u) and out from the pit (v), so every seam is a radial or a concentric line
+    var GSEG = MOB ? 72 : 128, ggeo = new THREE.RingGeometry(GI, 10.45, GSEG, 6), guv = ggeo.attributes.uv, NPL = 48, NRW = 4, gi;
+    for (gi = 0; gi < guv.count; gi++) { var gu = gi % (GSEG + 1), gv = Math.floor(gi / (GSEG + 1)); guv.setXY(gi, gu / GSEG * NPL, gv / 6 * NRW); }
+    var pc = document.createElement('canvas'); pc.width = pc.height = 256; var px = pc.getContext('2d'), pg = px.createLinearGradient(0, 0, 0, 256);
+    pg.addColorStop(0, '#39414a'); pg.addColorStop(1, '#2b3239'); px.fillStyle = pg; px.fillRect(0, 0, 256, 256);
+    for (gi = 0; gi < 90; gi++) { px.fillStyle = 'rgba(255,255,255,' + (0.015 + Math.random() * 0.025) + ')'; px.fillRect(0, Math.random() * 256, 256, 1); }      // brushed grain
+    px.fillStyle = '#0c1014'; px.fillRect(0, 0, 256, 5); px.fillRect(0, 0, 5, 256); px.fillStyle = 'rgba(190,215,235,.35)'; px.fillRect(0, 5, 256, 1.5); px.fillRect(5, 0, 1.5, 256);   // groove + lit edge
+    px.strokeStyle = 'rgba(0,0,0,.35)'; px.lineWidth = 2; px.strokeRect(30, 30, 196, 196); px.strokeStyle = 'rgba(190,215,235,.18)'; px.lineWidth = 1; px.strokeRect(32, 32, 192, 192);       // inset panel
+    [[18, 18], [238, 18], [18, 238], [238, 238]].forEach(function (q) { px.fillStyle = '#12171c'; px.beginPath(); px.arc(q[0], q[1], 4, 0, 7); px.fill(); px.fillStyle = 'rgba(200,220,240,.5)'; px.beginPath(); px.arc(q[0] - 1, q[1] - 1, 1.6, 0, 7); px.fill(); });
+    var ptx = new THREE.CanvasTexture(pc); ptx.wrapS = ptx.wrapT = THREE.RepeatWrapping; ptx.anisotropy = 4; if (THREE.sRGBEncoding) ptx.encoding = THREE.sRGBEncoding;
+    var fm2 = floor.clone(); fm2.map = ptx; fm2.color.set(0xffffff); fm2.needsUpdate = true;
+    var gal = new THREE.Mesh(ggeo, fm2); gal.userData.v8Skip = true; gal.rotation.x = -Math.PI / 2; gal.position.y = 0.0; g.add(gal);
+    ring(GI + 0.9, 0.012, 0.025, teal); ring(10.2, 0.012, 0.025, teal);                      // lit inlay rings at the inner and outer edge of the deck
     ring(GI + 0.08, 1.05, 0.04, bronze); ring(GI + 0.08, 0.55, 0.025, teal);
     for (i = 0; i < 36; i++) { var ap = i / 36 * Math.PI * 2, po = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.05, 6), steel); po.position.set(Math.cos(ap) * (GI + 0.08), 0.52, Math.sin(ap) * (GI + 0.08)); g.add(po); }
     // outer wall (θ from +z: the doorway gap faces +z), light bands, ceiling
-    var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 6, true, 0.11, Math.PI * 2 - 0.22), dark); wall.position.y = WH / 2; g.add(wall);
-    [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, 0.11, Math.PI * 2 - 0.22), k % 2 ? bronze : (k === 0 ? teal : white)); b.position.y = y; g.add(b); });
+    [0.118, Math.PI + 0.118].forEach(function (t0) { var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 48, 6, true, t0, Math.PI - 0.236), dark); wall.position.y = WH / 2; g.add(wall); });   // two walls: doorways at +Z (stairs) and −Z (lower hall)
+    [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { [0.118, Math.PI + 0.118].forEach(function (t0) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 48, 1, true, t0, Math.PI - 0.236), k % 2 ? steel : (k === 0 ? teal : white)); b.position.y = y; g.add(b); }); });
     // Nov 27 (user: the lower deck should have a glass viewing area up into the Library): solid centre disc round the chamber, glass annulus out to the wall, the Library (shelves, dome, lamps) visible above
     var ce = new THREE.Mesh(new THREE.CircleGeometry(CR + 0.6, MOB ? 48 : 96), steel); ce.rotation.x = Math.PI / 2; ce.position.y = WH; g.add(ce);
     (function () {

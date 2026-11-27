@@ -32,7 +32,7 @@
   <!-- WF_INTERACTION_V11 -->
   <script src="interaction-v11/core.js?v=11.0.0"></script>
   <script src="interaction-v11/runtime.js?v=11.0.0"></script>
-  <script src="door.js?v=20261127zu"></script>
+  <script src="door.js?v=20261127zzf"></script>
   <script src="lcars.js?v=20261127s"></script>
   <script src="brain.js?v=20261127w"></script>
   <style>
@@ -42,20 +42,21 @@
   </style>
 </head>
 <body data-room="core">
+  <script>if (/[?&]from=north/.test(location.search)) { document.addEventListener('DOMContentLoaded', function () { var pl = document.getElementById('player'); pl.setAttribute('position', '0 0 -8'); pl.setAttribute('rotation', '0 180 0'); }); }</script>
   <div id="room-prompt"></div>
   <div id="wf-fade"></div>
   <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 10.1" light="defaultLightsEnabled: false"
     fog="type: exponential; color: #04080a; density: 0.012" background="color: #02060a" vr-mode-ui="enabled: true"
     renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.15">
-    <a-entity id="player" position="0 0 8">
+    <a-entity id="player" position="0 0 8" rotation="0 0 0">
       <a-camera id="cam" wasd-controls="acceleration: 22; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 0">
         <a-cursor color="#7dffb8" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .interactive"></a-cursor>
       </a-camera>
     </a-entity>
     <a-entity id="brain" position="0 5.55 0" scale="0.55 0.55 0.55"></a-entity>
   </a-scene>
-  <script src="core-room.js?v=20261127zzc"></script>
+  <script src="core-room.js?v=20261127zze"></script>
   <script src="interior-v8.js?v=20261127zb"></script>
-  <script>window.WAYFARER.door.roomExit('core');</script>
+  <script>window.WAYFARER.door.roomExit('core'); window.WAYFARER.door.roomExit('corenorth');</script>
 </body>
 </html>
