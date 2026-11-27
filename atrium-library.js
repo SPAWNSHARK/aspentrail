@@ -136,6 +136,27 @@
     sc.setAttribute('wf-mezz-library', '');
     window.WF_MEZZ_LIBRARY = { root: root, readScroll: readScroll };
   }
+
+  // CORE POLISH (Nov 27): hydrogel tint on the brain + a school of glowing eels orbiting it inside the chamber (r 4.1–4.9, clear of the r 5 glass)
+  function core(sc) {
+    var NE = (window.WAYFARER && WAYFARER.mobile) ? 3 : 5, SEG = 22, g = new THREE.Group(); g.position.set(0, 0, CZ); g.userData.noCollide = true; sc.object3D.add(g);
+    var eelM = new THREE.MeshStandardMaterial({ color: 0x0c3a2a, roughness: 0.35, metalness: 0.2, emissive: 0x0b7a48, emissiveIntensity: 0.5 }),
+        eel = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), eelM, NE * SEG), eyeM = new THREE.MeshBasicMaterial({ color: 0xc8ffe0, toneMapped: false }),
+        eyes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.045, 6, 4), eyeM, NE * 2);
+    eel.frustumCulled = eyes.frustumCulled = false; g.add(eel); g.add(eyes);
+    var E = []; for (var i = 0; i < NE; i++) E.push({ ph: i * 1.3, sp: 0.22 + (i % 3) * 0.07, dir: i % 2 ? -1 : 1, r: 4.05 + (i % 3) * 0.35, y: [-3.4, -1.2, 1.3, -2.2, 0.2][i], sz: 0.085 + (i % 2) * 0.02 });
+    var M = new THREE.Matrix4(), Q = new THREE.Quaternion(), SC = new THREE.Vector3(), UP = new THREE.Vector3(0, 0, 1), P0 = new THREE.Vector3(), P1 = new THREE.Vector3(), V = new THREE.Vector3();
+    function at(e, T, k, out) { var a = e.ph + (T - k * 0.1) * e.sp * e.dir, w = Math.sin(T * 5 - k * 0.7) * 0.08 * (k / SEG); out.set(Math.cos(a) * (e.r + w), e.y + Math.sin((T - k * 0.1) * 0.5 + e.ph) * 0.9, Math.sin(a) * (e.r + w)); }
+    AFRAME.registerComponent('wf-core-eels', { tick: function (t) {
+      var T = t / 1000, ei, k;
+      for (ei = 0; ei < NE; ei++) { var e = E[ei]; for (k = 0; k < SEG; k++) { at(e, T, k, P0); at(e, T, k + 1, P1); V.subVectors(P0, P1).normalize(); Q.setFromUnitVectors(UP, V);
+          var tp = e.sz * (k < 2 ? 0.85 + k * 0.1 : 1 - (k - 2) / SEG * 0.85); SC.set(tp, tp * 0.75, tp * 1.9); M.compose(P0, Q, SC); eel.setMatrixAt(ei * SEG + k, M);
+          if (k === 0) for (var s = 0; s < 2; s++) { M.makeTranslation(P0.x + V.z * (s ? 1 : -1) * tp * 0.6, P0.y + tp * 0.4, P0.z - V.x * (s ? 1 : -1) * tp * 0.6); eyes.setMatrixAt(ei * 2 + s, M); } } }
+      eel.instanceMatrix.needsUpdate = eyes.instanceMatrix.needsUpdate = true;
+      if (t - (core.tt || 0) > 1000) { core.tt = t; var b = document.getElementById('brain'), o = b && b.object3D; if (o) o.traverse(function (m) { if (m.isMesh && m.material && m.material.vertexColors) { m.material.color.set(0x5fa87a); if (m.material.sheenColor) m.material.sheenColor.set(0x70ffb0); m.material.envMapIntensity = 0.35; } }); }
+    } });
+    sc.setAttribute('wf-core-eels', '');
+  }
   var sc = document.querySelector('a-scene');
-  if (sc.hasLoaded) setTimeout(function () { build(sc); }, 600); else sc.addEventListener('loaded', function () { setTimeout(function () { build(sc); }, 600); });
+  if (sc.hasLoaded) setTimeout(function () { build(sc); core(sc); }, 600); else sc.addEventListener('loaded', function () { setTimeout(function () { build(sc); core(sc); }, 600); });
 })();
