@@ -238,7 +238,7 @@
         var mm = new THREE.Mesh(g, mat); mm.name = name; mm.userData.v8Skip = true; root.add(mm); return mm;
       }
       // Nov 27 (user: "should feel like a stairwell, you shouldn't see around it"): the tunnel runs on over the top landing, a closed vestibule in front of the Library door (end cap at θ TE; core wall = inner side, gap kept at the door)
-      var TE = 2.3, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]); if (land[land.length - 1][0] < TE - 1e-6) land.push([TE, LY]);
+      var TE = 2.18, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]); if (land[land.length - 1][0] < TE - 1e-6) land.push([TE, LY]);
       var all = pts.concat(land), innerA = pts.filter(function (q) { return q[0] <= 1.9; }), innerB = land.filter(function (q) { return q[0] >= 2.14; });
       strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInner', innerA); if (innerB.length > 1) strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInnerL', innerB);
       strip(ro, -0.3, ro, HT + 0.06, wallM, 'TunnelOuter', all); strip(ri - 0.06, HT, ro + 0.06, HT, wallM, 'TunnelRoof', all);
@@ -396,8 +396,8 @@
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
     if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) return true;   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
     if (fy > -1.0) { var sgn = x0 >= 0 ? 1 : -1, a0 = Math.atan2(sgn * x0, z0 - 36), a1 = Math.atan2(sgn * x1, z1 - 36), r0 = Math.hypot(x0, z0 - 36), r1 = Math.hypot(x1, z1 - 36);
-      var in0 = a0 > 1.5 && a0 < 2.3 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.3 && r1 > 10.2 && r1 < 12.4;
-      if (in0 && !in1 && (r1 >= 12.4 || a1 >= 2.3)) return true; if (!in0 && in1 && (r0 >= 12.4 || a0 >= 2.3)) return true; }   // stair-top vestibule: the Library door and the flight are the only ways in or out
+      var in0 = a0 > 1.5 && a0 < 2.18 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.18 && r1 > 10.2 && r1 < 12.4;
+      if (in0 && !in1 && (r1 >= 12.4 || a1 >= 2.18)) return true; if (!in0 && in1 && (r0 >= 12.4 || a0 >= 2.18)) return true; }   // stair-top vestibule: the Library door and the flight are the only ways in or out
     return false;
   }
 
