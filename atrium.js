@@ -212,6 +212,46 @@
     });
     kill.forEach(function (o) { o.parent && o.parent.remove(o); }); console.log('atrium: door rails removed', kill.length);
   }
+  // Nov 27 (user, annotated: "the railing needs to be up against an actual wall"): each flight is a closed spiral TUNNEL — inner + outer wall just outside the rails, ceiling above, arched mouth at the foot
+  function railRadii(scene) {
+    scene.updateMatrixWorld(true); var lo = 99, hi = 0, v = new THREE.Vector3();
+    scene.traverse(function (o) { if (!/^(Handrail|Rail_post)/.test(o.name)) return; new THREE.Box3().setFromObject(o).getCenter(v); if (Math.abs(v.x) < 3) return; var r = Math.hypot(v.x, v.z - 36); if (r < lo) lo = r; if (r > hi) hi = r; });
+    console.log('atrium: stair rail radii', lo.toFixed(2), hi.toFixed(2)); return lo < hi ? [lo, hi] : null;
+  }
+  function buildStairTunnels(root, stairMesh, rr) {
+    root.updateMatrixWorld(true);
+    var ri = rr[0] - 0.12, ro = rr[1] + 0.12, rm = (rr[0] + rr[1]) / 2, HT = 2.9, STEP = 0.035, rc = new THREE.Raycaster(), dn = new THREE.Vector3(0, -1, 0), o3 = new THREE.Vector3();
+    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x2a2e33); wallM.emissive = new THREE.Color(0x10161c); wallM.roughness = 0.7; wallM.envMapIntensity = 0.3;
+    var lineM = new THREE.MeshBasicMaterial({ color: 0xa9d2f0, fog: false, side: THREE.DoubleSide });
+    [1, -1].forEach(function (sg) {
+      var pts = [], t;
+      for (t = 0.28; t <= 2.0; t += STEP) {
+        o3.set(sg * rm * Math.sin(t), 4, 36 + rm * Math.cos(t)); rc.set(o3, dn); var h = rc.intersectObject(stairMesh, true)[0];
+        if (!h) { if (pts.length) break; else continue; } var y = h.point.y; if (y > -1.25) break; pts.push([t, y]);
+      }
+      if (pts.length < 6) { console.warn('stair tunnel: probe failed', sg, pts.length); return; }
+      function P(r, k) { var t = pts[k][0]; return [sg * r * Math.sin(t), 36 + r * Math.cos(t)]; }
+      function strip(rA, yA, rB, yB, mat, name) {                      // ribbon between two radius/height offsets along the flight
+        var pos = [], idx = [], k; for (k = 0; k < pts.length; k++) { var a = P(rA, k), b = P(rB, k); pos.push(a[0], pts[k][1] + yA, a[1], b[0], pts[k][1] + yB, b[1]); }
+        for (k = 0; k < pts.length - 1; k++) { var q = k * 2; idx.push(q, q + 1, q + 3, q, q + 3, q + 2); }
+        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+        var mm = new THREE.Mesh(g, mat); mm.name = name; mm.userData.v8Skip = true; root.add(mm); return mm;
+      }
+      strip(ri, -0.3, ri, HT, wallM, 'TunnelInner'); strip(ro, -0.3, ro, HT, wallM, 'TunnelOuter'); strip(ri, HT, ro, HT, wallM, 'TunnelRoof');
+      strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI'); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO');   // pale-blue light line along the top of each wall
+      // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
+      var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
+      sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
+      var cx = W / 2, ah = 1.55; ho.moveTo(cx - aw, 0); ho.lineTo(cx + aw, 0); ho.lineTo(cx + aw, ah); for (k2 = 1; k2 <= 20; k2++) { var an = k2 / 20 * Math.PI; ho.lineTo(cx + aw * Math.cos(an), ah + aw * Math.sin(an)); } ho.lineTo(cx - aw, 0); sh.holes.push(ho);
+      var face = new THREE.Mesh(new THREE.ShapeGeometry(sh), wallM); face.name = 'TunnelMouth'; face.userData.v8Skip = true;
+      var cs = Math.cos(t0), sn = Math.sin(t0);       // radial plane at angle t0: local x → radial outward, local y → up
+      face.position.set(sg * ri * sn, y0 - 0.3, 36 + ri * cs); face.rotation.order = 'YXZ'; face.rotation.y = Math.atan2(-cs, sg * sn); root.add(face);
+      var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.bronze); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
+      var mid = [sg * rm * sn, y0 + ah, 36 + rm * cs]; arc.position.set(mid[0], mid[1], mid[2]); root.add(arc);
+      [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 1.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
+      console.log('atrium: stair tunnel', sg, pts.length, 'steps');
+    });
+  }
   // Nov 27 (user: stairs not looking right): the kit's glow strips went blown-out white under the shaft lights and the treads read as pale slabs
   function stairLook(g) {
     var cache = {};
@@ -251,17 +291,17 @@
     polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
     // thin light lines round the shaft + a bronze band at each deck
     [[LOW + 0.55, M.teal], [-0.34, M.bronze], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
-    // Nov 27 (user screenshots: stair foot open to the void): an ARCHED partition at x 0 between the two flights' feet, lower deck (z 45.2…16 wall, doorway z 45.9…48.5)
+    // Nov 27 (user sketch IMG_7403: two stair arches left/right + a CENTRE ARCH both paths lead to): the stair feet open into a pocket closed by a wall across x at z 48.0 (x ±3.4, between the two tunnel mouths) with an arched doorway at x 0; the aft ring beyond leads round the core to the lower hall
     (function () {
-      var H = -0.23 - LOW, Z0 = 45.2, Z1 = SH_R + 36 - 0.05, AW = 1.3, ZC = 47.2, AH = 2.6, sh = new THREE.Shape(), k;
-      sh.moveTo(0, 0); sh.lineTo(Z1 - Z0, 0); sh.lineTo(Z1 - Z0, H); sh.lineTo(0, H); sh.lineTo(0, 0);
-      var ho = new THREE.Path(), cz = ZC - Z0; ho.moveTo(cz - AW, 0); ho.lineTo(cz + AW, 0); ho.lineTo(cz + AW, AH);
-      for (k = 1; k <= 24; k++) { var an = k / 24 * Math.PI; ho.lineTo(cz + AW * Math.cos(an), AH + AW * Math.sin(an)); } ho.lineTo(cz - AW, 0); sh.holes.push(ho);
+      var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, AW = 1.3, AH = 2.4, sh = new THREE.Shape(), k;
+      sh.moveTo(0, 0); sh.lineTo(2 * HW, 0); sh.lineTo(2 * HW, H); sh.lineTo(0, H); sh.lineTo(0, 0);
+      var ho = new THREE.Path(); ho.moveTo(HW - AW, 0); ho.lineTo(HW + AW, 0); ho.lineTo(HW + AW, AH);
+      for (k = 1; k <= 24; k++) { var an = k / 24 * Math.PI; ho.lineTo(HW + AW * Math.cos(an), AH + AW * Math.sin(an)); } ho.lineTo(HW - AW, 0); sh.holes.push(ho);
       var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
-      var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.rotation.y = -Math.PI / 2; w.position.set(0, LOW, Z0); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
-      var arc = new THREE.Mesh(new THREE.TorusGeometry(AW + 0.04, 0.05, 6, 28, Math.PI), M.bronze); arc.rotation.y = Math.PI / 2; arc.position.set(0, LOW + AH, ZC); arc.userData.v8Skip = true; root.add(arc);
-      [-1, 1].forEach(function (d) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, AH, 0.1), M.bronze); p.rotation.y = Math.PI / 2; p.position.set(0, LOW + AH / 2, ZC + d * (AW + 0.04)); p.userData.v8Skip = true; root.add(p); });
-      var lt = new THREE.PointLight(0xd8e8ff, 1.4, 7, 1.5); lt.position.set(0, LOW + 2.4, ZC + 0.0); root.add(lt);
+      var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.position.set(-HW, LOW, ZW); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
+      var arc = new THREE.Mesh(new THREE.TorusGeometry(AW + 0.04, 0.05, 6, 28, Math.PI), M.bronze); arc.position.set(0, LOW + AH, ZW); arc.userData.v8Skip = true; root.add(arc);
+      [-1, 1].forEach(function (d) { var p = new THREE.Mesh(new THREE.BoxGeometry(0.14, AH, 0.1), M.bronze); p.position.set(d * (AW + 0.04), LOW + AH / 2, ZW); p.userData.v8Skip = true; root.add(p); });
+      var lt = new THREE.PointLight(0xd8e8ff, 1.5, 7, 1.5); lt.position.set(0, LOW + 2.5, ZW - 1.2); root.add(lt);
     })();
     // lights: white-blue, spread down the shaft (fewer on phones)
     var L = MOB ? [[0, -4.6], [90, -3.2], [180, -4.6], [60, 0.8], [120, 0.8]] : [[0, -4.6], [45, -3.0], [90, -4.6], [135, -3.0], [180, -4.6], [30, 0.8], [90, 0.8], [150, 0.8], [60, -1.6], [120, -1.6]];
@@ -351,7 +391,7 @@
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
-    if (fy < -3 && (x0 > 0) !== (x1 > 0) && z1 > 45.2) { var t3 = (0 - x0) / (x1 - x0), z3 = z0 + (z1 - z0) * t3; if (z3 < 45.9 || z3 > 48.5) return true; }   // arched partition between the flights' feet
+    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; if (Math.abs(x3) > 1.3) return true; }   // centre-arch wall at the stair feet
     return false;
   }
 
@@ -450,7 +490,7 @@
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
       mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
       var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
-      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { if (n === 'Twin_Curved_Stairs') clearDoorRails(g.scene); var m = merge(g.scene, walk); if (n === 'Twin_Curved_Stairs') stairLook(m); root.add(m); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
+      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var railR = null; if (n === 'Twin_Curved_Stairs') { clearDoorRails(g.scene); railR = railRadii(g.scene); } var m = merge(g.scene, walk); if (n === 'Twin_Curved_Stairs') { stairLook(m); } root.add(m); if (railR) { try { buildStairTunnels(root, m, railR); } catch (e) { console.warn('stair tunnel', e); } } if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
       buildDoors(sc, flat);
       // v0.4: exterior effects are confined to the real skylight.
