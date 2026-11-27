@@ -242,6 +242,19 @@
   function deckTabs() { var row = el('div', 'sub', ''); row.style.cssText = 'display:flex;gap:8px;justify-content:center;margin:0 0 6px';
     [['upper', '⬆ UPPER DECK'], ['lower', '⬇ LOWER DECK']].forEach(function (q) { var b = el('button', '', q[1]); b.style.cssText = 'padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);font:700 11px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#fff;background:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.22)' : 'rgba(255,255,255,.06)') + ';border-color:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.7)' : 'rgba(255,255,255,.2)');
       b.onclick = function () { mapDeck = q[0]; render(); }; row.appendChild(b); }); box.appendChild(row); }
+  // Nov 27 (user: the map should reflect where I'm facing): HEADING-UP — the blueprint group turns (and shrinks to stay in frame) so your arrow always points up; upside-down labels flip back
+  var mapAng = null, rotCum = 0;
+  function wrapRot(svg) { var vb = svg.getAttribute('viewBox').split(' ').map(Number), g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('class', 'rot'); while (svg.firstChild) g.appendChild(svg.firstChild); svg.appendChild(g); svg._rot = { g: g, w: vb[2], h: vb[3], cx: vb[0] + vb[2] / 2, cy: vb[1] + vb[3] / 2, cur: null, tgt: 0, k: 1, on: false }; mapAng = null; }
+  function applyRot(svg) {
+    var r = svg._rot; if (!r || mapAng == null) return; var d = (((-mapAng - rotCum) % 360) + 540) % 360 - 180; rotCum += d;
+    var rad = rotCum * Math.PI / 180, c = Math.abs(Math.cos(rad)), sn = Math.abs(Math.sin(rad)), k = Math.min(1, r.w / (r.w * c + r.h * sn), r.h / (r.w * sn + r.h * c));
+    r.tgt = rotCum; r.k = k; if (r.cur === null) r.cur = rotCum;
+    if (!r.on) { r.on = true; (function step() { if (!svg.isConnected) { r.on = false; return; } r.cur += (r.tgt - r.cur) * 0.2; if (Math.abs(r.tgt - r.cur) < 0.05) r.cur = r.tgt;
+      r.g.setAttribute('transform', 'translate(' + r.cx + ' ' + r.cy + ') rotate(' + r.cur.toFixed(2) + ') scale(' + r.k.toFixed(3) + ') translate(' + (-r.cx) + ' ' + (-r.cy) + ')'); requestAnimationFrame(step); }()); }
+    var m = ((rotCum % 360) + 360) % 360, flip = m > 100 && m < 260;
+    Array.prototype.forEach.call(svg.querySelectorAll('text'), function (t) { if (t.__o === undefined) { t.__o = t.getAttribute('transform') || ''; try { var b = t.getBBox(); t.__c = [b.x + b.width / 2, b.y + b.height / 2]; } catch (e) { t.__c = [0, 0]; } }
+      var want = flip ? t.__o + ' rotate(180 ' + t.__c[0].toFixed(1) + ' ' + t.__c[1].toFixed(1) + ')' : t.__o; if (want) t.setAttribute('transform', want); else t.removeAttribute('transform'); });
+  }
   function renderLower() {
     fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (LY) {
       if (!box || tab !== 'map') return;
@@ -261,12 +274,12 @@
       var ta = add('text', { x: 300, y: 505, 'text-anchor': 'middle', fill: '#cfeeff', 'font-size': 8, 'font-weight': 800, transform: 'rotate(-90 300 505)' }); ta.textContent = 'LOWER ATRIUM  ·  stairs ⤴ aft';
       var live = add('g', {});
       box.appendChild(el('p', 'sub', 'Lower deck · tap a room to go there · <span style="color:#ffd27a">┅</span> stairs up · <span style="color:#6ff">▲</span> you'));
-      box.appendChild(svg);
+      box.appendChild(svg); wrapRot(svg);
       function drawLive() { while (live.firstChild) live.removeChild(live.firstChild); var sc = document.querySelector('a-scene'); if (!onLower() || !sc || !sc.camera) return;
         var cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); sc.camera.getWorldPosition(cp); sc.camera.getWorldDirection(cd);
         var p0 = P(cp.x, cp.z), p1 = P(cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
         add('circle', { cx: p0[0], cy: p0[1], r: 11 + 3 * Math.sin(Date.now() / 250), fill: 'rgba(100,255,255,.18)' }, live);
-        add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); }
+        add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); mapAng = ang; applyRot(svg); }
       drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
     }).catch(function () {});
   }
@@ -320,7 +333,7 @@
       // live layer
       var live = add('g', {});
       box.appendChild(el('p', 'sub', 'Live · tap a room to go there · <span style="color:#6ff">▲</span> you · <span style="color:#7fd8ff">●</span> droids · <span style="color:#ffb0e0">●</span> cats · ⚠ faults'));
-      box.appendChild(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
+      box.appendChild(svg); wrapRot(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
       function drawLive() {
         while (live.firstChild) live.removeChild(live.firstChild);
         var L = window.WAYFARER && window.WAYFARER.crewLayout, eng = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine, snap = load('wf-crew', null);
@@ -337,8 +350,9 @@
           var cam = document.querySelector('a-scene').camera, cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); cam.getWorldPosition(cp); cam.getWorldDirection(cd);
           var p0 = mapPt(PAGE, cp.x, cp.z), p1 = mapPt(PAGE, cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
           add('circle', { cx: p0[0], cy: p0[1], r: 11 + 3 * Math.sin(Date.now() / 250), fill: 'rgba(100,255,255,.18)' }, live);
-          add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live);
+          add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); mapAng = ang;
         }
+        applyRot(svg);
         leg.innerHTML = Object.keys(where).map(function (r) { return ROOMS[r].em + ' ' + where[r].join(', '); }).join(' · ');
       }
       drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
