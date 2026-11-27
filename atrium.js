@@ -88,7 +88,7 @@
 
   // ── walls: walnut panels along the hall outline (both decks), with gaps for every door and the open aft end ──
   function wallTex() {
-    var L = window.TEX && window.TEX.library({ lite: MOB }), t = new THREE.TextureLoader().load(L.wall.albedo); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping;
+    var L = window.TEX && window.TEX.library({ lite: MOB, wallOnly: true }), t = new THREE.TextureLoader().load(L.wall.albedo); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping;
     var gl = new THREE.TextureLoader().load(L.wall.glow); gl.colorSpace = THREE.SRGBColorSpace; gl.wrapS = THREE.RepeatWrapping; return { map: t, glow: gl };
   }
   function buildWalls(root, outline) {

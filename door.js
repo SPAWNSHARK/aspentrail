@@ -271,7 +271,7 @@
       if (loaded || !o.img || /[?&]capture/.test(location.search)) return; loaded = true;
       new THREE.TextureLoader().load(o.img, function (t) { t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; pm.uniforms.map.value = t; });
     }
-    setTimeout(loadImg, 1500);
+    setTimeout(loadImg, 9000 + Math.random() * 9000);   // Nov 27: photos wait until the scene is up (open() loads on demand)
 
     // button (rides with the right leaf) and a tap target on the open doorway
     var ent = document.createElement('a-entity');

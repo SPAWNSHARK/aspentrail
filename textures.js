@@ -213,7 +213,7 @@
   // ── Library wall: 768×1000 px = 3.84 m × 5 m. 18 tiles around the room. ──
   // Warm worn bronze plating, riveted panels, amber inlay ribs, blue cornice
   // light-slot, LED pilasters. Returns {albedo, normal, glow}.
-  function libWall() {
+  function libWall(noNormal) {
     var W = 768, H = 1000, R = rng(7);
     var A = mkc(W, H), a = A.getContext('2d');
     var Hc = mkc(W, H), h = Hc.getContext('2d');
@@ -410,7 +410,7 @@
       h.fillRect(R() * W, R() * H, 2, 1);
     }
 
-    return { albedo: A.toDataURL(), normal: normalFromHeight(Hc, 2.6), glow: Gc.toDataURL() };
+    return { albedo: A.toDataURL(), normal: noNormal ? null : normalFromHeight(Hc, 2.6), glow: Gc.toDataURL() };
   }
 
   // ── Library floor tile: 1024² ≈ 2.75 m. 2×2 plates, amber inlay frames. ──
@@ -559,21 +559,17 @@
     return c.toDataURL();
   }
 
-  var _lib = null;
+  var _lib = null, _wall = null;
   function library(opts) {
     if (_lib) return _lib;
+    if (opts && opts.wallOnly) { _wall = _wall || { wall: libWall(true) }; return _wall; }   // Nov 27: the atrium only needs the wall albedo + glow
     var lite = !!(opts && opts.lite);   // phones: skip floor/shelf normal maps (saves ~1 s of canvas work)
     _lib = { wall: libWall(), floor: libFloor(lite), shelf: libBookshelf(lite), wood: libWood() };
     return _lib;
   }
 
-  window.TEX = {
-    metalPanel : metalPanel(),
-    floorGrate : floorGrate(),
-    ceilPanel  : ceilPanel(),
-    starfield  : starfield(),
-    viewport   : viewport(),
-    warnStripe : warnStripe(),
-    library    : library,
-  };
+  // Nov 27: lazy — every page used to paint all of these at load (starfield, panels…) even when it never used them
+  var T = { library: library }, mk = { metalPanel: metalPanel, floorGrate: floorGrate, ceilPanel: ceilPanel, starfield: starfield, viewport: viewport, warnStripe: warnStripe };
+  Object.keys(mk).forEach(function (k) { var v; Object.defineProperty(T, k, { enumerable: true, get: function () { return v || (v = mk[k]()); } }); });
+  window.TEX = T;
 }());
