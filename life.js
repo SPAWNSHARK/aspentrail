@@ -12,7 +12,7 @@
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   var DAY = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);   // local calendar day
-  var PAGE = { '': 'corridor', 'index.html': 'corridor', 'quarters.html': 'quarters', 'medbay.html': 'medbay', 'xeno.html': 'xeno', 'mess.html': 'mess', 'maint.html': 'maint', 'firefly.html': 'firefly', 'engine.html': 'engine', 'bridge.html': 'bridge', 'holodeck.html': 'holodeck', 'lounge.html': 'lounge', 'media.html': 'media',
+  var PAGE = { '': 'corridor', 'index.html': 'corridor', 'quarters.html': 'quarters', 'medbay.html': 'medbay', 'xeno.html': 'xeno', 'mess.html': 'mess', 'maint.html': 'maint', 'firefly.html': 'firefly', 'engine.html': 'engine', 'core.html': 'core', 'bridge.html': 'bridge', 'holodeck.html': 'holodeck', 'lounge.html': 'lounge', 'media.html': 'media',
                'library.html': 'library', 'station.html': 'hiveport', 'minigame.html': 'flight' }[(location.pathname.split('/').pop() || '')] || 'other';
 
   // ── wallet + cargo ──
@@ -174,7 +174,7 @@
     holodeck: { c: [185, 345], m: function (x, z) { return [z, -x]; }, page: 'holodeck.html', name: 'HOLODECK', em: '🎮' },
     lounge:   { c: [416, 345], m: function (x, z) { return [-z, x]; }, page: 'lounge.html', name: 'CREW LOUNGE', em: '🐈' },
     media:    { c: [416, 585], m: function (x, z) { return [-z, x]; }, page: 'media.html', name: 'MEDIA NEXUS', em: '🎬' },
-    library:  { c: [300, 836], m: function (x, z) { return [-x, -z]; }, page: 'index.html?mezz=1', name: 'THE LIBRARY', em: '🧠' },
+    library:  { c: [300, 836], m: function (x, z) { return [-x, -z]; }, page: 'library.html', name: 'THE LIBRARY', em: '🧠' },
     corridor: { c: [300, 500], m: function (x, z) { return [x * 12, (z - 0.9) * 10.5]; }, page: 'index.html', name: 'ATRIUM', em: '🚪' },
     quarters: { c: [300, 500], m: function (x, z) { return [x * 12, (z - 0.9) * 10.5]; }, page: 'quarters.html', name: "CAPTAIN'S QTRS", em: '🎖', nolabel: true }   /* ship coords, like the atrium */
   };
@@ -247,7 +247,7 @@
       Object.keys(LPAGE).forEach(function (k) { var R = LY.rooms[k]; if (!R || !R.polygon) return; var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { close(); location.href = LPAGE[k] + '.html'; });
         add('polygon', { points: pts(R.polygon), fill: FILL, stroke: WALL, 'stroke-width': 2 }, g); var cx = 0, cz = 0; R.polygon.forEach(function (q) { cx += q[0]; cz += q[1]; }); var c = P(cx / R.polygon.length, cz / R.polygon.length);
         var t = add('text', { x: c[0], y: c[1], 'text-anchor': 'middle', fill: '#e6f6ff', 'font-size': 9.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.4, 'paint-order': 'stroke' }, g); t.textContent = LNAME[k]; });
-      var ge = add('g', { class: 'rm' }); ge.addEventListener('click', function () { close(); location.href = 'engine.html'; }); var ec = P(0, 36);
+      var ge = add('g', { class: 'rm' }); ge.addEventListener('click', function () { close(); location.href = 'core.html'; }); var ec = P(0, 36);
       add('ellipse', { cx: ec[0], cy: ec[1], rx: 9.4 * 12.5, ry: 9.4 * 8.7, fill: 'rgba(60,230,200,.08)', stroke: 'rgba(80,240,210,.8)', 'stroke-width': 2 }, ge); add('ellipse', { cx: ec[0], cy: ec[1], rx: 3 * 12.5, ry: 3 * 8.7, fill: 'rgba(60,230,200,.25)' }, ge);
       var te = add('text', { x: ec[0], y: ec[1] + 4, 'text-anchor': 'middle', fill: '#dffff8', 'font-size': 9.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.4, 'paint-order': 'stroke' }, ge); te.textContent = '⚛ ENGINE ROOM';
       [-1, 1].forEach(function (sx) { var d = ''; for (var a = -0.35; a <= 1.16; a += 0.05) { var p = P(sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)); d += (d ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); } add('path', { d: d, fill: 'none', stroke: '#ffd27a', 'stroke-width': 5, 'stroke-dasharray': '2 3' }); });

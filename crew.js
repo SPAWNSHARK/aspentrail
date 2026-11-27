@@ -113,31 +113,7 @@
     N('eng_work', 'corridor', -3.3, -3); E('c_p3', 'eng_work');
     L.stations.push({ id: 'eng_remote', node: 'eng_work', owner: 'eng', type: 'console', yaw: -Math.PI / 2, asset: 'Console_Engineering.glb', placement: { room: 'corridor', x: -4.1, z: -3, yaw: -90 } });
 
-    // ATRIUM CORE (Nov 27): mezzanine ring (r 8.1, y 0) round the brain, two helical stair flights down to the lower ring (r 10.6, y −5.95),
-    // the engineering gallery (r 7.6) round the reactor. Coordinates: x = R sinθ, z = 36 + R cosθ. Stairs profile probed from the kit treads.
-    (function () {
-      var LOWY = -5.95, CZ = 36;
-      function P(id, R, th, y, tag) { N(id, 'corridor', R * Math.sin(th), CZ + R * Math.cos(th)); L.nodes[id].y = y; return id; }
-      function loop(ids) { chain(ids); E(ids[ids.length - 1], ids[0]); }
-      N('mz_gap', 'corridor', 0, 26.2); E('c_ld', 'mz_gap');
-      var mzT = [Math.PI, 2.7, 2.02, 1.4, 0.7, 0, -0.7, -1.4, -2.02, -2.7], mz = mzT.map(function (t, i) { return P('mz' + i, 8.1, t, 0); });
-      loop(mz); E('mz_gap', 'mz0'); spot('mz5', 'explore'); spot('mz3', 'rest'); spot('mz7', 'explore');
-      [[1, 2.02, 2], [-1, -2.02, 8]].forEach(function (S) {
-        var sg = S[0], t0 = S[1], k = sg > 0 ? 'p' : 'q';
-        P('st_d' + k, 10.15, t0, 0); P('st_l' + k, 10.75, sg * 1.95, 0);
-        E('mz' + S[2], 'st_d' + k); E('st_d' + k, 'st_l' + k);
-        var prev = 'st_l' + k;
-        [1.75, 1.5, 1.25, 1.0, 0.78, 0.6, 0.45, 0.32].forEach(function (t, i) {
-          var y = Math.max(LOWY, -0.7 - 4.0 * (1.75 - t)), id = 'st_' + k + i; P(id, 11.35, sg * t, i === 7 ? LOWY : y); E(prev, id); prev = id;
-        });
-        E(prev, 'lr_' + (sg > 0 ? 1 : 9));
-      });
-      var lrT = [0, 0.32, 0.9, 1.6, 2.3, Math.PI, -2.3, -1.6, -0.9, -0.32], lr = lrT.map(function (t, i) { return P('lr_' + i, 10.6, t, LOWY); });
-      loop(lr); spot('lr_0', 'explore'); spot('lr_3', 'rest'); spot('lr_7', 'explore');
-      N('gal_in', 'corridor', 0, 26.6); L.nodes.gal_in.y = LOWY; E('lr_5', 'gal_in');
-      var gal = []; for (var gi = 0; gi < 12; gi++) gal.push(P('gal' + gi, 7.6, Math.PI + gi * Math.PI / 6, LOWY)); loop(gal);
-      E('gal_in', 'gal0'); spot('gal3', 'explore'); spot('gal6', 'explore'); spot('gal9', 'rest');
-    })();
+    // (Nov 27: the atrium core / mezzanine / gallery graph was removed — the core is core.html and the Library is its own page again; crew stays on the upper walkways)
 
     // doorways (corridor door node ⇄ room door node)
     E('c_bd', 'b_door', 'bridge'); E('c_ld', 'li_door', 'library'); E('c_hd', 'h_door', 'holodeck'); E('c_lo', 'l_door', 'lounge'); E('c_me', 'm_door', 'media');

@@ -16,6 +16,8 @@
   // id = existing room page (PORTALS in door.js) or a new room (locked until its page exists)
   var DOORS = [
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
+    { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },   // Nov 27 segmentation: own page again
+    { id: 'core',     name: 'THE CORE',          x: 0,    z: 26.6, rot: 180,  y: LOW, tint: 0x3fe0c8 },   // brain + reactor = core.html
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
     { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
@@ -25,8 +27,8 @@
     { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
     { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
     { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080},
-    { id: 'libstair-starboard', name: 'THE LIBRARY', x: 10.02, z: 37.92, rot: 79,  y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
-    { id: 'libstair-port',      name: 'THE LIBRARY', x: -10.02, z: 37.92, rot: -79, y: 0, tint: 0x4f8cff, wing: 'port' },
+    { id: 'libstair-starboard', name: 'THE LIBRARY', x: 9.195, z: 31.59, rot: 115.7,  y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
+    { id: 'libstair-port',      name: 'THE LIBRARY', x: -9.195, z: 31.59, rot: -115.7, y: 0, tint: 0x4f8cff, wing: 'port' },
     { id: 'lowerhall', name: 'LOWER ATRIUM',     x: 0,    z: 24.9, rot: 180,  y: LOW, tint: 0x6fd0ff, pass: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
   ];
   window.WAYFARER = window.WAYFARER || {}; window.WAYFARER.atriumDoors = DOORS;
@@ -220,7 +222,7 @@
   }
   // glass portholes in the lower core wall (r 9.4, y LOW … −0.23): θ is CylinderGeometry's (from +z toward +x)
   function buildLowerCore(root, cm, HL) {
-    var R = 9.4, h = HL, y0 = LOW, WIN = [[-1.92, -1.58], [-1.42, -1.08], [-0.97, -0.63]], wins = [], k;
+    var R = 9.4, h = HL, y0 = LOW, WIN = [], wins = [], k;
     WIN.forEach(function (w) { wins.push(w); wins.push([-w[1], -w[0]]); }); wins.sort(function (a, b) { return a[0] - b[0]; });
     var cursor = -Math.PI + 0.11, solid = [];
     wins.forEach(function (w) { solid.push([cursor, w[0]]); cursor = w[1]; }); solid.push([cursor, Math.PI - 0.11]);
@@ -396,7 +398,7 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat); buildCore(sc, flat);
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
       var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
       parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var m = merge(g.scene, walk); root.add(m); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
@@ -422,7 +424,6 @@
       else { p.x = 0; p.z = -20; this.floorY = 0; }
       var st = (location.search.match(/[?&]stairs=(port|starboard)/) || [])[1];   // through a Library stairs door: top of that staircase
       if (st) { var side = st === 'port' ? -1 : 1, angle = -0.51; p.x = side * 11.35 * Math.cos(angle); p.z = 36 + 11.35 * Math.sin(angle); this.floorY = 0; yaw = Math.atan2(side * Math.sin(angle), -Math.cos(angle)); if (this.last) { this.last.x = p.x; this.last.z = p.z; } }
-      if (/[?&]mezz=1/.test(location.search)) { p.x = 0; p.z = 28.6; this.floorY = 0; yaw = Math.PI; if (this.last) { this.last.x = p.x; this.last.z = p.z; } }   /* Library link: the mezzanine, facing the brain */
       this.player.object3D.position.y = this.floorY;
       var lc = this.cam.components['look-controls']; if (lc && lc.yawObject) lc.yawObject.rotation.y = yaw;
     },
