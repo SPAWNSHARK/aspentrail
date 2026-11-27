@@ -21,6 +21,6 @@ const BASE = process.env.BASE || 'http://localhost:8765/', OUT = path.join(__dir
   let P = await page('library.html?capture=1');
   await save(P, { x: -10.42, z: -2, rot: 79.1 }, 'wing-starboard.jpg'); await save(P, { x: 10.42, z: -2, rot: -79.1 }, 'wing-port.jpg'); await P.close();
   P = await page('index.html?capture=1');
-  await save(P, { x: 10.02, y: 0, z: 37.92, rot: 79 }, 'lib-stairs-starboard.jpg'); await save(P, { x: -10.02, y: 0, z: 37.92, rot: -79 }, 'lib-stairs-port.jpg'); await P.close();
+  await save(P, { x: 9.195, y: 0, z: 31.59, rot: 115.7 }, 'lib-stairs-starboard.jpg'); await save(P, { x: -9.195, y: 0, z: 31.59, rot: -115.7 }, 'lib-stairs-port.jpg'); await P.close();
   await b.close();
 })();
