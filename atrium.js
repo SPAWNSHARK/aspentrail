@@ -40,6 +40,7 @@
     function std(o) { var m = new THREE.MeshStandardMaterial(o); if (env && o.metalness > 0.2) { m.envMap = env; m.envMapIntensity = o.env || 0.8; } return m; }
     M.copper = std({ color: 0xb8703c, metalness: 0.85, roughness: 0.36 });
     M.bronze = std({ color: 0xc89050, metalness: 0.9, roughness: 0.28, env: 1 });
+    M.gun = std({ color: 0x59626b, metalness: 0.85, roughness: 0.35, env: 0.5 });   // Nov 27: graphite-metal trim (user: no copper tone on stairs/rails)
     M.edge = new THREE.MeshStandardMaterial({ color: 0x2a1a0c, emissive: 0xffa040, emissiveIntensity: 1.6 });
     M.steel = std({ color: 0x2c2622, metalness: 0.55, roughness: 0.5 });
     M.floor = std({ color: 0x17110d, metalness: 0.4, roughness: 0.2, env: 1.2 });
@@ -164,7 +165,7 @@
       [radius+width/2].forEach(function (r) {   /* Nov 27: the inner rail (core-wall side) ran straight across the Library door */
         var pts = []; for (var j=0;j<=12;j++) { var a=a0+(a1-a0)*j/12; pts.push(new THREE.Vector3(side*r*Math.cos(a),1.0,36+r*Math.sin(a))); }
         var curve = new THREE.CatmullRomCurve3(pts);
-        root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,12,0.035,6,false),M.bronze));
+        root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,12,0.035,6,false),M.gun));
         [a0+0.02,a1-0.02].forEach(function(a){var post=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1,6),M.steel);post.position.set(side*r*Math.cos(a),0.5,36+r*Math.sin(a));root.add(post);});
       });
       // Light both approaches, not just the corridor center.
@@ -254,7 +255,7 @@
       var face = new THREE.Mesh(new THREE.ShapeGeometry(sh), wallM); face.name = 'TunnelMouth'; face.userData.v8Skip = true;
       var cs = Math.cos(t0), sn = Math.sin(t0);       // radial plane at angle t0: local x → radial outward, local y → up
       face.position.set(sg * ri * sn, y0 - 0.3, 36 + ri * cs); face.rotation.order = 'YXZ'; face.rotation.y = Math.atan2(-cs, sg * sn); root.add(face);
-      var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.bronze); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
+      var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.gun); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
       var mid = [sg * rm * sn, y0 + ah, 36 + rm * cs]; arc.position.set(mid[0], mid[1], mid[2]); root.add(arc);
       [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 0.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
       console.log('atrium: stair tunnel', sg, pts.length, 'steps', pts[0][0].toFixed(2), pts[pts.length-1][0].toFixed(2), pts[pts.length-1][1].toFixed(2));
@@ -267,7 +268,7 @@
       if (!o.isMesh) return; var src = o.material, k = src.uuid; if (!cache[k]) {
         var m = src.clone();
         if (m.emissive && m.emissive.getHex() > 0) { m.emissive.set(0x7fb8e0); m.emissiveIntensity = 0.55; m.color.set(0x14181c); }          // handrail / edge strips: a soft pale-blue line, not a white bar
-        else if (m.color) { var cu = m.color.r > m.color.b * 1.5 && m.metalness > 0.6 && m.side !== THREE.DoubleSide;   /* walkable (DoubleSide) = treads: graphite */ m.color.set(cu ? 0xa66d43 : 0x262b31); m.map = null; m.metalness = cu ? 0.8 : 0.5; m.roughness = cu ? 0.4 : 0.55; }       /* balusters keep thin copper; treads/risers graphite */       // treads, risers, balusters: darker graphite
+        else if (m.color) { var cu = m.color.r > m.color.b * 1.2 && m.side !== THREE.DoubleSide;   /* walkable (DoubleSide) = treads: graphite */ m.color.set(cu ? 0x59626b : 0x262b31); m.map = null; m.metalness = cu ? 0.8 : 0.5; m.roughness = cu ? 0.4 : 0.55; }       /* balusters keep thin copper; treads/risers graphite */       // treads, risers, balusters: darker graphite
         if (m.envMapIntensity !== undefined) m.envMapIntensity = Math.min(m.envMapIntensity, 0.5);
         cache[k] = m;
       }
@@ -298,7 +299,7 @@
     polyWall(root, pm, [[-2.62, 24.9], [-1.05, 24.9]], LOW, -0.23, 3, 'PartL'); polyWall(root, pm, [[1.05, 24.9], [2.62, 24.9]], LOW, -0.23, 3, 'PartR');
     polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
     // thin light lines round the shaft + a bronze band at each deck
-    [[LOW + 0.55, M.teal], [-0.34, M.bronze], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
+    [[LOW + 0.55, M.teal], [-0.34, M.gun], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
     // Nov 27 (user sketch IMG_7403: two stair arches left/right + a CENTRE ARCH both paths lead to): the stair feet open into a pocket closed by a wall across x at z 48.0 (x ±3.4, between the two tunnel mouths) with an arched doorway at x 0; the aft ring beyond leads round the core to the lower hall
     (function () {
       var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, sh = new THREE.Shape(), k;
