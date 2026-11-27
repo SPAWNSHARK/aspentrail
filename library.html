@@ -27,7 +27,7 @@
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="brain.js?v=20261127s"></script>
   <script src="mobile.js?v=20261127s"></script>
-  <script src="life.js?v=20261127zv"></script>
+  <script src="life.js?v=20261127zzc"></script>
   <script src="manual.js?v=20261127z9"></script>
   <script src="menubar.js?v=20261127zy"></script>
   <script src="ai.js?v=20261127z9"></script>
@@ -713,6 +713,8 @@
         document.querySelector('a-light[type="ambient"]').setAttribute('intensity', 0.5);
       }
       document.getElementById('brain').setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
+      // Nov 27 (user: the brain must be the SAME brain on both decks): same hydrogel green tint as core-room.js
+      setInterval(function () { var o = document.getElementById('brain').object3D; o.traverse(function (m) { if (m.isMesh && m.material && m.material.vertexColors) { m.material.color.set(0x5fa87a); if (m.material.sheenColor) m.material.sheenColor.set(0x70ffb0); m.material.envMapIntensity = 0.35; } }); }, 1000);
 
       // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
       const walls = document.getElementById('lib-walls');

@@ -50,7 +50,25 @@
     // outer wall (θ from +z: the doorway gap faces +z), light bands, ceiling
     var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 6, true, 0.11, Math.PI * 2 - 0.22), dark); wall.position.y = WH / 2; g.add(wall);
     [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, 0.11, Math.PI * 2 - 0.22), k % 2 ? bronze : (k === 0 ? teal : white)); b.position.y = y; g.add(b); });
-    var ce = new THREE.Mesh(new THREE.CircleGeometry(WR, MOB ? 72 : 128), steel); ce.rotation.x = Math.PI / 2; ce.position.y = WH; g.add(ce);
+    // Nov 27 (user: the lower deck should have a glass viewing area up into the Library): solid centre disc round the chamber, glass annulus out to the wall, the Library (shelves, dome, lamps) visible above
+    var ce = new THREE.Mesh(new THREE.CircleGeometry(CR + 0.6, MOB ? 48 : 96), steel); ce.rotation.x = Math.PI / 2; ce.position.y = WH; g.add(ce);
+    (function () {
+      var seg = MOB ? 72 : 128, gm = new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false });
+      var gl = new THREE.Mesh(new THREE.RingGeometry(CR + 0.6, WR, seg, 4), gm); gl.rotation.x = Math.PI / 2; gl.position.y = WH; gl.userData.v8Skip = true; g.add(gl);
+      var k; for (k = 0; k < 12; k++) { var a = k / 12 * Math.PI * 2, sp = new THREE.Mesh(new THREE.BoxGeometry(WR - CR - 0.6, 0.08, 0.14), steel); sp.position.set(Math.cos(a) * (CR + 0.6 + WR) / 2, WH, Math.sin(a) * (CR + 0.6 + WR) / 2); sp.rotation.y = -a; g.add(sp); }
+      ring(WR - 0.1, WH, 0.1, steel);
+      var UH = 5.4, UY = WH + 0.15;                               // the Library above: shelved wall, dome, lamps
+      var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256; var cx = cv.getContext('2d'); cx.fillStyle = '#1a2128'; cx.fillRect(0, 0, 1024, 256);
+      var pal = ['#8a3b3b', '#3b5f8a', '#4f7a54', '#8a7a3b', '#6b4f8a', '#b8b0a0', '#3b7f86'], sh, x2, r2 = 7;
+      for (sh = 0; sh < 5; sh++) { var by = 18 + sh * 48; cx.fillStyle = '#0c1014'; cx.fillRect(0, by + 38, 1024, 6); x2 = 0; while (x2 < 1024) { var w = 6 + (r2 = (r2 * 9301 + 49297) % 233280) / 233280 * 10, h = 24 + (r2 % 14); cx.fillStyle = pal[r2 % pal.length]; cx.fillRect(x2, by + 38 - h, w, h); x2 += w + 1; } }
+      for (x2 = 0; x2 < 1024; x2 += 128) { cx.fillStyle = '#58626c'; cx.fillRect(x2, 0, 5, 256); }
+      var tx = new THREE.CanvasTexture(cv); tx.wrapS = THREE.RepeatWrapping; tx.repeat.set(2, 1);
+      var lw = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.2, WR - 0.2, UH, seg, 1, true), new THREE.MeshBasicMaterial({ map: tx, side: THREE.BackSide, color: 0xb8c4d0 })); lw.position.y = UY + UH / 2; lw.userData.v8Skip = true; g.add(lw);
+      var dc = document.createElement('canvas'); dc.width = dc.height = 256; var dx = dc.getContext('2d'); dx.fillStyle = '#0a1424'; dx.fillRect(0, 0, 256, 256); for (k = 0; k < 160; k++) { dx.fillStyle = 'rgba(255,255,255,' + (0.3 + Math.random() * 0.7) + ')'; dx.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5); }
+      var dm = new THREE.Mesh(new THREE.SphereGeometry(WR - 0.2, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2.4), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(dc), side: THREE.BackSide })); dm.position.y = UY + UH; dm.scale.y = 0.55; dm.userData.v8Skip = true; g.add(dm);
+      var rl = new THREE.Mesh(new THREE.TorusGeometry(8.2, 0.07, 6, seg), new THREE.MeshBasicMaterial({ color: 0xeaf4ff })); rl.rotation.x = Math.PI / 2; rl.position.y = UY + UH - 0.2; g.add(rl);
+      var ul = new THREE.PointLight(0xd8e8ff, 1.2, 18, 1.6); ul.position.set(0, UY + 3, 0); g.add(ul);
+    })();
     ring(8.4, WH - 0.1, 0.07, white); ring(CR + 0.5, WH - 0.1, 0.06, teal);
     [[0, 8, 0x2dff7a, 2.2, 9, 5.5], [0, -2.5, 0x3fb8ff, 5, 12, 0], [7.4, 2.6, 0xd8e8ff, 4, 13, 0], [-7.4, 2.6, 0xd8e8ff, 4, 13, 0], [0, 2.6, 7.4, 0xd8e8ff, 4, 13, 0], [0, 2.6, -7.4, 0xd8e8ff, 4, 13, 0]];
     var LT = [[0, 5.5, 0, 0x2dff7a, 2.6, 10], [0, 3.0, 0, 0x2dffa0, 1.8, 9], [0, -2.8, 0, 0x3fb8ff, 5, 12], [7.4, 2.4, 0, 0xd8e8ff, 4, 14], [-7.4, 2.4, 0, 0xd8e8ff, 4, 14], [0, 2.4, 7.4, 0xd8e8ff, 4, 14], [0, 2.4, -7.4, 0xd8e8ff, 4, 14]];
