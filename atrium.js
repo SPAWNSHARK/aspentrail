@@ -238,10 +238,10 @@
         var mm = new THREE.Mesh(g, mat); mm.name = name; mm.userData.v8Skip = true; root.add(mm); return mm;
       }
       // Nov 27 (user: "should feel like a stairwell, you shouldn't see around it"): the tunnel runs on over the top landing, a closed vestibule in front of the Library door (end cap at θ TE; core wall = inner side, gap kept at the door)
-      var TE = 2.3, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]);
+      var TE = 2.3, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]); if (land[land.length - 1][0] < TE - 1e-6) land.push([TE, LY]);
       var all = pts.concat(land), innerA = pts.filter(function (q) { return q[0] <= 1.9; }), innerB = land.filter(function (q) { return q[0] >= 2.14; });
-      strip(ri, -0.3, ri, HT, wallM, 'TunnelInner', innerA); if (innerB.length > 1) strip(ri, -0.3, ri, HT, wallM, 'TunnelInnerL', innerB);
-      strip(ro, -0.3, ro, HT, wallM, 'TunnelOuter', all); strip(ri, HT, ro, HT, wallM, 'TunnelRoof', all);
+      strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInner', innerA); if (innerB.length > 1) strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInnerL', innerB);
+      strip(ro, -0.3, ro, HT + 0.06, wallM, 'TunnelOuter', all); strip(ri - 0.06, HT, ro + 0.06, HT, wallM, 'TunnelRoof', all);
       strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI', innerA); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO', all);
       (function () { var cw = new THREE.Mesh(new THREE.PlaneGeometry(ro - ri, HT + 0.3), wallM), cc = Math.cos(TE), sc2 = Math.sin(TE); cw.name = 'TunnelCap'; cw.userData.v8Skip = true;
         cw.position.set(sg * (ri + ro) / 2 * sc2, LY - 0.3 + (HT + 0.3) / 2, 36 + (ri + ro) / 2 * cc); cw.rotation.y = Math.atan2(-cc, sg * sc2) + Math.PI; root.add(cw);
