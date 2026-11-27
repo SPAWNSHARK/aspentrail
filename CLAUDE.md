@@ -517,6 +517,9 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
 - [ ] STEP 4: exterior jaw (Wayfarer_Exterior_Mobile_Animated_Jaw.glb) + Firefly launch (Triangular_Jaw_Dock, Firefly_Pathfinder_WF01).
 - [ ] Lower deck on the ship-log map; crew using the lower deck; tank see-through to the Engine Room.
 
+- [x] ICON v3 + SHARE IMAGE (Nov 27): reference/app-icon-source-v3.png → icons/ (cropped 7.5 % inset) linked ?v=3; Home Screen title 'SS WAYFARER' (manifest name/short_name + apple-mobile-web-app-title); share image reference/share-image-source-v2.png → images/wayfarer-share.jpg 1200×630 (og:image ?v=3). Simplified art = icon/favicon, detailed art = link previews.
+- [ ] SEGMENT ATRIUM (user, Nov 27: loading screen too heavy): chosen plan = Library back to its own page (library.html redirect removed + atrium 'library' door at (0,25.8)) AND brain/reactor core into its own Core Room page; atrium keeps hall/stairs/doors. NOT started (only inspected atrium.js).
+
 ## BIG ROADMAP (user, Nov 26 — second wish list; supersedes batch 9 "quarters/galley behind the Library wing doors")
 Record of everything asked for; tick items off as they ship.
 - [x] MENU BAR iOS-style (`menubar.js`, loaded last on every #wf-btns page): clock + 💰 credits top-left; 📍 map (Google-pin) · 📋 log · 🧠 Halcyon · 📖 manual · 🔊 sound · ⚙️ settings drop-down (#wf-set: 🥽 VR/gyro, 📐 level, 👤 1st/3rd — the original mobile.js / avatar.js buttons moved in); re-dresses every 700 ms
