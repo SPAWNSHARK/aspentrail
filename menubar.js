@@ -9,8 +9,8 @@
 (function () {
   var css = document.createElement('style');
   css.textContent =
-    'html,body{position:fixed!important;top:0;left:0;right:0;bottom:0;width:100%!important;height:100%!important;overflow:hidden;background:#000}' +
-    'a-scene,a-scene .a-canvas,a-scene canvas.a-canvas{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important}' +
+    'html,body{position:fixed!important;top:0;left:0;right:0;bottom:0;width:100%!important;height:var(--wf-h,100%)!important;min-height:var(--wf-h,100%)!important;overflow:hidden;background:#000}' +
+    'a-scene,a-scene .a-canvas,a-scene canvas.a-canvas{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:var(--wf-h,100%)!important}' +
     '#wf-btns{justify-content:flex-end!important;gap:6px!important;box-sizing:border-box!important;height:calc(62px + env(safe-area-inset-top,0px))!important;padding-top:calc(env(safe-area-inset-top,0px) + 16px)!important;' +
       'background:linear-gradient(180deg,rgba(5,8,20,.97),rgba(10,16,34,.92))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background-color:#070b1c!important;border-bottom:1px solid rgba(77,227,255,.30)!important;box-shadow:0 1px 14px rgba(60,140,255,.18)!important;' +
       'padding-left:calc(14px + env(safe-area-inset-left,0px))!important;padding-right:calc(8px + env(safe-area-inset-right,0px))!important}' +
@@ -31,6 +31,18 @@
     '#wf-set b svg.raw{display:none!important}#wf-set b .lb{flex:1}#wf-set b .st{color:#7fe8ff;font-size:12px}#wf-set b:active,#wf-set b.on{background:rgba(77,227,255,.14)!important}' +
     '#wf-set .t{font:800 10.5px -apple-system,system-ui,sans-serif;letter-spacing:2.5px;color:#7fa8d8;padding:4px 12px 6px}';
   document.head.appendChild(css);
+  // Standalone (Home Screen app) fix, Nov 27: iOS reports a layout viewport ~44 pt shorter than the screen, leaving a black band under the
+  // scene even with position:fixed 100%. Measure the real screen height and size everything in px.
+  function fitH() {
+    var sa = !!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches));
+    if (!sa) { document.documentElement.style.removeProperty('--wf-h'); return; }
+    var p = Math.abs(window.orientation) === 90 || innerWidth > innerHeight;
+    var sh = p ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+    var h = Math.max(innerHeight, sh);
+    document.documentElement.style.setProperty('--wf-h', h + 'px');
+  }
+  fitH(); addEventListener('resize', fitH); addEventListener('orientationchange', function () { setTimeout(fitH, 300); });
+
 
   // HUD line icons (24×24, stroke only) + each one's neon accent — space / digital / VR theme
   var ICONS = {
