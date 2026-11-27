@@ -36,7 +36,7 @@
   var ICONS = {
     map:    ['#4de3ff', '<path d="M12 21.5s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10.5" r="2.3"/>'],
     log:    ['#8aa4ff', '<rect x="5.5" y="4" width="13" height="17" rx="2.2"/><path d="M9.5 4V2.8h5V4M8.8 9.5h6.4M8.8 13h6.4M8.8 16.5h3.6"/>'],
-    ai:     ['#c58bff', '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><circle cx="12" cy="12" r="2.4"/><path d="M12 9.6V3M14.1 13.2l5.7 3.3M9.9 13.2l-5.7 3.3"/>'],
+    ai:     ['#c58bff', '<path d="M12 5.4v14.2"/><path d="M12 6c-1-1.8-3.8-2.2-5-.6-1.7-.2-3 1.3-2.6 2.9-1.4.9-1.4 3 0 4-.6 1.7.6 3.4 2.3 3.4.5 1.6 2.4 2.4 3.9 1.6"/><path d="M12 6c1-1.8 3.8-2.2 5-.6 1.7-.2 3 1.3 2.6 2.9 1.4.9 1.4 3 0 4 .6 1.7-.6 3.4-2.3 3.4-.5 1.6-2.4 2.4-3.9 1.6"/><path d="M8.2 10.4c1 0 1.9.5 2.1 1.6M15.8 10.4c-1 0-1.9.5-2.1 1.6M8.6 15c.8-.3 1.6 0 2 .7M15.4 15c-.8-.3-1.6 0-2 .7"/>'],
     manual: ['#6ff0c4', '<path d="M12 6.8C10 5.2 7 4.8 4.2 5.2v12.3c2.8-.4 5.8 0 7.8 1.6 2-1.6 5-2 7.8-1.6V5.2C17 4.8 14 5.2 12 6.8z"/><path d="M12 6.8v12.3"/>'],
     sound:  ['#4de3ff', '<path d="M4 9.6h3.2L12 5.8v12.4l-4.8-3.8H4z"/><path d="M15.2 9.2a4 4 0 0 1 0 5.6M17.8 6.6a7.6 7.6 0 0 1 0 10.8"/>'],
     mute:   ['#ff6f9a', '<path d="M4 9.6h3.2L12 5.8v12.4l-4.8-3.8H4z"/><path d="M15.6 9.6l5 4.8M20.6 9.6l-5 4.8"/>'],
@@ -79,7 +79,6 @@
     // re-dress the existing ones
     var log = row.querySelector('.wf-logbtn'); if (log && !log.querySelector('.em')) { log.innerHTML = em('log') + '<i></i>'; }
     var ai = row.querySelector('.wf-aibtn'); if (ai && !ai.querySelector('.em')) ai.innerHTML = em('ai');
-    var snd = document.querySelector('.wf-snd'); if (snd) { var want = em(window.WF_SOUND && WF_SOUND.muted() ? 'mute' : 'sound'); if (snd.innerHTML !== want) snd.innerHTML = want; if (snd.parentNode !== row) row.appendChild(snd); }
     // into the drop-down: Gyro (VR), Level, View
     [['[aria-label="Gyro"]', 'vr', 'VR / gyro look', function (b) { return b.classList.contains('sel') || b.classList.contains('on') ? 'on' : 'off'; }],
      ['[aria-label="Level"]', 'level', 'Level the view', null],
@@ -89,8 +88,11 @@
       var st = q[3] ? q[3](b) : '', html = em(q[1]) + '<span class="lb">' + q[2] + '</span><span class="st">' + st + '</span>';
       if (b.getAttribute('data-h') !== html) { b.innerHTML = html; b.setAttribute('data-h', html); }
     });
-    // order on the bar: map · log · Halcyon · manual · sound · settings (spread out)
-    ['.wf-mapbtn', '.wf-logbtn', '.wf-aibtn', '.wf-manbtn', '.wf-snd'].forEach(function (sel) { var b = row.querySelector(sel); if (b) row.appendChild(b); });
+    var sn = document.querySelector('.wf-snd'); if (sn) { var mu = !!(window.WF_SOUND && WF_SOUND.muted()), sh = em(mu ? 'mute' : 'sound') + '<span class="lb">Sound</span><span class="st">' + (mu ? 'off' : 'on') + '</span>';
+      if (sn.parentNode !== set) { set.insertBefore(sn, set.children[1] || null); sn.style.cssText = ''; }
+      if (sn.getAttribute('data-h') !== sh) { sn.innerHTML = sh; sn.setAttribute('data-h', sh); } }
+    // order on the bar: map · log · Halcyon (brain) · manual · settings (sound lives in settings) (spread out)
+    ['.wf-mapbtn', '.wf-logbtn', '.wf-aibtn', '.wf-manbtn'].forEach(function (sel) { var b = row.querySelector(sel); if (b) row.appendChild(b); });
     row.appendChild(gear);
     return true;
   }
