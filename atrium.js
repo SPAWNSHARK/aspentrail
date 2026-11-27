@@ -169,7 +169,7 @@
       });
       // Light both approaches, not just the corridor center.
       [0, LOW].forEach(function (y) {
-        var l = new THREE.PointLight(0xffc78a, 3.5, 12, 1.8);
+        var l = new THREE.PointLight(0xffc78a, 0.8, 12, 1.8);
         l.position.set(side * 11.35, y + 2.5, 36); root.add(l);
       });
     });
@@ -221,7 +221,7 @@
   function buildStairTunnels(root, stairMesh, rr) {
     root.updateMatrixWorld(true);
     var ri = rr[0] - 0.12, ro = rr[1] + 0.12, rm = (rr[0] + rr[1]) / 2, HT = 2.9, STEP = 0.035, rc = new THREE.Raycaster(), dn = new THREE.Vector3(0, -1, 0), o3 = new THREE.Vector3();
-    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x2a2e33); wallM.emissive = new THREE.Color(0x10161c); wallM.roughness = 0.7; wallM.envMapIntensity = 0.3;
+    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x1b1f24); wallM.emissive = new THREE.Color(0x070a0d); wallM.roughness = 0.95; wallM.metalness = 0.1; wallM.envMapIntensity = 0.05;
     var lineM = new THREE.MeshBasicMaterial({ color: 0xa9d2f0, fog: false, side: THREE.DoubleSide });
     [1, -1].forEach(function (sg) {
       var pts = [], t;
@@ -230,6 +230,7 @@
         if (!h) { if (pts.length) break; else continue; } var y = h.point.y; if (y > 0.12) break; pts.push([t, y]);
       }
       if (pts.length < 6) { console.warn('stair tunnel: probe failed', sg, pts.length); return; }
+      (function () { var raw = pts.map(function (q) { return q[1]; }), W2 = 5; pts.forEach(function (q, i) { var a = 0, n = 0, j; for (j = Math.max(0, i - W2); j <= Math.min(raw.length - 1, i + W2); j++) { a += raw[j]; n++; } q[1] = a / n; }); })();   /* smooth the step profile: walls, roof and light lines follow the slope, not each tread */
       function P(r, k, arr) { var t = (arr || pts)[k][0]; return [sg * r * Math.sin(t), 36 + r * Math.cos(t)]; }
       function strip(rA, yA, rB, yB, mat, name, arr) {                 // ribbon between two radius/height offsets along the flight
         arr = arr || pts; var pos = [], idx = [], k; for (k = 0; k < arr.length; k++) { var a = P(rA, k, arr), b = P(rB, k, arr); pos.push(a[0], arr[k][1] + yA, a[1], b[0], arr[k][1] + yB, b[1]); }
@@ -245,7 +246,7 @@
       strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI', innerA); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO', all);
       (function () { var cw = new THREE.Mesh(new THREE.PlaneGeometry(ro - ri, HT + 0.3), wallM), cc = Math.cos(TE), sc2 = Math.sin(TE); cw.name = 'TunnelCap'; cw.userData.v8Skip = true;
         cw.position.set(sg * (ri + ro) / 2 * sc2, LY - 0.3 + (HT + 0.3) / 2, 36 + (ri + ro) / 2 * cc); cw.rotation.y = Math.atan2(-cc, sg * sc2) + Math.PI; root.add(cw);
-        var ll = new THREE.PointLight(0xd8e8ff, 1.4, 6, 1.6); ll.position.set(sg * rm * Math.sin(2.12), LY + 2.2, 36 + rm * Math.cos(2.12)); root.add(ll); })();   // pale-blue light line along the top of each wall
+        var ll = new THREE.PointLight(0xd8e8ff, 0.35, 6, 1.6); ll.position.set(sg * rm * Math.sin(2.12), LY + 2.2, 36 + rm * Math.cos(2.12)); root.add(ll); })();   // pale-blue light line along the top of each wall
       // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
       var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
       sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
@@ -255,7 +256,7 @@
       face.position.set(sg * ri * sn, y0 - 0.3, 36 + ri * cs); face.rotation.order = 'YXZ'; face.rotation.y = Math.atan2(-cs, sg * sn); root.add(face);
       var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.bronze); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
       var mid = [sg * rm * sn, y0 + ah, 36 + rm * cs]; arc.position.set(mid[0], mid[1], mid[2]); root.add(arc);
-      [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 1.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
+      [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 0.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
       console.log('atrium: stair tunnel', sg, pts.length, 'steps', pts[0][0].toFixed(2), pts[pts.length-1][0].toFixed(2), pts[pts.length-1][1].toFixed(2));
     });
   }
@@ -308,9 +309,9 @@
     })();
     // lights: white-blue, spread down the shaft (fewer on phones)
     var L = MOB ? [[0, -4.6], [90, -3.2], [180, -4.6], [60, 0.8], [120, 0.8]] : [[0, -4.6], [45, -3.0], [90, -4.6], [135, -3.0], [180, -4.6], [30, 0.8], [90, 0.8], [150, 0.8], [60, -1.6], [120, -1.6]];
-    L.forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 2.2, 13, 1.5); l.position.set(12.9 * Math.cos(a), q[1], 36 + 12.9 * Math.sin(a)); root.add(l); });
-    [-1, 1].forEach(function (d) { var ll = new THREE.PointLight(0xd8e8ff, 1.6, 8, 1.5); ll.position.set(d * 9.9, 1.9, 30.2); root.add(ll); });   // upper landings: the Library wall beside the door read black
-    var mid = new THREE.PointLight(0xd8e8ff, 1.8, 14, 1.5); mid.position.set(0, -2.8, 44.5); root.add(mid);       // base of the stairs, between the two flights
+    L.forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 0.8, 13, 1.5); l.position.set(12.9 * Math.cos(a), q[1], 36 + 12.9 * Math.sin(a)); root.add(l); });
+    [-1, 1].forEach(function (d) { var ll = new THREE.PointLight(0xd8e8ff, 0.6, 8, 1.5); ll.position.set(d * 9.9, 1.9, 30.2); root.add(ll); });   // upper landings: the Library wall beside the door read black
+    var mid = new THREE.PointLight(0xd8e8ff, 0.8, 14, 1.5); mid.position.set(0, -2.8, 44.5); root.add(mid);       // base of the stairs, between the two flights
   }
   // glass portholes in the lower core wall (r 9.4, y LOW … −0.23): θ is CylinderGeometry's (from +z toward +x)
   function buildLowerCore(root, cm, HL) {
@@ -451,7 +452,7 @@
   function buildLights(root) {
     root.add(new THREE.HemisphereLight(0xffd8b0, 0x1a0e06, 0.35));
     var L = MOB ? [[0, 2.6, -12], [0, 2.6, 12], [0, -3.4, -10], [0, -3.4, 10]] : [[0, 2.6, -16], [0, 2.6, 0], [0, 2.6, 16], [0, -3.4, -14], [0, -3.4, 0], [0, -3.4, 14], [-10, 2.4, 32], [10, -3.4, 40]];
-    L.forEach(function (p) { var l = new THREE.PointLight(0xffb060, 6, 18, 1.8); l.position.set(p[0], p[1], p[2]); root.add(l); });
+    L.forEach(function (p) { var l = new THREE.PointLight(0xffb060, (p[0] === 0 ? 6 : 1.2), 18, 1.8); l.position.set(p[0], p[1], p[2]); root.add(l); });
   }
 
   // ── doors (shared door.js) ──
