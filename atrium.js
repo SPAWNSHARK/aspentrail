@@ -223,7 +223,7 @@
   function buildStairTunnels(root, stairMesh, rr) {
     root.updateMatrixWorld(true);
     var ri = rr[0] - 0.12, ro = rr[1] + 0.12, rm = (rr[0] + rr[1]) / 2, HT = 2.9, STEP = 0.035, rc = new THREE.Raycaster(), dn = new THREE.Vector3(0, -1, 0), o3 = new THREE.Vector3();
-    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x1b1f24); wallM.emissive = new THREE.Color(0x070a0d); wallM.roughness = 0.95; wallM.metalness = 0.1; wallM.envMapIntensity = 0.05;
+    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x1b1f24); wallM.emissive = new THREE.Color(0x10161c); wallM.roughness = 0.95; wallM.metalness = 0.1; wallM.envMapIntensity = 0.05;
     var lineM = new THREE.MeshBasicMaterial({ color: 0xa9d2f0, fog: false, side: THREE.DoubleSide });
     [1, -1].forEach(function (sg) {
       var pts = [], t;
@@ -560,10 +560,28 @@
       this.player.object3D.position.y = this.floorY;
       var lc = this.cam.components['look-controls']; if (lc && lc.yawObject) lc.yawObject.rotation.y = yaw;
     },
+    // Nov 28 (user: walking down the stairs lags): the atrium had 41 real-time point lights (every fragment pays for each). They are now "virtual":
+    // a pool of POOL real lights is re-assigned every 0.25 s to the virtual lights nearest the player (count stays constant = no shader recompiles).
+    lightPool: function (t, camP) {
+      if (t - (this._lpT || 0) < 250) return; this._lpT = t;
+      var self = this, sc = this.el.sceneEl.object3D, POOL = window.WAYFARER && window.WAYFARER.mobile ? 6 : 10;
+      if (!this._pool) {
+        var found = []; sc.traverse(function (o) { if (o.isPointLight) found.push(o); });
+        if (found.length < POOL + 2) return;                      /* wait until the scene's lights exist */
+        this._virt = []; this._pool = [];
+        found.forEach(function (l) { l.updateMatrixWorld(true); var w = new THREE.Vector3(); l.getWorldPosition(w); self._virt.push({ p: w, c: l.color.clone(), i: l.intensity, d: l.distance, k: l.decay }); if (l.parent) l.parent.remove(l); });
+        for (var q = 0; q < POOL; q++) { var pl = new THREE.PointLight(0xffffff, 0, 10, 1.6); pl.userData.wfPool = true; sc.add(pl); this._pool.push(pl); }
+        console.log('atrium: light pool', found.length, '->', POOL);
+      }
+      var wp = new THREE.Vector3(); this.cam.object3D.getWorldPosition(wp);
+      var sc2 = this._virt.map(function (v) { return { v: v, s: v.p.distanceTo(wp) / Math.max(v.d || 8, 4) - v.i * 0.02 }; }).sort(function (a, b) { return a.s - b.s; });
+      this._pool.forEach(function (pl, k) { var v = sc2[k].v; pl.position.copy(v.p); pl.color.copy(v.c); pl.intensity = v.i; pl.distance = v.d; pl.decay = v.k; });
+    },
     tick: function (t, dt) {
       var p = this.cam.object3D.position, s = Math.min(dt, 60) / 1000, wp = new THREE.Vector3();
       if (this.hyper) this.hyper.update(t / 1000); if (plasma) plasma.uniforms.t.value = t / 1000;
       if(!this.walkReady){if(this.loadingPosition)p.copy(this.loadingPosition);return;}
+      this.lightPool(t, p);
       if (this.walkReady && !window.WAYFARER.frozen) {
         if (!this.last) this.last = { x: p.x, z: p.z };
         var moved = Math.abs(p.x - this.last.x) + Math.abs(p.z - this.last.z) > 1e-5;
