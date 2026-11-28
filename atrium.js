@@ -137,44 +137,67 @@
       var sill = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 34), M.bronze); sill.position.set(s * 4.54, y0 + 0.9, 0.75); root.add(sill); }); });
   }
 
-  // V0.4 — physical landing extensions in the kit's measured stair coordinate system.
-  // Both treads and new landings participate in the same walking raycast.
-  function buildStairLandings(root) {
-    [-1, 1].forEach(function (side) {
-      var vertices = [], indices = [], radius = 11.35, width = 1.8;
-      var a0 = -0.56, a1 = -0.345, steps = 16;
-      for (var i = 0; i <= steps; i++) {
-        var a = a0 + (a1 - a0) * i / steps;
-        [radius - width / 2, radius + width / 2].forEach(function (r) {
-          vertices.push(side * r * Math.cos(a), 0, 36 + r * Math.sin(a));
-        });
-        if (i < steps) { var k = 2 * i; indices.push(k, k+1, k+2, k+1, k+3, k+2); }
+  // ── Nov 28 REBUILD (user: "just a plain ass stairwell"): ONE wide flight per side, wall to wall (Library wall r 10.2 -> shaft wall r 16),
+  // open to the tall lit shaft, no tunnel / kit rails / foyer arches. Same footprint as before (foot θ 0.41, top θ 1.92, landing to 2.18) so
+  // the map routes, spawns and Library stair doors still line up. Treads/risers = 34 plain steps of 17.5 cm; a flat landing in front of the Library door.
+  var ST_T0 = 0.41, ST_T1 = 1.92, ST_TE = 2.18, ST_N = 34, ST_RI = 10.2, ST_RO = 16.05;
+  function buildStairs(root) {
+    var rise = -LOW / ST_N, d = (ST_T1 - ST_T0) / ST_N;
+    var topM = M.steel.clone(); topM.side = THREE.DoubleSide; topM.color.set(0x4a525a); topM.roughness = 0.6; topM.metalness = 0.3; topM.emissive = new THREE.Color(0x141a20); topM.envMapIntensity = 0.3;
+    var risM = topM.clone(); risM.color.set(0x2c3238); risM.emissive = new THREE.Color(0x0a0e12);
+    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x2a2f35); wallM.roughness = 0.85; wallM.metalness = 0.1; wallM.emissive = new THREE.Color(0x0e1216); wallM.envMapIntensity = 0.1;
+    var glowM = new THREE.MeshBasicMaterial({ color: 0x8fb8d8, fog: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    var lineM = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false, side: THREE.DoubleSide });
+    var railM = new THREE.MeshStandardMaterial({ color: 0x59626b, metalness: 0.85, roughness: 0.35 });
+    var flrM = M.floor.clone(); flrM.side = THREE.DoubleSide; flrM.polygonOffset = true; flrM.polygonOffsetFactor = -2; flrM.polygonOffsetUnits = -2;
+    function mk(P, I, mat, name, isWalk) {
+      var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex(I); g.computeVertexNormals();
+      var m = new THREE.Mesh(g, mat); m.name = name; m.userData.v8Skip = true; root.add(m); if (isWalk) walk.push(m); return m;
+    }
+    function sector(sg, r0, r1, t0, t1, y, nr, nt, mat, name, w) {
+      var P = [], I = [], i, j;
+      for (i = 0; i <= nr; i++) for (j = 0; j <= nt; j++) { var r = r0 + (r1 - r0) * i / nr, t = t0 + (t1 - t0) * j / nt; P.push(sg * r * Math.sin(t), y, 36 + r * Math.cos(t)); }
+      for (i = 0; i < nr; i++) for (j = 0; j < nt; j++) { var a = i * (nt + 1) + j, c = a + nt + 1; I.push(a, a + 1, c + 1, a, c + 1, c); }
+      return mk(P, I, mat, name, w);
+    }
+    function yLine(t) { return t >= ST_T1 ? 0.03 : Math.min(0, LOW + rise + (t - ST_T0) / d * rise); }   // height of the tread nosings along the flight
+    function ribbon(sg, r, yFn, h, t0, t1, n, mat, name) {
+      var P = [], I = [], j; for (j = 0; j <= n; j++) { var t = t0 + (t1 - t0) * j / n, y = yFn(t), x = sg * r * Math.sin(t), z = 36 + r * Math.cos(t); P.push(x, y, z, x, y + h, z); if (j < n) { var q = j * 2; I.push(q, q + 1, q + 3, q, q + 3, q + 2); } }
+      return mk(P, I, mat, name, false);
+    }
+    function rail(sg, r, t0, t1, name) {
+      var pts = [], n = Math.max(6, Math.ceil((t1 - t0) / 0.07)), j; for (j = 0; j <= n; j++) { var t = t0 + (t1 - t0) * j / n; pts.push(new THREE.Vector3(sg * r * Math.sin(t), yLine(t) + 0.92, 36 + r * Math.cos(t))); }
+      var tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), n * 2, 0.03, 6, false), railM); tube.name = name; tube.userData.v8Skip = true; root.add(tube);
+    }
+    function radial(sg, r0, r1, t, y0, y1, mat, name) {
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(r1 - r0, y1 - y0), mat), rm = (r0 + r1) / 2, cs = Math.cos(t), sn = Math.sin(t);
+      m.position.set(sg * rm * sn, (y0 + y1) / 2, 36 + rm * cs); m.rotation.y = Math.atan2(-cs, sg * sn); m.name = name; m.userData.v8Skip = true; root.add(m);
+    }
+    function quad(P, I, p0, p1, p2, p3) { var v = P.length / 3; [p0, p1, p2, p3].forEach(function (p) { P.push(p[0], p[1], p[2]); }); I.push(v, v + 1, v + 2, v, v + 2, v + 3); }
+    [1, -1].forEach(function (sg) {
+      var tp = [], ti = [], rp = [], ri = [], np = [], ni = [], k;
+      function pt(r, t, y) { return [sg * r * Math.sin(t), y, 36 + r * Math.cos(t)]; }
+      for (k = 0; k < ST_N; k++) {
+        var ta = ST_T0 + k * d, tb = ta + d, y0 = LOW + k * rise, y1 = y0 + rise;
+        quad(tp, ti, pt(ST_RI, ta, y1), pt(ST_RO, ta, y1), pt(ST_RO, tb, y1), pt(ST_RI, tb, y1));                          // tread top (walkable)
+        quad(rp, ri, pt(ST_RI, ta, y0), pt(ST_RO, ta, y0), pt(ST_RO, ta, y1), pt(ST_RI, ta, y1));                          // riser
+        quad(np, ni, pt(ST_RI + 0.1, ta + 0.0015, y1 + 0.004), pt(ST_RO - 0.1, ta + 0.0015, y1 + 0.004), pt(ST_RO - 0.1, ta + 0.006, y1 + 0.004), pt(ST_RI + 0.1, ta + 0.006, y1 + 0.004));   // glowing nosing line
       }
-      var geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-      geo.setIndex(indices);
-      // Set the actual winding based on its normal rather than assuming mirror orientation.
-      geo.computeVertexNormals();
-      if (geo.attributes.normal.getY(0) < 0) {
-        for (var k = 0; k < indices.length; k += 3) { var tmp = indices[k+1]; indices[k+1] = indices[k+2]; indices[k+2] = tmp; }
-        geo.setIndex(indices); geo.computeVertexNormals();
-      }
-      var mat = M.floor.clone(); mat.side = THREE.DoubleSide; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2;   /* Nov 27: coplanar with the kit floor = pixel flicker */
-      var mesh = new THREE.Mesh(geo, mat); mesh.position.y = 0.03; mesh.name = 'V04_Upper_Stair_Landing_' + side;
-      root.add(mesh); walk.push(mesh);
-      // A solid-looking bronze edge and low-profile rails, kept outside walking width.
-      [radius+width/2].forEach(function (r) {   /* Nov 27: the inner rail (core-wall side) ran straight across the Library door */
-        var pts = []; for (var j=0;j<=12;j++) { var a=a0+(a1-a0)*j/12; pts.push(new THREE.Vector3(side*r*Math.cos(a),1.0,36+r*Math.sin(a))); }
-        var curve = new THREE.CatmullRomCurve3(pts);
-        root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,12,0.035,6,false),M.gun));
-        [a0+0.02,a1-0.02].forEach(function(a){var post=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1,6),M.steel);post.position.set(side*r*Math.cos(a),0.5,36+r*Math.sin(a));root.add(post);});
-      });
-      // Light both approaches, not just the corridor center.
-      [0, LOW].forEach(function (y) {
-        var l = new THREE.PointLight(0xffc78a, 0.8, 12, 1.8);
-        l.position.set(side * 11.35, y + 2.5, 36); root.add(l);
-      });
+      mk(tp, ti, topM, 'Stair_tread_' + sg, true); mk(rp, ri, risM, 'StairRiser_' + sg, false); mk(np, ni, glowM, 'StairNosing_' + sg, false);
+      sector(sg, ST_RI, ST_RO, ST_T1, ST_TE, 0.03, 3, 6, flrM, 'Landing_stair_' + sg, true);                                // top landing in front of the Library door
+      var wall = new THREE.Mesh(new THREE.CylinderGeometry(ST_RI + 0.01, ST_RI + 0.01, -LOW, 48, 1, true, sg > 0 ? ST_T0 : -ST_TE, ST_TE - ST_T0), wallM);   // inner wall: the Library wall carried down to the lower deck
+      wall.position.set(0, LOW / 2, 36); wall.name = 'StairWallInner'; wall.userData.v8Skip = true; root.add(wall);
+      radial(sg, ST_RI + 0.01, ST_RO, ST_TE, LOW, SH_TOP, wallM, 'StairCap');                                                  // closes the top of the flight
+      radial(sg, 9.4, ST_RI + 0.01, ST_T0, LOW, SH_TOP, wallM, 'StairFootPlate');                                              // closes the gap behind the inner wall at the foot
+      rail(sg, ST_RI + 0.045, ST_T0, ST_T1, 'StairHandrailI'); rail(sg, ST_RO - 0.045, ST_T0, ST_TE - 0.05, 'StairHandrailO');
+      ribbon(sg, ST_RI + 0.02, function (t) { return yLine(t) + 2.5; }, 0.07, ST_T0, ST_T1, 24, lineM, 'StairLineI');
+      ribbon(sg, ST_RO - 0.02, function (t) { return yLine(t) + 2.5; }, 0.07, ST_T0, ST_TE - 0.03, 28, lineM, 'StairLineO');
+      [0.12, 0.45, 0.78].forEach(function (f) { var t = ST_T0 + (ST_T1 - ST_T0) * f, l = new THREE.PointLight(0xe4f0ff, 1.1, 11, 1.5); l.position.set(sg * 13.1 * Math.sin(t), yLine(t) + 2.2, 36 + 13.1 * Math.cos(t)); root.add(l); });
     });
+    // lower foyer: one wide floor between the two feet, lit, with the Core door in its wall (the lower core wall r 9.4 is raised to the roof in buildLowerCore)
+    sector(1, 9.4, ST_RO, -ST_T0 - 0.02, ST_T0 + 0.02, LOW + 0.012, 4, 12, flrM, 'Floor_foyer', true);
+    ribbon(1, 9.38, function () { return LOW + 3.3; }, 0.06, -ST_T0, ST_T0, 20, lineM, 'FoyerLine');
+    [[-3.4, 46.5], [3.4, 46.5], [0, 51]].forEach(function (q) { var l = new THREE.PointLight(0xe4f0ff, 1.3, 12, 1.5); l.position.set(q[0], LOW + 2.6, q[1]); root.add(l); });
   }
 
   // upper core (the Library's outer wall, r 10.2): solid except the front gap and a doorway at each staircase top (θ ±1.38 rad)
@@ -204,96 +227,6 @@
     var m = new THREE.Mesh(g, mat); m.name = name || 'wall'; if (/^(ShaftArc|ShaftFront|Part)/.test(m.name)) m.userData.v8Skip = true; root.add(m); return m;
   }
   function arcPts(r, d0, d1, step, cx, cz) { var p = [], n = Math.max(2, Math.ceil(Math.abs(d1 - d0) / step)), k; for (k = 0; k <= n; k++) { var a = (d0 + (d1 - d0) * k / n) * Math.PI / 180; p.push([cx + r * Math.cos(a), cz + r * Math.sin(a)]); } return p; }
-  // Nov 27 (user screenshot: a handrail ran across the Library door at the top of each staircase): drop rail segments + posts within 2.6 m of those doors
-  function clearDoorRails(scene) {
-    scene.updateMatrixWorld(true); var kill = [], v = new THREE.Vector3();
-    scene.traverse(function (o) {
-      if (!/^(Handrail|Rail_post)/.test(o.name)) return; new THREE.Box3().setFromObject(o).getCenter(v);
-      var y = v.y + 0.65;   /* kit y → ship y (the whole kit is lowered 0.65) */
-      kill.push(o);   /* Nov 27: ALL kit rails go (stepped ribbon floating off its posts); buildStairTunnels draws smooth ones on the tread slope */
-    });
-    kill.forEach(function (o) { o.parent && o.parent.remove(o); }); console.log('atrium: door rails removed', kill.length);
-  }
-  // Nov 27 (user, annotated: "the railing needs to be up against an actual wall"): each flight is a closed spiral TUNNEL — inner + outer wall just outside the rails, ceiling above, arched mouth at the foot
-  function railRadii(scene) {
-    scene.updateMatrixWorld(true); var lo = 99, hi = 0, v = new THREE.Vector3();
-    scene.traverse(function (o) { if (!/^(Handrail|Rail_post)/.test(o.name)) return; new THREE.Box3().setFromObject(o).getCenter(v); if (Math.abs(v.x) < 3) return; var r = Math.hypot(v.x, v.z - 36); if (r < lo) lo = r; if (r > hi) hi = r; });
-    console.log('atrium: stair rail radii', lo.toFixed(2), hi.toFixed(2)); return lo < hi ? [lo, hi] : null;
-  }
-  function buildStairTunnels(root, stairMesh, rr) {
-    root.updateMatrixWorld(true);
-    var ri = rr[0] - 0.12, ro = rr[1] + 0.12, rm = (rr[0] + rr[1]) / 2, HT = 2.9, STEP = 0.035, rc = new THREE.Raycaster(), dn = new THREE.Vector3(0, -1, 0), o3 = new THREE.Vector3();
-    var wallM = M.steel.clone(); wallM.side = THREE.DoubleSide; wallM.color.set(0x1b1f24); wallM.emissive = new THREE.Color(0x10161c); wallM.roughness = 0.95; wallM.metalness = 0.1; wallM.envMapIntensity = 0.05;
-    var lineM = new THREE.MeshBasicMaterial({ color: 0xa9d2f0, fog: false, side: THREE.DoubleSide });
-    [1, -1].forEach(function (sg) {
-      var pts = [], t;
-      for (t = 0.28; t <= 2.6; t += STEP) {
-        o3.set(sg * rm * Math.sin(t), 4, 36 + rm * Math.cos(t)); rc.set(o3, dn); var h = rc.intersectObject(stairMesh, true)[0];
-        if (!h) { if (pts.length) break; else continue; } var y = h.point.y; if (y > 0.12) break; pts.push([t, y]);
-      }
-      if (pts.length < 6) { console.warn('stair tunnel: probe failed', sg, pts.length); return; }
-      (function () { var raw = pts.map(function (q) { return q[1]; }), W2 = 5; pts.forEach(function (q, i) { var a = 0, n = 0, j; for (j = Math.max(0, i - W2); j <= Math.min(raw.length - 1, i + W2); j++) { a += raw[j]; n++; } q[1] = a / n; }); })();   /* smooth the step profile: walls, roof and light lines follow the slope, not each tread */
-      function P(r, k, arr) { var t = (arr || pts)[k][0]; return [sg * r * Math.sin(t), 36 + r * Math.cos(t)]; }
-      function strip(rA, yA, rB, yB, mat, name, arr) {                 // ribbon between two radius/height offsets along the flight
-        arr = arr || pts; var pos = [], idx = [], k; for (k = 0; k < arr.length; k++) { var a = P(rA, k, arr), b = P(rB, k, arr); pos.push(a[0], arr[k][1] + yA, a[1], b[0], arr[k][1] + yB, b[1]); }
-        for (k = 0; k < arr.length - 1; k++) { var q = k * 2; idx.push(q, q + 1, q + 3, q, q + 3, q + 2); }
-        var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-        var mm = new THREE.Mesh(g, mat); mm.name = name; mm.userData.v8Skip = true; root.add(mm); return mm;
-      }
-      // Nov 27 (user: "should feel like a stairwell, you shouldn't see around it"): the tunnel runs on over the top landing, a closed vestibule in front of the Library door (end cap at θ TE; core wall = inner side, gap kept at the door)
-      var TE = 2.18, LY = pts[pts.length - 1][1] + 0.02, land = [], tl; for (tl = pts[pts.length - 1][0] + 0.04; tl <= TE + 1e-6; tl += 0.04) land.push([tl, LY]); if (land[land.length - 1][0] < TE - 1e-6) land.push([TE, LY]);
-      var all = pts.concat(land), innerA = pts.filter(function (q) { return q[0] <= 1.9; }), innerB = land.filter(function (q) { return q[0] >= 2.14; });
-      strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInner', innerA); if (innerB.length > 1) strip(ri, -0.3, ri, HT + 0.06, wallM, 'TunnelInnerL', innerB);
-      strip(ro, -0.3, ro, HT + 0.06, wallM, 'TunnelOuter', all); strip(ri - 0.06, HT, ro + 0.06, HT, wallM, 'TunnelRoof', all);
-      strip(ri + 0.01, HT - 0.18, ri + 0.01, HT - 0.1, lineM, 'TunnelLineI', innerA); strip(ro - 0.01, HT - 0.18, ro - 0.01, HT - 0.1, lineM, 'TunnelLineO', all);
-      (function () { var cw = new THREE.Mesh(new THREE.PlaneGeometry(ro - ri, HT + 0.3), wallM), cc = Math.cos(TE), sc2 = Math.sin(TE); cw.name = 'TunnelCap'; cw.userData.v8Skip = true;
-        cw.position.set(sg * (ri + ro) / 2 * sc2, LY - 0.3 + (HT + 0.3) / 2, 36 + (ri + ro) / 2 * cc); cw.rotation.y = Math.atan2(-cc, sg * sc2) + Math.PI; root.add(cw);
-        var ll = new THREE.PointLight(0xd8e8ff, 0.35, 6, 1.6); ll.position.set(sg * rm * Math.sin(2.12), LY + 2.2, 36 + rm * Math.cos(2.12)); root.add(ll); })();   // pale-blue light line along the top of each wall
-      // Nov 27 (user: handrail geometry detached/chunky): smooth gunmetal rail tube + posts on both sides of each flight, following the smoothed tread slope
-      (function () {
-        var rm2 = new THREE.MeshStandardMaterial({ color: 0x59626b, metalness: 0.85, roughness: 0.35 });
-        [rr[0], rr[1]].forEach(function (R) {
-          var cp = all.filter(function (q) { return !(R === rr[0] && q[0] >= 1.9 && q[0] <= 2.14); }).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); });
-          var seg = [cp]; if (R === rr[0]) { var ix = all.findIndex(function (q) { return q[0] >= 1.9; }), iy = all.findIndex(function (q) { return q[0] >= 2.14; }); seg = [all.slice(0, ix).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); }), all.slice(iy).map(function (q) { return new THREE.Vector3(sg * R * Math.sin(q[0]), q[1] + 0.92, 36 + R * Math.cos(q[0])); })]; }
-          seg.forEach(function (pp) {
-            if (pp.length < 3) return; var tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp), pp.length * 2, 0.028, 8, false), rm2); tube.name = 'StairHandrail'; tube.userData.v8Skip = true; root.add(tube);
-            var k, last = -9; for (k = 0; k < pp.length; k++) { var d = k ? pp[k].distanceTo(pp[last < 0 ? 0 : last]) : 9; if (k && d < 1.1 && k < pp.length - 1) continue; last = k;
-              var post = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.92, 6), rm2); post.position.set(pp[k].x, pp[k].y - 0.46, pp[k].z); post.name = 'StairPost'; post.userData.v8Skip = true; root.add(post); }
-          });
-        });
-      })();
-      // Nov 28 (user: "a stairwell with handrails and lighting at the base of each stair"): glowing baseboard light line along both walls of the flight + warm-white lamps at the foot
-      (function () { var bm = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false, side: THREE.DoubleSide });
-        strip(ri + 0.015, 0.02, ri + 0.015, 0.11, bm, 'StairBaseI', innerA); strip(ro - 0.015, 0.02, ro - 0.015, 0.11, bm, 'StairBaseO', all);
-        [0, 6, 14].forEach(function (k) { var q = pts[Math.min(k, pts.length - 1)], l = new THREE.PointLight(0xe4f0ff, 1.1, 6, 1.5); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 1.2, 36 + rm * Math.cos(q[0])); root.add(l); });
-        [ri + 0.06, ro - 0.06].forEach(function (R) { var q = pts[1], sc3 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.34, 0.1), bm); sc3.position.set(sg * R * Math.sin(q[0]), q[1] + 1.9, 36 + R * Math.cos(q[0])); sc3.name = 'StairSconce'; sc3.userData.v8Skip = true; root.add(sc3); }); })();
-      // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
-      var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
-      sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
-      var cx = W / 2, ah = 1.55; ho.moveTo(cx - aw, 0); ho.lineTo(cx + aw, 0); ho.lineTo(cx + aw, ah); for (k2 = 1; k2 <= 20; k2++) { var an = k2 / 20 * Math.PI; ho.lineTo(cx + aw * Math.cos(an), ah + aw * Math.sin(an)); } ho.lineTo(cx - aw, 0); sh.holes.push(ho);
-      var face = new THREE.Mesh(new THREE.ShapeGeometry(sh), wallM); face.name = 'TunnelMouth'; face.userData.v8Skip = true;
-      var cs = Math.cos(t0), sn = Math.sin(t0);       // radial plane at angle t0: local x → radial outward, local y → up
-      face.position.set(sg * ri * sn, y0 - 0.3, 36 + ri * cs); face.rotation.order = 'YXZ'; face.rotation.y = Math.atan2(-cs, sg * sn); root.add(face);
-      var arc = new THREE.Mesh(new THREE.TorusGeometry(aw + 0.03, 0.045, 6, 28, Math.PI), M.gun); arc.userData.v8Skip = true; arc.rotation.order = 'YXZ'; arc.rotation.y = face.rotation.y;
-      var mid = [sg * rm * sn, y0 + ah, 36 + rm * cs]; arc.position.set(mid[0], mid[1], mid[2]); root.add(arc);
-      [0.2, 0.5, 0.8].forEach(function (f) { var q = pts[Math.floor((pts.length - 1) * f)], l = new THREE.PointLight(0xd8e8ff, 0.3, 7, 1.6); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 2.3, 36 + rm * Math.cos(q[0])); root.add(l); });
-      console.log('atrium: stair tunnel', sg, pts.length, 'steps', pts[0][0].toFixed(2), pts[pts.length-1][0].toFixed(2), pts[pts.length-1][1].toFixed(2));
-    });
-  }
-  // Nov 27 (user: stairs not looking right): the kit's glow strips went blown-out white under the shaft lights and the treads read as pale slabs
-  function stairLook(g) {
-    var cache = {};
-    g.traverse(function (o) {
-      if (!o.isMesh) return; var src = o.material, k = src.uuid; if (!cache[k]) {
-        var m = src.clone();
-        if (m.emissive && m.emissive.getHex() > 0) { m.emissive.set(0x7fb8e0); m.emissiveIntensity = 0.55; m.color.set(0x14181c); }          // handrail / edge strips: a soft pale-blue line, not a white bar
-        else if (m.color) { var cu = m.color.r > m.color.b * 1.2 && m.side !== THREE.DoubleSide;   /* walkable (DoubleSide) = treads: graphite */ m.color.set(cu ? 0x59626b : 0x262b31); m.map = null; m.metalness = cu ? 0.8 : 0.5; m.roughness = cu ? 0.4 : 0.55; }       /* balusters keep thin copper; treads/risers graphite */       // treads, risers, balusters: darker graphite
-        if (m.envMapIntensity !== undefined) m.envMapIntensity = Math.min(m.envMapIntensity, 0.5);
-        cache[k] = m;
-      }
-      o.material = cache[k]; o.userData.v8Skip = true;
-    });
-  }
   function buildStairShaft(root) {
     var mat = M.steel.clone(); mat.side = THREE.DoubleSide; mat.color.set(0x24272b); mat.roughness = 0.7; mat.envMapIntensity = 0.3; root.userData.shaftMat = mat;
     var a0 = Math.asin(-(36 - MOUTH) / SH_R) * 180 / Math.PI;                 // where r 16 crosses z 25.8  (≈ −40.8°)
@@ -321,21 +254,6 @@
     (function () { var pl = new THREE.PointLight(0xd8e8ff, 1.2, 7, 1.5); pl.position.set(0, LOW + 2.4, 25.9); root.add(pl); var bm2 = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false }); [-1.05, 1.05].forEach(function (x) { var ln = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.9, 0.05), bm2); ln.position.set(x, LOW + 1.5, 24.95); ln.name = 'ArchLine'; ln.userData.v8Skip = true; root.add(ln); }); })();   // Nov 28: sealed passage from the lower-hall door to the north Core door
     // thin light lines round the shaft + a bronze band at each deck
     [[LOW + 0.55, M.teal], [-0.34, M.gun], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
-    // Nov 27 (user sketch IMG_7403: two stair arches left/right + a CENTRE ARCH both paths lead to): the stair feet open into a pocket closed by a wall across x at z 48.0 (x ±3.4, between the two tunnel mouths) with an arched doorway at x 0; the aft ring beyond leads round the core to the lower hall
-    (function () {
-      var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, sh = new THREE.Shape(), k;
-      sh.moveTo(0, 0); sh.lineTo(2 * HW, 0); sh.lineTo(2 * HW, H); sh.lineTo(0, H); sh.lineTo(0, 0);
-      var hp = new THREE.Path(), cx0 = HW, aw = 1.3, ah = 2.5; hp.moveTo(cx0 - aw, 0); hp.lineTo(cx0 + aw, 0); hp.lineTo(cx0 + aw, ah); hp.absarc(cx0, ah, aw, 0, Math.PI, false); hp.lineTo(cx0 - aw, 0); /* Nov 28 (user: remove the left arch): foyer wall is solid again; hole path unused */   // Nov 28: arch back in (user: how do I get out to the hallway?) — core door -> foyer -> this arch -> aft ring -> lower hall
-      var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
-      var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.position.set(-HW, LOW, ZW); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
-      // Nov 28 (user: "I should not be able to see any of this"): ceiling over the foyer pocket (x ±3.4, core wall -> z 48) so you can't look up at the stair roofs / shaft; lamp fixtures on it
-      (function () { var cs = new THREE.Shape(), n2 = 16, kk, xa = -HW, xb = HW; cs.moveTo(xa, ZW); cs.lineTo(xb, ZW);
-        for (kk = 0; kk <= n2; kk++) { var xx = xb - (xb - xa) * kk / n2; cs.lineTo(xx, 36 + Math.sqrt(9.4 * 9.4 - xx * xx) - 0.05); }
-        cs.lineTo(xa, ZW); var cg = new THREE.ShapeGeometry(cs); cg.rotateX(Math.PI / 2);   /* shape (x,y) -> world (x, ., y) */
-        var cm3 = mat.clone(); cm3.color.set(0x2a2f35); cm3.polygonOffset = true; cm3.polygonOffsetFactor = 1; var cp3 = new THREE.Mesh(cg, cm3); cp3.position.y = LOW + 3.45; cp3.name = 'FoyerCeiling'; cp3.userData.v8Skip = true; root.add(cp3);
-        var lm = new THREE.MeshBasicMaterial({ color: 0xdff0ff, fog: false }); [[-1.6, 46.7], [1.6, 46.7]].forEach(function (q) { var lb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.22), lm); lb.position.set(q[0], LOW + 3.42, q[1]); root.add(lb); }); })();
-      var lt = new THREE.PointLight(0xd8e8ff, 1.5, 7, 1.5); lt.position.set(0, LOW + 2.5, ZW - 1.2); root.add(lt);
-    })();
     // lights: white-blue, spread down the shaft (fewer on phones)
     var L = MOB ? [[0, -4.6], [90, -3.2], [180, -4.6], [60, 0.8], [120, 0.8]] : [[0, -4.6], [45, -3.0], [90, -4.6], [135, -3.0], [180, -4.6], [30, 0.8], [90, 0.8], [150, 0.8], [60, -1.6], [120, -1.6]];
     L.forEach(function (q) { var a = q[0] * Math.PI / 180, l = new THREE.PointLight(0xd8e8ff, 0.8, 13, 1.5); l.position.set(12.9 * Math.cos(a), q[1], 36 + 12.9 * Math.sin(a)); root.add(l); });
@@ -353,6 +271,7 @@
     function seg(a, b, mat, r, hh, yc) { var g = new THREE.CylinderGeometry(r, r, hh, Math.max(4, Math.ceil((b - a) / 0.05)), Math.max(1, Math.round(hh / 1.2)), true, a, b - a), m = new THREE.Mesh(g, mat); m.position.set(0, yc, 36); root.add(m); return m; }
     solid.forEach(function (s) { if (s[1] - s[0] > 0.01) seg(s[0], s[1], cm, R, h, y0 + h / 2); });
     seg(-GAPW, GAPW, cm, R, h - 3.1, y0 + 3.1 + (h - 3.1) / 2);   // lintel over the core door
+    seg(-ST_T0, ST_T0, cm, R, SH_TOP + 0.23, -0.23 + (SH_TOP + 0.23) / 2);   // Nov 28: the stair-foot foyer is a tall room: its Core wall runs up to the shaft roof
     seg(Math.PI - GAPW, Math.PI + GAPW, cm, R, h - 3.1, y0 + 3.1 + (h - 3.1) / 2);   // lintel over the north core door
     var wy0 = y0 + 0.25, wy1 = -1.2, wh = wy1 - wy0;
     wins.forEach(function (w) {
@@ -428,10 +347,8 @@
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95) return true; }
-    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; return true; }   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
-    if (fy > -1.0) { var sgn = x0 >= 0 ? 1 : -1, a0 = Math.atan2(sgn * x0, z0 - 36), a1 = Math.atan2(sgn * x1, z1 - 36), r0 = Math.hypot(x0, z0 - 36), r1 = Math.hypot(x1, z1 - 36);
-      var in0 = a0 > 1.5 && a0 < 2.18 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.18 && r1 > 10.2 && r1 < 12.4;
-      if (in0 && !in1 && (r1 >= 12.4 || a1 >= 2.18)) return true; if (!in0 && in1 && (r0 >= 12.4 || a0 >= 2.18)) return true; }   // stair-top vestibule: the Library door and the flight are the only ways in or out
+    var r1w = Math.hypot(x1, z1 - 36), th1 = Math.atan2(Math.abs(x1), z1 - 36);   // the flights run wall to wall: keep out of the inner (Library) wall, except at its stair-top door
+    if (th1 > ST_T0 + 0.02 && th1 < ST_TE && r1w < (Math.abs(th1 - 2.02) < 0.13 ? 10.0 : 10.32) && r1w > 9.0 && z1 > 25) return true;
     return false;
   }
 
@@ -529,9 +446,9 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
-      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
-      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var railR = null; if (n === 'Twin_Curved_Stairs') { railR = railRadii(g.scene) || [10.45, 12.25]; clearDoorRails(g.scene); } var m = merge(g.scene, walk); if (n === 'Twin_Curved_Stairs') { stairLook(m); } root.add(m); if (railR) { try { buildStairTunnels(root, m, railR); } catch (e) { console.warn('stair tunnel', e); } } if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairShaft(flat); buildStairs(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
+      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower'], left = parts.length + 1, failed = [];
+      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { root.add(merge(g.scene, walk)); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
       buildDoors(sc, flat);
       // v0.4: exterior effects are confined to the real skylight.
