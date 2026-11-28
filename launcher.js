@@ -9,6 +9,7 @@
     '#wf-launch h1{margin:0 0 4px;font:700 15px ui-monospace,Menlo,monospace;letter-spacing:3px;color:#7fe3ff}#wf-launch p{margin:0 0 12px;font-size:10px;letter-spacing:1.2px;opacity:.7}' +
     '#wf-launch .g{display:grid;grid-template-columns:1fr 1fr;gap:8px}#wf-launch button{padding:14px 8px;border-radius:4px;border:1px solid rgba(127,227,255,.35);background:rgba(127,227,255,.07);color:#cfeeff;font:700 11px ui-monospace,Menlo,monospace;letter-spacing:1.2px;text-align:left}' +
     '#wf-launch button small{display:block;margin-top:3px;font-weight:400;font-size:9px;opacity:.6;letter-spacing:1px}#wf-launch button:active{background:rgba(127,227,255,.25)}' +
+    '@keyframes wfl{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}#wf-launch{animation:wfl .5s ease-out}#wf-launch button{animation:wfl .45s ease-out both}#wf-launch h1,#wf-launch p{animation:wfl .5s ease-out both}' +
     '#wf-launch .stay{grid-column:1/3;text-align:center;border-color:rgba(255,210,122,.5);color:#ffd27a;background:rgba(255,210,122,.07)}';
   function build() {
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -19,7 +20,7 @@
     T.forEach(function (t) {
       var b = document.createElement('button'); b.innerHTML = t[1] + '<small>' + t[2] + '</small>';
       b.onclick = function () { var LS = window.WF_LOADSCREEN; if (LS) LS.leave(t[0]); setTimeout(function () { location.href = t[0]; }, LS ? 450 : 0); };
-      g.appendChild(b);
+      b.style.animationDelay = (0.12 + T.indexOf(t) * 0.05) + 's'; g.appendChild(b);
     });
     document.body.appendChild(d);
   }

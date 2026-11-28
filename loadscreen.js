@@ -72,7 +72,7 @@
   var viaTravel = !!(rec && rec.t && Date.now() - rec.t < 60000);
   if (viaTravel || !opened) {                      // travel arrival, or the app/tab was just opened (first page of the session)
     var hadGoto = false; try { hadGoto = !!sessionStorage.getItem('wf-goto'); } catch (e) {}
-    show(2000, true, viaTravel ? rec.l : null);
+    show(2000, true, viaTravel ? rec.l : 'LOADING THE SS WAYFARER...');
     try { sessionStorage.removeItem(KEY); } catch (e) {}
     document.addEventListener('DOMContentLoaded', function () {
       if (hadGoto || document.getElementById('wf-fade')) return;       /* life.js arrive() / atrium ready() call ready() themselves */
