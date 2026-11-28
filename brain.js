@@ -288,11 +288,11 @@
   function gradTex() {
     var c = document.createElement('canvas'); c.width = 4; c.height = 256; var x = c.getContext('2d');
     var g = x.createLinearGradient(0, 0, 0, 256);          // top (y=0) → bottom (y=-16)
-    g.addColorStop(0.00, 'rgba(40,200,170,0.10)');
-    g.addColorStop(0.30, 'rgba(30,170,190,0.32)');
-    g.addColorStop(0.48, 'rgba(60,220,210,0.55)');         // glow around the brain
-    g.addColorStop(0.70, 'rgba(20,110,150,0.38)');
-    g.addColorStop(1.00, 'rgba(10,40,90,0.60)');
+    g.addColorStop(0.00, 'rgba(60,170,110,0.10)');
+    g.addColorStop(0.30, 'rgba(40,140,90,0.32)');
+    g.addColorStop(0.48, 'rgba(95,168,122,0.55)');         // glow around the brain
+    g.addColorStop(0.70, 'rgba(24,90,60,0.38)');
+    g.addColorStop(1.00, 'rgba(8,40,28,0.60)');
     x.fillStyle = g; x.fillRect(0, 0, 4, 256);
     var t = new THREE.CanvasTexture(c); return t;
   }
@@ -300,7 +300,7 @@
     var c = document.createElement('canvas'); c.width = c.height = 64; var x = c.getContext('2d');
     var g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
     // a real bubble: clear middle, bright rim, a specular glint
-    g.addColorStop(0, 'rgba(200,255,240,0.05)'); g.addColorStop(0.62, 'rgba(200,255,240,0.18)'); g.addColorStop(0.82, 'rgba(230,255,250,0.95)'); g.addColorStop(0.95, 'rgba(200,255,240,0.25)'); g.addColorStop(1, 'rgba(200,255,240,0)');
+    g.addColorStop(0, 'rgba(210,255,225,0.05)'); g.addColorStop(0.62, 'rgba(210,255,225,0.18)'); g.addColorStop(0.82, 'rgba(235,255,242,0.95)'); g.addColorStop(0.95, 'rgba(210,255,225,0.25)'); g.addColorStop(1, 'rgba(210,255,225,0)');
     x.fillStyle = g; x.fillRect(0, 0, 64, 64); x.fillStyle = 'rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(22, 20, 7, 4, -0.7, 0, 7); x.fill();
     return new THREE.CanvasTexture(c);
   }
@@ -321,7 +321,7 @@
         x.strokeStyle = '#0a1110'; x.lineWidth = 3; x.strokeRect(X, Y, 116, 116);
         x.fillStyle = '#6b5a35'; [[X + 8, Y + 8], [X + 108, Y + 8], [X + 8, Y + 108], [X + 108, Y + 108]].forEach(function (p) { x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill(); });
         x.fillStyle = 'rgba(0,0,0,0.35)'; for (var gy = 0; gy < 5; gy++) x.fillRect(X + 24, Y + 30 + gy * 14, 68, 6);   // slat grilles
-        if ((px * 3 + py * 5) % 4 === 0) { xe.fillStyle = '#3affd0'; xe.fillRect(X + 22, Y + 24, 72, 16); x.fillStyle = '#146a5c'; x.fillRect(X + 22, Y + 24, 72, 16); }
+        if ((px * 3 + py * 5) % 4 === 0) { xe.fillStyle = '#6fd08c'; xe.fillRect(X + 22, Y + 24, 72, 16); x.fillStyle = '#1a5a3a'; x.fillRect(X + 22, Y + 24, 72, 16); }
         if ((px + py * 2) % 5 === 1) { xe.fillStyle = '#ffa23c'; xe.fillRect(X + 90, Y + 94, 14, 10); }
       }
       var wt = new THREE.CanvasTexture(wc), wet = new THREE.CanvasTexture(we);
@@ -331,7 +331,7 @@
       wallM.position.y = -8; grp.add(wallM);
 
       var brass = new THREE.MeshStandardMaterial({ color: 0xa8843e, roughness: 0.38, metalness: 0.95, emissive: 0x2a1a06, emissiveIntensity: 0.6 });
-      var tealM = new THREE.MeshBasicMaterial({ color: 0x3affd0, fog: false });
+      var tealM = new THREE.MeshBasicMaterial({ color: 0x6fd08c, fog: false });
       [-3.5, -9.5, -14.5].forEach(function (y) {                          // brass hoops on the wall
         var r = new THREE.Mesh(new THREE.TorusGeometry(8.0, 0.14, 8, low ? 64 : 128), brass); r.rotation.x = Math.PI / 2; r.position.y = y; grp.add(r);
       });
@@ -339,14 +339,14 @@
       // ── floor: grated plate + concentric ring + brass clamp ring around the brain's base ──
       var gc = document.createElement('canvas'), gce = document.createElement('canvas'); gc.width = gc.height = gce.width = gce.height = 256;
       var g2 = gc.getContext('2d'), g2e = gce.getContext('2d'); g2.fillStyle = '#0b1514'; g2.fillRect(0, 0, 256, 256); g2e.fillStyle = '#000'; g2e.fillRect(0, 0, 256, 256);
-      g2.strokeStyle = '#2b4a45'; g2.lineWidth = 3; g2e.strokeStyle = '#1fbfa0'; g2e.lineWidth = 2;
+      g2.strokeStyle = '#2b4a45'; g2.lineWidth = 3; g2e.strokeStyle = '#3f9f66'; g2e.lineWidth = 2;
       for (i = 0; i <= 256; i += 32) { g2.beginPath(); g2.moveTo(i, 0); g2.lineTo(i, 256); g2.moveTo(0, i); g2.lineTo(256, i); g2.stroke(); g2e.beginPath(); g2e.moveTo(i, 0); g2e.lineTo(i, 256); g2e.moveTo(0, i); g2e.lineTo(256, i); g2e.stroke(); }
       var gt = new THREE.CanvasTexture(gc), get = new THREE.CanvasTexture(gce); gt.wrapS = gt.wrapT = get.wrapS = get.wrapT = THREE.RepeatWrapping; gt.repeat.set(8, 8); get.repeat.set(8, 8);
       var floor = new THREE.Mesh(new THREE.CircleGeometry(8, 64), new THREE.MeshStandardMaterial({ map: gt, emissiveMap: get, emissive: 0xffffff, emissiveIntensity: 1.0, roughness: 0.6, metalness: 0.8 }));
       floor.rotation.x = -Math.PI / 2; floor.position.y = -15.9; grp.add(floor);
       var fr = new THREE.Mesh(new THREE.TorusGeometry(7.8, 0.08, 6, 96), tealM); fr.rotation.x = Math.PI / 2; fr.position.y = -15.85; grp.add(fr);
       var base = new THREE.Mesh(new THREE.TorusGeometry(3.7, 0.3, 10, 64), brass); base.rotation.x = Math.PI / 2; base.position.y = -13.2; grp.add(base);
-      var base2 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.2, 1.5, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x1a2a26, roughness: 0.5, metalness: 0.8, side: THREE.DoubleSide, emissive: 0x0a2a24, emissiveIntensity: 0.6 }));
+      var base2 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.2, 1.5, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x1a2a26, roughness: 0.5, metalness: 0.8, side: THREE.DoubleSide, emissive: 0x0a2a18, emissiveIntensity: 0.6 }));
       base2.position.y = -14.5; grp.add(base2);
       for (i = 0; i < 6; i++) {                                           // clamp blocks
         var ca = i / 6 * Math.PI * 2 + 0.3, cb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), brass);
@@ -384,7 +384,7 @@
       }
 
       // soft light shafts from the floor vents
-      var shaft = new THREE.MeshBasicMaterial({ color: 0x2fe8c0, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+      var shaft = new THREE.MeshBasicMaterial({ color: 0x5fa87a, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
       for (i = 0; i < (low ? 3 : 5); i++) {
         var sa = i / (low ? 3 : 5) * Math.PI * 2 + 0.7, sm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1.3, 15, 16, 1, true), shaft);
         sm.position.set(Math.cos(sa) * 5.8, -8.5, Math.sin(sa) * 5.8); grp.add(sm);

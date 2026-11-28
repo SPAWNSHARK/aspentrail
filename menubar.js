@@ -9,10 +9,10 @@
 (function () {
   var css = document.createElement('style');
   css.textContent =
-    'html,body{position:fixed!important;top:0;left:0;right:0;bottom:0;width:100%!important;height:var(--wf-h,100%)!important;min-height:var(--wf-h,100%)!important;overflow:hidden;background:#000}' +
-    'a-scene,a-scene .a-canvas,a-scene canvas.a-canvas{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:var(--wf-h,100%)!important}' +
+    'html,body{position:fixed!important;top:0;left:0;right:0;bottom:0;width:100%!important;height:max(var(--wf-h,0px),100lvh,100%)!important;min-height:max(var(--wf-h,0px),100lvh,100%)!important;overflow:hidden;background:#000}' +
+    'a-scene,a-scene .a-canvas,a-scene canvas.a-canvas{position:fixed!important;top:0!important;left:0!important;width:100%!important;height:max(var(--wf-h,0px),100lvh,100%)!important}' +
     '#wf-btns{justify-content:flex-end!important;gap:6px!important;box-sizing:border-box!important;height:calc(62px + env(safe-area-inset-top,0px))!important;padding-top:calc(env(safe-area-inset-top,0px) + 16px)!important;' +
-      'background:linear-gradient(180deg,rgba(5,8,20,.97),rgba(10,16,34,.92))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background-color:#070b1c!important;border-bottom:1px solid rgba(77,227,255,.30)!important;box-shadow:0 1px 14px rgba(60,140,255,.18)!important;' +
+      'background:linear-gradient(180deg,rgba(5,8,20,.97),rgba(10,16,34,.92))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background-color:#070b1c!important;border-bottom:1px solid rgba(77,227,255,.30)!important;box-shadow:none!important;' +
       'padding-left:calc(14px + env(safe-area-inset-left,0px))!important;padding-right:calc(8px + env(safe-area-inset-right,0px))!important}' +
     '#wf-btns:before{display:none!important}' +
     'body.reading #wf-btns,body.reading #wf-btns.wf-ctl,body.reading #wf-btns .wf-ctl,body.reading #wf-set .wf-ctl{opacity:1!important;pointer-events:auto!important}' +
