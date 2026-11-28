@@ -68,6 +68,7 @@
   var rec = null; try { rec = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
   if (typeof rec === 'number') rec = { t: rec };
   var opened = false; try { opened = !!sessionStorage.getItem('wf-opened'); sessionStorage.setItem('wf-opened', '1'); } catch (e) { opened = true; }
+  window.WF_FIRSTOPEN = !opened;
   var viaTravel = !!(rec && rec.t && Date.now() - rec.t < 60000);
   if (viaTravel || !opened) {                      // travel arrival, or the app/tab was just opened (first page of the session)
     var hadGoto = false; try { hadGoto = !!sessionStorage.getItem('wf-goto'); } catch (e) {}
