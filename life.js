@@ -117,6 +117,7 @@
     '#wf-log.bp{background:#0a1424;border:1px solid rgba(127,227,255,.45);box-shadow:0 14px 34px rgba(0,0,0,.55);-webkit-backdrop-filter:none;backdrop-filter:none}' +
     '#wf-log.bp svg.map{touch-action:none}#wf-log.bp .mc{display:flex;flex-direction:column;gap:5px;margin:4px 0 6px}#wf-log.bp .mr{display:flex;gap:5px}' +
     '#wf-log.bp .mr button{flex:1;padding:7px 4px;border-radius:3px;border:1px solid rgba(127,227,255,.3);background:rgba(127,227,255,.05);color:#cfeeff;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:1.1px}' +
+    '#wf-log.bp .go{display:none;align-items:center;gap:6px;margin:6px 0 2px}#wf-log.bp .go span{flex:1;color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:.8px}#wf-log.bp .go button{padding:7px 14px;border-radius:3px;border:1px solid rgba(255,210,122,.5);background:rgba(255,210,122,.06);color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .go button.on{background:rgba(255,210,122,.25);color:#fff;border-color:#ffd27a}' +
     '#wf-log.bp .mr button.on{background:rgba(127,227,255,.2);border-color:#7fe3ff;color:#fff}' +
     '#wf-log.bp .hd b{color:#f2f8ff;text-shadow:none}#wf-log.bp .hd span{color:#d6e6fa;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .x{color:#f2f8ff}' +
     '#wf-log.bp p.sub{color:#d6e6fa;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.4px}' +
@@ -307,7 +308,7 @@
     { k: 'Xenobiology', id: 'xeno', name: 'XENOBIOLOGY', deck: 'lower', page: 'xeno.html' }, { k: 'Mess_Hall', id: 'mess', name: 'MESS HALL', deck: 'lower', page: 'mess.html' },
     { k: 'Maintenance_Storage', id: 'maint', name: 'MAINTENANCE', deck: 'lower', page: 'maint.html' }, { k: 'Engine_Room', id: 'core', name: 'ENGINE ROOM', deck: 'lower', page: 'core.html' }
   ];
-  var LAYOUT = null, DECK2 = null, mapMode = load('wf-mapmode', 'nav'), headUp = load('wf-maphead', false);
+  var mapTok = 0, mapDest = null, LAYOUT = null, DECK2 = null, mapMode = load('wf-mapmode', 'nav'), headUp = load('wf-maphead', false);
   function mapData(cb) {
     var n = 3; function done() { if (--n === 0) cb(); }
     if (LAYOUT) done(); else fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (d) { LAYOUT = d; }).catch(function () {}).then(done);
@@ -328,7 +329,7 @@
     if (PAGE === 'hiveport') return renderHiveMap();
     mapControls();
     var which = mapDeck || (onLower() ? 'lower' : 'upper');
-    mapData(function () { if (!box || tab !== 'map' || !LAYOUT) return; if (which === 'cut') drawSection(); else drawDeck(which); });
+    var tok = ++mapTok; mapData(function () { if (tok !== mapTok || !box || tab !== 'map' || !LAYOUT) return; if (which === 'cut') drawSection(); else drawDeck(which); });
   }
   function mapSvg(vb) {
     var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', vb); svg.setAttribute('class', 'map');
@@ -391,17 +392,30 @@
     [['SS WAYFARER', 'font-weight:700', 902], [lower ? 'LOWER DECK · y −5.95' : 'UPPER DECK · y 0.00', '', 913], ['1:125 · layout.json ship coords', '', 924]].forEach(function (q) { var t = add('text', { x: 378, y: q[2], fill: C_TXT, 'font-size': 7, 'font-family': FONT, 'letter-spacing': .8 }); t.textContent = q[0]; });
     add('circle', { cx: 84, cy: 100, r: 16, fill: 'none', stroke: 'rgba(207,238,255,.6)', 'stroke-width': .8 }); add('path', { d: 'M84 86 L89 106 L84 102 L79 106 Z', fill: C_TXT }); var nt = add('text', { x: 84, y: 82, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 7, 'font-family': FONT }); nt.textContent = 'BOW';
     add('path', { d: 'M62 920H142M62 916V924M102 917V923M142 916V924', stroke: 'rgba(160,220,255,.8)', 'stroke-width': 1, fill: 'none' }); var sc = add('text', { x: 102, y: 934, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 6.5, 'font-family': FONT }); sc.textContent = '10 m';
-    var live = add('g', { 'pointer-events': 'none' });
-    box.appendChild(el('p', 'sub', 'Tap a room or the atrium to go to that exact spot · drag to pan · pinch to zoom'));
-    box.appendChild(svg); wrapRot(svg); mapZoom(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
+    var rt = add('g', { 'pointer-events': 'none' }), live = add('g', { 'pointer-events': 'none' }), goBar = el('div', 'go', ''), dest = mapDest;
+    box.appendChild(el('p', 'sub', 'Tap a spot to plan a route, then GO · drag to pan · pinch to zoom'));
+    box.appendChild(svg); wrapRot(svg); mapZoom(svg); box.appendChild(goBar); var leg = el('p', 'sub', ''); box.appendChild(leg);
+    function drawRoute() {
+      while (rt.firstChild) rt.removeChild(rt.firstChild); goBar.style.display = dest ? 'flex' : 'none'; if (!dest) return; goBar.innerHTML = '';
+      var rp = planRoute(dest), info = el('span', '', ''), go = el('button', 'on', 'GO'), clr = el('button', '', 'CLEAR');
+      if (rp) rp.legs.forEach(function (lg) { if (lg.deck !== which) return; var d = '', i; lg.pts.forEach(function (q, k) { var p = P(q[0], q[1]); d += (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); });
+        add('path', { d: d, fill: 'none', stroke: '#0a1424', 'stroke-width': 4.2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, rt); var pa = add('path', { d: d, fill: 'none', stroke: '#ffd27a', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, rt); var an = document.createElementNS('http://www.w3.org/2000/svg', 'animate'); an.setAttribute('attributeName', 'stroke-dashoffset'); an.setAttribute('from', '18'); an.setAttribute('to', '0'); an.setAttribute('dur', '0.9s'); an.setAttribute('repeatCount', 'indefinite'); pa.appendChild(an);
+        if (lg.stair) { var sp = P(lg.stair[0], lg.stair[1]); add('circle', { cx: sp[0], cy: sp[1], r: 5, fill: 'none', stroke: '#ffd27a', 'stroke-width': 1.6 }, rt); var tt = add('text', { x: sp[0] + 8, y: sp[1] + 3, fill: '#ffd27a', 'font-size': 7, 'font-weight': 700, 'font-family': FONT, stroke: '#0a1424', 'stroke-width': 2, 'paint-order': 'stroke' }, rt); tt.textContent = lg.up ? 'STAIRS UP' : 'STAIRS DOWN'; } });
+      if (dest.deck === which) { var dp = P(dest.s[0], dest.s[1]); add('circle', { cx: dp[0], cy: dp[1], r: 11, fill: 'rgba(255,210,122,.12)', stroke: '#ffd27a', 'stroke-width': 1 }, rt); add('circle', { cx: dp[0], cy: dp[1], r: 3.2, fill: '#ffd27a', stroke: '#0a1424', 'stroke-width': 1 }, rt); add('path', { d: 'M' + (dp[0] - 15) + ' ' + dp[1] + 'H' + (dp[0] - 7) + 'M' + (dp[0] + 7) + ' ' + dp[1] + 'H' + (dp[0] + 15) + 'M' + dp[0] + ' ' + (dp[1] - 15) + 'V' + (dp[1] - 7) + 'M' + dp[0] + ' ' + (dp[1] + 7) + 'V' + (dp[1] + 15), stroke: '#ffd27a', 'stroke-width': 1.2 }, rt); }
+      info.textContent = dest.name.toUpperCase() + ' · ' + (rp ? Math.round(rp.len) + ' m' + (rp.legs.length > 1 ? ' · via stairs' : '') + ' · ~' + Math.max(1, Math.round(rp.len / 1.4)) + ' s' : (youShip() ? 'NO ROUTE' : 'ROUTE UNAVAILABLE HERE'));
+      go.onclick = function () { mapTravel(dest); }; clr.onclick = function () { dest = mapDest = null; drawRoute(); }; goBar.appendChild(info); goBar.appendChild(go); goBar.appendChild(clr);
+    }
+    svg._setDest = function (d) { if (dest && Math.hypot(dest.s[0] - d.s[0], dest.s[1] - d.s[1]) < 1.6) return mapTravel(d); dest = mapDest = d; drawRoute(); };
+    drawRoute(); var routeT = setInterval(function () { if (!svg.isConnected) clearInterval(routeT); else if (dest && you2key() !== lastKey) { lastKey = you2key(); drawRoute(); } }, 1500), lastKey = you2key();
+    function you2key() { var y = youShip(); return y ? Math.round(y.s[0] / 2) + ',' + Math.round(y.s[1] / 2) + y.deck : ''; }
     function drawLive() {
       while (live.firstChild) live.removeChild(live.firstChild);
       var sc2 = document.querySelector('a-scene'), eng2 = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine, L = window.WAYFARER && window.WAYFARER.crewLayout, snap = load('wf-crew', null), where = {};
-      if (!lower) {
+      {
         var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' };
         var list = eng2 ? Array.from(eng2.npcs.values()).map(function (n) { return { id: n.id, node: n.node, x: n.pos.x, z: n.pos.z, cat: n.kind === 'cat' }; })
                         : ((snap && snap.npcs) || []).map(function (n) { return { id: n.id, node: n.node, x: n.pos && n.pos.x, z: n.pos && n.pos.z, cat: /ember|nimbus|orbit|pixel/.test(n.id) }; });
-        list.forEach(function (n) { var nd = L && L.nodes[n.node], room = nd ? nd.room : null, xf = room && XF[room]; if (!xf) return; var off = OFFR[room] || 0, lx = n.x != null ? n.x - off * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, s = xf.to(lx, lz), p = P(s[0], s[1]), col = n.cat ? '#ffb0e0' : '#7fd8ff';
+        list.forEach(function (n) { var nd = L && L.nodes[n.node], room = nd ? nd.room : null, xf = room && XF[room]; if (!xf) return; var ny = n.y != null ? n.y : (nd && nd.y != null ? nd.y : (n.pos && n.pos.y != null ? n.pos.y : 0)); if ((LOWER.indexOf(room) >= 0 || ny < -3) !== lower) return; var off = OFFR[room] || 0, lx = n.x != null ? n.x - off * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, s = xf.to(lx, lz), p = P(s[0], s[1]), col = n.cat ? '#ffb0e0' : '#7fd8ff';
           add('circle', { cx: p[0], cy: p[1], r: n.cat ? 3.4 : 4.4, fill: col, stroke: '#0a1424', 'stroke-width': 1 }, live);
           var t = add('text', { x: p[0] + 6, y: p[1] + 3, fill: col, 'font-size': 6.8, 'font-weight': 700, 'font-family': FONT, stroke: '#0a1424', 'stroke-width': 2, 'paint-order': 'stroke' }, live); t.textContent = NAMES[n.id]; (where[room] = where[room] || []).push(NAMES[n.id]); });
       }
@@ -417,14 +431,71 @@
     }
     drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
   }
+  // ═══ ROUTES: A* over the deck's walkable floor (atrium + room shapes, minus furniture), stairs link the decks ═══
+  var GRIDS = {}, CELL = 0.5, GX0 = -32, GZ0 = -56, GNX = 128, GNZ = 224, STAIR = [{ x: 0, z: 0 }, { x: 0, z: 0 }];
+  function stairEnd(sx, a) { return [sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)]; }
+  function inPoly(p, x, z) { var c = false, i, j; for (i = 0, j = p.length - 1; i < p.length; j = i++) if ((p[i][1] > z) !== (p[j][1] > z) && x < (p[j][0] - p[i][0]) * (z - p[i][1]) / (p[j][1] - p[i][1]) + p[i][0]) c = !c; return c; }
+  function walkGrid(which) {
+    if (GRIDS[which]) return GRIDS[which]; var lower = which === 'lower', ok = new Uint8Array(GNX * GNZ), i, j, polys = [], circs = [], block = [], SRC = lower ? (DECK2 || {}) : (DECK || {});
+    polys.push(LAYOUT.corridor.outerPolygon); var hole = lower ? null : LAYOUT.corridor.upperOpening;
+    RMS.filter(function (r) { return r.deck === which; }).forEach(function (r) {
+      var R = LAYOUT.rooms[r.k]; if (!R) return; if (R.center) circs.push({ x: R.center[0], z: R.center[2], r: R.radius, hole: r.id === 'core' ? 5.85 : 0 }); else polys.push(R.polygon);
+      var s = SRC[r.id], xf = XF[r.id]; if (s && s.solids && xf) s.solids.forEach(function (b) { block.push([xf.to(b[0], b[1]), xf.to(b[2], b[1]), xf.to(b[2], b[3]), xf.to(b[0], b[3])]); });
+    });
+    var src = SRC.corridor; if (!lower && src && src.solids) src.solids.forEach(function (b) { block.push([[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]]); });
+    var doors = []; RMS.filter(function (r) { return r.deck === which; }).forEach(function (r) { var R = LAYOUT.rooms[r.k]; if (R && R.door) doors.push(R.door); });
+    for (j = 0; j < GNZ; j++) for (i = 0; i < GNX; i++) {
+      var x = GX0 + (i + .5) * CELL, z = GZ0 + (j + .5) * CELL, w = false, k;
+      if (inPoly(polys[0], x, z) && !(hole && inPoly(hole, x, z))) w = true;
+      for (k = 1; k < polys.length && !w; k++) if (inPoly(polys[k], x, z)) w = true;
+      for (k = 0; k < circs.length && !w; k++) { var d = Math.hypot(x - circs[k].x, z - circs[k].z); if (d < circs[k].r - 0.4 && d > circs[k].hole) w = true; }
+      for (k = 0; k < doors.length && !w; k++) { var dr = doors[k], vert = Math.abs(dr[0]) > 2.4; if (Math.abs(x - dr[0]) < (vert ? 1.6 : 1.0) && Math.abs(z - dr[2]) < (vert ? 1.0 : 1.6)) w = true; }
+      for (k = 0; k < 2 && !w; k++) { var se = stairEnd(k ? 1 : -1, k ? -0.35 : -0.35); if (Math.hypot(x - se[0], z - se[1]) < 2.2) w = true; var sf = stairEnd(k ? 1 : -1, 1.16); if (Math.hypot(x - sf[0], z - sf[1]) < 2.2) w = true; }
+      if (!w && lower && Math.abs(x) < 6.2 && z > 44.2 && z < 47.6) w = true;   // stair-foot foyer, joins the Core door at (0, 45.4)
+      if (w) for (k = 0; k < block.length; k++) if (inPoly(block[k], x, z)) { w = false; break; }
+      if (!w && !lower) for (k = 0; k < 2; k++) { var e = stairEnd(k ? 1 : -1, -0.35), f = [e[0] * 0.55, 36 + (e[1] - 36) * 0.55], vx = f[0] - e[0], vz = f[1] - e[1], tt = Math.max(0, Math.min(1, ((x - e[0]) * vx + (z - e[1]) * vz) / (vx * vx + vz * vz))); if (Math.hypot(x - e[0] - vx * tt, z - e[1] - vz * tt) < 1.0) w = true; }   // stair-top door -> Library floor, through the bookcase ring
+      ok[j * GNX + i] = w ? 1 : 0;
+    }
+    return (GRIDS[which] = ok);
+  }
+  function cellOf(x, z) { return [Math.max(0, Math.min(GNX - 1, Math.floor((x - GX0) / CELL))), Math.max(0, Math.min(GNZ - 1, Math.floor((z - GZ0) / CELL)))]; }
+  function nearestFree(ok, c) { var r, i, j; for (r = 0; r < 30; r++) for (j = -r; j <= r; j++) for (i = -r; i <= r; i++) { if (Math.max(Math.abs(i), Math.abs(j)) !== r) continue; var a = c[0] + i, b = c[1] + j; if (a >= 0 && b >= 0 && a < GNX && b < GNZ && ok[b * GNX + a]) return [a, b]; } return null; }
+  function astar(which, a, b) {
+    var ok = walkGrid(which), s = nearestFree(ok, cellOf(a[0], a[1])), g = nearestFree(ok, cellOf(b[0], b[1])); if (!s || !g) return null;
+    var N = GNX * GNZ, gs = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), closed = new Uint8Array(N), heap = [], si = s[1] * GNX + s[0], gi = g[1] * GNX + g[0];
+    function h(i) { return Math.hypot(i % GNX - g[0], (i / GNX | 0) - g[1]); }
+    function push(i, f) { heap.push([f, i]); var n = heap.length - 1; while (n > 0) { var p = (n - 1) >> 1; if (heap[p][0] <= heap[n][0]) break; var t = heap[p]; heap[p] = heap[n]; heap[n] = t; n = p; } }
+    function pop() { var top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; var n = 0; for (;;) { var l = 2 * n + 1, r = l + 1, m = n; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === n) break; var t = heap[m]; heap[m] = heap[n]; heap[n] = t; n = m; } } return top[1]; }
+    gs[si] = 0; push(si, h(si)); var D = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]];
+    while (heap.length) { var cur = pop(); if (closed[cur]) continue; closed[cur] = 1; if (cur === gi) break; var cx = cur % GNX, cz = cur / GNX | 0;
+      for (var q = 0; q < 8; q++) { var nx = cx + D[q][0], nz = cz + D[q][1]; if (nx < 0 || nz < 0 || nx >= GNX || nz >= GNZ) continue; var ni = nz * GNX + nx; if (!ok[ni] || closed[ni]) continue; if (D[q][2] > 1.4 && (!ok[cz * GNX + nx] || !ok[nz * GNX + cx])) continue;
+        var ng = gs[cur] + D[q][2]; if (ng < gs[ni]) { gs[ni] = ng; from[ni] = cur; push(ni, ng + h(ni)); } } }
+    if (!closed[gi]) return null; var cells = [], c = gi; while (c >= 0) { cells.push([GX0 + (c % GNX + .5) * CELL, GZ0 + ((c / GNX | 0) + .5) * CELL]); c = from[c]; } cells.reverse();
+    function los(p, q) { var n = Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1]) / 0.25), t; for (t = 1; t < n; t++) { var cc = cellOf(p[0] + (q[0] - p[0]) * t / n, p[1] + (q[1] - p[1]) * t / n); if (!ok[cc[1] * GNX + cc[0]]) return false; } return true; }
+    var out = [[a[0], a[1]]], i0 = 0, k; while (i0 < cells.length - 1) { k = cells.length - 1; while (k > i0 + 1 && !los(cells[i0], cells[k])) k--; out.push(cells[k]); i0 = k; } out[out.length - 1] = [b[0], b[1]]; return out;
+  }
+  window.WF_MAPDBG = { astar: function () { return astar.apply(null, arguments); }, grid: function (w) { return walkGrid(w); }, cell: cellOf, GNX: GNX, GX0: GX0, GZ0: GZ0 };
+  function plen(p) { var s = 0; for (var i = 1; i < p.length; i++) s += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return s; }
+  function youShip() { var sc = document.querySelector('a-scene'), xf = XF[PAGE]; if (!sc || !sc.camera || !xf || PAGE === 'quarters') return null; var cp = new AFRAME.THREE.Vector3(); sc.camera.getWorldPosition(cp); var py = document.getElementById('player'), s = xf.to(cp.x, cp.z), low = onLower(); if (PAGE === 'corridor' && py) low = py.object3D.position.y < -3; return { s: s, deck: low ? 'lower' : 'upper' }; }
+  // route legs: [{deck, pts}] from the player to a destination {s:[x,z], deck}; a different deck means: to the nearest stairs, down/up, on to the goal
+  function planRoute(dest) {
+    var you = youShip(); if (!you) return null; if (you.deck === dest.deck) { var p = astar(you.deck, you.s, dest.s); return p ? { legs: [{ deck: you.deck, pts: p }], len: plen(p) } : null; }
+    var up = you.deck === 'upper', best = null;
+    [-1, 1].forEach(function (sx) { var ua = stairEnd(sx, -0.35), la = stairEnd(sx, 1.16), a = up ? ua : la, b = up ? la : ua, p1 = astar(you.deck, you.s, a), p2 = astar(dest.deck, b, dest.s); if (!p1 || !p2) return; var L = plen(p1) + plen(p2) + 17; if (!best || L < best.len) best = { legs: [{ deck: you.deck, pts: p1, stair: a, up: !up }, { deck: dest.deck, pts: p2, stair: b, up: up }], len: L }; });
+    return best;
+  }
   // tap → exact spot (in that room's own metres), unless the gesture was a pan
+  function mapTravel(d) {
+    var gs = d.gs, R = d.room; close();
+    if (!d.lp) { toast('Heading to the ' + d.name + '…'); setTimeout(function () { location.href = R.page; }, 250); return; }
+    if (PAGE === gs.page) { gs.t = Date.now(); if (!gotoNow(gs)) toast('Nothing to stand on there'); return; }
+    gs.t = Date.now(); toast('Heading to that spot in the ' + d.name + '…'); try { sessionStorage.setItem('wf-goto', JSON.stringify(gs)); } catch (e) {} setTimeout(function () { location.href = d.id === 'corridor' ? 'index.html' : R.page; }, 250);
+  }
+  // tap = pick a destination (pin + route + GO); GO (or tapping the pin again) travels
   function mapClick(svg, ev, id, lowerDeck) {
-    if (svg._dragged) return; var g = svg._rot && svg._rot.g; if (!g) return; var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(g.getScreenCTM().inverse()), s = [(q.x - MOX) / MS, (q.y - MOZ) / MS];
-    var R = RMS.filter(function (r) { return r.id === id; })[0], xf = XF[id], lp = xf ? xf.from(s[0], s[1]) : null, name = R ? R.name.toLowerCase() : 'atrium';
-    var page = id === 'corridor' ? 'corridor' : id, gs = { page: page, x: lp ? +lp[0].toFixed(2) : 0, z: lp ? +lp[1].toFixed(2) : 0, y: id === 'corridor' ? (lowerDeck ? LOWY : 0) : 0, t: Date.now() };
-    close(); if (!lp) { toast('Heading to the ' + name + '…'); setTimeout(function () { location.href = R.page; }, 250); return; }
-    if (PAGE === page) { if (!gotoNow(gs)) toast('Nothing to stand on there'); return; }
-    toast('Heading to that spot in the ' + name + '…'); try { sessionStorage.setItem('wf-goto', JSON.stringify(gs)); } catch (e) {} setTimeout(function () { location.href = id === 'corridor' ? 'index.html' : R.page; }, 250);
+    if (svg._dragged) return; var g = svg._rot && svg._rot.g; if (!g || !svg._setDest) return; var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(g.getScreenCTM().inverse()), s = [(q.x - MOX) / MS, (q.y - MOZ) / MS];
+    var R = RMS.filter(function (r) { return r.id === id; })[0], xf = XF[id], lp = xf ? xf.from(s[0], s[1]) : null, name = R ? R.name.toLowerCase() : 'atrium', page = id === 'corridor' ? 'corridor' : id;
+    svg._setDest({ id: id, room: R, name: name, lp: lp, s: s, deck: lowerDeck ? 'lower' : 'upper', gs: { page: page, x: lp ? +lp[0].toFixed(2) : 0, z: lp ? +lp[1].toFixed(2) : 0, y: id === 'corridor' ? (lowerDeck ? LOWY : 0) : 0 } });
   }
   // pan (drag) + zoom (wheel / pinch) on the viewBox; a drag > 6 px suppresses the click that follows
   function mapZoom(svg) {

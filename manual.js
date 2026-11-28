@@ -34,7 +34,7 @@
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',
       'Top bar: clock and credits on the left; glowing HUD icons for deck map · Ship Log · Halcyon (brain) · settings (gear). The settings menu holds sound on/off, this manual (the ? row), thumbstick size (S / M / L) and opacity, VR / gyro look, level the view, and 1st / 3rd person.',
       'Doors: walk up and tap the glowing hub button, or just walk through an open one. The coloured half-round rug in front of each door matches its room.',
-      'Ship Log (📋 or J): GOALS · DECK MAP (own button: upper / lower / cutaway, navigation or engineering view, pan and zoom, tap anywhere to go to that exact spot) · CARGO · SCIENCE · ORDERS.',
+      'Ship Log (📋 or J): GOALS · DECK MAP (own button: upper / lower / cutaway, navigation or engineering view, pan and zoom, tap a spot to pin a destination: a route is planned over the walkable floor, via the stairs if it is on the other deck, then GO) · CARGO · SCIENCE · ORDERS.',
       'Keys: J log · H this manual · I Halcyon · M mute · V view · Esc closes panels.']],
     ['💰 Credits, rank & daily goals', [
       'One wallet for everything. Contracts, goals, repairs, scans, games and bounties pay into it; shops and bets take from it.',
