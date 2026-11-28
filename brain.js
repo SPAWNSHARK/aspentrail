@@ -315,20 +315,31 @@
       var wc = document.createElement('canvas'), we = document.createElement('canvas'); wc.width = we.width = 1024; wc.height = we.height = 512;
       var x = wc.getContext('2d'), xe = we.getContext('2d'), px, py, rr = 11;
       x.fillStyle = '#1b2523'; x.fillRect(0, 0, 1024, 512); xe.fillStyle = '#000'; xe.fillRect(0, 0, 1024, 512);
-      for (px = 0; px < 8; px++) for (py = 0; py < 4; py++) {
-        var X = px * 128 + 6, Y = py * 128 + 6, shade = 24 + ((px * 7 + py * 13) % 5) * 5;
-        x.fillStyle = 'rgb(' + shade + ',' + (shade + 10) + ',' + (shade + 8) + ')'; x.fillRect(X, Y, 116, 116);
-        x.strokeStyle = '#0a1110'; x.lineWidth = 3; x.strokeRect(X, Y, 116, 116);
-        x.fillStyle = '#6b5a35'; [[X + 8, Y + 8], [X + 108, Y + 8], [X + 8, Y + 108], [X + 108, Y + 108]].forEach(function (p) { x.beginPath(); x.arc(p[0], p[1], 4, 0, 6.3); x.fill(); });
-        x.fillStyle = 'rgba(0,0,0,0.35)'; for (var gy = 0; gy < 5; gy++) x.fillRect(X + 24, Y + 30 + gy * 14, 68, 6);   // slat grilles
-        if ((px * 3 + py * 5) % 4 === 0) { xe.fillStyle = '#6fd08c'; xe.fillRect(X + 22, Y + 24, 72, 16); x.fillStyle = '#1a5a3a'; x.fillRect(X + 22, Y + 24, 72, 16); }
-        if ((px + py * 2) % 5 === 1) { xe.fillStyle = '#ffa23c'; xe.fillRect(X + 90, Y + 94, 14, 10); }
-      }
+      x.fillStyle = '#1e272b'; x.fillRect(0, 0, 1024, 512); for (py = 0; py < 60; py++) { x.fillStyle = 'rgba(255,255,255,' + (0.015 + Math.random() * 0.02) + ')'; x.fillRect(0, Math.random() * 512, 1024, 1); }   // Nov 28: smooth graphite like the Core room (the old tiled machinery panels are gone)
       var wt = new THREE.CanvasTexture(wc), wet = new THREE.CanvasTexture(we);
-      wt.wrapS = wt.wrapT = wet.wrapS = wet.wrapT = THREE.RepeatWrapping; wt.repeat.set(3, 2); wet.repeat.set(3, 2);
+      wt.wrapS = wt.wrapT = wet.wrapS = wet.wrapT = THREE.RepeatWrapping; wt.repeat.set(2, 1); wet.repeat.set(2, 1);
       var wallM = new THREE.Mesh(new THREE.CylinderGeometry(8.12, 8.12, 16, low ? 48 : 96, 1, true),
         new THREE.MeshStandardMaterial({ map: wt, emissiveMap: wet, emissive: 0xffffff, emissiveIntensity: 0.85, roughness: 0.55, metalness: 0.7, side: THREE.BackSide }));
       wallM.position.y = -8; grp.add(wallM);
+
+      // Nov 28 (user: looking down from the Library I should see the NEW Core room): the Core's monitor wall + ribbed tissue pilasters down here too
+      (function () {
+        var NB = low ? 16 : 22, TW = 256, mc = document.createElement('canvas'); mc.width = TW * 6; mc.height = TW; var c = mc.getContext('2d'), kk, xx, jj;
+        for (kk = 0; kk < 6; kk++) { var o = kk * TW; c.fillStyle = '#06130f'; c.fillRect(o, 0, TW, TW); c.strokeStyle = 'rgba(125,255,205,.55)'; c.lineWidth = 3; c.strokeRect(o + 4, 4, TW - 8, TW - 8);
+          c.strokeStyle = 'rgba(125,255,205,.18)'; c.lineWidth = 1; for (jj = 1; jj < 6; jj++) { c.beginPath(); c.moveTo(o + 14, 36 + jj * 34); c.lineTo(o + TW - 14, 36 + jj * 34); c.stroke(); }
+          c.fillStyle = '#9dffd6'; c.font = '600 15px monospace'; c.fillText(['CORTEX · EEG', 'VITALS · PULSE', 'NEURAL FLUX', 'HYDROGEL CHEM', 'PERFUSION SCAN', 'SYNAPSE MAP'][kk], o + 14, 26);
+          if (kk === 0 || kk === 1) { c.strokeStyle = '#7dfff0'; c.lineWidth = 2; for (jj = 0; jj < 3; jj++) { c.beginPath(); for (xx = 14; xx < TW - 14; xx += 4) { var yy = 90 + jj * 50 + Math.sin(xx * 0.09 + jj * 2 + kk) * 12; xx === 14 ? c.moveTo(o + xx, yy) : c.lineTo(o + xx, yy); } c.stroke(); } }
+          else if (kk === 2) { for (xx = 0; xx < 12; xx++) for (jj = 0; jj < 9; jj++) { c.fillStyle = 'hsla(' + (150 + ((xx * 7 + jj * 11) % 40)) + ',90%,' + (28 + ((xx * 5 + jj * 3) % 30)) + '%,.8)'; c.fillRect(o + 16 + xx * 19, 44 + jj * 22, 16, 18); } }
+          else if (kk === 3) { for (jj = 0; jj < 5; jj++) { c.fillStyle = 'rgba(125,255,205,.18)'; c.fillRect(o + 40, 56 + jj * 36, 180, 12); c.fillStyle = '#9dffd6'; c.fillRect(o + 40, 56 + jj * 36, 80 + ((jj * 37) % 90), 12); } }
+          else if (kk === 4) { c.strokeStyle = 'rgba(125,255,205,.5)'; for (jj = 1; jj <= 4; jj++) { c.beginPath(); c.arc(o + 128, 142, jj * 24, 0, 7); c.stroke(); } c.beginPath(); c.moveTo(o + 128, 142); c.lineTo(o + 200, 90); c.stroke(); }
+          else { c.strokeStyle = 'rgba(125,255,205,.6)'; for (jj = 0; jj < 12; jj++) { c.beginPath(); c.moveTo(o + 40 + (jj * 53) % 180, 60 + (jj * 71) % 150); c.lineTo(o + 40 + ((jj + 3) * 53) % 180, 60 + ((jj + 3) * 71) % 150); c.stroke(); } } }
+        var mt = new THREE.CanvasTexture(mc); mt.wrapS = THREE.RepeatWrapping; mt.repeat.set(NB / 6, 1);
+        [[-2.4, 2.0], [-4.7, 2.0], [-12.4, 2.2]].forEach(function (q) { var pm = new THREE.Mesh(new THREE.CylinderGeometry(7.95, 7.95, q[1], low ? 66 : 132, 1, true), new THREE.MeshBasicMaterial({ map: mt, side: THREE.BackSide, toneMapped: false, fog: false })); pm.position.y = q[0]; grp.add(pm); });
+        var pr = []; for (kk = 0; kk <= 40; kk++) pr.push(new THREE.Vector2(0.2 + 0.05 * Math.sin(kk * 1.6), kk / 40 * 16 - 8));
+        var bioM = new THREE.MeshStandardMaterial({ color: 0x3f6650, roughness: 0.42, metalness: 0.05, emissive: 0x10663a, emissiveIntensity: 0.55 });
+        var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bioM, NB), mm = new THREE.Matrix4();
+        for (kk = 0; kk < NB; kk++) { var ta = kk / NB * Math.PI * 2; mm.makeTranslation(Math.sin(ta) * 7.85, -8, Math.cos(ta) * 7.85); pil.setMatrixAt(kk, mm); } grp.add(pil);
+      })();
 
       var brass = new THREE.MeshStandardMaterial({ color: 0xa8843e, roughness: 0.38, metalness: 0.95, emissive: 0x2a1a06, emissiveIntensity: 0.6 });
       var tealM = new THREE.MeshBasicMaterial({ color: 0x6fd08c, fog: false });
