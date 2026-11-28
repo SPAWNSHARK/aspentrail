@@ -11,6 +11,8 @@
       teal = new THREE.MeshBasicMaterial({ color: 0x7dfff0, fog: false }), white = new THREE.MeshBasicMaterial({ color: 0xd8f0ff, fog: false });
   var glass = new THREE.MeshStandardMaterial({ color: 0x7dffb8, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false });
 
+  var bio = new THREE.MeshStandardMaterial({ color: 0x3f6650, roughness: 0.42, metalness: 0.05, emissive: 0x10663a, emissiveIntensity: 0.55, side: THREE.DoubleSide }),
+      vessel = new THREE.MeshStandardMaterial({ color: 0x7a2a3a, roughness: 0.38, metalness: 0.05, emissive: 0x5a0f22, emissiveIntensity: 0.5, side: THREE.DoubleSide });   // Nov 28: grown tissue, pulses with the heartbeat
   function build(sc) {
     var g = new THREE.Group(); sc.object3D.add(g);
     function cyl(r0, r1, y0, y1, m, open, seg) { var o = new THREE.Mesh(new THREE.CylinderGeometry(r0, r1, y1 - y0, seg || SEGS, 1, !!open), m); o.position.y = (y0 + y1) / 2; g.add(o); return o; }
@@ -23,21 +25,26 @@
     var p2 = new THREE.Mesh(new THREE.CircleGeometry(CR, 64), mat(0x0c1a16, 0.7, 0.5, 0x0a3a2a, 0.6)); p2.rotation.x = -Math.PI / 2; p2.position.y = CB + 0.02; g.add(p2);
     [CB, CB + 1.6, CT - 3.6, CT - 0.05].forEach(function (y, i) { ring(CR + 0.05, y, i === 1 ? 0.07 : 0.16, i === 1 ? teal : bronze); });
     // reactor
-    cyl(GI - 0.05, GI - 0.05, PIT, 0, mat(0x2a2e32, 0.6, 0.5), true);
+    cyl(GI - 0.05, GI - 0.05, PIT, 0, mat(0x1d3027, 0.55, 0.45, 0x0a2a1a, 0.5), true);
     var pf = new THREE.Mesh(new THREE.CircleGeometry(GI, 64), steel); pf.rotation.x = -Math.PI / 2; pf.position.y = PIT; g.add(pf);
     var RC = 1.35, cg = glass.clone(); cg.opacity = 0.2; cyl(RC, RC, PIT, CB, cg, true, 40);
     plasma = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
       vertexShader: 'varying vec3 p; void main(){ p = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
       fragmentShader: 'uniform float t; varying vec3 p; void main(){ float a = atan(p.z,p.x); float f = .5+.5*sin(p.y*3.2 - t*2.4 + sin(a*3.+t)*1.5); float g = .5+.5*sin(a*6.+p.y*1.7+t*1.3); float c = f*.6+g*.4; vec3 col = mix(vec3(.05,.45,.9), vec3(.55,1.,.95), c*c); gl_FragColor = vec4(col, .35+.5*c); }' });
-    cyl(RC * 0.62, RC * 0.62, PIT, CB, plasma, true, 28);
-    cyl(0.3, 0.3, CB, CB + 3.1, new THREE.MeshBasicMaterial({ color: 0x9cffe0, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }), true, 16);
-    [PIT + 0.5, -3.6, -1.9, -0.3, CB - 0.35].forEach(function (y) { ring(RC + 0.08, y, 0.12, bronze); });
+    cyl(0.6, 0.6, PIT, CB + 3.1, plasma, true, 28);   // ONE column from the pit floor into the brain stem (was 0.84 below / 0.3 above, offset)
+    [PIT + 0.5, -3.6, -1.9, -0.3, CB - 0.35].forEach(function (y) { ring(0.74, y, 0.1, bio); });   // ribbed tissue sheath rings on the column
+    // roots: the column grows into the pit floor and up the pit wall like a grafted organ
+    for (i = 0; i < 14; i++) {
+      var ra = i / 14 * Math.PI * 2 + 0.1, rc = Math.cos(ra), rs = Math.sin(ra), wob = 0.25 * Math.sin(i * 2.3);
+      var rcurve = new THREE.CatmullRomCurve3([new THREE.Vector3(rc * 0.7, PIT + 1.3, rs * 0.7), new THREE.Vector3(rc * 1.3, PIT + 0.35, rs * 1.3), new THREE.Vector3(rc * (2.4 + wob), PIT + 0.1, rs * (2.4 + wob)), new THREE.Vector3(rc * (4.1 + wob), PIT + 0.16, rs * (4.1 + wob)), new THREE.Vector3(rc * 5.35, PIT + 1.1 + (i % 3) * 0.7, rs * 5.35), new THREE.Vector3(rc * 5.4, PIT + 2.9 + (i % 4) * 0.4, rs * 5.4)]);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(rcurve, MOB ? 30 : 56, i % 2 ? 0.17 : 0.1, 8, false), i % 3 === 0 ? vessel : bio));
+    }
     ring(RC + 0.1, PIT + 1.4, 0.05, teal);
-    var pipe = mat(0x3b4146, 0.85, 0.4), i;
+    var pipe = bio, i;
     for (i = 0; i < 8; i++) {
       var an = i / 8 * Math.PI * 2 + 0.2, c = Math.cos(an), s = Math.sin(an);
       var curve = new THREE.CatmullRomCurve3([new THREE.Vector3(c * (RC + 0.2), PIT + 1.6, s * (RC + 0.2)), new THREE.Vector3(c * 3.2, -3.0, s * 3.2), new THREE.Vector3(c * (CR + 0.45), -0.05, s * (CR + 0.45)), new THREE.Vector3(c * (CR + 0.45), CB + 0.6, s * (CR + 0.45)), new THREE.Vector3(c * (CR + 0.2), CT - 0.4, s * (CR + 0.2))]);
-      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, MOB ? 24 : 40, 0.13, 8, false), pipe));
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, MOB ? 24 : 40, 0.13, 8, false), i % 2 ? vessel : pipe));
     }
     for (i = 0; i < 4; i++) {
       var ab = i / 4 * Math.PI * 2 + Math.PI / 4, p0 = new THREE.Vector3(Math.cos(ab) * (GI + 0.1), 0, Math.sin(ab) * (GI + 0.1)), p1 = new THREE.Vector3(Math.cos(ab) * (CR + 0.1), CB, Math.sin(ab) * (CR + 0.1));
@@ -108,7 +115,7 @@
     var M = new THREE.Matrix4(), Q = new THREE.Quaternion(), SC = new THREE.Vector3(), UP = new THREE.Vector3(0, 0, 1), P0 = new THREE.Vector3(), P1 = new THREE.Vector3(), V = new THREE.Vector3(), tt = 0;
     function at(e, T, k, out) { var a = e.ph + (T - k * 0.1) * e.sp * e.dir, w = Math.sin(T * 5 - k * 0.7) * 0.08 * (k / SEG); out.set(Math.cos(a) * (e.r + w), e.y + Math.sin((T - k * 0.1) * 0.5 + e.ph) * 0.9, Math.sin(a) * (e.r + w)); }
     AFRAME.registerComponent('wf-core-eels', { tick: function (t) {
-      var T = t / 1000, ei, k; if (plasma) plasma.uniforms.t.value = T;
+      var T = t / 1000, ei, k; if (plasma) plasma.uniforms.t.value = T; var hb = 0.55 + 0.35 * Math.pow(Math.max(0, Math.sin(T * 2.6)), 3); bio.emissiveIntensity = hb; vessel.emissiveIntensity = hb * 0.9;
       for (ei = 0; ei < NE; ei++) { var e = E[ei]; for (k = 0; k < SEG; k++) { at(e, T, k, P0); at(e, T, k + 1, P1); V.subVectors(P0, P1).normalize(); Q.setFromUnitVectors(UP, V);
           var tp = e.sz * (k < 2 ? 0.85 + k * 0.1 : 1 - (k - 2) / SEG * 0.85); SC.set(tp, tp * 0.75, tp * 1.9); M.compose(P0, Q, SC); eel.setMatrixAt(ei * SEG + k, M);
           if (k === 0) for (var s = 0; s < 2; s++) { M.makeTranslation(P0.x + V.z * (s ? 1 : -1) * tp * 0.6, P0.y + tp * 0.4, P0.z - V.x * (s ? 1 : -1) * tp * 0.6); eyes.setMatrixAt(ei * 2 + s, M); } } }
