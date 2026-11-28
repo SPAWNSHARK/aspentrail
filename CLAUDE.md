@@ -491,7 +491,7 @@ Lower: Firefly hangar (bow, opening jaw) · Medbay + Xenobiology (port) · Mess 
 - [x] PROPS PASS (Nov 26, Furniture 01 leftovers; furniture.js swapEntity now keeps risers): Media 8 cinema_seat → cinema_recliner (back row
   on its riser); Library reading_armchair + side_table by the study desk; Lounge 2 bar_stools at the bar (deg ~128/136, r 7.35) + cat_ramp
   by the tree; Holodeck holodeck_control_desk (port, by the planner) + holodeck_utility_table (starboard); atrium 4 wall_service_terminals
-  (both decks, x ±4.55). Not re-done: portal photos of Media/Lounge/Library/Holodeck (props only), maps/deck.json footprints.
+  (both decks, x ±4.55). Portal photos of Media/Lounge/Library/Holodeck recaptured (Nov 28). Not re-done: maps/deck.json footprints.
   UNUSED UPLOADS (by choice): Character Engine V5 (motor migration), Part 01–03 kit GLBs (0.6–1.3 MB each), Firefly/Spaceship HD, Medbay
   assembled preview, bronze TV, orbital station interiors, Kvetar 140 variants, V8 geometry builders, remaining Furniture 01 pieces.
 - [x] INTERACTION V11 (Nov 26; installer run, backups in .interaction-v11-backup/ git-ignored; interaction-v11/core.js + runtime.js; its 7
