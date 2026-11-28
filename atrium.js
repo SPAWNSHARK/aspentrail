@@ -317,7 +317,8 @@
     var pm = mat;
     polyWall(root, pm, [[-2.62, 24.9], [-1.05, 24.9]], LOW, -0.23, 3, 'PartL'); polyWall(root, pm, [[1.05, 24.9], [2.62, 24.9]], LOW, -0.23, 3, 'PartR');
     polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
-    polyWall(root, pm, [[-2.62, 24.9], [-2.62, 27.1]], LOW, -0.23, 3, 'NTunnelL'); polyWall(root, pm, [[2.62, 24.9], [2.62, 27.1]], LOW, -0.23, 3, 'NTunnelR');   // Nov 28: sealed passage from the lower-hall door to the north Core door
+    polyWall(root, pm, [[-2.62, 24.9], [-2.62, 27.1]], LOW, -0.23, 3, 'NTunnelL'); polyWall(root, pm, [[2.62, 24.9], [2.62, 27.1]], LOW, -0.23, 3, 'NTunnelR');
+    (function () { var pl = new THREE.PointLight(0xd8e8ff, 1.2, 7, 1.5); pl.position.set(0, LOW + 2.4, 25.9); root.add(pl); var bm2 = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false }); [-1.05, 1.05].forEach(function (x) { var ln = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.9, 0.05), bm2); ln.position.set(x, LOW + 1.5, 24.95); ln.name = 'ArchLine'; ln.userData.v8Skip = true; root.add(ln); }); })();   // Nov 28: sealed passage from the lower-hall door to the north Core door
     // thin light lines round the shaft + a bronze band at each deck
     [[LOW + 0.55, M.teal], [-0.34, M.gun], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
     // Nov 27 (user sketch IMG_7403: two stair arches left/right + a CENTRE ARCH both paths lead to): the stair feet open into a pocket closed by a wall across x at z 48.0 (x ±3.4, between the two tunnel mouths) with an arched doorway at x 0; the aft ring beyond leads round the core to the lower hall
@@ -426,7 +427,7 @@
   function wallBlocked(fy, x0, z0, x1, z1, lowDoor) {
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
-    if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
+    if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95) return true; }
     if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; return true; }   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
     if (fy > -1.0) { var sgn = x0 >= 0 ? 1 : -1, a0 = Math.atan2(sgn * x0, z0 - 36), a1 = Math.atan2(sgn * x1, z1 - 36), r0 = Math.hypot(x0, z0 - 36), r1 = Math.hypot(x1, z1 - 36);
       var in0 = a0 > 1.5 && a0 < 2.18 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.18 && r1 > 10.2 && r1 < 12.4;
@@ -493,6 +494,7 @@
   function buildDoors(sc, root) {
     var PT = window.WAYFARER.door.PORTALS, from = fromRoom();
     DOORS.forEach(function (d) {
+      if (d.pass) return;   /* Nov 28 (user: black void behind this door): the lower-hall doorway is now an open archway, no door */
       var P = PT[d.id];
       var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1, noRecess: !!d.noRecess, shallow: !!d.shallow,
         other: P ? P.room : null, space: P ? P.space : null, img: d.wing ? 'images/portals/wing-' + d.wing + '.jpg' : (P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null), locked: !!d.locked,
@@ -529,7 +531,7 @@
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
       mats(envMap(sc.renderer)); buildLights(flat); buildStairLandings(flat); buildStairShaft(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
       var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower', 'Twin_Curved_Stairs'], left = parts.length + 1, failed = [];
-      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var railR = null; if (n === 'Twin_Curved_Stairs') { clearDoorRails(g.scene); railR = railRadii(g.scene); } var m = merge(g.scene, walk); if (n === 'Twin_Curved_Stairs') { stairLook(m); } root.add(m); if (railR) { try { buildStairTunnels(root, m, railR); } catch (e) { console.warn('stair tunnel', e); } } if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
+      parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { var railR = null; if (n === 'Twin_Curved_Stairs') { railR = railRadii(g.scene) || [10.45, 12.25]; clearDoorRails(g.scene); } var m = merge(g.scene, walk); if (n === 'Twin_Curved_Stairs') { stairLook(m); } root.add(m); if (railR) { try { buildStairTunnels(root, m, railR); } catch (e) { console.warn('stair tunnel', e); } } if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
       buildDoors(sc, flat);
       // v0.4: exterior effects are confined to the real skylight.
