@@ -117,6 +117,9 @@
     '#wf-log.bp{background:#0a1424;border:1px solid rgba(127,227,255,.45);box-shadow:0 14px 34px rgba(0,0,0,.55);-webkit-backdrop-filter:none;backdrop-filter:none}' +
     '#wf-log.bp svg.map{touch-action:none}#wf-log.bp .mc{display:flex;flex-direction:column;gap:5px;margin:4px 0 6px}#wf-log.bp .mr{display:flex;gap:5px}' +
     '#wf-log.bp .mr button{flex:1;padding:7px 4px;border-radius:3px;border:1px solid rgba(127,227,255,.3);background:rgba(127,227,255,.05);color:#cfeeff;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:1.1px}' +
+    '#wf-log.bp{position:fixed!important;inset:0!important;top:0!important;bottom:0!important;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:none!important;margin:0!important;border-radius:0;z-index:100001;display:none;flex-direction:column;overflow:hidden;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px calc(env(safe-area-inset-bottom,0px) + 8px)}' +
+    '#wf-log.bp .hd{margin-bottom:6px;flex:none}#wf-log.bp .mc{flex:none;margin:0 0 6px}#wf-log.bp .mc .mr.opt{display:none}#wf-log.bp .mc.open .mr.opt{display:flex}#wf-log.bp p.sub{flex:none;margin:2px 0 4px;font-size:9.5px}' +
+    '#wf-log.bp svg.map{flex:1 1 auto;min-height:0;height:100%;max-height:none;width:100%}#wf-log.bp .go{flex:none}#wf-log.bp .mr .opt-t{flex:0 0 44px}' +
     '#wf-log.bp .go{display:none;align-items:center;gap:6px;margin:6px 0 2px}#wf-log.bp .go span{flex:1;color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:.8px}#wf-log.bp .go button{padding:7px 14px;border-radius:3px;border:1px solid rgba(255,210,122,.5);background:rgba(255,210,122,.06);color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .go button.on{background:rgba(255,210,122,.25);color:#fff;border-color:#ffd27a}' +
     '#wf-log.bp .mr button.on{background:rgba(127,227,255,.2);border-color:#7fe3ff;color:#fff}' +
     '#wf-log.bp .hd b{color:#f2f8ff;text-shadow:none}#wf-log.bp .hd span{color:#d6e6fa;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .x{color:#f2f8ff}' +
@@ -132,16 +135,16 @@
 
     if (!box) { box = el('div'); box.id = 'wf-log'; document.body.appendChild(box);
       ['pointerdown', 'touchstart', 'mousedown', 'click', 'wheel'].forEach(function (n) { box.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); }); }
-    box.style.display = 'block'; document.body.classList.add('reading'); render();
+    box.style.display = tab === 'map' ? 'flex' : 'block'; document.body.classList.add('reading'); render();
     var b = document.querySelector('#wf-btns .wf-logbtn'); if (b) b.classList.remove('new');
   }
   function close() { if (box) box.style.display = 'none'; if (!document.querySelector('.panel[style*="block"]')) document.body.classList.remove('reading'); }
-  function isOpen() { return box && box.style.display === 'block'; }
+  function isOpen() { return box && box.style.display !== 'none' && box.style.display !== ''; }
   function refresh() { if (isOpen()) render(); }
   function render() {
     var c = credits(), rk = window.WF_MISSIONS ? WF_MISSIONS.rank(c).name : '';
     box.innerHTML = '';
-    var isMap = tab === 'map'; box.classList.toggle('bp', isMap);
+    var isMap = tab === 'map'; box.classList.toggle('bp', isMap); if (box.style.display !== 'none') box.style.display = isMap ? 'flex' : 'block';
     var hd = el('div', 'hd', isMap ? '<b>DECK MAP</b><span>SS WAYFARER · NCC-WF01</span>' : '<b>SHIP LOG</b><span>' + c + ' cr' + (rk ? ' · ' + rk : '') + '</span>'), x = el('button', 'x', '✕'); x.onclick = close; hd.appendChild(x); box.appendChild(hd);
     var T = [['goals', 'GOALS'], ['cargo', 'CARGO'], ['disc', 'SCIENCE']].concat(EXTRA.map(function (x) { return [x.id, x.label]; }));
     if (!isMap) { var tabs = el('div', 'tabs'); tabs.style.gridTemplateColumns = 'repeat(' + T.length + ',1fr)';
@@ -255,7 +258,7 @@
           add('circle', { cx: p0[0], cy: p0[1], r: 10 + 3 * Math.sin(Date.now() / 250), fill: 'rgba(100,255,255,.18)' }, live);
           add('path', { d: 'M0 -8 L5.5 5.5 L0 2.7 L-5.5 5.5 Z', fill: '#6ffff0', stroke: '#032', 'stroke-width': 1.1, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); }
       }
-      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display === 'none' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
     };
     if (window.HIVE && HIVE.LAYOUT) go(HIVE.LAYOUT); else fetch('hiveport/layout.json').then(function (r) { return r.json(); }).then(go).catch(function () {});
   }
@@ -318,9 +321,10 @@
   function mapControls() {
     var which = mapDeck || (onLower() ? 'lower' : 'upper'), wrap = el('div', 'mc', '');
     function row(items, on, fn) { var r = el('div', 'mr', ''); items.forEach(function (q) { var b = el('button', on === q[0] ? 'on' : '', q[1]); b.onclick = function () { fn(q[0]); }; r.appendChild(b); }); wrap.appendChild(r); }
-    row([['upper', 'UPPER DECK'], ['lower', 'LOWER DECK'], ['cut', 'CUTAWAY']], which, function (v) { mapDeck = v; render(); });
-    row([['nav', 'NAVIGATION'], ['eng', 'ENGINEERING']], mapMode, function (v) { mapMode = v; save('wf-mapmode', v); render(); });
-    row([['n', 'BOW UP'], ['h', 'HEADING UP']], headUp ? 'h' : 'n', function (v) { headUp = v === 'h'; save('wf-maphead', headUp); render(); });
+    row([['upper', 'UPPER'], ['lower', 'LOWER'], ['cut', 'CUTAWAY']], which, function (v) { mapDeck = v; render(); });
+    var tg = el('button', '', 'VIEW ▾'); tg.style.flex = '0 0 76px'; tg.onclick = function () { wrap.classList.toggle('open'); }; wrap.firstChild.appendChild(tg);
+    row([['nav', 'NAVIGATION'], ['eng', 'ENGINEERING']], mapMode, function (v) { mapMode = v; save('wf-mapmode', v); render(); }); wrap.lastChild.classList.add('opt');
+    row([['n', 'BOW UP'], ['h', 'HEADING UP']], headUp ? 'h' : 'n', function (v) { headUp = v === 'h'; save('wf-maphead', headUp); render(); }); wrap.lastChild.classList.add('opt');
     box.appendChild(wrap);
   }
   function hullHW(prof, z) { if (!prof || z < prof[0][0] || z > prof[prof.length - 1][0]) return 0; for (var i = 1; i < prof.length; i++) if (z <= prof[i][0]) { var a = prof[i - 1], b = prof[i], t = (z - a[0]) / (b[0] - a[0] || 1); return a[1] + (b[1] - a[1]) * t; } return 0; }
@@ -429,7 +433,7 @@
       if (headUp && mapAng != null) applyRot(svg);
       leg.innerHTML = Object.keys(where).map(function (r) { return r.toUpperCase() + ': ' + where[r].join(', '); }).join(' · ');
     }
-    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display === 'none' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
   }
   // ═══ ROUTES: A* over the deck's walkable floor (atrium + room shapes, minus furniture), stairs link the decks ═══
   var GRIDS = {}, CELL = 0.5, GX0 = -32, GZ0 = -56, GNX = 128, GNZ = 224, STAIR = [{ x: 0, z: 0 }, { x: 0, z: 0 }];
@@ -536,7 +540,7 @@
     box.appendChild(svg); mapZoom(svg); svg._rot = { g: svg, w: 0, h: 0 };
     function drawLive() { while (live.firstChild) live.removeChild(live.firstChild); var sc2 = document.querySelector('a-scene'); if (!sc2 || !sc2.camera || !XF[PAGE]) return; var cp = new AFRAME.THREE.Vector3(); sc2.camera.getWorldPosition(cp); var s = XF[PAGE].to(cp.x, cp.z), py = document.getElementById('player'), y = onLower() ? LOWY : 0; if (PAGE === 'corridor' && py) y = py.object3D.position.y;
       add('circle', { cx: Py(y + 1.0), cy: Pz(s[1]), r: 5, fill: '#ffe14d', stroke: '#0a1424', 'stroke-width': 1 }, live); }
-    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display === 'none' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
   }
 
   // ── the menu-bar button (clipboard) ──
