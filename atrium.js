@@ -17,8 +17,8 @@
   var DOORS = [
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
     { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },   // Nov 27 segmentation: own page again
-    { id: 'corenorth', name: 'THE CORE', x: 0, z: 26.6, rot: 180, y: LOW, tint: 0x3fe0c8, inYaw: 180, noRecess: true, shallow: true },   // Nov 28: north doorway from the lower hall via a sealed tunnel
-    { id: 'core',     name: 'THE CORE',          x: 0,    z: 45.4, rot: 0,    y: LOW, tint: 0x3fe0c8, noRecess: true, shallow: true },   // brain + reactor = core.html; Nov 27 (user sketch): the arch in the core wall at the foot of the stairs (was the forward door at z 26.6)
+    { id: 'corenorth', name: 'THE CORE', x: SPEC.doors.corenorth.x, z: SPEC.doors.corenorth.z, rot: SPEC.doors.corenorth.rot, y: LOW, tint: 0x3fe0c8, inYaw: 180, noRecess: true, shallow: true },   // Nov 28: north doorway from the lower hall via a sealed tunnel
+    { id: 'core',     name: 'THE CORE',          x: SPEC.doors.core.x, z: SPEC.doors.core.z, rot: SPEC.doors.core.rot, y: LOW, tint: 0x3fe0c8, noRecess: true, shallow: true },   // brain + reactor = core.html; Nov 27 (user sketch): the arch in the core wall at the foot of the stairs (was the forward door at z 26.6)
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
     { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
@@ -28,9 +28,9 @@
     { id: 'xeno',     name: 'XENOBIOLOGY',       x: -4.6, z: 9,    rot: 90,   y: LOW, tint: 0x9aff6a},
     { id: 'mess',     name: 'MESS HALL',         x: 4.6,  z: -14,  rot: -90,  y: LOW, tint: 0xffc070},
     { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080},
-    { id: 'libstair-starboard', name: 'THE LIBRARY', x: 9.195, z: 31.59, rot: 115.7,  y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
-    { id: 'libstair-port',      name: 'THE LIBRARY', x: -9.195, z: 31.59, rot: -115.7, y: 0, tint: 0x4f8cff, wing: 'port' },
-    { id: 'lowerhall', name: 'LOWER ATRIUM',     x: 0,    z: 24.9, rot: 180,  y: LOW, tint: 0x6fd0ff, pass: true, noRecess: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
+    { id: 'libstair-starboard', name: 'THE LIBRARY', x: SPEC.doors.libstarboard.x, z: SPEC.doors.libstarboard.z, rot: SPEC.doors.libstarboard.rot, y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
+    { id: 'libstair-port',      name: 'THE LIBRARY', x: SPEC.doors.libport.x, z: SPEC.doors.libport.z, rot: SPEC.doors.libport.rot, y: 0, tint: 0x4f8cff, wing: 'port' },
+    { id: 'lowerhall', name: 'LOWER ATRIUM',     x: SPEC.doors.lowerhall.x, z: SPEC.doors.lowerhall.z, rot: SPEC.doors.lowerhall.rot, y: LOW, tint: 0x6fd0ff, pass: true, noRecess: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
   ];
   window.WAYFARER = window.WAYFARER || {}; window.WAYFARER.atriumDoors = DOORS;
   window.WF_KIT = { M: M, mats: function (env) { mats(env); return M; }, envMap: function (r) { return envMap(r); }, merge: function (root, walk, keep) { return merge(root, walk, keep); } };   /* kitroom.js */

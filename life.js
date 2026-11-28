@@ -455,7 +455,7 @@
       for (k = 0; k < circs.length && !w; k++) { var d = Math.hypot(x - circs[k].x, z - circs[k].z); if (d < circs[k].r - 0.4 && d > circs[k].hole) w = true; }
       for (k = 0; k < doors.length && !w; k++) { var dr = doors[k], vert = Math.abs(dr[0]) > 2.4; if (Math.abs(x - dr[0]) < (vert ? 1.6 : 1.0) && Math.abs(z - dr[2]) < (vert ? 1.0 : 1.6)) w = true; }
       { var st = WF_SPEC.stairs, sr = Math.hypot(x, z - WF_SPEC.shaft.cz), sth = Math.atan2(Math.abs(x), z - WF_SPEC.shaft.cz); if (!w && sr > st.ri + 0.35 && sr < st.ro - 0.35 && sth > st.t0 && sth < st.te - 0.1) w = true; }   // the built flights: one band per side wall to wall (ship-spec.js)
-      if (!w && lower && Math.abs(x) < 6.2 && z > 44.2 && z < 47.6) w = true;   // stair-foot foyer, joins the Core door at (0, 45.4)
+      if (!w && lower && Math.abs(x) < 6.2 && z > WF_SPEC.doors.core.z - 1.2 && z < WF_SPEC.doors.core.z + 2.2) w = true;   // stair-foot foyer, joins the Core door at (0, 45.4)
       if (w) for (k = 0; k < block.length; k++) if (inPoly(block[k], x, z)) { w = false; break; }
       if (!w && !lower) for (k = 0; k < 2; k++) { var e = stairEnd(k ? 1 : -1, -0.35), f = [e[0] * 0.55, 36 + (e[1] - 36) * 0.55], vx = f[0] - e[0], vz = f[1] - e[1], tt = Math.max(0, Math.min(1, ((x - e[0]) * vx + (z - e[1]) * vz) / (vx * vx + vz * vz))); if (Math.hypot(x - e[0] - vx * tt, z - e[1] - vz * tt) < 1.0) w = true; }   // stair-top door -> Library floor, through the bookcase ring
       ok[j * GNX + i] = w ? 1 : 0;

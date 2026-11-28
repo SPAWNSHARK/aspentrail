@@ -8,6 +8,14 @@
     // Built stair: ONE wide flight per side wall to wall (Library wall → shaft wall). layout.json's 1.8 m / r 11.35 was the blockout of the
     // retired Twin_Curved_Stairs GLB; with the shaft walls at 16.05 it would leave a 3.8 m open void, so the built width (5.85 m) is the truth.
     stairs: { ri: 10.2, ro: 16.05, t0: 0.41, t1: 1.92, te: 2.18, n: 34, sides: [-1, 1] },
+    // doorways that belong to the stair/core shaft (ship coords; rot = door.js frame rotation, deg)
+    doors: {
+      core:      { x: 0,      z: 45.4,  rot: 0,      y: -5.95 },   // stair-foot foyer → Core (south)
+      corenorth: { x: 0,      z: 26.6,  rot: 180,    y: -5.95 },   // lower hall tunnel → Core (north)
+      lowerhall: { x: 0,      z: 24.9,  rot: 180,    y: -5.95 },   // open arch into the sealed tunnel
+      libstarboard: { x: 9.195,  z: 31.59, rot: 115.7,  y: 0 },    // stair-top doors back into the Library
+      libport:      { x: -9.195, z: 31.59, rot: -115.7, y: 0 }
+    },
     headroom: 2.1, bodyRadius: 0.28
   };
   S.stairs.rc = (S.stairs.ri + S.stairs.ro) / 2;
