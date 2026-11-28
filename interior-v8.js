@@ -12,7 +12,7 @@
   var BASE = 'arch-v8/textures/', TL = new THREE.TextureLoader(), cache = {};
   function tex(name, color) { if (cache[name]) return cache[name]; var t = TL.load(BASE + name + '.png'); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (color) t.colorSpace = THREE.SRGBColorSpace; return (cache[name] = t); }
   function surf(kind) { return { map: tex(kind + '_base', true), normalMap: tex(kind + '_normal'), roughnessMap: tex(kind + '_rough') }; }
-  var PAL = { graphite: new THREE.Color(0x30363c), gunmetal: new THREE.Color(0x505960), charcoal: new THREE.Color(0x171c21), copper: new THREE.Color(0xa66d43), white: new THREE.Color(0xe0e5eb), blue: new THREE.Color(0x92cde8), neutral: new THREE.Color(0xf0f3f7) };
+  var PAL = { graphite: new THREE.Color(0x30363c), gunmetal: new THREE.Color(0x505960), charcoal: new THREE.Color(0x171c21), copper: new THREE.Color(0x6b7680), white: new THREE.Color(0xe0e5eb), blue: new THREE.Color(0x92cde8), neutral: new THREE.Color(0xf0f3f7) };
   var hsl = {}, done = new WeakMap(), swapped = new WeakMap();
   function warm(c) { c.getHSL(hsl); return hsl.s > 0.18 && (hsl.h < 0.15 || hsl.h > 0.96); }
   function skip(o) { for (var q = o; q; q = q.parent) { var u = q.userData || {}; if (u.wfPortal || u.keepLook || u.v8Skip) return true; if (/^Exterior_Shell|^Gear_/.test(q.name || '')) return true; if (q.el && q.el.id === 'brain') return true; } return false; }

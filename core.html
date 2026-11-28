@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SS Wayfarer — The Core</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#120c08">
+  <meta name="apple-mobile-web-app-title" content="SS WAYFARER">
+  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=4">
+  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=4">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SS Wayfarer">
+  <meta property="og:url" content="https://spawnshark.github.io/aspentrail/">
+  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=3">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="textures.js?v=20261127zu"></script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="mobile.js?v=20261127s"></script>
+  <script src="life.js?v=20261128g"></script>
+  <script src="manual.js?v=20261127z9"></script>
+  <script src="menubar.js?v=20261128b"></script>
+  <script src="ai.js?v=20261127z9"></script>
+  <script src="sound.js?v=20261127s"></script>
+  <script src="avatar.js?v=20261127s"></script>
+  <!-- WF_INTERACTION_V11 -->
+  <script src="interaction-v11/core.js?v=11.0.0"></script>
+  <script src="interaction-v11/runtime.js?v=11.0.0"></script>
+  <script src="door.js?v=20261128q"></script>
+  <script src="lcars.js?v=20261127s"></script>
+  <script src="brain.js?v=20261128q"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; } body { overflow: hidden; background: #000; }
+    #wf-fade { position: fixed; inset: 0; background: #0a0705; z-index: 40; pointer-events: none; transition: opacity .5s; }
+    #room-prompt { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%); width: min(86vw, 520px); text-align: center; z-index: 20; font: 600 14px -apple-system, system-ui, sans-serif; color: #ffd9a0; text-shadow: 0 1px 6px #000; opacity: 0; transition: opacity .4s; pointer-events: none; }
+  </style>
+</head>
+<body data-room="core">
+  <script>if (/[?&]from=north/.test(location.search)) { document.addEventListener('DOMContentLoaded', function () { var pl = document.getElementById('player'); pl.setAttribute('position', '0 0 -8'); pl.setAttribute('rotation', '0 180 0'); }); }</script>
+  <div id="room-prompt"></div>
+  <div id="wf-fade"></div>
+  <a-scene device-orientation-permission-ui="enabled: false" wayfarer-mobile="radius: 0" light="defaultLightsEnabled: false"
+    fog="type: exponential; color: #04080a; density: 0.012" background="color: #02060a" vr-mode-ui="enabled: true"
+    renderer="antialias: true; toneMapping: ACESFilmic; exposure: 1.15">
+    <a-entity id="player" position="0 0 8" rotation="0 0 0">
+      <a-camera id="cam" wasd-controls="acceleration: 22; fly: false" look-controls="pointerLockEnabled: true; touchEnabled: true; magicWindowTrackingEnabled: false" position="0 1.6 0">
+        <a-cursor color="#7dffb8" opacity="0.6" fuse="true" fuse-timeout="1500" raycaster="objects: .interactive"></a-cursor>
+      </a-camera>
+    </a-entity>
+    <a-entity id="brain" position="0 5.55 0" scale="0.55 0.55 0.55"></a-entity>
+  </a-scene>
+  <script src="core-room.js?v=20261128s"></script>
+  <script src="interior-v8.js?v=20261127zb"></script>
+  <script>window.WAYFARER.door.roomExit('core'); window.WAYFARER.door.roomExit('corenorth');</script>
+</body>
+</html>

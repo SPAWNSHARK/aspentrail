@@ -5,9 +5,9 @@
 // the crown and spreads under the glass (r ≈ 7 m), your view tilts up to it. Drag to spin it (and tilt a little), wheel / pinch to
 // zoom. Every charted system from nav/galaxy.json is a labelled star with its worlds' emoji; a cyan ring marks where the Wayfarer is.
 (function () {
-  if (!window.AFRAME || !/library\.html/.test(location.pathname)) return;
+  if (!window.AFRAME || !/library\.html|index\.html|\/$/.test(location.pathname)) return;
   var THREE = AFRAME.THREE, sc, root, gal, beam, labels = [], state = 'off', t0 = 0, prev = null, spin = 0, tilt = 0, zoom = 1, drag = null, pinch = 0, btn = null;
-  var Y = 6.1, R = 7.0, EM = { Auralis: '🌍', Varkesh: '🏜️', Nyxara: '🟣', Ferrum_Prime: '🤖', Kharon_Fracture: '💥', Cryovale: '❄️', Thalassa: '🌊', Vespera: '☣️', Orinth: '🪐', Pyraxis: '🌋', Mycelion: '🍄', Selenite: '💎', Hiveport: '🛰️' };
+  var CFG = window.WF_STARMAP_CFG || { x: 0, z: 0, Y: 6.1, S: 1, cx: 0, cz: 0 }, Y = CFG.Y, PT = CFG.pitch != null ? CFG.pitch : 1.25, R = 7.0, EM = { Auralis: '🌍', Varkesh: '🏜️', Nyxara: '🟣', Ferrum_Prime: '🤖', Kharon_Fracture: '💥', Cryovale: '❄️', Thalassa: '🌊', Vespera: '☣️', Orinth: '🪐', Pyraxis: '🌋', Mycelion: '🍄', Selenite: '💎', Hiveport: '🛰️' };
   function dot() { var c = document.createElement('canvas'); c.width = c.height = 64; var x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
   function label(text, col) {
     var c = document.createElement('canvas'), x = c.getContext('2d'); x.font = '700 40px -apple-system, Helvetica, sans-serif'; var w = Math.ceil(x.measureText(text).width) + 40; c.width = w; c.height = 64;
@@ -17,7 +17,7 @@
   }
   function nearSys(G) { var n = 'VARKESH'; try { n = localStorage.getItem('wf-near') || 'VARKESH'; } catch (e) {} var id = /HIVEPORT/.test(n) ? 'Hiveport' : n.toLowerCase().split(' ').map(function (w) { return w[0].toUpperCase() + w.slice(1); }).join('_'); return (G.systems.filter(function (s) { return s.destinations.indexOf(id) >= 0; })[0] || G.systems[0]).id; }
   function build(G) {
-    var D = dot(); root = new THREE.Group(); root.position.set(0, Y, 0); root.userData.noCollide = true; sc.object3D.add(root);
+    var D = dot(); root = new THREE.Group(); root.position.set(CFG.cx || 0, Y, CFG.cz || 0); root.scale.setScalar(CFG.S || 1); root.userData.noCollide = true; sc.object3D.add(root);
     gal = new THREE.Group(); root.add(gal);
     var N = /iPhone|iPad|Android/.test(navigator.userAgent) ? 7000 : 16000, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), seed = 7;
     function r() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
@@ -44,7 +44,7 @@
     });
     gal.scale.setScalar(0.001); gal.visible = false;
     beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.25, 1, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xb08cff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
-    beam.position.set(0, 1.15, 0); sc.object3D.add(beam);
+    beam.position.set(CFG.x, 1.15, CFG.z); sc.object3D.add(beam);
   }
   // the lectern at the centre of the glass floor
   function lectern() {
@@ -55,15 +55,15 @@
     var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot(), color: 0x9a7aff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); halo.position.y = 1.2; halo.scale.set(1.1, 1.1, 1); g.add(halo);
     var c = document.createElement('canvas'); c.width = 512; c.height = 96; var x = c.getContext('2d'); x.fillStyle = '#e8dcff'; x.font = '700 44px -apple-system, Helvetica, sans-serif'; x.textAlign = 'center'; x.fillText('✦ STAR MAP ✦', 256, 62);
     var tt = new THREE.CanvasTexture(c); tt.colorSpace = THREE.SRGBColorSpace; var sign = new THREE.Sprite(new THREE.SpriteMaterial({ map: tt, transparent: true, depthWrite: false })); sign.position.y = 1.55; sign.scale.set(1.3, 0.24, 1); g.add(sign);
-    g.position.set(0, 0, 0); sc.object3D.add(g);
+    g.position.set(CFG.x, 0, CFG.z); sc.object3D.add(g);
     var hit = document.createElement('a-entity'); hit.setAttribute('class', 'interactive clickable'); hit.setObject3D('mesh', new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.8, 16), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })));
-    hit.object3D.position.set(0, 0.9, 0); hit.object3D.userData.noCollide = true; hit.addEventListener('click', toggle); sc.appendChild(hit);
+    hit.object3D.position.set(CFG.x, 0.9, CFG.z); hit.object3D.userData.noCollide = true; hit.addEventListener('click', toggle); sc.appendChild(hit);
     lectern.halo = halo;
   }
   function look() { var c = sc.camera && sc.camera.el; return c && c.components['look-controls']; }
   function toggle() { if (state === 'off') open(); else if (state === 'on') close(); }
   function open() {
-    if (!gal) return; state = 'opening'; t0 = performance.now(); gal.visible = true; window.WAYFARER.frozen = true; var lc = look(); if (lc) prev = { yaw: lc.yawObject.rotation.y, pitch: lc.pitchObject.rotation.x };
+    if (!gal) return; state = 'opening'; t0 = performance.now(); gal.visible = true; window.WAYFARER.frozen = true; var lc = look(); if (lc) prev = { yaw: lc.yawObject.rotation.y, pitch: lc.pitchObject.rotation.x }; if (CFG.pitch != null && sc.camera) { var cp = new THREE.Vector3(); sc.camera.getWorldPosition(cp); lc.yawObject.rotation.y = Math.atan2(-((CFG.cx || 0) - cp.x), -((CFG.cz || 0) - cp.z)); }
     if (window.WF_SOUND) { WF_SOUND.warpRise && WF_SOUND.warpRise(); WF_SOUND.droid('scan', 0, 0.6); }
     if (!btn) { btn = document.createElement('button'); btn.textContent = '✕ CLOSE STAR MAP'; btn.style.cssText = 'position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;padding:11px 20px;border-radius:18px;border:1px solid rgba(170,150,255,.55);background:rgba(20,14,50,.55);color:#e8e0ff;font:800 12px -apple-system,system-ui,sans-serif;letter-spacing:2px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)';
       ['pointerdown', 'touchstart'].forEach(function (n) { btn.addEventListener(n, function (e) { e.stopPropagation(); }, { passive: true }); }); btn.onclick = function (e) { e.stopPropagation(); close(); }; document.body.appendChild(btn); }
@@ -87,14 +87,14 @@
         k = (performance.now() - t0) / 3200;
         beam.material.opacity = Math.sin(Math.min(1, k * 1.6) * Math.PI) * 0.6; beam.scale.y = Math.min(1, k * 2.2) * (Y - 1.1); beam.position.y = 1.1 + beam.scale.y / 2;
         var u = ease((k - 0.25) / 0.75); gal.scale.setScalar(0.001 + u * zoom); gal.userData.pts.material.opacity = u; gal.userData.core.material.opacity = 0.9 * u; gal.userData.neb.material.opacity = 0.3 * u; spin += 0.02 * (1 - u) + 0.002;
-        if (lc && prev) { lc.pitchObject.rotation.x = prev.pitch + (1.25 - prev.pitch) * ease(k * 1.3); }
+        if (lc && prev) { lc.pitchObject.rotation.x = prev.pitch + (PT - prev.pitch) * ease(k * 1.3); }
         if (k >= 1) state = 'on';
       } else if (state === 'on') {
         spin += drag ? 0 : 0.0008; gal.scale.setScalar(gal.scale.x + (zoom - gal.scale.x) * 0.1);
         if (gal.userData.here) { var p = (t / 1000) % 1; gal.userData.here.scale.setScalar(1 + p * 1.2); gal.userData.here.material.opacity = 1 - p; }
       } else if (state === 'closing') {
         k = (performance.now() - t0) / 1600; var v = 1 - ease(k); gal.scale.setScalar(0.001 + v * zoom); gal.userData.pts.material.opacity = v; gal.userData.core.material.opacity = 0.9 * v; gal.userData.neb.material.opacity = 0.3 * v;
-        if (lc && prev) lc.pitchObject.rotation.x = 1.25 + (prev.pitch - 1.25) * ease(k);
+        if (lc && prev) lc.pitchObject.rotation.x = PT + (prev.pitch - PT) * ease(k);
         if (k >= 1) { state = 'off'; gal.visible = false; window.WAYFARER.frozen = false; }
       }
       gal.rotation.set(Math.PI + tilt, spin, 0);                       // seen from below: the disc faces down at you

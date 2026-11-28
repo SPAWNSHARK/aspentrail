@@ -9,32 +9,32 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#120c08">
-  <meta name="apple-mobile-web-app-title" content="SS Wayfarer">
-  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=2">
-  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
+  <meta name="apple-mobile-web-app-title" content="SS WAYFARER">
+  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=4">
+  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=4">
   <meta property="og:type" content="website">
   <meta property="og:title" content="SS Wayfarer — Crew Lounge">
   <meta property="og:url" content="https://spawnshark.github.io/aspentrail/lounge.html">
-  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=2">
+  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=3">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="textures.js?v=20261127s"></script>
+  <script src="textures.js?v=20261127zu"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="mobile.js?v=20261127s"></script>
-  <script src="life.js?v=20261127s"></script>
-  <script src="manual.js?v=20261127s"></script>
-  <script src="menubar.js?v=20261127s"></script>
-  <script src="ai.js?v=20261127s"></script>
+  <script src="life.js?v=20261128g"></script>
+  <script src="manual.js?v=20261127z9"></script>
+  <script src="menubar.js?v=20261128b"></script>
+  <script src="ai.js?v=20261127z9"></script>
   <script src="sound.js?v=20261127s"></script>
   <script src="avatar.js?v=20261127s"></script>
   <!-- WF_INTERACTION_V11 -->
   <script src="interaction-v11/core.js?v=11.0.0"></script>
   <script src="interaction-v11/runtime.js?v=11.0.0"></script>
-  <script src="door.js?v=20261127s"></script>
+  <script src="door.js?v=20261128q"></script>
   <script src="lcars.js?v=20261127s"></script>
-  <script src="crew.js?v=20261127s"></script>
+  <script src="crew.js?v=20261127z9"></script>
   <script src="repairs.js?v=20261127s"></script>
   <script src="cards.js?v=20261127s"></script>
   <script src="wayfarer-tv-v10/programs.js?v=20261127s"></script>
@@ -123,7 +123,7 @@
 
   <!-- ===================== ROOM SHELL ===================== -->
   <!-- walls: metal panels (amber-tinted) applied via JS -->
-  <a-cylinder id="lounge-walls" radius="9" height="5.5" open-ended="true" position="0 2.75 0" theta-start="208.6" theta-length="302.8" segments-radial="96" segments-height="14"
+  <a-cylinder id="lounge-walls" radius="9" height="4.0" open-ended="true" position="0 2.0 0" theta-start="208.6" theta-length="302.8" segments-radial="96" segments-height="14"
     material="side: back; color: #130a03; roughness: 0.92; metalness: 0.08">
   </a-cylinder>
   <!-- floor: grating applied via JS -->
@@ -133,7 +133,7 @@
   <a-cylinder radius="4.6" height="0.02" position="0 0.12 -2.7"
     material="color: #2a1409; roughness: 0.99">
   </a-cylinder>
-  <a-cylinder id="lounge-ceil" radius="9.1" height="0.1" position="0 5.55 0"
+  <a-cylinder id="lounge-ceil" radius="9.1" height="0.1" position="0 4.05 0"
     material="color: #0c0602; roughness: 0.95">
   </a-cylinder>
   <a-torus radius="7.4" radius-tubular="0.09" position="0 5.38 0" rotation="90 0 0" segments-tubular="96"
@@ -153,22 +153,22 @@
     material="color: #2a1a0e; roughness: 0.45; metalness: 0.7">
   </a-box>
   <!-- soft amber back-glow, slim bronze frame, bezel, screen -->
-  <a-box position="0 2.7 -7.7" width="5.75" height="3.3" depth="0.02"
+  <a-box position="0 2.5 -7.7" width="5.75" height="2.8" depth="0.02"
     material="color: #ff9a30; emissive: #ff9a30; emissiveIntensity: 0.7; shader: flat; opacity: 0.55; transparent: true">
   </a-box>
-  <a-box position="0 2.7 -7.6" width="5.3" height="3.03" depth="0.1"
+  <a-box position="0 2.5 -7.6" width="5.3" height="2.55" depth="0.1"
     material="color: #0a0a0c; roughness: 0.35; metalness: 0.6">
   </a-box>
-  <a-box position="0 4.245 -7.56" width="5.44" height="0.06" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="0 3.845 -7.56" width="5.44" height="0.06" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
   <a-box position="0 1.155 -7.56" width="5.44" height="0.06" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
-  <a-box position="-2.68 2.7 -7.56" width="0.06" height="3.15" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
-  <a-box position="2.68 2.7 -7.56" width="0.06" height="3.15" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="-2.68 2.5 -7.56" width="0.06" height="2.69" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
+  <a-box position="2.68 2.5 -7.56" width="0.06" height="2.69" depth="0.14" material="color: #9a7038; roughness: 0.4; metalness: 0.85; emissive: #2a1806; emissiveIntensity: 0.4"></a-box>
   <a-plane id="tv-screen" class="clickable"
-    position="0 2.7 -7.53" width="5.2" height="2.93"
+    position="0 2.5 -7.53" width="5.2" height="2.45"
     material="color: #0b1c33; emissive: #1d4d86; emissiveIntensity: 0.9; roughness: 0">
   </a-plane>
-  <a-text value="CREW TERMINAL" align="center" position="0 3.75 -7.51" color="#7fb4ff" width="6" letter-spacing="4"></a-text>
-  <a-box position="0 2.7 -7.52" width="4.2" height="0.03" depth="0.01"
+  <a-text value="CREW TERMINAL" align="center" position="0 3.45 -7.51" color="#7fb4ff" width="6" letter-spacing="4"></a-text>
+  <a-box position="0 2.5 -7.52" width="4.2" height="0.03" depth="0.01"
     material="color: #2a6ad0; emissive: #4a8aff; emissiveIntensity: 1.6">
   </a-box>
   <a-text value="[ TAP SCREEN TO BROWSE ]" align="center" position="0 1.95 -7.51" color="#9fc4ff" width="5" letter-spacing="4"></a-text>
@@ -414,8 +414,8 @@
       function tx(c, rx, ry) { var t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = 4; return t; }
       function rr(w, h, r) { var x = -w / 2, y = -h / 2, s2 = new THREE.Shape(); s2.moveTo(x + r, y); s2.lineTo(x + w - r, y); s2.quadraticCurveTo(x + w, y, x + w, y + r); s2.lineTo(x + w, y + h - r); s2.quadraticCurveTo(x + w, y + h, x + w - r, y + h); s2.lineTo(x + r, y + h); s2.quadraticCurveTo(x, y + h, x, y + h - r); s2.lineTo(x, y + r); s2.quadraticCurveTo(x, y, x + r, y); return s2; }
       function soft(sh, d, b) { var gg = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelSegments: 2, curveSegments: 6 }); gg.translate(0, 0, -d / 2); return gg; }
-      // walnut wall texture, 5.5 m tall
-      var W = 512, H = 1024, c = cv(W, H), x = c.getContext('2d'), Y = function (m) { return (1 - m / 5.5) * H; };
+      // walnut wall texture, 4.0 m tall
+      var W = 512, H = 1024, c = cv(W, H), x = c.getContext('2d'), Y = function (m) { return (1 - m / 4.0) * H; };
       x.fillStyle = '#2b221c'; x.fillRect(0, 0, W, H);
       function inset(y0, y1, col) { x.fillStyle = col; x.fillRect(26, Y(y1), W - 52, Y(y0) - Y(y1)); x.fillStyle = 'rgba(255,210,150,0.07)'; x.fillRect(26, Y(y1), W - 52, 3); x.fillStyle = 'rgba(0,0,0,0.35)'; x.fillRect(26, Y(y0) - 3, W - 52, 3); }
       inset(1.06, 4.8, '#372b23'); inset(0.14, 0.86, '#2f251e');
@@ -428,11 +428,11 @@
       // the panel that fills the wall gap, with the round window cut out of it
       // BIG PANORAMIC WINDOW (user, Nov 26: "the window behind the TV needs to be bigger"): the wall gap is now ±28.6° and the
       // panel carries an 8 × 4.4 m rounded-rectangle opening, so space shows all round the TV
-      var WW = 8.0, WH = 4.4, WY = 2.75, WR = 0.7;
+      var WW = 8.0, WH = 3.0, WY = 2.0, WR = 0.7;
       function rrPath(P, w, h, r, cy) { var x0 = -w / 2, y0 = cy - h / 2; P.moveTo(x0 + r, y0); P.lineTo(x0 + w - r, y0); P.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r); P.lineTo(x0 + w, y0 + h - r); P.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h); P.lineTo(x0 + r, y0 + h); P.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r); P.lineTo(x0, y0 + r); P.quadraticCurveTo(x0, y0, x0 + r, y0); return P; }
-      var half = 9 * Math.sin(0.5), zc = -9 * Math.cos(0.5), sh = new THREE.Shape(); sh.moveTo(-half - 0.05, 0); sh.lineTo(half + 0.05, 0); sh.lineTo(half + 0.05, 5.5); sh.lineTo(-half - 0.05, 5.5); sh.lineTo(-half - 0.05, 0);
+      var half = 9 * Math.sin(0.5), zc = -9 * Math.cos(0.5), sh = new THREE.Shape(); sh.moveTo(-half - 0.05, 0); sh.lineTo(half + 0.05, 0); sh.lineTo(half + 0.05, 4.0); sh.lineTo(-half - 0.05, 4.0); sh.lineTo(-half - 0.05, 0);
       var hole = rrPath(new THREE.Path(), WW, WH, WR, WY); sh.holes.push(hole);
-      var pt = wallT.clone(); pt.repeat.set(1 / 1.2, 1 / 5.5); pt.needsUpdate = true;
+      var pt = wallT.clone(); pt.repeat.set(1 / 1.2, 1 / 4.0); pt.needsUpdate = true;
       var pan = new THREE.Mesh(new THREE.ShapeGeometry(sh, 48), new THREE.MeshStandardMaterial({ map: pt, roughness: 0.62, metalness: 0.15 })); pan.position.z = zc; g.add(pan);
       // deck: polished dark plates + amber inlay rings
       var dc = cv(512, 512), dx = dc.getContext('2d'); dx.fillStyle = '#1e1a17'; dx.fillRect(0, 0, 512, 512);
@@ -531,7 +531,7 @@
   });
 </script>
 <script>window.WAYFARER.door.roomExit('lounge');</script>
-  <script src="interior-v8.js?v=20261127u"></script>
+  <script src="interior-v8.js?v=20261127zb"></script>
   <script src="furniture.js?v=20261127s"></script>
   <script>  /* Furniture Upgrade 01: the Lounge's cat furniture, swapped in at the old props' transforms */
     document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.swapEntity('#old-cat-tree', 'cat_tree'); WF_FURN.swapEntity('#old-cat-bed', 'cat_sleep_pod'); WF_FURN.swapEntity('#old-cat-food', 'cat_feeding_station'); });

@@ -113,6 +113,8 @@
     N('eng_work', 'corridor', -3.3, -3); E('c_p3', 'eng_work');
     L.stations.push({ id: 'eng_remote', node: 'eng_work', owner: 'eng', type: 'console', yaw: -Math.PI / 2, asset: 'Console_Engineering.glb', placement: { room: 'corridor', x: -4.1, z: -3, yaw: -90 } });
 
+    // (Nov 27: the atrium core / mezzanine / gallery graph was removed — the core is core.html and the Library is its own page again; crew stays on the upper walkways)
+
     // doorways (corridor door node ⇄ room door node)
     E('c_bd', 'b_door', 'bridge'); E('c_ld', 'li_door', 'library'); E('c_hd', 'h_door', 'holodeck'); E('c_lo', 'l_door', 'lounge'); E('c_me', 'm_door', 'media');
 
@@ -607,7 +609,8 @@
         }
         o.visible = show;
         if (!show) { if (self.hits[n.id]) self.hits[n.id].object3D.visible = false; return; }
-        o.position.set(x, n.kind === 'cat' ? (n.pos.y || 0) : 0, z);
+        o.position.set(x, n.pos.y || 0, z);
+        if (n.kind === 'cat' && n.state === 'WALK' && self.acts[n.id]) { var py = n._py == null ? n.pos.y : n._py, vy = (n.pos.y - py) / Math.max(dt, 0.001), sc; n._py = n.pos.y; sc = vy > 0.25 ? 'Stair_Up' : vy < -0.25 ? 'Stair_Down' : null; if (sc && !self.acts[n.id][sc]) sc = null; if (sc) { if (n._stair !== sc) { n._stair = sc; self.playClip(n.id, sc, true, 0.15); } } else if (n._stair) { n._stair = null; self.playClip(n.id, 'Walk_InPlace', true, 0.15); } }
         var dy = n.yaw - o.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy));            // turn smoothly (the engine snaps)
         o.rotation.y += (Math.abs(dy) > 2.6 && n.state === 'SEATED') ? dy : dy * Math.min(1, dt * 7);
         if (self.mix[n.id]) { var action = self.cur[n.id]; if (n.kind === 'cat' && action && n.state === 'WALK') action.setEffectiveTimeScale(Math.max(0.65, Math.min(1.6, n.speed / 0.72))); else if (n.kind === 'droid' && n.clip === 'Walk_InPlace' && self.acts[n.id]) { var gait = n.speed > 1.65 && self.acts[n.id].Run_InPlace ? 'Run_InPlace' : 'Walk_InPlace'; self.playClip(n.id, gait, true, 0.15); action = self.cur[n.id]; if (action) action.setEffectiveTimeScale(Math.max(0.5, Math.min(1.7, (n._stride || n.speed) / (gait === 'Run_InPlace' ? 2.35 : 1.0)))); } else if (action) action.setEffectiveTimeScale(1); self.mix[n.id].update(dt); }   /* Felines 2.0 cat pacing + Droid V2 gait (walk → run during emergencies) */

@@ -32,9 +32,9 @@
     ]],
     ['🧭 Getting around', [
       'Phone: left glass stick walks, right stick looks. Desktop: WASD / arrows walk, drag (or click to lock the mouse) to look.',
-      'Top bar: clock and credits on the left; 📍 map · 📋 Ship Log · 🧠 Halcyon · 📖 this manual · 🔊 sound · ⚙️ settings. The ⚙️ menu holds thumbstick size (S / M / L) and opacity, VR / gyro look, level the view, and 1st / 3rd person.',
+      'Top bar: clock and credits on the left; glowing HUD icons for deck map · Ship Log · Halcyon (brain) · settings (gear). The settings menu holds sound on/off, this manual (the ? row), thumbstick size (S / M / L) and opacity, VR / gyro look, level the view, and 1st / 3rd person.',
       'Doors: walk up and tap the glowing hub button, or just walk through an open one. The coloured half-round rug in front of each door matches its room.',
-      'Ship Log (📋 or J): GOALS · MAP (live deck map — tap a room to go straight there) · CARGO · SCIENCE · ORDERS.',
+      'Ship Log (📋 or J): GOALS · DECK MAP (own button: upper / lower / cutaway, navigation or engineering view, pan and zoom, tap a spot to pin a destination: a route is planned over the walkable floor, via the stairs if it is on the other deck, then GO) · CARGO · SCIENCE · ORDERS.',
       'Keys: J log · H this manual · I Halcyon · M mute · V view · Esc closes panels.']],
     ['💰 Credits, rank & daily goals', [
       'One wallet for everything. Contracts, goals, repairs, scans, games and bounties pay into it; shops and bets take from it.',
@@ -55,10 +55,11 @@
     ['🎮 Holodeck', [
       'SIM LIBRARY on the centre console: TARGET RANGE (tap the drifting orbs — gold 50, violet 10, red −20, combo ×2 after five), QUICK DRAW (wait for DRAW!, tap first; early = foul; best of five), HOLO GOLF (face the flag, hold to charge, release to putt; the console in the middle is solid).',
       'The HOUSE PLANNER terminal on the port wall opens the blueprint planner.']],
-    ['📚 The Library', [
-      'STAR MAP: tap the bronze lectern at the centre of the glass floor. The galaxy unfolds across the dome above you; drag to spin it, pinch or scroll to zoom. Each charted system shows its worlds\u2019 emoji, and a cyan ring marks where the Wayfarer is.',
-      'Vesper\u2019s console (port side) opens your Sons of Naphtali website: the live site, or the Reader tab.',
-      'The brain is Halcyon, the ship\u2019s mind. Tap it to talk.']],
+    ['📚 The Library & The Core', [
+      'The Library is its own room again: the door at the aft end of the upper hall. Painted bookcases, glowing scrolls (tap to read), the glass floor over the brain tank, the dome, and the STAR MAP lectern (tap: the galaxy unfolds under the dome; drag to spin, pinch to zoom).',
+      'Vesper\u2019s console opens your Sons of Naphtali website: the live site, or the Reader tab. The two side doors lead down the twin staircases to the lower deck.',
+      'THE CORE has its own room too: the aft door on the LOWER deck. A tall green hydrogel chamber holds the brain with eels circling it, over the glowing plasma reactor. Walk the gallery ring; the rail keeps you off the pit.',
+      'The brain is Halcyon, the ship\u2019s mind. Tap the eye icon or press I to talk.']],
     ['🃏 Crew Lounge', [
       'ALIEN TV: tap the big screen to flip channels: KNN news, Glorpo’s Kitchen, the space-whale nature hour, Cryovale weather, Bioship racing, a Mandible Mints ad, and the Talking Rock.',
       'STARJACK: tap the deck of cards on the brass coffee table. Blackjack against a droid dealer while two more droids play and quip. Starjack (21 in two cards) pays 3:2.']],

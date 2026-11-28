@@ -9,13 +9,13 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#120c08">
-  <meta name="apple-mobile-web-app-title" content="SS Wayfarer">
-  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=2">
-  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=2">
+  <meta name="apple-mobile-web-app-title" content="SS WAYFARER">
+  <link rel="apple-touch-icon" sizes="180x180" href="/aspentrail/icons/apple-touch-icon.png?v=4">
+  <link rel="icon" href="/aspentrail/icons/favicon.ico?v=4">
   <meta property="og:type" content="website">
   <meta property="og:title" content="SS Wayfarer — The Library">
   <meta property="og:url" content="https://spawnshark.github.io/aspentrail/library.html">
-  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=2">
+  <meta property="og:image" content="https://spawnshark.github.io/aspentrail/images/wayfarer-share.jpg?v=3">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The copper SS Wayfarer, its teal library dome glowing, cruising above a night-side planet.">
@@ -23,24 +23,24 @@
   <meta name="theme-color" content="#000208">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <script src="textures.js?v=20261127s"></script>
+  <script src="textures.js?v=20261127zu"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="brain.js?v=20261127s"></script>
+  <script src="brain.js?v=20261128q"></script>
   <script src="mobile.js?v=20261127s"></script>
-  <script src="life.js?v=20261127s"></script>
-  <script src="manual.js?v=20261127s"></script>
-  <script src="menubar.js?v=20261127s"></script>
-  <script src="ai.js?v=20261127s"></script>
+  <script src="life.js?v=20261128g"></script>
+  <script src="manual.js?v=20261127z9"></script>
+  <script src="menubar.js?v=20261128b"></script>
+  <script src="ai.js?v=20261127z9"></script>
   <script src="sound.js?v=20261127s"></script>
   <script src="avatar.js?v=20261127s"></script>
   <!-- WF_INTERACTION_V11 -->
   <script src="interaction-v11/core.js?v=11.0.0"></script>
   <script src="interaction-v11/runtime.js?v=11.0.0"></script>
-  <script src="door.js?v=20261127s"></script>
+  <script src="door.js?v=20261128q"></script>
   <script src="lcars.js?v=20261127s"></script>
-  <script src="starmap.js?v=20261127s"></script>
+  <script src="starmap.js?v=20261127z9"></script>
   <script src="wp-console.js?v=20261127s"></script>
-  <script src="crew.js?v=20261127s"></script>
+  <script src="crew.js?v=20261127z9"></script>
   <script src="repairs.js?v=20261127s"></script>
   <script src="props.js?v=20261127s"></script>
   <script src="hyperspace.js?v=20261127s"></script>
@@ -224,8 +224,8 @@
     <a-entity id="brain" position="0 -7.3 0"></a-entity>   <!-- heartbeat, discharges: brain.js -->
 
     <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
-    <a-light type="point" position="0 -3.0 1.5"  color="#7dffd0" intensity="0.8" distance="13" decay="2"></a-light>
-    <a-light class="hq" type="point" position="-5 -8 3"     color="#00cc88" intensity="0.7" distance="10" decay="2"></a-light>
+    <a-light type="point" position="0 -3.0 1.5"  color="#8fe0a8" intensity="0.8" distance="13" decay="2"></a-light>
+    <a-light class="hq" type="point" position="-5 -8 3"     color="#3fb070" intensity="0.7" distance="10" decay="2"></a-light>
     <a-light type="point" position="3 -8.5 -7.5" color="#3fd0ff" intensity="1.0" distance="11" decay="2"></a-light>
 
     <!-- ======================================================
@@ -242,7 +242,7 @@
     <a-light type="directional" color="#ffc890" intensity="0.4" position="2 10 3"></a-light>
 
     <!-- Electrogel glow rising through the glass floor, washing the lower walls -->
-    <a-light type="point" position="0 -0.6 0" color="#22ffb0" intensity="0.95" distance="15" decay="1.6"></a-light>
+    <a-light type="point" position="0 -0.6 0" color="#5fd08a" intensity="0.95" distance="15" decay="1.6"></a-light>
 
     <!-- Warm downlights on the ceiling ring (floor + shelf tops) -->
     <a-light class="hq" type="point" position="0 4.6 8.5" color="#ffb06a" intensity="1.1" distance="11" decay="2"></a-light>
@@ -684,10 +684,19 @@
       let going = false;
       const go = side => { if (going) return; going = true; const f = document.createElement('div'); f.style.cssText = 'position:fixed;inset:0;background:#000;opacity:0;transition:opacity .35s;z-index:80'; document.body.appendChild(f);
         requestAnimationFrame(() => { f.style.opacity = 1; }); setTimeout(() => { location.href = 'index.html?stairs=' + side; }, 380); };
+      // Nov 27: the doors face the CENTRE of the round room (rot ±79.1°, not ±90° — the old frames sat skewed against the curved wall) and
+      // preview the atrium landing they lead to (images/portals/lib-stairs-*.jpg, captured from the atrium by tools/capture-stairs.js)
+      const wingSide = (location.search.match(/[?&]wing=(port|starboard)/) || [])[1];
       const wings = [
-        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 90 }, name: 'STAIRS · LOWER DECK', tint: 0xffb040, depth: 0.45, noPockets: true, onPass: () => go('starboard'), say: say }),
-        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -90 }, name: 'STAIRS · LOWER DECK', tint: 0x4f8cff, depth: 0.45, noPockets: true, onPass: () => go('port'), say: say })
+        WAYFARER.door.create({ sc: scene, frame: { x: -10.42, z: -2, rot: 79.1 }, name: 'STAIRS · LOWER DECK', tint: 0xffb040, depth: 0.45, noPockets: true, noRecess: true, img: 'images/portals/lib-stairs-starboard.jpg', startOpen: wingSide === 'starboard', holdMs: wingSide === 'starboard' ? 900 : 8000, onPass: () => go('starboard'), say: say }),
+        WAYFARER.door.create({ sc: scene, frame: { x: 10.42, z: -2, rot: -79.1 }, name: 'STAIRS · LOWER DECK', tint: 0x4f8cff, depth: 0.45, noPockets: true, noRecess: true, img: 'images/portals/lib-stairs-port.jpg', startOpen: wingSide === 'port', holdMs: wingSide === 'port' ? 900 : 8000, onPass: () => go('port'), say: say })
       ];
+      if (wingSide) {   // arriving from the stairs: one step inside that door, facing away from it
+        const sgn = wingSide === 'starboard' ? -1 : 1, pl = document.getElementById('player'), camEl = pl && pl.querySelector('a-camera'), lc = camEl && camEl.components['look-controls'];
+        if (pl) pl.setAttribute('position', (sgn * 9.14) + ' 0 -1.76');
+        if (lc && lc.yawObject) lc.yawObject.rotation.y = (sgn < 0 ? -100.8 : 100.8) * Math.PI / 180;
+        else setTimeout(() => { const l2 = camEl && camEl.components['look-controls']; if (l2 && l2.yawObject) l2.yawObject.rotation.y = (sgn < 0 ? -100.8 : 100.8) * Math.PI / 180; }, 600);
+      }
       const wp = new THREE.Vector3();
       AFRAME.registerComponent('wf-lib-wings', { tick: function (t, dt) { if (!scene.camera) return; scene.camera.getWorldPosition(wp);
         wings.forEach((D, i) => { const lp = D.update(dt, wp); if (lp && D.p > 0.92 && Math.abs(lp.x) < 0.7 && lp.z < 0.45 && lp.z > -1.5) go(i ? 'port' : 'starboard'); }); } });
@@ -704,6 +713,8 @@
         document.querySelector('a-light[type="ambient"]').setAttribute('intensity', 0.5);
       }
       document.getElementById('brain').setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
+      // Nov 27 (user: the brain must be the SAME brain on both decks): same hydrogel green tint as core-room.js
+      setInterval(function () { var o = document.getElementById('brain').object3D; o.traverse(function (m) { if (m.isMesh && m.material && m.material.vertexColors) { m.material.color.set(0x5fa87a); if (m.material.sheenColor) m.material.sheenColor.set(0x70ffb0); m.material.envMapIntensity = 0.35; } }); }, 1000);
 
       // Curved wall: 18 tiles of 3.84 m x 5 m around a 69 m circumference
       const walls = document.getElementById('lib-walls');
@@ -728,7 +739,7 @@
   </script>
 
 <script>window.WAYFARER.door.roomExit('library');</script>
-  <script src="interior-v8.js?v=20261127u"></script>
+  <script src="interior-v8.js?v=20261127zb"></script>
   <script src="furniture.js?v=20261127s"></script>
   <script>  /* Furniture Upgrade 01: study-corner writing desk + desk chair (the instruments stay on the new desk) */
     document.querySelector('a-scene').addEventListener('loaded', function () { WF_FURN.swapEntity('#old-desk', 'library_writing_desk'); WF_FURN.place('desk_chair', { position: [0.15, 0, -8.55], yaw: Math.PI + 0.25 }); });
