@@ -46,7 +46,7 @@
     var t = q.toLowerCase().trim();
     if (!t) return 'I am listening.';
     var go = t.match(/(?:take me|go|head|walk|bring me)\s+(?:to\s+)?(?:the\s+)?(\w+)/);
-    if (go && ROOMS[go[1]]) { var R = ROOMS[go[1]]; setTimeout(function () { location.href = R[0]; }, 1400); return 'Plotting a route to ' + R[1] + '. Mind the doors.'; }
+    if (go && ROOMS[go[1]]) { var R = ROOMS[go[1]]; setTimeout(function () { if (window.WF_LOADSCREEN) WF_LOADSCREEN.leave(R[0]); setTimeout(function () { location.href = R[0]; }, window.WF_LOADSCREEN ? 450 : 0); }, 1000); return 'Plotting a route to ' + R[1] + '. Mind the doors.'; }
     if (/status|report|how.*ship|systems/.test(t)) return status();
     if (/where.*(everyone|crew|droid|cat)|who.*where/.test(t)) return whereAll();
     var who = Object.keys(NAMES).filter(function (k) { return t.indexOf(NAMES[k].toLowerCase()) >= 0; })[0];

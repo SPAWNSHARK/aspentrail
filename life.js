@@ -492,10 +492,10 @@
   function mapTravel(d) {
     var gs = d.gs, R = d.room; close();
     var LS = window.WF_LOADSCREEN;   // loadscreen.js: SS Wayfarer GIF covers every map teleport
-    if (!d.lp) { if (LS) LS.leave(); else toast('Heading to the ' + d.name + '…'); setTimeout(function () { location.href = R.page; }, LS ? 400 : 250); return; }
+    if (!d.lp) { if (LS) LS.leave(R.page); else toast('Heading to the ' + d.name + '…'); setTimeout(function () { location.href = R.page; }, LS ? 400 : 250); return; }
     if (PAGE === gs.page) { gs.t = Date.now(); if (!LS) { if (!gotoNow(gs)) toast('Nothing to stand on there'); return; }
-      LS.show(2500); setTimeout(function () { if (!gotoNow(gs)) { toast('Nothing to stand on there'); LS.hide(); return; } LS.ready(); }, 450); return; }
-    gs.t = Date.now(); if (LS) LS.leave(); else toast('Heading to that spot in the ' + d.name + '…'); try { sessionStorage.setItem('wf-goto', JSON.stringify(gs)); } catch (e) {} setTimeout(function () { location.href = d.id === 'corridor' ? 'index.html' : R.page; }, LS ? 400 : 250);
+      LS.show(2500, false, PAGE === 'corridor' ? 'index.html' : R.page); setTimeout(function () { if (!gotoNow(gs)) { toast('Nothing to stand on there'); LS.hide(); return; } LS.ready(); }, 450); return; }
+    gs.t = Date.now(); if (LS) LS.leave(d.id === 'corridor' ? 'index.html' : R.page); else toast('Heading to that spot in the ' + d.name + '…'); try { sessionStorage.setItem('wf-goto', JSON.stringify(gs)); } catch (e) {} setTimeout(function () { location.href = d.id === 'corridor' ? 'index.html' : R.page; }, LS ? 400 : 250);
   }
   // tap = pick a destination (pin + route + GO); GO (or tapping the pin again) travels
   function mapClick(svg, ev, id, lowerDeck) {
@@ -526,7 +526,7 @@
     var d = 'M' + Py(-4.6) + ' ' + Pz(-50); top.forEach(function (q) { d += 'L' + Py(q[1]) + ' ' + Pz(q[0]); }); d += 'L' + Py(-4.6) + ' ' + Pz(52) + 'Z';
     add('path', { d: d, fill: 'rgba(20,50,80,.35)', stroke: C_HULL, 'stroke-width': 2.2, 'stroke-linejoin': 'round' });
     function band(y0, y1, z0, z1, id, label, fill, stroke) { var g = add('g', { class: 'rm' }); var r = add('rect', { x: Py(y1), y: Pz(z0), width: (y1 - y0) * SY, height: (z1 - z0) * MS, fill: fill || 'rgba(127,227,255,.10)', stroke: stroke || C_LINE, 'stroke-width': 1.3 }, g);
-      if (id) g.addEventListener('click', function (ev) { var R = RMS.filter(function (q) { return q.id === id; })[0]; if (R && !svg._dragged) { close(); if (PAGE !== id) { if (window.WF_LOADSCREEN) WF_LOADSCREEN.leave(); else toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, window.WF_LOADSCREEN ? 400 : 250); } } });
+      if (id) g.addEventListener('click', function (ev) { var R = RMS.filter(function (q) { return q.id === id; })[0]; if (R && !svg._dragged) { close(); if (PAGE !== id) { if (window.WF_LOADSCREEN) WF_LOADSCREEN.leave(R.page); else toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, window.WF_LOADSCREEN ? 400 : 250); } } });
       if (label) { var t = add('text', { x: Py((y0 + y1) / 2), y: Pz((z0 + z1) / 2), 'text-anchor': 'middle', fill: C_TXT, 'font-size': 6.6, 'font-weight': 700, 'font-family': FONT, 'letter-spacing': 1, transform: 'rotate(-90 ' + Py((y0 + y1) / 2) + ' ' + Pz((z0 + z1) / 2) + ')', stroke: '#0a1424', 'stroke-width': 2, 'paint-order': 'stroke' }, g); t.textContent = label; } }
     var UY0 = 0, UY1 = 3.24, LY0 = LOWY, LY1 = -0.23;
     band(UY0, UY1, -38, -24, 'bridge', 'BRIDGE'); band(UY0, UY1, -24, 25.8, null, 'UPPER ATRIUM', 'rgba(127,227,255,.05)'); band(LY0, LY1, -24, 25.8, null, 'LOWER ATRIUM', 'rgba(127,227,255,.05)');

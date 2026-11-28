@@ -391,6 +391,7 @@
   var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0, core: 180, corenorth: 0 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
   function leave(page, img, yaw) {
     try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
+    if (window.WF_LOADSCREEN) WF_LOADSCREEN.leave(page, true);   // loadscreen.js: SS Wayfarer loading screen on every door
     document.documentElement.style.background = '#120c08'; location.href = page;
   }
   (function arrive() {
