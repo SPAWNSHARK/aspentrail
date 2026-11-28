@@ -110,7 +110,7 @@
 <script>
 (function () {
   var THREE = AFRAME.THREE, sc = document.querySelector('a-scene');
-  var R = 9.2, H = 6.2, SCR_Z = -8.2, SCR_W = 9.6, SCR_H = 4.4, SCR_Y = 3.2;
+  var R = 9.2, H = 4.0, SCR_Z = -8.2, SCR_W = 6.4, SCR_H = 2.6, SCR_Y = 2.0;
   // channels: edit this list (or, with a YouTube Data API key, fill it from the subscriptions feed — see CLAUDE.md)
   var CHANNELS = [
     { label: 'SPACE SCIENCE', glow: '#4a8cff', q: 'space+science+documentary' },
@@ -223,7 +223,7 @@
   // ── channel screens covering both side walls: 3 columns × 2 rows each side ──
   function buildChannelWalls() {
     var dot = dotTex(), SW = 1.75, SH = 1.04, frameG = soft(rr(SW + 0.16, SH + 0.16, 0.08), 0.08, 0.02);
-    var cols = [-112, -84, -56, 56, 84, 112], rows = [2.0, 3.45];
+    var cols = [-112, -84, -56, 56, 84, 112], rows = [1.45, 2.75];
     var k = 0;
     cols.forEach(function (deg) {
       rows.forEach(function (y) {
