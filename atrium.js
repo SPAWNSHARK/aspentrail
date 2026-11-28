@@ -17,7 +17,7 @@
   var DOORS = [
     { id: 'bridge',   name: 'COMMAND BRIDGE',    x: 0,    z: -24,  rot: 0,    y: 0,   tint: 0x4aa8ff },
     { id: 'library',  name: 'THE LIBRARY',       x: 0,    z: 25.8, rot: 180,  y: 0,   tint: 0x3fe0c8 },   // Nov 27 segmentation: own page again
-    { id: 'core',     name: 'THE CORE',          x: 0,    z: 45.4, rot: 0,    y: LOW, tint: 0x3fe0c8, noRecess: true },   // brain + reactor = core.html; Nov 27 (user sketch): the arch in the core wall at the foot of the stairs (was the forward door at z 26.6)
+    { id: 'core',     name: 'THE CORE',          x: 0,    z: 45.4, rot: 0,    y: LOW, tint: 0x3fe0c8, noRecess: true, shallow: true },   // brain + reactor = core.html; Nov 27 (user sketch): the arch in the core wall at the foot of the stairs (was the forward door at z 26.6)
     { id: 'holodeck', name: 'HOLODECK',          x: -4.6, z: -14,  rot: 90,   y: 0,   tint: 0x8a5cff },
     { id: 'quarters', name: "CAPTAIN'S QUARTERS", x: -4.6, z: 9,   rot: 90,   y: 0,   tint: 0xc08a50 },
     { id: 'lounge',   name: 'CREW LOUNGE',       x: 4.6,  z: -14,  rot: -90,  y: 0,   tint: 0xffa060 },
@@ -261,6 +261,11 @@
           });
         });
       })();
+      // Nov 28 (user: "a stairwell with handrails and lighting at the base of each stair"): glowing baseboard light line along both walls of the flight + warm-white lamps at the foot
+      (function () { var bm = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false, side: THREE.DoubleSide });
+        strip(ri + 0.015, 0.02, ri + 0.015, 0.11, bm, 'StairBaseI', innerA); strip(ro - 0.015, 0.02, ro - 0.015, 0.11, bm, 'StairBaseO', all);
+        [0, 6, 14].forEach(function (k) { var q = pts[Math.min(k, pts.length - 1)], l = new THREE.PointLight(0xe4f0ff, 1.1, 6, 1.5); l.position.set(sg * rm * Math.sin(q[0]), q[1] + 1.2, 36 + rm * Math.cos(q[0])); root.add(l); });
+        [ri + 0.06, ro - 0.06].forEach(function (R) { var q = pts[1], sc3 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.34, 0.1), bm); sc3.position.set(sg * R * Math.sin(q[0]), q[1] + 1.9, 36 + R * Math.cos(q[0])); sc3.name = 'StairSconce'; sc3.userData.v8Skip = true; root.add(sc3); }); })();
       // arched mouth at the foot: wall face with an arch-shaped doorway, bronze arc
       var t0 = pts[0][0], y0 = pts[0][1], W = ro - ri, sh = new THREE.Shape(), ho = new THREE.Path(), k2, aw = W / 2 - 0.12, hh = HT + 0.3 - 0.3;
       sh.moveTo(0, 0); sh.lineTo(W, 0); sh.lineTo(W, HT + 0.3); sh.lineTo(0, HT + 0.3); sh.lineTo(0, 0);
@@ -320,6 +325,12 @@
       var hp = new THREE.Path(), cx0 = HW, aw = 1.3, ah = 2.5; hp.moveTo(cx0 - aw, 0); hp.lineTo(cx0 + aw, 0); hp.lineTo(cx0 + aw, ah); hp.absarc(cx0, ah, aw, 0, Math.PI, false); hp.lineTo(cx0 - aw, 0); sh.holes.push(hp);   // Nov 28: arch back in (user: how do I get out to the hallway?) — core door -> foyer -> this arch -> aft ring -> lower hall
       var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
       var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.position.set(-HW, LOW, ZW); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
+      // Nov 28 (user: "I should not be able to see any of this"): ceiling over the foyer pocket (x ±3.4, core wall -> z 48) so you can't look up at the stair roofs / shaft; lamp fixtures on it
+      (function () { var cs = new THREE.Shape(), n2 = 16, kk, xa = -HW, xb = HW; cs.moveTo(xa, ZW); cs.lineTo(xb, ZW);
+        for (kk = 0; kk <= n2; kk++) { var xx = xb - (xb - xa) * kk / n2; cs.lineTo(xx, 36 + Math.sqrt(9.4 * 9.4 - xx * xx) - 0.05); }
+        cs.lineTo(xa, ZW); var cg = new THREE.ShapeGeometry(cs); cg.rotateX(Math.PI / 2);   /* shape (x,y) -> world (x, ., y) */
+        var cm3 = mat.clone(); cm3.color.set(0x2a2f35); cm3.polygonOffset = true; cm3.polygonOffsetFactor = 1; var cp3 = new THREE.Mesh(cg, cm3); cp3.position.y = LOW + 3.45; cp3.name = 'FoyerCeiling'; cp3.userData.v8Skip = true; root.add(cp3);
+        var lm = new THREE.MeshBasicMaterial({ color: 0xdff0ff, fog: false }); [[-1.6, 46.7], [1.6, 46.7]].forEach(function (q) { var lb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.22), lm); lb.position.set(q[0], LOW + 3.42, q[1]); root.add(lb); }); })();
       var lt = new THREE.PointLight(0xd8e8ff, 1.5, 7, 1.5); lt.position.set(0, LOW + 2.5, ZW - 1.2); root.add(lt);
     })();
     // lights: white-blue, spread down the shaft (fewer on phones)
@@ -480,7 +491,7 @@
     var PT = window.WAYFARER.door.PORTALS, from = fromRoom();
     DOORS.forEach(function (d) {
       var P = PT[d.id];
-      var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1, noRecess: !!d.noRecess,
+      var D = window.WAYFARER.door.create({ sc: sc, parent: root, frame: { x: d.x, y: d.y, z: d.z, rot: d.rot }, name: d.name, tint: d.tint, depth: 0.1, noRecess: !!d.noRecess, shallow: !!d.shallow,
         other: P ? P.room : null, space: P ? P.space : null, img: d.wing ? 'images/portals/wing-' + d.wing + '.jpg' : (P && !d.locked ? 'images/portals/room-' + d.id + '.jpg' : null), locked: !!d.locked,
         page: d.wing ? 'library.html' : (P && !d.locked ? P.page : null), /* WF_INTERACTION_V11 */ autoPass: false, onPass: function () { go(d); }, startOpen: from === d.id, holdMs: from === d.id ? 900 : 8000, say: say });
       D.d = d; doors.push(D);

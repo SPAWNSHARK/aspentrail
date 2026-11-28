@@ -67,8 +67,68 @@
     ring(GI + 0.08, 1.05, 0.04, bronze); ring(GI + 0.08, 0.55, 0.025, teal);
     for (i = 0; i < 36; i++) { var ap = i / 36 * Math.PI * 2, po = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.05, 6), steel); po.position.set(Math.cos(ap) * (GI + 0.08), 0.52, Math.sin(ap) * (GI + 0.08)); g.add(po); }
     // outer wall (θ from +z: the doorway gap faces +z), light bands, ceiling
-    [0.118].forEach(function (t0) { var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 6, true, t0, Math.PI * 2 - 0.236), dark); wall.position.y = WH / 2; g.add(wall); });   // two walls: doorways at +Z (stairs) and −Z (lower hall)
-    [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { [0.118].forEach(function (t0) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, t0, Math.PI * 2 - 0.236), k % 2 ? steel : (k === 0 ? teal : white)); b.position.y = y; g.add(b); }); });
+    // Nov 28 (user: "make this whole room feel like a biotech monitoring room"; friendly, NOT Borg/Yuuzhan Vong/Collectors): smooth graphite wall,
+    // grown-tissue ribbed pilasters, two tiers of live monitor panels (canvas), glowing organic interface pods on a ledge
+    var wallM = mat(0x1e272b, 0.3, 0.7); wallM.userData.v8Skip = true;
+    var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 1, true, 0.118, Math.PI * 2 - 0.236), wallM); wall.userData.v8Skip = true; wall.position.y = WH / 2; g.add(wall);
+    [[0.12, teal], [1.12, teal], [9.1, white]].forEach(function (q) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, 0.118, Math.PI * 2 - 0.236), q[1]); b.position.y = q[0]; g.add(b); });
+    (function () {
+      var NB = 22, TH0 = 0.3, SPAN = Math.PI * 2 - 0.6, DT = SPAN / NB, R = WR - 0.06, k, i;
+      // ledge round the wall
+      var led = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.1, WR - 0.1, 0.1, 96, 1, false, 0.118, Math.PI * 2 - 0.236), steel); led.userData.v8Skip = true; led.position.y = 1.05; g.add(led);
+      // ribbed pilasters (one InstancedMesh): lathe profile with soft ribs, grown-tissue material (shares the heartbeat pulse)
+      var pr = []; for (k = 0; k <= 40; k++) { var yy = k / 40 * WH, rr = 0.2 + 0.05 * Math.sin(k * 1.6) + (k < 3 ? 0.08 * (3 - k) : 0) + (k > 37 ? 0.07 * (k - 37) : 0); pr.push(new THREE.Vector2(rr, yy - WH / 2)); }
+      var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bio, NB + 1), M = new THREE.Matrix4();
+      for (i = 0; i <= NB; i++) { var ta = TH0 + i * DT; M.makeTranslation(Math.sin(ta) * (WR - 0.2), WH / 2, Math.cos(ta) * (WR - 0.2)); pil.setMatrixAt(i, M); }
+      pil.userData.v8Skip = true; g.add(pil);
+      // glowing organic interface pods (squashed ellipsoids on the ledge) – soft translucent green, pulse with the same heartbeat
+      var podM = new THREE.MeshStandardMaterial({ color: 0x3f8a68, roughness: 0.25, metalness: 0.05, emissive: 0x20d98a, emissiveIntensity: 0.7, transparent: true, opacity: 0.88 }); podM.userData.v8Skip = true; window.__corePod = podM;
+      var pg = new THREE.SphereGeometry(0.3, 14, 10); pg.scale(1.5, 0.5, 0.8);
+      var pods = new THREE.InstancedMesh(pg, podM, NB), Q = new THREE.Quaternion(), E = new THREE.Euler(), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
+      for (i = 0; i < NB; i++) { var tb = TH0 + (i + 0.5) * DT; E.set(0, tb, 0); Q.setFromEuler(E); P.set(Math.sin(tb) * (WR - 0.45), 1.18, Math.cos(tb) * (WR - 0.45)); M.compose(P, Q, S); pods.setMatrixAt(i, M); }
+      pods.userData.v8Skip = true; g.add(pods);
+      // live monitor textures: 6 kinds, shared by both tiers
+      var TW = 256, TX = [], CV = [], kind;
+      for (kind = 0; kind < 6; kind++) { var cv = document.createElement('canvas'); cv.width = cv.height = TW; var tx = new THREE.CanvasTexture(cv); tx.wrapS = THREE.RepeatWrapping; tx.repeat.x = -1; tx.offset.x = 1; TX.push(tx); CV.push(cv); }
+      var NAMES = ['CORTEX · EEG', 'VITALS · PULSE', 'NEURAL FLUX', 'HYDROGEL CHEM', 'PERFUSION SCAN', 'SYNAPSE MAP'];
+      function frame(c, kind, t) {
+        c.fillStyle = '#06130f'; c.fillRect(0, 0, TW, TW);
+        var gr = c.createLinearGradient(0, 0, 0, TW); gr.addColorStop(0, 'rgba(60,255,170,.10)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(0, 0, TW, TW);
+        c.strokeStyle = 'rgba(125,255,205,.55)'; c.lineWidth = 3; c.strokeRect(4, 4, TW - 8, TW - 8);
+        c.strokeStyle = 'rgba(125,255,205,.18)'; c.lineWidth = 1; for (var q = 1; q < 6; q++) { c.beginPath(); c.moveTo(14, 36 + q * 34); c.lineTo(TW - 14, 36 + q * 34); c.stroke(); }
+        c.fillStyle = '#9dffd6'; c.font = '600 15px monospace'; c.fillText(NAMES[kind], 14, 26);
+        c.fillStyle = (Math.floor(t * 2) % 2) ? '#7dfff0' : '#1e5a50'; c.beginPath(); c.arc(TW - 20, 21, 5, 0, 7); c.fill();
+      }
+      function draw(kind, t) {
+        var c = CV[kind].getContext('2d'), x, y, j; frame(c, kind, t);
+        if (kind === 0) { for (j = 0; j < 4; j++) { c.strokeStyle = ['#7dfff0', '#9dffb0', '#6fd0ff', '#d8ffe8'][j]; c.lineWidth = 2; c.beginPath(); for (x = 14; x < TW - 14; x += 4) { y = 70 + j * 44 + Math.sin(x * 0.07 + t * 3 + j * 1.7) * 10 * (0.6 + 0.4 * Math.sin(x * 0.02 + t + j)) + Math.sin(x * 0.31 + t * 7 + j) * 4; x === 14 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke(); } }
+        else if (kind === 1) { c.strokeStyle = '#8fffc0'; c.lineWidth = 2.5; c.beginPath(); for (x = 14; x < TW - 14; x += 2) { var u = (((x / TW * 3 - t * 0.9) % 1) + 1) % 1; y = 140 - 62 * Math.exp(-Math.pow((u - 0.3) / 0.012, 2)) + 14 * Math.exp(-Math.pow((u - 0.2) / 0.03, 2)) + 12 * Math.exp(-Math.pow((u - 0.5) / 0.05, 2)); x === 14 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke(); c.fillStyle = '#d8ffe8'; c.font = '700 38px monospace'; c.fillText('62', 22, 214); c.font = '600 14px monospace'; c.fillStyle = '#7dfff0'; c.fillText('BPM  ·  STABLE', 84, 212); }
+        else if (kind === 2) { for (var gi = 0; gi < 12; gi++) for (var gj = 0; gj < 9; gj++) { var v = (Math.sin(gi * 0.7 + t * 1.3) + Math.sin(gj * 0.9 - t * 1.7) + Math.sin((gi + gj) * 0.5 + t)) / 3; c.fillStyle = 'hsla(' + (160 - v * 40) + ',90%,' + (30 + v * 25) + '%,' + (0.55 + v * 0.4) + ')'; c.fillRect(16 + gi * 19, 44 + gj * 19, 16, 16); } c.fillStyle = '#9dffd6'; c.font = '600 13px monospace'; c.fillText('ACTIVITY  NOMINAL', 16, 236); }
+        else if (kind === 3) { var L = ['pH 7.41', 'O2  94%', 'GLU 5.2', 'TEMP 37.0', 'FLOW 0.8']; for (j = 0; j < 5; j++) { var f = 0.62 + 0.18 * Math.sin(t * 0.4 + j * 1.3); c.fillStyle = '#9dffd6'; c.font = '600 13px monospace'; c.fillText(L[j], 16, 66 + j * 36); c.fillStyle = 'rgba(125,255,205,.18)'; c.fillRect(104, 53 + j * 36, 134, 12); c.fillStyle = j === 3 ? '#ffd27a' : '#5dffb4'; c.fillRect(104, 53 + j * 36, 134 * f, 12); } }
+        else if (kind === 4) { c.strokeStyle = 'rgba(125,255,205,.4)'; c.lineWidth = 1.5; for (j = 1; j <= 4; j++) { c.beginPath(); c.arc(128, 142, j * 24, 0, 7); c.stroke(); } var an = t * 1.4; c.strokeStyle = 'rgba(160,255,220,.9)'; c.lineWidth = 2; c.beginPath(); c.moveTo(128, 142); c.lineTo(128 + Math.cos(an) * 96, 142 + Math.sin(an) * 96); c.stroke(); for (j = 0; j < 7; j++) { var ba = j * 2.1 + 0.5, br = 26 + (j * 37) % 62; c.fillStyle = 'rgba(125,255,205,' + (0.4 + 0.5 * Math.max(0, Math.sin(an - ba))) + ')'; c.beginPath(); c.arc(128 + Math.cos(ba) * br, 142 + Math.sin(ba) * br, 4, 0, 7); c.fill(); } }
+        else { var N = []; for (j = 0; j < 14; j++) N.push([40 + (j * 53) % 180 + Math.sin(t * 0.5 + j) * 6, 60 + (j * 71) % 150 + Math.cos(t * 0.6 + j * 1.3) * 6]); c.lineWidth = 1; for (j = 0; j < 14; j++) for (var m = j + 1; m < 14; m++) { var dd = Math.hypot(N[j][0] - N[m][0], N[j][1] - N[m][1]); if (dd < 72) { c.strokeStyle = 'rgba(125,255,205,' + (0.5 - dd / 160) + ')'; c.beginPath(); c.moveTo(N[j][0], N[j][1]); c.lineTo(N[m][0], N[m][1]); c.stroke(); } } for (j = 0; j < 14; j++) { c.fillStyle = Math.sin(t * 2 + j * 2.3) > 0.7 ? '#e8fff4' : '#5dffb4'; c.beginPath(); c.arc(N[j][0], N[j][1], 4, 0, 7); c.fill(); } }
+        TX[kind].needsUpdate = true;
+      }
+      for (kind = 0; kind < 6; kind++) draw(kind, 0);
+      // panels: tier A 1.5–3.3, tier B 3.9–5.9; every second bay of tier B is a tall ticker strip higher up
+      var pw = DT * 0.8;
+      for (i = 0; i < NB; i++) {
+        var t0 = TH0 + i * DT + (DT - pw) / 2;
+        [[1.55, 1.8, i % 6], [4.0, 2.0, (i + 3) % 6]].forEach(function (p) {
+          var pm = new THREE.Mesh(new THREE.CylinderGeometry(R, R, p[1], 6, 1, true, t0, pw), new THREE.MeshBasicMaterial({ map: TX[p[2]], side: THREE.DoubleSide, toneMapped: false, fog: false }));
+          pm.userData.v8Skip = true; pm.position.y = p[0] + p[1] / 2; g.add(pm);
+        });
+      }
+      // upper band: a slow glowing "tissue" ribbon of soft light between pilasters
+      for (i = 0; i < NB; i += 1) { var tu = TH0 + (i + 0.5) * DT; var gl2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ color: i % 2 ? 0x5dffb4 : 0x7dfff0, fog: false })); gl2.scale.set(1, 0.4, 1); gl2.position.set(Math.sin(tu) * (WR - 0.3), 7.6, Math.cos(tu) * (WR - 0.3)); g.add(gl2); }
+      var last = 0;
+      AFRAME.registerComponent('wf-core-displays', { tick: function (t) {
+        var T = t / 1000, step = MOB ? 130 : 80; if (t - last < step) return; last = t; var n = Math.floor(t / step);
+        draw(n % 2 === 0 ? 0 : 1, T); if (n % 4 === 0) draw(2 + (Math.floor(n / 4) % 4), T);
+        if (window.__corePod) window.__corePod.emissiveIntensity = 0.55 + 0.4 * Math.pow(Math.max(0, Math.sin(2.6 * T)), 3);
+      } });
+      sc.setAttribute('wf-core-displays', '');
+    })();
     // Nov 27 (user: the lower deck should have a glass viewing area up into the Library): solid centre disc round the chamber, glass annulus out to the wall, the Library (shelves, dome, lamps) visible above
     (function () {
       var seg = MOB ? 72 : 128, gm = new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false });
@@ -76,7 +136,7 @@
       var fgeo = new THREE.RingGeometry(CR + 0.6, WR, seg, 6), fuv = fgeo.attributes.uv, fi; for (fi = 0; fi < fuv.count; fi++) fuv.setXY(fi, (fi % (seg + 1)) / seg * 36, Math.floor(fi / (seg + 1)) / 6 * 2);   // Nov 28: polar plates (36 round x 2 rows) so the seams run radial + concentric like the room
       var fmat = fm2.clone(); fmat.color.set(0x8a9299); fmat.side = THREE.DoubleSide; fmat.needsUpdate = true;
       var fl = new THREE.Mesh(fgeo, fmat); fl.userData.v8Skip = true; fl.rotation.x = Math.PI / 2; fl.position.y = WH; g.add(fl);   // solid Library floor underside round it
-      [0].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), dark); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
+      [0].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), wallM); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
       var k; for (k = 0; k < 12; k++) { var a = k / 12 * Math.PI * 2, sp = new THREE.Mesh(new THREE.BoxGeometry(WR - CR - 0.6, 0.08, 0.14), steel); sp.position.set(Math.cos(a) * (CR + 0.6 + WR) / 2, WH, Math.sin(a) * (CR + 0.6 + WR) / 2); sp.rotation.y = -a; g.add(sp); }
       ring(WR - 0.1, WH, 0.1, steel);
       var UH = 5.4, UY = WH + 0.15;                               // the Library above: shelved wall, dome, lamps
@@ -100,7 +160,10 @@
     var br = document.getElementById('brain'); if (br && AFRAME.components['brain-mesh']) br.setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
     eels(sc);
     // keep the player off the pit: inner rail r 5.8
-    AFRAME.registerComponent('wf-core-clamp', { tick: function () { var pl = document.getElementById('player'); if (!pl || window.WAYFARER.frozen) return; var cam = document.getElementById('cam'), wp = new THREE.Vector3(); cam.object3D.getWorldPosition(wp); var r = Math.hypot(wp.x, wp.z); if (r < 5.85 && r > 1e-3) { var k = 5.85 / r; pl.object3D.position.x += wp.x * (k - 1); pl.object3D.position.z += wp.z * (k - 1); } } });
+    AFRAME.registerComponent('wf-core-clamp', { tick: function () { var pl = document.getElementById('player'); if (!pl || window.WAYFARER.frozen) return; var cam = document.getElementById('cam'), wp = new THREE.Vector3(); cam.object3D.getWorldPosition(wp); var r = Math.hypot(wp.x, wp.z); var RD = window.WAYFARER.roomDoor; if (RD && RD.target === 0 && wp.z > 7.8 && Math.abs(wp.x) < 1.7) RD.open();   /* walk up to the exit and it opens */
+      if (r < 5.85 && r > 1e-3) { var k = 5.85 / r; pl.object3D.position.x += wp.x * (k - 1); pl.object3D.position.z += wp.z * (k - 1); }
+      /* Nov 28: outer limit = the wall (r 10.0), except through the +Z doorway (|x| < 0.95) where you may walk on to the door's pass line (z 11.2) */
+      else if (r > 10.0) { if (wp.z > 9.5 && Math.abs(wp.x) < 0.95) { if (wp.z > 11.2) pl.object3D.position.z -= wp.z - 11.2; } else { var k2 = 10.0 / r; pl.object3D.position.x += wp.x * (k2 - 1); pl.object3D.position.z += wp.z * (k2 - 1); } } } });
     sc.setAttribute('wf-core-clamp', '');
     document.getElementById('wf-fade').style.opacity = '0';
   }

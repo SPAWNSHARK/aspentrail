@@ -244,6 +244,9 @@
     var rb = R.recess || (R.recess = new THREE.MeshStandardMaterial({ color: 0x0c0806, roughness: 0.9 }));
     (o.noRecess ? [] : [[0, 1.55, -0.9, 2.5, 3.1, 0.05], [-1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [1.22, 1.55, -0.45, 0.05, 3.1, 0.9], [0, 3.08, -0.45, 2.5, 0.05, 0.9]]).forEach(function (q) {   // noRecess (Nov 27): doors set in front of a solid wall (Library stairs doors) showed the box as a dark frame
       var b = new THREE.Mesh(new THREE.BoxGeometry(q[3], q[4], q[5]), rb); b.position.set(q[0], q[1], q[2]); g.add(b); });
+    // Nov 28 (user: "you can see through the door"): a SHALLOW sealed reveal for doors set in a curved wall — back plate just behind the leaves + thin side/top slabs (no deep box: that z-fought the wall)
+    if (o.shallow) { [[0, 1.6, -0.34, 2.4, 3.3, 0.03], [-1.16, 1.6, -0.17, 0.03, 3.3, 0.36], [1.16, 1.6, -0.17, 0.03, 3.3, 0.36], [0, 3.2, -0.17, 2.4, 0.03, 0.36]].forEach(function (q) {
+      var b = new THREE.Mesh(new THREE.BoxGeometry(q[3], q[4], q[5]), rb); b.position.set(q[0], q[1], q[2]); b.userData.v8Skip = true; g.add(b); }); }
     var nm = new THREE.Mesh(new THREE.PlaneGeometry(1.12, 0.36), new THREE.MeshBasicMaterial({ map: plate(o.name, 1024, 330), transparent: true, alphaTest: 0.02, fog: false, toneMapped: false }));
     nm.position.set(0, (DOOR_H + FR_TOP) / 2, 0.16); g.add(nm);
     if (depth > 0.2 && !o.noPockets) {  // free-standing (room) door: threshold, plus pocket housings the leaves slide into
