@@ -21,6 +21,7 @@
     if (FULL[k]) return FULL[k];
     return 'LOADING THE ' + (NAMES[k] || k.toUpperCase()) + '...';
   }
+  var intro = null;
   var el = null, box = null, cap = null, minUntil = 0, timer = null, capT = null, onRs = null;
   function css() {
     if (document.getElementById('wf-ls-css')) return;
@@ -62,7 +63,29 @@
   }
   function ready() { if (!el) return; clearTimeout(timer); timer = setTimeout(hide, Math.max(0, minUntil - Date.now())); }
   function leave(target, instant) { show(2500, instant, target); try { sessionStorage.setItem(KEY, JSON.stringify({ t: Date.now(), l: label(target) })); } catch (e) {} }
-  window.WF_LOADSCREEN = { show: show, hide: hide, ready: ready, leave: leave, label: label, active: function () { return !!el; } };
+  window.WF_LOADSCREEN = { show: show, hide: hide, ready: ready, leave: leave, label: label, active: function () { return !!el || !!intro; } };
+
+  /* SS WAYFARER intro film (Nov 28, user's SS_Wayfarer_Intro_Final_Quiet_Sensors.mp4, 12 s, 864×1872): plays once when the app is opened, over the loading screen.
+     Tries sound first; iOS usually blocks that without a tap, so it falls back to muted and the first tap unmutes. SKIP button ends it. */
+  function playIntro() {
+    if (intro) return;
+    var d = document.createElement('div'); d.id = 'wf-intro';
+    d.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;height:100lvh;background:#000;z-index:2147483001;opacity:1;transition:opacity .6s ease;overflow:hidden';
+    var v = document.createElement('video'); v.src = 'images/intro.mp4?v=1'; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', ''); v.preload = 'auto';
+    v.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:' + (innerWidth > innerHeight ? 'contain' : 'cover') + ';background:#000';
+    var b = document.createElement('button'); b.textContent = 'SKIP'; b.setAttribute('aria-label', 'Skip intro');
+    b.style.cssText = 'position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);padding:8px 16px;border-radius:14px;border:1px solid rgba(236,217,173,.4);background:rgba(0,0,0,.35);color:#ecd9ad;font:300 11px "Avenir Next",Avenir,Helvetica,Arial,sans-serif;letter-spacing:.3em;opacity:.8';
+    d.appendChild(v); d.appendChild(b); document.documentElement.appendChild(d); intro = d;
+    var done = false;
+    function end() { if (done) return; done = true; try { v.pause(); } catch (e) {} d.style.opacity = '0'; setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); if (intro === d) intro = null; }, 700); }
+    b.onclick = function (e) { e.stopPropagation(); end(); };
+    d.addEventListener('click', function () { try { v.muted = false; v.volume = 1; v.play(); } catch (e) {} });
+    v.addEventListener('ended', end); v.addEventListener('error', end);
+    setTimeout(end, 16000);
+    v.muted = false;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { v.muted = true; var q = v.play(); if (q && q.catch) q.catch(end); });
+  }
 
   /* arrived from a teleport / door / Halcyon request on another page: cover immediately, before anything else paints */
   var rec = null; try { rec = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
@@ -73,6 +96,7 @@
   if (viaTravel || !opened) {                      // travel arrival, or the app/tab was just opened (first page of the session)
     var hadGoto = false; try { hadGoto = !!sessionStorage.getItem('wf-goto'); } catch (e) {}
     show(2000, true, viaTravel ? rec.l : 'LOADING THE SS WAYFARER...');
+    if (!viaTravel) playIntro();
     try { sessionStorage.removeItem(KEY); } catch (e) {}
     document.addEventListener('DOMContentLoaded', function () {
       if (hadGoto || document.getElementById('wf-fade')) return;       /* life.js arrive() / atrium ready() call ready() themselves */
