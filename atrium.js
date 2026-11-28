@@ -538,7 +538,7 @@
     },
     ready: function (failed) {
       this.el.object3D.updateMatrixWorld(true);
-      var f=document.getElementById('wf-fade'); if(f)setTimeout(function(){f.style.opacity='0';},1700);   /* hold the cover until interior-v8's material passes finish (no copper flash) */
+      var f=document.getElementById('wf-fade'); if(f)setTimeout(function(){f.style.opacity='0'; if(window.WF_LOADSCREEN)setTimeout(WF_LOADSCREEN.ready,700);},1700);   /* hold the cover until interior-v8's material passes finish (no copper flash) */
       if(failed && failed.length){this.loadFailed=true;window.WAYFARER.frozen=true; say('ATRIUM LOAD ERROR: '+failed.join(', '),'#ff8f70'); console.error('Atrium missing required assets',failed);return;}
       var p=this.cam.object3D.position; if(this.loadingPosition)p.copy(this.loadingPosition); var y=floorAt(p.x,p.z,this.floorY);
       if(y===null){ this.spawnFallback=true; p.x=0; p.z=-21; this.floorY=0; y=floorAt(p.x,p.z,0); }
