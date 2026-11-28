@@ -60,13 +60,14 @@
     ring(GI + 0.08, 1.05, 0.04, bronze); ring(GI + 0.08, 0.55, 0.025, teal);
     for (i = 0; i < 36; i++) { var ap = i / 36 * Math.PI * 2, po = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.05, 6), steel); po.position.set(Math.cos(ap) * (GI + 0.08), 0.52, Math.sin(ap) * (GI + 0.08)); g.add(po); }
     // outer wall (θ from +z: the doorway gap faces +z), light bands, ceiling
-    [0.118, Math.PI + 0.118].forEach(function (t0) { var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 48, 6, true, t0, Math.PI - 0.236), dark); wall.position.y = WH / 2; g.add(wall); });   // two walls: doorways at +Z (stairs) and −Z (lower hall)
-    [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { [0.118, Math.PI + 0.118].forEach(function (t0) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 48, 1, true, t0, Math.PI - 0.236), k % 2 ? steel : (k === 0 ? teal : white)); b.position.y = y; g.add(b); }); });
+    [0.118].forEach(function (t0) { var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 6, true, t0, Math.PI * 2 - 0.236), dark); wall.position.y = WH / 2; g.add(wall); });   // two walls: doorways at +Z (stairs) and −Z (lower hall)
+    [0.12, 1.6, 3.4, 5.4, 7.4, 9.1].forEach(function (y, k) { [0.118].forEach(function (t0) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, t0, Math.PI * 2 - 0.236), k % 2 ? steel : (k === 0 ? teal : white)); b.position.y = y; g.add(b); }); });
     // Nov 27 (user: the lower deck should have a glass viewing area up into the Library): solid centre disc round the chamber, glass annulus out to the wall, the Library (shelves, dome, lamps) visible above
-    var ce = new THREE.Mesh(new THREE.CircleGeometry(CR + 0.6, MOB ? 48 : 96), steel); ce.rotation.x = Math.PI / 2; ce.position.y = WH; g.add(ce);
     (function () {
       var seg = MOB ? 72 : 128, gm = new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.16, roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide, depthWrite: false });
-      var gl = new THREE.Mesh(new THREE.RingGeometry(CR + 0.6, WR, seg, 4), gm); gl.rotation.x = Math.PI / 2; gl.position.y = WH; gl.userData.v8Skip = true; g.add(gl);
+      var gl = new THREE.Mesh(new THREE.CircleGeometry(CR + 0.6, seg), gm); gl.rotation.x = Math.PI / 2; gl.position.y = WH; gl.userData.v8Skip = true; g.add(gl);   // Nov 28: glass = the hole over the chamber (looks up at the Library + brain)
+      var fl = new THREE.Mesh(new THREE.RingGeometry(CR + 0.6, WR, seg, 4), steel); fl.rotation.x = Math.PI / 2; fl.position.y = WH; g.add(fl);   // solid Library floor underside round it
+      [0].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), dark); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
       var k; for (k = 0; k < 12; k++) { var a = k / 12 * Math.PI * 2, sp = new THREE.Mesh(new THREE.BoxGeometry(WR - CR - 0.6, 0.08, 0.14), steel); sp.position.set(Math.cos(a) * (CR + 0.6 + WR) / 2, WH, Math.sin(a) * (CR + 0.6 + WR) / 2); sp.rotation.y = -a; g.add(sp); }
       ring(WR - 0.1, WH, 0.1, steel);
       var UH = 5.4, UY = WH + 0.15;                               // the Library above: shelved wall, dome, lamps
