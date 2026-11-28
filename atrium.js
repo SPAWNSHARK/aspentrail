@@ -9,7 +9,7 @@
 // landings, treads): steps up ≤ 0.5 m / down ≤ 0.7 m are taken (that is how the stairs work), anything else (the opening, a wall
 // line, the end of a floor) puts you back where you were. Doors = the shared door.js, at the kit's thresholds.
 (function () {
-  var THREE = AFRAME.THREE, OFF = -0.65, LOW = -5.95, KIT = 'models/atrium/';
+  var THREE = AFRAME.THREE, OFF = -0.65, SPEC = window.WF_SPEC, LOW = SPEC.decks.lower, KIT = 'models/atrium/';
   var MOB = /iPhone|iPad|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
 
   // ── the ship's doorways in the atrium: kit thresholds; frame +z faces INTO the hall ──
@@ -122,14 +122,8 @@
     // upper hall ceiling (the kit's roof only covers the middle): the hall outline with the skylight cut out
     var sh = new THREE.Shape(outline.map(function (q) { return new THREE.Vector2(q[0], -q[1]); })), hole = new THREE.Path();
     hole.moveTo(-2.05, 17.55); hole.lineTo(2.05, 17.55); hole.lineTo(2.05, -18.05); hole.lineTo(-2.05, -18.05); hole.lineTo(-2.05, 17.55); sh.holes.push(hole);
-    var hc = new THREE.Mesh(new THREE.ShapeGeometry(sh), M.steel); hc.rotation.x = -Math.PI / 2; hc.position.y = 3.24; root.add(hc);
-    // ceiling over the upper aft apron (the kit leaves it open), with an amber ring round the Library wall
-    var rs = new THREE.Shape(), ra = Math.asin(-10.3 / 21.5), k;   // outer arc (through +z) closed by the line z = 25.7; the Library wall is the hole
-    for (k = 0; k <= 96; k++) { var aa = ra + (Math.PI - 2 * ra) * k / 96, px = 21.5 * Math.cos(aa), pz = 36 + 21.5 * Math.sin(aa); if (k === 0) rs.moveTo(px, -pz); else rs.lineTo(px, -pz); }
-    rs.lineTo(-21.5 * Math.cos(ra), -25.7); rs.lineTo(21.5 * Math.cos(ra), -25.7);
-    var rh = new THREE.Path(); for (k = 0; k <= 96; k++) { var ab = 2 * Math.PI * k / 96, hx = 10.2 * Math.cos(ab), hz = 36 + 10.2 * Math.sin(ab); if (k === 0) rh.moveTo(hx, -hz); else rh.lineTo(hx, -hz); } rs.holes.push(rh);
-    var cmat = M.steel.clone(); cmat.side = THREE.DoubleSide; cmat.polygonOffset = true; cmat.polygonOffsetFactor = 2; cmat.polygonOffsetUnits = 2;
-    var ceil = new THREE.Mesh(new THREE.ShapeGeometry(rs, 24), cmat); ceil.rotation.x = -Math.PI / 2; ceil.position.set(0, 3.22, 0); root.add(ceil);   // (rotation.x −90°: shape y → world −z, so z was negated above)
+    var hc = new THREE.Mesh(new THREE.ShapeGeometry(sh), M.steel); hc.name = 'HallCeiling'; hc.rotation.x = -Math.PI / 2; hc.position.y = 3.24; root.add(hc);
+    // (the old upper aft-apron ceiling plane at y 3.22 is gone: it sat 2 cm under ShaftRoof (3.24) and covered nothing the shaft roof does not)
     var ring = new THREE.Mesh(new THREE.TorusGeometry(10.35, 0.04, 6, 128), M.amber); ring.rotation.x = Math.PI / 2; ring.position.set(0, 3.12, 36); root.add(ring);
     // amber cove strips along the top of the hall walls (both decks) and a bronze sill line
     [0, LOW].forEach(function (y0) { [-1, 1].forEach(function (s) {
@@ -140,7 +134,7 @@
   // ── Nov 28 REBUILD (user: "just a plain ass stairwell"): ONE wide flight per side, wall to wall (Library wall r 10.2 -> shaft wall r 16),
   // open to the tall lit shaft, no tunnel / kit rails / foyer arches. Same footprint as before (foot θ 0.41, top θ 1.92, landing to 2.18) so
   // the map routes, spawns and Library stair doors still line up. Treads/risers = 34 plain steps of 17.5 cm; a flat landing in front of the Library door.
-  var ST_T0 = 0.41, ST_T1 = 1.92, ST_TE = 2.18, ST_N = 34, ST_RI = 10.2, ST_RO = 16.05;
+  var ST_T0 = SPEC.stairs.t0, ST_T1 = SPEC.stairs.t1, ST_TE = SPEC.stairs.te, ST_N = SPEC.stairs.n, ST_RI = SPEC.stairs.ri, ST_RO = SPEC.stairs.ro;   // ship-spec.js
   function buildStairs(root) {
     var rise = -LOW / ST_N, d = (ST_T1 - ST_T0) / ST_N;
     var topM = M.steel.clone(); topM.side = THREE.DoubleSide; topM.color.set(0x4a525a); topM.roughness = 0.6; topM.metalness = 0.3; topM.emissive = new THREE.Color(0x141a20); topM.envMapIntensity = 0.3;
@@ -211,7 +205,7 @@
   // ── Nov 27: STAIRWELL SHAFT, BRAIN WINDOWS, LIGHTING ─────────────────────────────────────────────────────────────
   // The twin stairs spiral round the Library/Engine core inside a shaft: outer wall r 16 from the lower floor to the upper ceiling
   // (D-shaped: it meets the hall mouth at z 25.8), lights, and glass windows in the lower core wall onto the electrogel tank + brain.
-  var SH_R = 16.0, SH_TOP = 3.24, MOUTH = 25.8;
+  var SH_R = SPEC.shaft.wallR, SH_TOP = SPEC.shaft.roofY, MOUTH = SPEC.shaft.mouthZ;
   function polyWall(root, mat, pts, y0, y1, rows, name) {
     var pos = [], uv = [], idx = [], run = 0, i, j;
     for (i = 0; i < pts.length - 1; i++) {
@@ -251,6 +245,10 @@
     polyWall(root, pm, [[-2.62, 24.9], [-1.05, 24.9]], LOW, -0.23, 3, 'PartL'); polyWall(root, pm, [[1.05, 24.9], [2.62, 24.9]], LOW, -0.23, 3, 'PartR');
     polyWall(root, pm, [[-1.05, 24.9], [1.05, 24.9]], LOW + 2.95, -0.23, 1, 'PartLintel');
     polyWall(root, pm, [[-2.62, 24.9], [-2.62, 27.1]], LOW, -0.23, 3, 'NTunnelL'); polyWall(root, pm, [[2.62, 24.9], [2.62, 27.1]], LOW, -0.23, 3, 'NTunnelR');
+    // north-tunnel floor + roof (the kit's Aft_Transition floor slabs that used to carry these covered the whole stair shaft and are no longer loaded)
+    (function () { var fm = new THREE.MeshStandardMaterial({ color: 0x3a4047, roughness: 0.55, metalness: 0.3, side: THREE.DoubleSide }), g = new THREE.PlaneGeometry(5.24, 1.4); g.rotateX(-Math.PI / 2);
+      var fl = new THREE.Mesh(g, fm); fl.name = 'Floor_tunnel'; fl.position.set(0, LOW + 0.005, 26.4); fl.userData.v8Skip = true; root.add(fl); walk.push(fl);
+      var rf = new THREE.Mesh(g, fm); rf.name = 'TunnelRoof'; rf.position.set(0, -0.23, 26.4); rf.userData.v8Skip = true; root.add(rf); })();
     (function () { var pl = new THREE.PointLight(0xd8e8ff, 1.2, 7, 1.5); pl.position.set(0, LOW + 2.4, 25.9); root.add(pl); var bm2 = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false }); [-1.05, 1.05].forEach(function (x) { var ln = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.9, 0.05), bm2); ln.position.set(x, LOW + 1.5, 24.95); ln.name = 'ArchLine'; ln.userData.v8Skip = true; root.add(ln); }); })();   // Nov 28: sealed passage from the lower-hall door to the north Core door
     // thin light lines round the shaft + a bronze band at each deck
     [[LOW + 0.55, M.teal], [-0.34, M.gun], [2.95, M.amber]].forEach(function (q) { polyWall(root, q[1], arcPts(SH_R - 0.04, a0, 180 - a0, 2, 0, 36), q[0], q[0] + 0.07, 1, 'ShaftBand'); });
@@ -348,7 +346,7 @@
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95) return true; }
     var r1w = Math.hypot(x1, z1 - 36), th1 = Math.atan2(Math.abs(x1), z1 - 36);   // the flights run wall to wall: keep out of the inner (Library) wall, except at its stair-top door
-    if (th1 > ST_T0 + 0.02 && th1 < ST_TE && r1w < (Math.abs(th1 - 2.02) < 0.13 ? 10.0 : 10.32) && r1w > 9.0 && z1 > 25) return true;
+    if (th1 > ST_T0 + 0.02 && th1 < ST_TE && r1w < (Math.abs(th1 - 2.02) < 0.13 ? 10.0 : SPEC.stairs.ri + BODY_R + 0.05) && r1w > 9.0 && z1 > 25) return true;
     return false;
   }
 
@@ -438,6 +436,28 @@
     return best;
   }
 
+  // ── Nov 28 BODY + HEAD COLLISION (the floor ray alone knew nothing about the player's volume) ──
+  // solids: procedural wall/shaft/door-reveal meshes; ceils: roofs. Checked per 9 cm sub-step with horizontal rays at knee/chest/head height
+  // (movement direction ± 45°) and an upward ray for head clearance. Treads/risers/floors are NOT solids (they are the walk surface).
+  var solids = [], ceils = [], rayH = new THREE.Raycaster(), rayU = new THREE.Raycaster(), HV = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), BODY_R = SPEC.bodyRadius, HEAD = SPEC.headroom;
+  function collectSolids(g) {
+    g.traverse(function (o) {
+      if (!o.isMesh || !o.name) return;
+      if (/^(StairWallInner|StairCap|StairFootPlate|ShaftArc|ShaftFront|PartL|PartR|PartLintel|NTunnel|TunnelMouth|CoreWall|Wall)/.test(o.name)) { o.material.side = THREE.DoubleSide; solids.push(o); }
+      else if (/^(ShaftRoof|CoreLid|TunnelRoof|HallCeiling)/.test(o.name)) { o.material.side = THREE.DoubleSide; ceils.push(o); }
+    });
+  }
+  function bodyBlocked(x0, z0, x1, z1, fy) {
+    var dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz); if (L < 1e-6) return false;
+    var hs = [0.4, 1.0, 1.7], a, h, k, base = Math.atan2(dz, dx), offs = [0, 0.8, -0.8];
+    if (solids.length) for (h = 0; h < hs.length; h++) for (k = 0; k < offs.length; k++) {
+      a = base + offs[k]; HV.set(Math.cos(a), 0, Math.sin(a)); O.set(x0, fy + hs[h], z0); rayH.set(O, HV); rayH.far = BODY_R + L;
+      var hit = rayH.intersectObjects(solids, false); if (hit.length && hit[0].distance < BODY_R + L * 0.5) return true;
+    }
+    if (ceils.length) { O.set(x1, fy + 0.3, z1); rayU.set(O, UP); rayU.far = HEAD - 0.3; if (rayU.intersectObjects(ceils, false).length) return true; }
+    return false;
+  }
+
   AFRAME.registerComponent('wf-atrium', {
     init: function () {
       var self = this, sc = this.el.sceneEl; this.cam = document.getElementById('cam'); this.player = document.getElementById('player'); this.floorY = 0; this.last = null;
@@ -446,8 +466,8 @@
     build: function (sc) {
       var self = this, root = new THREE.Group(); root.position.y = OFF; this.el.object3D.add(root);   // kit space (upper floor at kit y 0.65)
       var flat = new THREE.Group(); this.el.object3D.add(flat);                                          // game space (upper floor y 0)
-      mats(envMap(sc.renderer)); buildLights(flat); buildStairShaft(flat); buildStairs(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
-      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower', 'Aft_Transition_Upper', 'Aft_Transition_Lower'], left = parts.length + 1, failed = [];
+      mats(envMap(sc.renderer)); buildLights(flat); buildStairShaft(flat); buildStairs(flat); collectSolids(flat);   /* Nov 27: the core + mezzanine Library moved to core.html / library.html (loading weight) */
+      var loader = new THREE.GLTFLoader(), parts = ['Split_Hall_Upper', 'Atrium_Lower'], left = parts.length + 1, failed = [];
       parts.forEach(function (n) { loader.load(KIT + n + '.glb?v=1', function (g) { root.add(merge(g.scene, walk)); if (--left === 0) self.ready(failed); }, null, function (e) { console.error('atrium', n, e); failed.push(n); if (--left === 0) self.ready(failed); }); });
       fetch('reference/atrium-kit/layout.json').then(function(r){if(!r.ok)throw Error('layout '+r.status);return r.json();}).then(function(LY){buildWalls(flat,LY.corridor.outerPolygon);}).catch(function(e){console.error(e);failed.push('layout / walls');}).then(function(){if(--left===0)self.ready(failed);});
       buildDoors(sc, flat);
@@ -513,7 +533,7 @@
             var insideCore = Math.hypot(x,z-36) < radius && z > 25.5;
             if (this.floorY >= -3) { var u0 = Math.hypot(this.last.x, this.last.z - 36), u1 = Math.hypot(x, z - 36), th = Math.atan2(x, z - 36); insideCore = (u0 - 10.2) * (u1 - 10.2) < 0 && !((Math.abs(x) < 0.95 && z < 36) || Math.abs(Math.abs(th) - 2.02) < 0.1); }   // upper deck: the Library wall is crossed only at the hall gap and the two stair doorways
             if (this.floorY < -3) { var rr0 = Math.hypot(this.last.x, this.last.z - 36), rr1 = Math.hypot(x, z - 36); insideCore = (rr0 - 9.4) * (rr1 - 9.4) < 0 && !(Math.abs(x) < 0.95 && z < 36); }   // lower deck: the core is the open engineering gallery, entered only by the old Engine doorway
-            if (y===null || insideCore || wallBlocked(this.floorY, this.last.x, this.last.z, x, z, doors.filter(function (q) { return q.d.id === 'lowerhall'; })[0])) break;
+            if (y===null || insideCore || bodyBlocked(this.last.x, this.last.z, x, z, this.floorY) || wallBlocked(this.floorY, this.last.x, this.last.z, x, z, doors.filter(function (q) { return q.d.id === 'lowerhall'; })[0])) break;
             this.floorY=y; this.last.x=x; this.last.z=z;
           }
           p.x=this.last.x; p.z=this.last.z;

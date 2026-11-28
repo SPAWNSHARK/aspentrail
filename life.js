@@ -385,8 +385,11 @@
     });
     if (lower) add('polygon', { points: ptsS(LAYOUT.corridor.outerPolygon), fill: 'none', stroke: C_LINE, 'stroke-width': 1.2, 'pointer-events': 'none' });
     // twin curved stairs: identical on both decks
-    [-1, 1].forEach(function (sx) { var d = '', a, p; for (a = -0.35; a <= 1.16; a += 0.05) { p = P(sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)); d += (d ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
-      add('path', { d: d, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.2, opacity: .85, 'stroke-dasharray': '1.5 2.5', 'pointer-events': 'none' }); var m = P(sx * 11.35 * Math.cos(.4), 36 + 11.35 * Math.sin(.4)), t = add('text', { x: m[0] + sx * 9, y: m[1], 'text-anchor': 'middle', fill: '#ffd27a', 'font-size': 6.2, 'font-family': FONT, 'letter-spacing': 1, 'pointer-events': 'none' }); t.textContent = lower ? 'UP' : 'DOWN'; });
+    [-1, 1].forEach(function (sx) { var d = '', a, p, st = WF_SPEC.stairs, k; for (k = 0; k <= 24; k++) { a = st.t0 + (st.t1 - st.t0) * k / 24; p = P.apply(null, WF_SPEC.pt(sx, st.ro, a)); d += (d ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+      for (k = 24; k >= 0; k--) { a = st.t0 + (st.t1 - st.t0) * k / 24; p = P.apply(null, WF_SPEC.pt(sx, st.ri, a)); d += 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+      add('path', { d: d + 'Z', fill: 'rgba(255,210,122,.10)', stroke: '#ffd27a', 'stroke-width': 1.2, opacity: .9, 'pointer-events': 'none' });
+      for (k = 1; k < 9; k++) { a = st.t0 + (st.t1 - st.t0) * k / 9; var q0 = P.apply(null, WF_SPEC.pt(sx, st.ri, a)), q1 = P.apply(null, WF_SPEC.pt(sx, st.ro, a)); add('path', { d: 'M' + q0[0].toFixed(1) + ' ' + q0[1].toFixed(1) + 'L' + q1[0].toFixed(1) + ' ' + q1[1].toFixed(1), stroke: '#ffd27a', 'stroke-width': .5, opacity: .5, 'pointer-events': 'none' }); }
+      var m = P.apply(null, WF_SPEC.pt(sx, st.rc, (st.t0 + st.t1) / 2)), t = add('text', { x: m[0], y: m[1], 'text-anchor': 'middle', fill: '#ffd27a', 'font-size': 6.2, 'font-family': FONT, 'letter-spacing': 1, 'pointer-events': 'none' }); t.textContent = lower ? 'UP' : 'DOWN'; });
     if (eng) { for (z = -50; z <= 50; z += 10) { var gz = P(0, z), tk = add('text', { x: 66, y: gz[1] + 2, fill: 'rgba(207,238,255,.45)', 'font-size': 6, 'font-family': FONT }); tk.textContent = (z > 0 ? '+' : '') + z + ' m'; add('path', { d: 'M62 ' + gz[1] + 'H68', stroke: 'rgba(207,238,255,.4)', 'stroke-width': .6 }); } }
     // title block + compass + scale
     var tb = add('rect', { x: 372, y: 892, width: 164, height: 38, fill: 'rgba(10,20,36,.9)', stroke: 'rgba(127,227,255,.5)', 'stroke-width': .8 });
@@ -434,7 +437,7 @@
   }
   // ═══ ROUTES: A* over the deck's walkable floor (atrium + room shapes, minus furniture), stairs link the decks ═══
   var GRIDS = {}, CELL = 0.5, GX0 = -32, GZ0 = -56, GNX = 128, GNZ = 224, STAIR = [{ x: 0, z: 0 }, { x: 0, z: 0 }];
-  function stairEnd(sx, a) { return [sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)]; }
+  function stairEnd(sx, a) { return a < 0 ? WF_SPEC.stairTop(sx) : WF_SPEC.stairFoot(sx); }   // ship-spec.js: a < 0 = top (upper landing), else foot (lower foyer)
   function inPoly(p, x, z) { var c = false, i, j; for (i = 0, j = p.length - 1; i < p.length; j = i++) if ((p[i][1] > z) !== (p[j][1] > z) && x < (p[j][0] - p[i][0]) * (z - p[i][1]) / (p[j][1] - p[i][1]) + p[i][0]) c = !c; return c; }
   function walkGrid(which) {
     if (GRIDS[which]) return GRIDS[which]; var lower = which === 'lower', ok = new Uint8Array(GNX * GNZ), i, j, polys = [], circs = [], block = [], SRC = lower ? (DECK2 || {}) : (DECK || {});
@@ -451,7 +454,7 @@
       for (k = 1; k < polys.length && !w; k++) if (inPoly(polys[k], x, z)) w = true;
       for (k = 0; k < circs.length && !w; k++) { var d = Math.hypot(x - circs[k].x, z - circs[k].z); if (d < circs[k].r - 0.4 && d > circs[k].hole) w = true; }
       for (k = 0; k < doors.length && !w; k++) { var dr = doors[k], vert = Math.abs(dr[0]) > 2.4; if (Math.abs(x - dr[0]) < (vert ? 1.6 : 1.0) && Math.abs(z - dr[2]) < (vert ? 1.0 : 1.6)) w = true; }
-      for (k = 0; k < 2 && !w; k++) { var se = stairEnd(k ? 1 : -1, k ? -0.35 : -0.35); if (Math.hypot(x - se[0], z - se[1]) < 2.2) w = true; var sf = stairEnd(k ? 1 : -1, 1.16); if (Math.hypot(x - sf[0], z - sf[1]) < 2.2) w = true; }
+      { var st = WF_SPEC.stairs, sr = Math.hypot(x, z - WF_SPEC.shaft.cz), sth = Math.atan2(Math.abs(x), z - WF_SPEC.shaft.cz); if (!w && sr > st.ri + 0.35 && sr < st.ro - 0.35 && sth > st.t0 && sth < st.te - 0.1) w = true; }   // the built flights: one band per side wall to wall (ship-spec.js)
       if (!w && lower && Math.abs(x) < 6.2 && z > 44.2 && z < 47.6) w = true;   // stair-foot foyer, joins the Core door at (0, 45.4)
       if (w) for (k = 0; k < block.length; k++) if (inPoly(block[k], x, z)) { w = false; break; }
       if (!w && !lower) for (k = 0; k < 2; k++) { var e = stairEnd(k ? 1 : -1, -0.35), f = [e[0] * 0.55, 36 + (e[1] - 36) * 0.55], vx = f[0] - e[0], vz = f[1] - e[1], tt = Math.max(0, Math.min(1, ((x - e[0]) * vx + (z - e[1]) * vz) / (vx * vx + vz * vz))); if (Math.hypot(x - e[0] - vx * tt, z - e[1] - vz * tt) < 1.0) w = true; }   // stair-top door -> Library floor, through the bookcase ring
