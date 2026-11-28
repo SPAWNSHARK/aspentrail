@@ -70,22 +70,22 @@
     // Nov 28 (user: "make this whole room feel like a biotech monitoring room"; friendly, NOT Borg/Yuuzhan Vong/Collectors): smooth graphite wall,
     // grown-tissue ribbed pilasters, two tiers of live monitor panels (canvas), glowing organic interface pods on a ledge
     var wallM = mat(0x1e272b, 0.3, 0.7); wallM.userData.v8Skip = true;
-    var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 96, 1, true, 0.118, Math.PI * 2 - 0.236), wallM); wall.userData.v8Skip = true; wall.position.y = WH / 2; g.add(wall);
-    [[0.12, teal], [1.12, teal], [9.1, white]].forEach(function (q) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 96, 1, true, 0.118, Math.PI * 2 - 0.236), q[1]); b.position.y = q[0]; g.add(b); });
+    [0.118, Math.PI + 0.118].forEach(function (t0) { var wall = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH, 48, 1, true, t0, Math.PI - 0.236), wallM); wall.userData.v8Skip = true; wall.position.y = WH / 2; g.add(wall); });   // Nov 28: two arcs, doorways at +Z (stairs) and -Z (lower hall)
+    [[0.12, teal], [1.12, teal], [9.1, white]].forEach(function (q) { [0.118, Math.PI + 0.118].forEach(function (t0) { var b = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.04, WR - 0.04, 0.07, 48, 1, true, t0, Math.PI - 0.236), q[1]); b.position.y = q[0]; g.add(b); }); });
     (function () {
       var NB = 22, TH0 = 0.3, SPAN = Math.PI * 2 - 0.6, DT = SPAN / NB, R = WR - 0.06, k, i;
       // ledge round the wall
-      var led = new THREE.Mesh(new THREE.RingGeometry(WR - 0.7, WR - 0.1, 96, 1, -Math.PI / 2 + 0.118, Math.PI * 2 - 0.236), steel); led.material = steel.clone(); led.material.side = THREE.DoubleSide; led.userData.v8Skip = true; led.rotation.x = -Math.PI / 2; led.position.y = 1.05; g.add(led);   // Nov 28: was a CLOSED cylinder = a full disc over the floor + pit (user: 'no need to cover the bottom layer'); now a 0.6 m ledge ring
+      [-Math.PI / 2 + 0.118, Math.PI / 2 + 0.118].forEach(function (a0) { var led = new THREE.Mesh(new THREE.RingGeometry(WR - 0.7, WR - 0.1, 48, 1, a0, Math.PI - 0.236), steel.clone()); led.material.side = THREE.DoubleSide; led.userData.v8Skip = true; led.rotation.x = -Math.PI / 2; led.position.y = 1.05; g.add(led); });   // Nov 28: was a CLOSED cylinder = a full disc over the floor + pit (user: 'no need to cover the bottom layer'); now a 0.6 m ledge ring
       // ribbed pilasters (one InstancedMesh): lathe profile with soft ribs, grown-tissue material (shares the heartbeat pulse)
       var pr = []; for (k = 0; k <= 40; k++) { var yy = k / 40 * WH, rr = 0.2 + 0.05 * Math.sin(k * 1.6) + (k < 3 ? 0.08 * (3 - k) : 0) + (k > 37 ? 0.07 * (k - 37) : 0); pr.push(new THREE.Vector2(rr, yy - WH / 2)); }
       var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bio, NB + 1), M = new THREE.Matrix4();
-      for (i = 0; i <= NB; i++) { var ta = TH0 + i * DT; M.makeTranslation(Math.sin(ta) * (WR - 0.2), WH / 2, Math.cos(ta) * (WR - 0.2)); pil.setMatrixAt(i, M); }
+      for (i = 0; i <= NB; i++) { var ta = TH0 + i * DT; M.makeTranslation(Math.sin(ta) * (WR - 0.2), WH / 2, Math.cos(ta) * (WR - 0.2)); if (i === 11) M.makeScale(0, 0, 0); pil.setMatrixAt(i, M); }   /* i 11 sits in the north doorway */
       pil.userData.v8Skip = true; g.add(pil);
       // glowing organic interface pods (squashed ellipsoids on the ledge) – soft translucent green, pulse with the same heartbeat
       var podM = new THREE.MeshStandardMaterial({ color: 0x3f8a68, roughness: 0.25, metalness: 0.05, emissive: 0x20d98a, emissiveIntensity: 0.7, transparent: true, opacity: 0.88 }); podM.userData.v8Skip = true; window.__corePod = podM;
       var pg = new THREE.SphereGeometry(0.3, 14, 10); pg.scale(1.5, 0.5, 0.8);
       var pods = new THREE.InstancedMesh(pg, podM, NB), Q = new THREE.Quaternion(), E = new THREE.Euler(), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
-      for (i = 0; i < NB; i++) { var tb = TH0 + (i + 0.5) * DT; E.set(0, tb, 0); Q.setFromEuler(E); P.set(Math.sin(tb) * (WR - 0.45), 1.18, Math.cos(tb) * (WR - 0.45)); M.compose(P, Q, S); pods.setMatrixAt(i, M); }
+      for (i = 0; i < NB; i++) { var tb = TH0 + (i + 0.5) * DT; E.set(0, tb, 0); Q.setFromEuler(E); P.set(Math.sin(tb) * (WR - 0.45), 1.18, Math.cos(tb) * (WR - 0.45)); M.compose(P, Q, (i === 10 || i === 11) ? new THREE.Vector3(0, 0, 0) : S); pods.setMatrixAt(i, M); }
       pods.userData.v8Skip = true; g.add(pods);
       // live monitor textures: 6 kinds, shared by both tiers
       var TW = 256, TX = [], CV = [], kind;
@@ -113,6 +113,7 @@
       // panels: tier A 1.5–3.3, tier B 3.9–5.9; every second bay of tier B is a tall ticker strip higher up
       var pw = DT * 0.8;
       for (i = 0; i < NB; i++) {
+        if (i === 10 || i === 11) continue;      /* north doorway */
         var t0 = TH0 + i * DT + (DT - pw) / 2;
         [[1.55, 1.8, i % 6], [4.0, 2.0, (i + 3) % 6]].forEach(function (p) {
           var pm = new THREE.Mesh(new THREE.CylinderGeometry(R, R, p[1], 6, 1, true, t0, pw), new THREE.MeshBasicMaterial({ map: TX[p[2]], side: THREE.DoubleSide, toneMapped: false, fog: false }));
@@ -120,7 +121,7 @@
         });
       }
       // upper band: a slow glowing "tissue" ribbon of soft light between pilasters
-      for (i = 0; i < NB; i += 1) { var tu = TH0 + (i + 0.5) * DT; var gl2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ color: i % 2 ? 0x5dffb4 : 0x7dfff0, fog: false })); gl2.scale.set(1, 0.4, 1); gl2.position.set(Math.sin(tu) * (WR - 0.3), 7.6, Math.cos(tu) * (WR - 0.3)); g.add(gl2); }
+      for (i = 0; i < NB; i += 1) { if (i === 10 || i === 11) continue; var tu = TH0 + (i + 0.5) * DT; var gl2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), new THREE.MeshBasicMaterial({ color: i % 2 ? 0x5dffb4 : 0x7dfff0, fog: false })); gl2.scale.set(1, 0.4, 1); gl2.position.set(Math.sin(tu) * (WR - 0.3), 7.6, Math.cos(tu) * (WR - 0.3)); g.add(gl2); }
       var last = 0;
       AFRAME.registerComponent('wf-core-displays', { tick: function (t) {
         var T = t / 1000, step = MOB ? 130 : 80; if (t - last < step) return; last = t; var n = Math.floor(t / step);
@@ -136,7 +137,7 @@
       var fgeo = new THREE.RingGeometry(CR + 0.6, WR, seg, 6), fuv = fgeo.attributes.uv, fi; for (fi = 0; fi < fuv.count; fi++) fuv.setXY(fi, (fi % (seg + 1)) / seg * 36, Math.floor(fi / (seg + 1)) / 6 * 2);   // Nov 28: polar plates (36 round x 2 rows) so the seams run radial + concentric like the room
       var fmat = fm2.clone(); fmat.color.set(0x8a9299); fmat.side = THREE.DoubleSide; fmat.needsUpdate = true;
       var fl = new THREE.Mesh(fgeo, fmat); fl.userData.v8Skip = true; fl.rotation.x = Math.PI / 2; fl.position.y = WH; g.add(fl);   // solid Library floor underside round it
-      [0].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), wallM); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
+      [0, Math.PI].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), wallM); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
       var k; for (k = 0; k < 12; k++) { var a = k / 12 * Math.PI * 2, sp = new THREE.Mesh(new THREE.BoxGeometry(WR - CR - 0.6, 0.08, 0.14), steel); sp.position.set(Math.cos(a) * (CR + 0.6 + WR) / 2, WH, Math.sin(a) * (CR + 0.6 + WR) / 2); sp.rotation.y = -a; g.add(sp); }
       ring(WR - 0.1, WH, 0.1, steel);
       var UH = 5.4, UY = WH + 0.15;                               // the Library above: shelved wall, dome, lamps
@@ -160,10 +161,10 @@
     var br = document.getElementById('brain'); if (br && AFRAME.components['brain-mesh']) br.setAttribute('brain-mesh', { detail: MOB ? 'low' : 'high' });
     eels(sc);
     // keep the player off the pit: inner rail r 5.8
-    AFRAME.registerComponent('wf-core-clamp', { tick: function () { var pl = document.getElementById('player'); if (!pl || window.WAYFARER.frozen) return; var cam = document.getElementById('cam'), wp = new THREE.Vector3(); cam.object3D.getWorldPosition(wp); var r = Math.hypot(wp.x, wp.z); var RD = window.WAYFARER.roomDoor; if (RD && RD.target === 0 && wp.z > 7.8 && Math.abs(wp.x) < 1.7) RD.open();   /* walk up to the exit and it opens */
+    AFRAME.registerComponent('wf-core-clamp', { tick: function () { var pl = document.getElementById('player'); if (!pl || window.WAYFARER.frozen) return; var cam = document.getElementById('cam'), wp = new THREE.Vector3(); cam.object3D.getWorldPosition(wp); var r = Math.hypot(wp.x, wp.z); var RDS = window.WAYFARER.roomDoors || {}, sg = wp.z >= 0 ? 1 : -1, RD = RDS[sg > 0 ? 'core' : 'corenorth']; if (RD && Math.abs(wp.z) > 7.8 && Math.abs(wp.x) < 1.7) RD.open();   /* walk up to an exit and it opens */
       if (r < 5.85 && r > 1e-3) { var k = 5.85 / r; pl.object3D.position.x += wp.x * (k - 1); pl.object3D.position.z += wp.z * (k - 1); }
-      /* Nov 28: outer limit = the wall (r 10.0), except through the +Z doorway (|x| < 0.95) where you may walk on to the door's pass line (z 11.2) */
-      else if (r > 10.0) { if (wp.z > 9.5 && Math.abs(wp.x) < 0.95) { if (wp.z > 11.2) pl.object3D.position.z -= wp.z - 11.2; } else { var k2 = 10.0 / r; pl.object3D.position.x += wp.x * (k2 - 1); pl.object3D.position.z += wp.z * (k2 - 1); } } } });
+      /* outer limit = the wall (r 10.0), except through the two doorways (|x| < 0.95) where you may walk on to the door's pass line (|z| 11.2) */
+      else if (r > 10.0) { if (Math.abs(wp.z) > 9.5 && Math.abs(wp.x) < 0.95) { if (Math.abs(wp.z) > 11.2) pl.object3D.position.z -= sg * (Math.abs(wp.z) - 11.2); } else { var k2 = 10.0 / r; pl.object3D.position.x += wp.x * (k2 - 1); pl.object3D.position.z += wp.z * (k2 - 1); } } } });
     sc.setAttribute('wf-core-clamp', '');
     document.getElementById('wf-fade').style.opacity = '0';
   }

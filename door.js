@@ -34,6 +34,7 @@
     maint:    { name: 'MAINTENANCE', page: 'maint.html',   tint: 0xd0a080, corr: { x: 4.6, y: -5.95, z: 9, rot: -90 },    room: { x: 4.6, z: 9, rot: 90 },     space: { kind: 'box', bmin: [2.5, 0, -1], bmax: [16.2, 3.2, 25.8] }, corrSpace: LOWS },
     firefly:  { name: 'FIREFLY HANGAR', page: 'firefly.html', tint: 0x6fd0ff, corr: { x: 0, y: -5.95, z: -24, rot: 0 },   room: { x: 0, z: -24, rot: 180 },    space: { kind: 'box', bmin: [-13.1, 0, -49], bmax: [13.1, 3.2, -24] }, corrSpace: LOWS },
     core:     { name: 'THE CORE', page: 'core.html', tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 45.4, rot: 0 }, room: { x: 0, z: 10.65, rot: 180 }, space: { kind: 'cyl', radius: 10.4, bmin: [-10.4, 0, -10.4], bmax: [10.4, 9.4, 10.4] }, corrSpace: { kind: 'box', bmin: [-3.4, -5.95, 45.4], bmax: [3.4, -0.23, 48.0] } },
+    corenorth: { name: 'THE CORE', page: 'core.html?from=north', tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 26.6, rot: 180 }, room: { x: 0, z: -10.65, rot: 0 }, space: { kind: 'cyl', radius: 10.4, bmin: [-10.4, 0, -10.4], bmax: [10.4, 9.4, 10.4] }, corrSpace: { kind: 'box', bmin: [-2.6, -5.95, 24.9], bmax: [2.6, -0.23, 26.6] } },
     engine:   { name: 'ENGINE ROOM', page: 'engine.html',  tint: 0x3fe0c8, corr: { x: 0, y: -5.95, z: 26.6, rot: 180 },  room: { x: 0, z: 26.6, rot: 0 },     space: { kind: 'box', bmin: [-9.4, 0, 26.6], bmax: [9.4, 3.2, 45.4] }, corrSpace: LOWS }
   };
   function frameMatrix(f) { return new THREE.Matrix4().makeRotationY(f.rot * Math.PI / 180).setPosition(f.x, f.y || 0, f.z); }   // y: lower-deck doors (atrium −5.95)
@@ -337,7 +338,7 @@
       try { var nav = performance.getEntriesByType('navigation')[0]; fromCorr = (!nav || nav.type === 'navigate') && /index\.html$|\/aspentrail\/?$|\/$/.test((document.referrer || '').split('?')[0].split('#')[0]) && document.referrer.indexOf(location.host) >= 0; } catch (e) {}
       var D = create({ sc: sc, frame: P.room, name: '← ATRIUM', tint: 0xffd090, depth: 0.45, other: P.corr, space: P.corrSpace || CORRIDOR, img: 'images/portals/corr-' + id + '.jpg',
         page: 'index.html?fromRoom=' + encodeURIComponent(id), /* WF_INTERACTION_V11 */ autoPass: true, onPass: go, startOpen: fromCorr, holdMs: fromCorr ? 900 : 8000, say: opts.say });
-      window.WAYFARER.roomDoor = D;
+      window.WAYFARER.roomDoor = D; (window.WAYFARER.roomDoors = window.WAYFARER.roomDoors || {})[id] = D;
       var cam = sc.camera, wp = new THREE.Vector3();
       AFRAME.registerComponent('wf-door-tick-' + id, { tick: function (t, dt) { if (!sc.camera) return; /* the player, not the 3rd-person lens */ (sc.camera.el ? sc.camera.el.object3D : sc.camera).getWorldPosition(wp); D.update(dt, wp); } });
       sc.setAttribute('wf-door-tick-' + id, '');
@@ -387,7 +388,7 @@
   // Leaving: remember which 360° photo shows the other side + which way you'll face, and go straight away (no black fade).
   // Arriving: before the heavy room has built, a tiny second renderer shows that photo at your arrival heading, then
   // crossfades into the live scene. You see the destination the whole time.
-  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0, core: 180 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
+  var CORR_YAW = { bridge: 180, library: 0, holodeck: -90, lounge: 90, media: 90, quarters: -90, medbay: -90, xeno: -90, mess: 90, maint: 90, firefly: 180, engine: 0, core: 180, corenorth: 0 };   // atrium arrival headings (0 = facing −Z): one step out, facing away from the door
   function leave(page, img, yaw) {
     try { sessionStorage.setItem('wf-arrive', JSON.stringify({ img: img, yaw: yaw || 0, t: Date.now() })); } catch (e) {}
     document.documentElement.style.background = '#120c08'; location.href = page;
