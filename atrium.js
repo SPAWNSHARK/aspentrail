@@ -532,8 +532,10 @@
       if(y===null){this.loadFailed=true;window.WAYFARER.frozen=true;say('ATRIUM: NO SAFE SPAWN','#ff8f70');return;}
       if (window.WF_FURN) [[4.55, 0, 2, -Math.PI / 2], [-4.55, 0, 3.5, Math.PI / 2], [4.55, -5.95, 2, -Math.PI / 2], [-4.55, -5.95, 3.5, Math.PI / 2]].forEach(function (q) { WF_FURN.place('wall_service_terminal', { position: [q[0], q[1], q[2]], yaw: q[3] }); });   /* Furniture 01: service terminals on both decks */
       this.floorY=y; this.player.object3D.position.y=y; this.last={x:p.x,z:p.z}; this.walkReady=true;
+      try { var gg = JSON.parse(sessionStorage.getItem('wf-goto') || 'null'); if (gg && gg.page === 'corridor' && Date.now() - gg.t < 90000) { sessionStorage.removeItem('wf-goto'); if (this.gotoSpot(gg.x, gg.z, gg.y || 0)) y = this.floorY; } } catch (e) {}   /* arrived from a map tap */
       say(this.spawnFallback?'SAFE SPAWN · UPPER DECK':(y < -3 ? 'LOWER DECK':'UPPER DECK'));
     },
+    gotoSpot: function (x, z, fy) { var fl = floorAt(x, z, fy); if (fl === null || !this.walkReady) return false; var p = this.cam.object3D.position; p.x = x; p.z = z; this.floorY = fl; this.last = { x: x, z: z }; this.player.object3D.position.y = fl; return true; },   /* map tap-to-travel (life.js) */
     spawn: function () {
       var from = fromRoom(), d = from && DOORS.filter(function (q) { return q.id === from; })[0], p = this.cam.object3D.position, yaw = Math.PI;   // default: facing aft (+Z) down the atrium
       if (d) { var a = d.rot * Math.PI / 180; p.x = d.x + Math.sin(a) * 1.3; p.z = d.z + Math.cos(a) * 1.3; this.floorY = d.y; yaw = Math.atan2(-Math.sin(a), -Math.cos(a)); }   // one step out, facing away from the door

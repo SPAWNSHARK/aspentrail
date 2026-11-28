@@ -187,6 +187,28 @@
   };
   var OFFR = { corridor: 0, bridge: 1, holodeck: 2, lounge: 3, media: 4, library: 5 };
   function mapPt(room, lx, lz) { var R = ROOMS[room], q = R.m(lx, lz), k = (room === 'corridor' || room === 'quarters') ? KC : SR; return [R.c[0] + q[0] * k, R.c[1] + q[1] * k]; }
+  // TAP-TO-TRAVEL (user, Nov 28): a tap on the deck map is turned back into the room's own metres (inverse of ROOMS[id].m) and you are put on that exact spot.
+  var INV = {   // map-px offset from the room centre (already divided by px/m) -> room-local [x, z]
+    bridge: function (qx, qy) { return [qx, qy]; }, holodeck: function (qx, qy) { return [-qy, qx]; }, lounge: function (qx, qy) { return [qy, -qx]; },
+    media: function (qx, qy) { return [qy, -qx]; }, library: function (qx, qy) { return [-qx, -qy]; }, corridor: function (qx, qy) { return [qx / 12, qy / 10.5 + 0.9]; }
+  };
+  function tapPt(svg, ev, inv) {
+    var g = svg._rot && svg._rot.g; if (!g || !g.getScreenCTM) return null; var id = null, k;
+    var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(g.getScreenCTM().inverse());
+    for (var r in INV) if (INV[r] === inv) id = r; if (!id) return null; var R = ROOMS[id]; k = id === 'corridor' ? KC : SR;
+    var s = inv((q.x - R.c[0]) / k, (q.y - R.c[1]) / k); return [+s[0].toFixed(2), +s[1].toFixed(2)];
+  }
+  function gotoNow(g) {
+    if (g.page === 'corridor') { var a = document.getElementById('atrium'), c = a && a.components && a.components['wf-atrium']; return !!(c && c.gotoSpot && c.gotoSpot(g.x, g.z, g.y || 0)); }
+    var sc = document.querySelector('a-scene'), rig = document.getElementById('player'); if (!sc || !sc.camera || !rig) return false;
+    var cw = new AFRAME.THREE.Vector3(); sc.camera.getWorldPosition(cw); rig.object3D.position.x += g.x - cw.x; rig.object3D.position.z += g.z - cw.z; return true;
+  }
+  (function arrive() {   // a map tap on another page sent us here: wait for the room to finish spawning, then step to the spot (the atrium does this itself in ready())
+    var g; try { g = JSON.parse(sessionStorage.getItem('wf-goto') || 'null'); } catch (e) { g = null; }
+    if (!g || g.page === 'corridor' || g.page !== PAGE) return; if (Date.now() - g.t > 90000) { sessionStorage.removeItem('wf-goto'); return; }
+    var n = 0, iv = setInterval(function () { var sc = document.querySelector('a-scene'); if (++n > 60) { clearInterval(iv); sessionStorage.removeItem('wf-goto'); return; }
+      if (!sc || !sc.hasLoaded || !sc.camera || n < 8) return; clearInterval(iv); sessionStorage.removeItem('wf-goto'); gotoNow(g); }, 400);
+  })();
   var mapTimer = null;
   // HIVEPORT MAP (user, Nov 26: "I'm at the Hiveport so this map is wrong"): on station.html the MAP tab shows the station deck
   // (hiveport/layout.json: zones, walls, obstacles), the bar, holo stage, shops, bounty broker, airlock with the Wayfarer docked
@@ -263,7 +285,10 @@
       var P = function (x, z) { return [300 + x * 12.5, 505 + z * 8.7]; }, pts = function (a) { return a.map(function (q) { var p = P(q[0], q[1]); return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); };
       var WALL = '#f2f8ff', FILL = 'rgba(255,255,255,.04)';
       add('polygon', { points: pts([[0, -52], [-9, -46], [-15, -30], [-17, 0], [-17, 30], [-14, 47], [0, 52], [14, 47], [17, 30], [17, 0], [15, -30], [9, -46]]), fill: 'rgba(140,80,40,.10)', stroke: 'rgba(230,150,80,.5)', 'stroke-width': 2 });
-      add('polygon', { points: pts(LY.corridor.outerPolygon), fill: FILL, stroke: WALL, 'stroke-width': 2 });
+      var hallG = add('polygon', { points: pts(LY.corridor.outerPolygon), fill: FILL, stroke: WALL, 'stroke-width': 2 });
+      hallG.addEventListener('click', function (ev) { var gR = svg._rot && svg._rot.g; if (!gR) return; var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(gR.getScreenCTM().inverse());
+        var gs = { page: 'corridor', x: +((q.x - 300) / 12.5).toFixed(2), z: +((q.y - 505) / 8.7).toFixed(2), y: -5.95, t: Date.now() }; close();
+        if (PAGE === 'corridor') { if (!gotoNow(gs)) toast('Nothing to stand on there'); } else { toast('Heading to that spot on the lower deck…'); sessionStorage.setItem('wf-goto', JSON.stringify(gs)); setTimeout(function () { location.href = 'index.html'; }, 250); } });
       Object.keys(LPAGE).forEach(function (k) { var R = LY.rooms[k]; if (!R || !R.polygon) return; var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { close(); location.href = LPAGE[k] + '.html'; });
         add('polygon', { points: pts(R.polygon), fill: FILL, stroke: WALL, 'stroke-width': 2 }, g); var cx = 0, cz = 0; R.polygon.forEach(function (q) { cx += q[0]; cz += q[1]; }); var c = P(cx / R.polygon.length, cz / R.polygon.length);
         var t = add('text', { x: c[0], y: c[1], 'text-anchor': 'middle', fill: '#e6f6ff', 'font-size': 9.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.4, 'paint-order': 'stroke' }, g); t.textContent = LNAME[k]; });
@@ -306,7 +331,9 @@
       add('path', { d: 'M300 104 C228 112 164 196 146 302 L116 362 L116 758 C116 886 208 920 300 920 C392 920 484 886 484 758 L484 362 L454 302 C436 196 372 112 300 104 Z', fill: 'none', stroke: 'rgba(235,245,255,.22)', 'stroke-width': 1, 'stroke-dasharray': '2 3' });   // inner hull line
       [[68, 780], [532, 780]].forEach(function (q) { add('rect', { x: q[0] - 18, y: q[1] - 70, width: 36, height: 140, rx: 6, fill: 'none', stroke: '#f2f8ff', 'stroke-width': 1.2 }); add('path', { d: 'M' + (q[0] - 18) + ' ' + (q[1] + 70) + 'L' + (q[0] - 11) + ' ' + (q[1] + 82) + 'H' + (q[0] + 11) + 'L' + (q[0] + 18) + ' ' + (q[1] + 70), fill: 'none', stroke: '#f2f8ff', 'stroke-width': 1.2 }); add('path', { d: 'M' + q[0] + ' ' + (q[1] - 66) + 'V' + (q[1] + 66), stroke: '#f2f8ff', 'stroke-width': 0.5, 'stroke-dasharray': '8 2 2 2' }); });
       var WALL = '#f2f8ff', FILL = 'url(#bphatch)', FURN = 'rgba(140,205,255,.34)';
-      function roomG(id) { var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { var R = ROOMS[id]; if (PAGE === id) { close(); return; } close(); toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, 250); }); return g; }
+      function roomG(id) { var g = add('g', { class: 'rm' }); g.addEventListener('click', function (ev) { var R = ROOMS[id], sp = INV[id] && tapPt(svg, ev, INV[id]);   // sp = the exact spot tapped, in that room's own metres
+          if (PAGE === id) { close(); if (sp) { if (!gotoNow({ page: id, x: sp[0], z: sp[1], y: 0 })) toast('Nothing to stand on there'); } return; }
+          close(); toast('Heading to ' + (sp ? 'that spot in the ' : 'the ') + R.name.toLowerCase() + '…'); if (sp) sessionStorage.setItem('wf-goto', JSON.stringify({ page: id, x: sp[0], z: sp[1], y: 0, t: Date.now() })); setTimeout(function () { location.href = R.page; }, 250); }); return g; }
       function poly(room, pts, g, at) { return add('polygon', Object.assign({ points: pts.map(function (p) { var q = mapPt(room, p[0], p[1]); return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') }, at), g); }
       function circle(room, r, g, at) { var c = ROOMS[room].c; return add('circle', Object.assign({ cx: c[0], cy: c[1], r: r * SR }, at), g); }
       function furniture(room, g) { var d = D && D[room]; if (!d) return; d.solids.forEach(function (b) { poly(room, [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]], g, { fill: FURN, stroke: 'rgba(255,230,200,.35)', 'stroke-width': 0.5 }); }); }
