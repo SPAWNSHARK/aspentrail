@@ -118,7 +118,7 @@
     '#wf-log.bp svg.map{touch-action:none}#wf-log.bp .mc{display:flex;flex-direction:column;gap:5px;margin:4px 0 6px}#wf-log.bp .mr{display:flex;gap:5px}' +
     '#wf-log.bp .mr button{flex:1;padding:7px 4px;border-radius:3px;border:1px solid rgba(127,227,255,.3);background:rgba(127,227,255,.05);color:#cfeeff;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:1.1px}' +
     '#wf-log.bp{position:fixed!important;inset:0!important;top:0!important;bottom:0!important;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:none!important;margin:0!important;border-radius:0;z-index:100001;display:none;flex-direction:column;overflow:hidden;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px calc(env(safe-area-inset-bottom,0px) + 8px)}' +
-    '#wf-log.bp .hd{margin-bottom:6px;flex:none}#wf-log.bp .mc{flex:none;margin:0 0 6px}#wf-log.bp .mc .mr.opt{display:none}#wf-log.bp .mc.open .mr.opt{display:flex}#wf-log.bp p.sub{flex:none;margin:2px 0 4px;font-size:9.5px}' +
+    '#wf-log.bp .hd{margin-bottom:6px;flex:none}#wf-log.bp .mc{flex:none;margin:4px 0 2px}#wf-log.bp .mc .mr.opt{display:none}#wf-log.bp .mc.open .mr.opt{display:flex}#wf-log.bp p.sub{flex:none;margin:2px 0 4px;font-size:9.5px}' +
     '#wf-log.bp svg.map{flex:1 1 auto;min-height:0;height:100%;max-height:none;width:100%}#wf-log.bp .go{flex:none}#wf-log.bp .mr .opt-t{flex:0 0 44px}' +
     '#wf-log.bp .go{display:none;align-items:center;gap:6px;margin:6px 0 2px}#wf-log.bp .go span{flex:1;color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:.8px}#wf-log.bp .go button{padding:7px 14px;border-radius:3px;border:1px solid rgba(255,210,122,.5);background:rgba(255,210,122,.06);color:#ffd27a;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .go button.on{background:rgba(255,210,122,.25);color:#fff;border-color:#ffd27a}' +
     '#wf-log.bp .mr button.on{background:rgba(127,227,255,.2);border-color:#7fe3ff;color:#fff}' +
@@ -311,7 +311,7 @@
     { k: 'Xenobiology', id: 'xeno', name: 'XENOBIOLOGY', deck: 'lower', page: 'xeno.html' }, { k: 'Mess_Hall', id: 'mess', name: 'MESS HALL', deck: 'lower', page: 'mess.html' },
     { k: 'Maintenance_Storage', id: 'maint', name: 'MAINTENANCE', deck: 'lower', page: 'maint.html' }, { k: 'Engine_Room', id: 'core', name: 'ENGINE ROOM', deck: 'lower', page: 'core.html' }
   ];
-  var mapTok = 0, mapDest = null, LAYOUT = null, DECK2 = null, mapMode = load('wf-mapmode', 'nav'), headUp = load('wf-maphead', false);
+  var mapCtl = null, mapTok = 0, mapDest = null, LAYOUT = null, DECK2 = null, mapMode = 'nav', headUp = true;
   function mapData(cb) {
     var n = 3; function done() { if (--n === 0) cb(); }
     if (LAYOUT) done(); else fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (d) { LAYOUT = d; }).catch(function () {}).then(done);
@@ -321,11 +321,8 @@
   function mapControls() {
     var which = mapDeck || (onLower() ? 'lower' : 'upper'), wrap = el('div', 'mc', '');
     function row(items, on, fn) { var r = el('div', 'mr', ''); items.forEach(function (q) { var b = el('button', on === q[0] ? 'on' : '', q[1]); b.onclick = function () { fn(q[0]); }; r.appendChild(b); }); wrap.appendChild(r); }
-    row([['upper', 'UPPER'], ['lower', 'LOWER'], ['cut', 'CUTAWAY']], which, function (v) { mapDeck = v; render(); });
-    var tg = el('button', '', 'VIEW ▾'); tg.style.flex = '0 0 76px'; tg.onclick = function () { wrap.classList.toggle('open'); }; wrap.firstChild.appendChild(tg);
-    row([['nav', 'NAVIGATION'], ['eng', 'ENGINEERING']], mapMode, function (v) { mapMode = v; save('wf-mapmode', v); render(); }); wrap.lastChild.classList.add('opt');
-    row([['n', 'BOW UP'], ['h', 'HEADING UP']], headUp ? 'h' : 'n', function (v) { headUp = v === 'h'; save('wf-maphead', headUp); render(); }); wrap.lastChild.classList.add('opt');
-    box.appendChild(wrap);
+    row([['upper', 'UPPER'], ['lower', 'LOWER']], which, function (v) { mapDeck = v; render(); });
+    mapCtl = wrap;
   }
   function hullHW(prof, z) { if (!prof || z < prof[0][0] || z > prof[prof.length - 1][0]) return 0; for (var i = 1; i < prof.length; i++) if (z <= prof[i][0]) { var a = prof[i - 1], b = prof[i], t = (z - a[0]) / (b[0] - a[0] || 1); return a[1] + (b[1] - a[1]) * t; } return 0; }
   function profPoly(prof, pad) { var R = [], L = []; prof.forEach(function (q) { R.push([q[1] + pad, q[0]]); L.unshift([-q[1] - pad, q[0]]); }); return R.concat(L); }
@@ -398,7 +395,7 @@
     add('path', { d: 'M62 920H142M62 916V924M102 917V923M142 916V924', stroke: 'rgba(160,220,255,.8)', 'stroke-width': 1, fill: 'none' }); var sc = add('text', { x: 102, y: 934, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 6.5, 'font-family': FONT }); sc.textContent = '10 m';
     var rt = add('g', { 'pointer-events': 'none' }), live = add('g', { 'pointer-events': 'none' }), goBar = el('div', 'go', ''), dest = mapDest;
     box.appendChild(el('p', 'sub', 'Tap a spot to plan a route, then GO · drag to pan · pinch to zoom'));
-    box.appendChild(svg); wrapRot(svg); mapZoom(svg); box.appendChild(goBar); var leg = el('p', 'sub', ''); box.appendChild(leg);
+    box.appendChild(svg); wrapRot(svg); mapZoom(svg); box.appendChild(goBar); var leg = el('p', 'sub', ''); box.appendChild(leg); if (mapCtl) { box.appendChild(mapCtl); mapCtl = null; }
     function drawRoute() {
       while (rt.firstChild) rt.removeChild(rt.firstChild); goBar.style.display = dest ? 'flex' : 'none'; if (!dest) return; goBar.innerHTML = '';
       var rp = planRoute(dest), info = el('span', '', ''), go = el('button', 'on', 'GO'), clr = el('button', '', 'CLEAR');
