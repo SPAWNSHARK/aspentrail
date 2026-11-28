@@ -137,7 +137,11 @@
       var fgeo = new THREE.RingGeometry(CR + 0.6, WR, seg, 6), fuv = fgeo.attributes.uv, fi; for (fi = 0; fi < fuv.count; fi++) fuv.setXY(fi, (fi % (seg + 1)) / seg * 36, Math.floor(fi / (seg + 1)) / 6 * 2);   // Nov 28: polar plates (36 round x 2 rows) so the seams run radial + concentric like the room
       var fmat = fm2.clone(); fmat.color.set(0x8a9299); fmat.side = THREE.DoubleSide; fmat.needsUpdate = true;
       var fl = new THREE.Mesh(fgeo, fmat); fl.userData.v8Skip = true; fl.rotation.x = Math.PI / 2; fl.position.y = WH; g.add(fl);   // solid Library floor underside round it
-      [0, Math.PI].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 3.3, 16, 1, true, t - 0.124, 0.248), wallM); lt.position.y = 3.3 + (WH - 3.3) / 2; g.add(lt); });   // lintels over both doorways
+      [0, Math.PI].forEach(function (t) { var lt = new THREE.Mesh(new THREE.CylinderGeometry(WR, WR, WH - 2.9, 16, 1, true, t - 0.124, 0.248), wallM); lt.userData.v8Skip = true; lt.position.y = 2.9 + (WH - 2.9) / 2; g.add(lt);
+        /* Nov 28 (user: gaps all over): close the doorway reveal — jambs, soffit and a back plate in front of the door so no void shows round the frame */
+        var jm = wallM.clone(); jm.side = THREE.DoubleSide; jm.userData.v8Skip = true; var sg2 = Math.cos(t) > 0 ? 1 : -1;
+        [-1.22, 1.22].forEach(function (jx) { var j = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 3.3), jm); j.rotation.y = Math.PI / 2; j.position.set(jx, 1.65, sg2 * 10.55); j.userData.v8Skip = true; g.add(j); });
+        var sf = new THREE.Mesh(new THREE.PlaneGeometry(2.44, 1.0), jm); sf.rotation.x = Math.PI / 2; sf.position.set(0, 3.3, sg2 * 10.55); sf.userData.v8Skip = true; g.add(sf); });   // lintels over both doorways
       var k; for (k = 0; k < 12; k++) { var a = k / 12 * Math.PI * 2, sp = new THREE.Mesh(new THREE.BoxGeometry(WR - CR - 0.6, 0.08, 0.14), steel); sp.position.set(Math.cos(a) * (CR + 0.6 + WR) / 2, WH, Math.sin(a) * (CR + 0.6 + WR) / 2); sp.rotation.y = -a; g.add(sp); }
       ring(WR - 0.1, WH, 0.1, steel);
       var UH = 5.4, UY = WH + 0.15;                               // the Library above: shelved wall, dome, lamps

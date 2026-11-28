@@ -30,7 +30,7 @@
     { id: 'maint',    name: 'MAINTENANCE',       x: 4.6,  z: 9,    rot: -90,  y: LOW, tint: 0xd0a080},
     { id: 'libstair-starboard', name: 'THE LIBRARY', x: 9.195, z: 31.59, rot: 115.7,  y: 0, tint: 0xffb040, wing: 'starboard' },   // Nov 27: back into the Library from the top of each staircase (core wall, same spot as the Library's own stairs door)
     { id: 'libstair-port',      name: 'THE LIBRARY', x: -9.195, z: 31.59, rot: -115.7, y: 0, tint: 0x4f8cff, wing: 'port' },
-    { id: 'lowerhall', name: 'LOWER ATRIUM',     x: 0,    z: 24.9, rot: 180,  y: LOW, tint: 0x6fd0ff, pass: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
+    { id: 'lowerhall', name: 'LOWER ATRIUM',     x: 0,    z: 24.9, rot: 180,  y: LOW, tint: 0x6fd0ff, pass: true, noRecess: true }   // Nov 27: the stair apron's door into the lower hall (no page: just a doorway)
   ];
   window.WAYFARER = window.WAYFARER || {}; window.WAYFARER.atriumDoors = DOORS;
   window.WF_KIT = { M: M, mats: function (env) { mats(env); return M; }, envMap: function (r) { return envMap(r); }, merge: function (root, walk, keep) { return merge(root, walk, keep); } };   /* kitroom.js */
