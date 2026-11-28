@@ -114,10 +114,13 @@
     '#wf-log .goal small{float:right;color:#ffd58a;font-weight:700}#wf-log p.sub{color:#d9c4ae;font-size:12px;margin:2px 0 10px;text-align:center}' +
     '#wf-log svg.map{width:100%;height:auto;max-height:calc(100vh - 190px);display:block;margin:0 auto;border-radius:14px;background:#06121e}#wf-log svg.map .rm{cursor:pointer}#wf-log svg.map .rm:hover path,#wf-log svg.map .rm:hover rect,#wf-log svg.map .rm:hover circle{fill:rgba(255,180,90,.28)}' +
     '#wf-log .item{display:flex;gap:10px;align-items:center;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.06);margin-bottom:7px}#wf-log .item em{font-style:normal;font-size:22px}#wf-log .item div{flex:1}#wf-log .item small{display:block;color:#d9c4ae;font-size:11.5px}#wf-log .item b{color:#ffe6b0}' +
-    '#wf-log.bp{background:#0b2a52;border:1px solid rgba(235,245,255,.5);box-shadow:0 14px 34px rgba(0,0,0,.55);-webkit-backdrop-filter:none;backdrop-filter:none}' +
+    '#wf-log.bp{background:#0a1424;border:1px solid rgba(127,227,255,.45);box-shadow:0 14px 34px rgba(0,0,0,.55);-webkit-backdrop-filter:none;backdrop-filter:none}' +
+    '#wf-log.bp svg.map{touch-action:none}#wf-log.bp .mc{display:flex;flex-direction:column;gap:5px;margin:4px 0 6px}#wf-log.bp .mr{display:flex;gap:5px}' +
+    '#wf-log.bp .mr button{flex:1;padding:7px 4px;border-radius:3px;border:1px solid rgba(127,227,255,.3);background:rgba(127,227,255,.05);color:#cfeeff;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:1.1px}' +
+    '#wf-log.bp .mr button.on{background:rgba(127,227,255,.2);border-color:#7fe3ff;color:#fff}' +
     '#wf-log.bp .hd b{color:#f2f8ff;text-shadow:none}#wf-log.bp .hd span{color:#d6e6fa;font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:1.2px}#wf-log.bp .x{color:#f2f8ff}' +
     '#wf-log.bp p.sub{color:#d6e6fa;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.4px}' +
-    '#wf-log.bp svg.map{background:#123f73;border:1px solid rgba(235,245,255,.6);border-radius:2px;box-shadow:none;max-height:calc(100vh - 210px)}' +
+    '#wf-log.bp svg.map{background:#0a1424;border:1px solid rgba(127,227,255,.4);border-radius:2px;box-shadow:none;max-height:calc(100vh - 250px)}' +
     '#wf-log.bp svg.map .rm:hover path,#wf-log.bp svg.map .rm:hover rect,#wf-log.bp svg.map .rm:hover circle,#wf-log.bp svg.map .rm:hover polygon,#wf-log.bp svg.map .rm:hover ellipse{fill:rgba(255,255,255,.14)}' +
     '#wf-btns b.wf-logbtn{position:relative}#wf-btns b.wf-logbtn i{position:absolute;right:3px;top:2px;width:7px;height:7px;border-radius:50%;background:#ffb040;box-shadow:0 0 6px #ffb040;display:none}#wf-btns b.wf-logbtn.new i{display:block}';
   document.head.appendChild(css);
@@ -260,7 +263,7 @@
   var LOWER = ['medbay', 'xeno', 'mess', 'maint', 'firefly', 'engine'], LPAGE = { Medbay: 'medbay', Xenobiology: 'xeno', Mess_Hall: 'mess', Maintenance_Storage: 'maint', Firefly_Hangar: 'firefly' };
   var LNAME = { Medbay: '⚕ MEDBAY', Xenobiology: '🧪 XENOBIOLOGY', Mess_Hall: '🍽 MESS HALL', Maintenance_Storage: '🔧 MAINTENANCE', Firefly_Hangar: '🚀 FIREFLY HANGAR' };
   var mapDeck = null;
-  function onLower() { if (LOWER.indexOf(PAGE) >= 0) return true; if (PAGE !== 'corridor') return false; var p = document.getElementById('player'); return !!(p && p.object3D.position.y < -3); }
+  function onLower() { if (LOWER.indexOf(PAGE) >= 0 || PAGE === 'core') return true; if (PAGE !== 'corridor') return false; var p = document.getElementById('player'); return !!(p && p.object3D.position.y < -3); }
   function deckTabs() { var row = el('div', 'sub', ''); row.style.cssText = 'display:flex;gap:8px;justify-content:center;margin:0 0 6px';
     [['upper', '⬆ UPPER DECK'], ['lower', '⬇ LOWER DECK']].forEach(function (q) { var b = el('button', '', q[1]); b.style.cssText = 'padding:6px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);font:700 11px -apple-system,system-ui,sans-serif;letter-spacing:1px;color:#fff;background:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.22)' : 'rgba(255,255,255,.06)') + ';border-color:' + ((mapDeck || (onLower() ? 'lower' : 'upper')) === q[0] ? 'rgba(77,227,255,.7)' : 'rgba(255,255,255,.2)');
       b.onclick = function () { mapDeck = q[0]; render(); }; row.appendChild(b); }); box.appendChild(row); }
@@ -277,114 +280,192 @@
     Array.prototype.forEach.call(svg.querySelectorAll('text'), function (t) { if (t.__o === undefined) { t.__o = t.getAttribute('transform') || ''; try { var b = t.getBBox(); t.__c = [b.x + b.width / 2, b.y + b.height / 2]; } catch (e) { t.__c = [0, 0]; } }
       var want = flip ? t.__o + ' rotate(180 ' + t.__c[0].toFixed(1) + ' ' + t.__c[1].toFixed(1) + ')' : t.__o; if (want) t.setAttribute('transform', want); else t.removeAttribute('transform'); });
   }
-  function renderLower() {
-    fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (LY) {
-      if (!box || tab !== 'map') return;
-      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '40 60 520 900'); svg.setAttribute('class', 'map');
-      function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
-      var P = function (x, z) { return [300 + x * 12.5, 505 + z * 8.7]; }, pts = function (a) { return a.map(function (q) { var p = P(q[0], q[1]); return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); };
-      var WALL = '#f2f8ff', FILL = 'rgba(255,255,255,.04)';
-      add('polygon', { points: pts([[0, -52], [-9, -46], [-15, -30], [-17, 0], [-17, 30], [-14, 47], [0, 52], [14, 47], [17, 30], [17, 0], [15, -30], [9, -46]]), fill: 'rgba(140,80,40,.10)', stroke: 'rgba(230,150,80,.5)', 'stroke-width': 2 });
-      var hallG = add('polygon', { points: pts(LY.corridor.outerPolygon), fill: FILL, stroke: WALL, 'stroke-width': 2 });
-      hallG.addEventListener('click', function (ev) { var gR = svg._rot && svg._rot.g; if (!gR) return; var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(gR.getScreenCTM().inverse());
-        var gs = { page: 'corridor', x: +((q.x - 300) / 12.5).toFixed(2), z: +((q.y - 505) / 8.7).toFixed(2), y: -5.95, t: Date.now() }; close();
-        if (PAGE === 'corridor') { if (!gotoNow(gs)) toast('Nothing to stand on there'); } else { toast('Heading to that spot on the lower deck…'); sessionStorage.setItem('wf-goto', JSON.stringify(gs)); setTimeout(function () { location.href = 'index.html'; }, 250); } });
-      Object.keys(LPAGE).forEach(function (k) { var R = LY.rooms[k]; if (!R || !R.polygon) return; var g = add('g', { class: 'rm' }); g.addEventListener('click', function () { close(); location.href = LPAGE[k] + '.html'; });
-        add('polygon', { points: pts(R.polygon), fill: FILL, stroke: WALL, 'stroke-width': 2 }, g); var cx = 0, cz = 0; R.polygon.forEach(function (q) { cx += q[0]; cz += q[1]; }); var c = P(cx / R.polygon.length, cz / R.polygon.length);
-        var t = add('text', { x: c[0], y: c[1], 'text-anchor': 'middle', fill: '#e6f6ff', 'font-size': 9.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.4, 'paint-order': 'stroke' }, g); t.textContent = LNAME[k]; });
-      var ge = add('g', { class: 'rm' }); ge.addEventListener('click', function () { close(); location.href = 'core.html'; }); var ec = P(0, 36);
-      add('ellipse', { cx: ec[0], cy: ec[1], rx: 9.4 * 12.5, ry: 9.4 * 8.7, fill: 'rgba(60,230,200,.08)', stroke: 'rgba(80,240,210,.8)', 'stroke-width': 2 }, ge); add('ellipse', { cx: ec[0], cy: ec[1], rx: 3 * 12.5, ry: 3 * 8.7, fill: 'rgba(60,230,200,.25)' }, ge);
-      var te = add('text', { x: ec[0], y: ec[1] + 4, 'text-anchor': 'middle', fill: '#dffff8', 'font-size': 9.5, 'font-weight': 800, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2.4, 'paint-order': 'stroke' }, ge); te.textContent = 'ENGINE ROOM';
-      [-1, 1].forEach(function (sx) { var d = ''; for (var a = -0.35; a <= 1.16; a += 0.05) { var p = P(sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)); d += (d ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); } add('path', { d: d, fill: 'none', stroke: '#f2f8ff', 'stroke-width': 2, 'stroke-dasharray': '2 3' }); });
-      var ta = add('text', { x: 300, y: 505, 'text-anchor': 'middle', fill: '#cfeeff', 'font-size': 8, 'font-weight': 800, transform: 'rotate(-90 300 505)' }); ta.textContent = 'LOWER ATRIUM  ·  stairs ⤴ aft';
-      var live = add('g', {});
-      box.appendChild(el('p', 'sub', 'Lower deck · tap a room to go there · <span style="color:#ffd27a">┅</span> stairs up · <span style="color:#6ff">▲</span> you'));
-      box.appendChild(svg); wrapRot(svg);
-      function drawLive() { while (live.firstChild) live.removeChild(live.firstChild); var sc = document.querySelector('a-scene'); if (!onLower() || !sc || !sc.camera) return;
-        var cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); sc.camera.getWorldPosition(cp); sc.camera.getWorldDirection(cd);
-        var p0 = P(cp.x, cp.z), p1 = P(cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
-        add('circle', { cx: p0[0], cy: p0[1], r: 10, fill: 'none', stroke: '#ffe14d', 'stroke-width': 1 }, live);
-        add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#ffe14d', stroke: '#123f73', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); mapAng = ang; applyRot(svg); }
-      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
-    }).catch(function () {});
+  // ═══ UNIFIED DECK MAP (user + ChatGPT review, Nov 28) ═══
+  // ONE ship coordinate system (layout.json metres: x starboard +, z aft +, bow = −z), ONE uniform scale, ONE hull, both decks bow-up.
+  // Rooms come from layout.json (ship coords); furniture from maps/deck.json (upper, page-local → ship via XF) and maps/deck-lower.json (lower).
+  // Three views: DECK (upper/lower, navigation), ENGINEERING (adds machinery + metre grid), CUTAWAY (longitudinal section of both decks).
+  var MS = 8, MOX = 300, MOZ = 500, LOWY = -5.95;
+  function MP(x, z) { return [MOX + x * MS, MOZ + z * MS]; }
+  var BZ = 0.765;   // the Bridge page is 18 m long, the kit's Command_Bridge shell 14 m: page furniture is squeezed by this to sit inside the kit outline (known mismatch)
+  var XF = {   // room-local (page world) ↔ ship metres. rd = the local z of that room's door
+    corridor: { to: function (x, z) { return [x, z]; }, from: function (x, z) { return [x, z]; } },
+    xeno: null, mess: null, maint: null, firefly: null,
+    bridge: { to: function (x, z) { return [x, -24 + (z - 7.9) * BZ]; }, from: function (x, z) { return [x, (z + 24) / BZ + 7.9]; } },
+    holodeck: { to: function (x, z) { return [-4.6 + (z - 8.7), -14 - x]; }, from: function (x, z) { return [-(z + 14), x + 4.6 + 8.7]; } },
+    lounge: { to: function (x, z) { return [4.6 - (z - 8.7), -14 + x]; }, from: function (x, z) { return [z + 14, 8.7 - (x - 4.6)]; } },
+    media: { to: function (x, z) { return [4.6 - (z - 8.9), 9 + x]; }, from: function (x, z) { return [z - 9, 8.9 - (x - 4.6)]; } },
+    library: { to: function (x, z) { return [-x, 36 - z]; }, from: function (x, z) { return [-x, 36 - z]; } },
+    medbay: { to: function (x, z) { return [-4.6 + (z - 3.4), -14 - x]; }, from: function (x, z) { return [-(z + 14), x + 4.6 + 3.4]; } },
+    core: { to: function (x, z) { return [x, 36 + z]; }, from: function (x, z) { return [x, z - 36]; } }
+  };
+  ['xeno', 'mess', 'maint', 'firefly'].forEach(function (k) { XF[k] = XF.corridor; });
+  var RMS = [
+    { k: 'Command_Bridge', id: 'bridge', name: 'COMMAND BRIDGE', deck: 'upper', page: 'bridge.html' }, { k: 'Holodeck', id: 'holodeck', name: 'HOLODECK', deck: 'upper', page: 'holodeck.html' },
+    { k: 'Captains_Quarters', id: 'quarters', name: "CAPTAIN'S QUARTERS", deck: 'upper', page: 'quarters.html' }, { k: 'Crew_Lounge', id: 'lounge', name: 'CREW LOUNGE', deck: 'upper', page: 'lounge.html' },
+    { k: 'Media_Nexus', id: 'media', name: 'MEDIA NEXUS', deck: 'upper', page: 'media.html' }, { k: 'Library_Halcyon', id: 'library', name: 'LIBRARY', deck: 'upper', page: 'library.html' },
+    { k: 'Firefly_Hangar', id: 'firefly', name: 'FIREFLY HANGAR', deck: 'lower', page: 'firefly.html' }, { k: 'Medbay', id: 'medbay', name: 'MEDBAY', deck: 'lower', page: 'medbay.html' },
+    { k: 'Xenobiology', id: 'xeno', name: 'XENOBIOLOGY', deck: 'lower', page: 'xeno.html' }, { k: 'Mess_Hall', id: 'mess', name: 'MESS HALL', deck: 'lower', page: 'mess.html' },
+    { k: 'Maintenance_Storage', id: 'maint', name: 'MAINTENANCE', deck: 'lower', page: 'maint.html' }, { k: 'Engine_Room', id: 'core', name: 'ENGINE ROOM', deck: 'lower', page: 'core.html' }
+  ];
+  var LAYOUT = null, DECK2 = null, mapMode = load('wf-mapmode', 'nav'), headUp = load('wf-maphead', false);
+  function mapData(cb) {
+    var n = 3; function done() { if (--n === 0) cb(); }
+    if (LAYOUT) done(); else fetch('reference/atrium-kit/layout.json').then(function (r) { return r.json(); }).then(function (d) { LAYOUT = d; }).catch(function () {}).then(done);
+    deckData(function () { done(); });
+    if (DECK2) done(); else fetch('maps/deck-lower.json?v=1').then(function (r) { return r.json(); }).then(function (d) { DECK2 = d; }).catch(function () { DECK2 = {}; }).then(done);
   }
+  function mapControls() {
+    var which = mapDeck || (onLower() ? 'lower' : 'upper'), wrap = el('div', 'mc', '');
+    function row(items, on, fn) { var r = el('div', 'mr', ''); items.forEach(function (q) { var b = el('button', on === q[0] ? 'on' : '', q[1]); b.onclick = function () { fn(q[0]); }; r.appendChild(b); }); wrap.appendChild(r); }
+    row([['upper', 'UPPER DECK'], ['lower', 'LOWER DECK'], ['cut', 'CUTAWAY']], which, function (v) { mapDeck = v; render(); });
+    row([['nav', 'NAVIGATION'], ['eng', 'ENGINEERING']], mapMode, function (v) { mapMode = v; save('wf-mapmode', v); render(); });
+    row([['n', 'BOW UP'], ['h', 'HEADING UP']], headUp ? 'h' : 'n', function (v) { headUp = v === 'h'; save('wf-maphead', headUp); render(); });
+    box.appendChild(wrap);
+  }
+  function hullHW(prof, z) { if (!prof || z < prof[0][0] || z > prof[prof.length - 1][0]) return 0; for (var i = 1; i < prof.length; i++) if (z <= prof[i][0]) { var a = prof[i - 1], b = prof[i], t = (z - a[0]) / (b[0] - a[0] || 1); return a[1] + (b[1] - a[1]) * t; } return 0; }
+  function profPoly(prof, pad) { var R = [], L = []; prof.forEach(function (q) { R.push([q[1] + pad, q[0]]); L.unshift([-q[1] - pad, q[0]]); }); return R.concat(L); }
   function renderMap() {
     if (PAGE === 'hiveport') return renderHiveMap();
-    deckTabs(); if ((mapDeck || (onLower() ? 'lower' : 'upper')) === 'lower') return renderLower();
-    deckData(function (D) {
-      if (!box || tab !== 'map') return;
-      var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '40 80 520 860'); svg.setAttribute('class', 'map');
-      function add(tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; }
-      var defs = add('defs', {}); var pat = add('pattern', { id: 'bpgrid', width: 14, height: 14, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M14 0H0V14', fill: 'none', stroke: 'rgba(235,245,255,.07)', 'stroke-width': 1 }, pat);
-      var hp = add('pattern', { id: 'bphatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs); add('rect', { width: 6, height: 6, fill: 'rgba(255,255,255,.02)' }, hp); add('path', { d: 'M0 0V6', stroke: 'rgba(235,245,255,.16)', 'stroke-width': 1 }, hp);
-      var mp2 = add('pattern', { id: 'bpmajor', width: 70, height: 70, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M70 0H0V70', fill: 'none', stroke: 'rgba(235,245,255,.16)', 'stroke-width': 1 }, mp2);
-      add('rect', { x: 40, y: 80, width: 520, height: 860, fill: '#123f73' }); add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpgrid)' }); add('rect', { x: 40, y: 80, width: 520, height: 860, fill: 'url(#bpmajor)' });
-      add('rect', { x: 46, y: 86, width: 508, height: 848, fill: 'none', stroke: 'rgba(235,245,255,.35)', 'stroke-width': 1 });      // drawing border
-      // title block, compass, scale bar
-      add('rect', { x: 396, y: 892, width: 156, height: 40, fill: 'none', stroke: '#f2f8ff', 'stroke-width': 1 });
-      [['SS WAYFARER · DECK PLAN', 902, 8, '#f2f8ff'], ['UPPER / LOWER · SCALE 1:200', 913, 6.5, '#d6e6fa'], ['REV 27.11.2026 · BOW ▲', 924, 6.5, '#d6e6fa']].forEach(function (q) { var t = add('text', { x: 402, y: q[1], fill: q[3], 'font-size': q[2], 'font-family': 'ui-monospace,Menlo,monospace', 'font-weight': 700, 'letter-spacing': 0.6 }); t.textContent = q[0]; });
-      add('circle', { cx: 86, cy: 126, r: 17, fill: 'none', stroke: 'rgba(235,245,255,.7)', 'stroke-width': 1 }); add('path', { d: 'M86 106 L91 128 L86 124 L81 128 Z', fill: '#f2f8ff' }); var nt = add('text', { x: 86, y: 101, 'text-anchor': 'middle', fill: '#f2f8ff', 'font-size': 8, 'font-weight': 800 }); nt.textContent = 'BOW';
-      add('path', { d: 'M60 912 H130 M60 908 V916 M95 909.5 V914.5 M130 908 V916', stroke: 'rgba(160,220,255,.8)', 'stroke-width': 1.2, fill: 'none' }); var st2 = add('text', { x: 95, y: 925, 'text-anchor': 'middle', fill: '#d6e6fa', 'font-size': 6.5, 'font-family': 'ui-monospace,Menlo,monospace' }); st2.textContent = '10 m';
-      add('path', { d: 'M300 86 V940', stroke: '#f2f8ff', 'stroke-width': 0.5, 'stroke-dasharray': '12 3 2 3' }); var cl = add('text', { x: 304, y: 98, fill: '#d6e6fa', 'font-size': 6, 'font-family': 'ui-monospace,Menlo,monospace' }); cl.textContent = '\u00a2 CL';
-      // hull: a teardrop with the engine pods and the dome
-      add('path', { d: 'M300 92 C220 100 150 190 132 300 L100 360 L100 760 C100 900 200 935 300 935 C400 935 500 900 500 760 L500 360 L468 300 C450 190 380 100 300 92 Z', fill: 'none', stroke: '#f2f8ff', 'stroke-width': 2 });
-      add('path', { d: 'M300 104 C228 112 164 196 146 302 L116 362 L116 758 C116 886 208 920 300 920 C392 920 484 886 484 758 L484 362 L454 302 C436 196 372 112 300 104 Z', fill: 'none', stroke: 'rgba(235,245,255,.22)', 'stroke-width': 1, 'stroke-dasharray': '2 3' });   // inner hull line
-      [[68, 780], [532, 780]].forEach(function (q) { add('rect', { x: q[0] - 18, y: q[1] - 70, width: 36, height: 140, rx: 6, fill: 'none', stroke: '#f2f8ff', 'stroke-width': 1.2 }); add('path', { d: 'M' + (q[0] - 18) + ' ' + (q[1] + 70) + 'L' + (q[0] - 11) + ' ' + (q[1] + 82) + 'H' + (q[0] + 11) + 'L' + (q[0] + 18) + ' ' + (q[1] + 70), fill: 'none', stroke: '#f2f8ff', 'stroke-width': 1.2 }); add('path', { d: 'M' + q[0] + ' ' + (q[1] - 66) + 'V' + (q[1] + 66), stroke: '#f2f8ff', 'stroke-width': 0.5, 'stroke-dasharray': '8 2 2 2' }); });
-      var WALL = '#f2f8ff', FILL = 'url(#bphatch)', FURN = 'rgba(140,205,255,.34)';
-      function roomG(id) { var g = add('g', { class: 'rm' }); g.addEventListener('click', function (ev) { var R = ROOMS[id], sp = INV[id] && tapPt(svg, ev, INV[id]);   // sp = the exact spot tapped, in that room's own metres
-          if (PAGE === id) { close(); if (sp) { if (!gotoNow({ page: id, x: sp[0], z: sp[1], y: 0 })) toast('Nothing to stand on there'); } return; }
-          close(); toast('Heading to ' + (sp ? 'that spot in the ' : 'the ') + R.name.toLowerCase() + '…'); if (sp) sessionStorage.setItem('wf-goto', JSON.stringify({ page: id, x: sp[0], z: sp[1], y: 0, t: Date.now() })); setTimeout(function () { location.href = R.page; }, 250); }); return g; }
-      function poly(room, pts, g, at) { return add('polygon', Object.assign({ points: pts.map(function (p) { var q = mapPt(room, p[0], p[1]); return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' ') }, at), g); }
-      function circle(room, r, g, at) { var c = ROOMS[room].c; return add('circle', Object.assign({ cx: c[0], cy: c[1], r: r * SR }, at), g); }
-      function furniture(room, g) { var d = D && D[room]; if (!d) return; d.solids.forEach(function (b) { poly(room, [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]], g, { fill: FURN, stroke: 'rgba(255,230,200,.35)', 'stroke-width': 0.5 }); }); }
-      // corridor
-      var gc = roomG('corridor');   // the split-level atrium (upper deck): walkways round the opening down to the lower deck
-      poly('corridor', [[-2.5, -24], [-4.6, -17], [-4.6, 18.5], [-2.5, 25.8], [2.5, 25.8], [4.6, 18.5], [4.6, -17], [2.5, -24]], gc, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
-      poly('corridor', [[-2.05, -16], [2.05, -16], [2.05, 16], [-2.05, 16]], gc, { fill: 'rgba(60,200,255,.12)', stroke: 'rgba(160,240,255,.7)', 'stroke-width': 1.2, 'stroke-dasharray': '4 2' });
-      var qa = mapPt('corridor', -4.6, -1), qb = mapPt('corridor', -4.6, 25.8);   // Captain's Quarters (sealed until its page exists)
-      var gq = roomG('quarters'); qa = mapPt('quarters', -15, -1); qb = mapPt('quarters', -4.6, 25.8);
-      add('rect', { x: qa[0], y: qa[1], width: qb[0] - qa[0], height: qb[1] - qa[1], fill: 'rgba(60,160,255,.05)', stroke: 'rgba(235,245,255,.45)', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, gq);
-      var tq = add('text', { x: (qa[0] + qb[0]) / 2, y: (qa[1] + qb[1]) / 2, 'text-anchor': 'middle', fill: '#9fc4e8', 'font-size': 8.5, 'font-weight': 800 }); tq.textContent = "CAPTAIN'S QTRS"; gq.appendChild(tq);
-      furniture('corridor', gc);
-      // rooms
-      var gb = roomG('bridge'); if (D && D.bridge && D.bridge.bounds) poly('bridge', D.bridge.bounds, gb, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); furniture('bridge', gb);
-      add('circle', { cx: ROOMS.bridge.c[0], cy: ROOMS.bridge.c[1] - 6.4 * SR, r: 3.3 * SR * 0.55, fill: 'rgba(150,120,255,.18)', stroke: 'rgba(170,150,255,.6)', 'stroke-dasharray': '2 2' }, gb);   // navigator galaxy
-      var gh = roomG('holodeck'); poly('holodeck', [[-9, -9], [9, -9], [9, 9], [-9, 9]], gh, { fill: FILL, stroke: WALL, 'stroke-width': 2 });
-      for (var gx = -6; gx <= 6; gx += 3) { poly('holodeck', [[gx, -9], [gx + 0.02, -9], [gx + 0.02, 9], [gx, 9]], gh, { fill: 'rgba(235,245,255,.22)' }); poly('holodeck', [[-9, gx], [9, gx], [9, gx + 0.02], [-9, gx + 0.02]], gh, { fill: 'rgba(235,245,255,.22)' }); }
-      furniture('holodeck', gh);
-      ['lounge', 'media', 'library'].forEach(function (id) { var g = roomG(id); circle(id, id === 'library' ? 10.6 : 9.2, g, { fill: FILL, stroke: WALL, 'stroke-width': 2 }); if (id === 'library') circle(id, 7.6, g, { fill: 'rgba(60,230,255,.14)', stroke: 'rgba(120,240,255,.7)', 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }); furniture(id, g); });
-      // doorways
-      [['bridge', 0, 7.9], ['holodeck', 0, 8.7], ['lounge', 0, 8.7], ['media', 0, 8.9], ['library', 0, 10.7]].forEach(function (q) { var p = mapPt(q[0], q[1], q[2]); add('circle', { cx: p[0], cy: p[1], r: 5, fill: '#123f73', stroke: '#f2f8ff', 'stroke-width': 1 }); add('path', { d: 'M' + (p[0] - 5) + ' ' + p[1] + 'H' + (p[0] + 5), stroke: '#f2f8ff', 'stroke-width': 1 }); });
-      // labels
-      Object.keys(ROOMS).forEach(function (id) { var R = ROOMS[id]; if (R.nolabel) return; var y = id === 'bridge' ? R.c[1] + 46 : id === 'corridor' ? 500 : R.c[1] + 4, x = id === 'corridor' ? 300 : R.c[0];
-        var t = add('text', { x: x, y: y, 'text-anchor': 'middle', fill: '#f2f8ff', 'font-family': 'ui-monospace,Menlo,monospace', 'font-size': id === 'corridor' ? 8 : 9.5, 'font-weight': 800, 'letter-spacing': 1.4, stroke: '#123f73', 'stroke-width': 3, 'paint-order': 'stroke', transform: id === 'corridor' ? 'rotate(-90 300 500)' : '' }); t.textContent = R.name.toUpperCase(); });
-      // live layer
-      var live = add('g', {});
-      box.appendChild(el('p', 'sub', 'Live · tap a room to go there · <span style="color:#ffe14d">▲</span> you · <span style="color:#7fd8ff">●</span> droids · <span style="color:#ffb0e0">●</span> cats · <span style="color:#ff6b5a">△</span> faults'));
-      box.appendChild(svg); wrapRot(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
-      function drawLive() {
-        while (live.firstChild) live.removeChild(live.firstChild);
-        var L = window.WAYFARER && window.WAYFARER.crewLayout, eng = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine, snap = load('wf-crew', null);
-        var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' }, where = {};
-        var list = eng ? Array.from(eng.npcs.values()).map(function (n) { return { id: n.id, node: n.node, x: n.pos.x, z: n.pos.z, cat: n.kind === 'cat', st: n.state }; })
-                       : ((snap && snap.npcs) || []).map(function (n) { return { id: n.id, node: n.node, x: n.pos && n.pos.x, z: n.pos && n.pos.z, cat: /ember|nimbus|orbit|pixel/.test(n.id), st: n.state }; });
-        list.forEach(function (n) { var nd = L && L.nodes[n.node], room = nd ? nd.room : null; if (!room || !ROOMS[room]) return;
-          var lx = n.x != null ? n.x - OFFR[room] * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, p = mapPt(room, lx, lz), col = n.cat ? '#ffb0e0' : '#7fd8ff';
-          add('circle', { cx: p[0], cy: p[1], r: n.cat ? 4 : 5, fill: col, stroke: '#123f73', 'stroke-width': 1 }, live);
-          var t = add('text', { x: p[0] + 6, y: p[1] + 3, fill: col, 'font-size': 7.5, 'font-weight': 700, stroke: 'rgba(0,0,0,.6)', 'stroke-width': 2, 'paint-order': 'stroke' }, live); t.textContent = NAMES[n.id];
-          (where[room] = where[room] || []).push(NAMES[n.id]); });
-        load('wf-faults', []).forEach(function (f) { if (!ROOMS[f.room]) return; var p = mapPt(f.room, f.x, f.z); var t = add('text', { x: p[0], y: p[1] + 5, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 800, fill: '#ff6b5a', opacity: (Date.now() / 400 | 0) % 2 ? 1 : 0.45 }, live); t.textContent = '!'; add('path', { d: 'M' + p[0] + ' ' + (p[1] - 9) + 'L' + (p[0] + 8) + ' ' + (p[1] + 5) + 'H' + (p[0] - 8) + 'Z', fill: 'none', stroke: '#ff6b5a', 'stroke-width': 1.4, opacity: (Date.now() / 400 | 0) % 2 ? 1 : 0.45 }, live); });
-        if (ROOMS[PAGE] && document.querySelector('a-scene') && document.querySelector('a-scene').camera) {        // YOU: position + facing
-          var cam = document.querySelector('a-scene').camera, cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(); cam.getWorldPosition(cp); cam.getWorldDirection(cd);
-          var p0 = mapPt(PAGE, cp.x, cp.z), p1 = mapPt(PAGE, cp.x + cd.x, cp.z + cd.z), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
-          add('circle', { cx: p0[0], cy: p0[1], r: 10, fill: 'none', stroke: '#ffe14d', 'stroke-width': 1 }, live);
-          add('path', { d: 'M0 -9 L6 6 L0 3 L-6 6 Z', fill: '#ffe14d', stroke: '#123f73', 'stroke-width': 1.2, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); mapAng = ang;
-        }
-        applyRot(svg);
-        leg.innerHTML = Object.keys(where).map(function (r) { return ROOMS[r].name + ': ' + where[r].join(', '); }).join(' · ');
-      }
-      drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+    mapControls();
+    var which = mapDeck || (onLower() ? 'lower' : 'upper');
+    mapData(function () { if (!box || tab !== 'map' || !LAYOUT) return; if (which === 'cut') drawSection(); else drawDeck(which); });
+  }
+  function mapSvg(vb) {
+    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', vb); svg.setAttribute('class', 'map');
+    var add = function (tag, at, parent) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; };
+    var V = vb.split(' ').map(Number), defs = add('defs', {});
+    var g1 = add('pattern', { id: 'dg', width: 8, height: 8, patternUnits: 'userSpaceOnUse' }, defs); add('path', { d: 'M8 0H0V8', fill: 'none', stroke: 'rgba(120,200,255,.07)', 'stroke-width': .6 }, g1);
+    var g2 = add('pattern', { id: 'dgm', width: 80, height: 80, patternUnits: 'userSpaceOnUse', patternTransform: 'translate(' + (MOX % 80) + ' ' + (MOZ % 80) + ')' }, defs); add('path', { d: 'M80 0H0V80', fill: 'none', stroke: 'rgba(120,200,255,.15)', 'stroke-width': .8 }, g2);
+    var hp = add('pattern', { id: 'dh', width: 5, height: 5, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs); add('path', { d: 'M0 0V5', stroke: 'rgba(127,227,255,.14)', 'stroke-width': .8 }, hp);
+    add('rect', { x: V[0], y: V[1], width: V[2], height: V[3], fill: '#0a1424' }); add('rect', { x: V[0], y: V[1], width: V[2], height: V[3], fill: 'url(#dg)' }); add('rect', { x: V[0], y: V[1], width: V[2], height: V[3], fill: 'url(#dgm)' });
+    return { svg: svg, add: add };
+  }
+  var C_HULL = '#c98a52', C_LINE = '#7fe3ff', C_BIO = '#4fbfa8', C_TXT = '#cfeeff', FONT = 'ui-monospace,Menlo,monospace';
+  function drawDeck(which) {
+    var M = mapSvg('56 62 488 876'), svg = M.svg, add = M.add, P = MP, eng = mapMode === 'eng', lower = which === 'lower', D1 = DECK, D2 = DECK2 || {};
+    var ptsS = function (a) { return a.map(function (q) { var p = P(q[0], q[1]); return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); };
+    var PR = LAYOUT.deckProfiles, up = PR.upper, lo = PR.lower;
+    // exterior hull = the widest of both deck profiles at each station (+ plating); each deck's own outline sits inside it (taper per elevation)
+    var env = [], z; for (z = -52; z <= 52; z += 2) env.push([z, Math.max(hullHW(up, z), hullHW(lo, z))]); env = env.filter(function (q) { return q[1] > 0; });
+    add('polygon', { points: ptsS(profPoly(env, 0.9)), fill: 'none', stroke: C_HULL, 'stroke-width': 2.4, 'stroke-linejoin': 'round' });
+    add('polygon', { points: ptsS(profPoly(lower ? lo : up, 0)), fill: 'rgba(20,50,80,.35)', stroke: 'rgba(127,227,255,.55)', 'stroke-width': 1.2 });
+    [-1, 1].forEach(function (sx) { var a = P(sx * 22.5, 24), b = P(sx * 18, 30); add('rect', { x: Math.min(a[0], P(sx * 27.5, 24)[0]), y: P(0, 24)[1], width: 5 * MS, height: 22 * MS, rx: 5, fill: 'none', stroke: C_HULL, 'stroke-width': 1.3, 'stroke-dasharray': '5 3' }); add('path', { d: 'M' + P(sx * 18.3, 31)[0] + ' ' + P(0, 31)[1] + 'H' + P(sx * 22.5, 31)[0], stroke: C_HULL, 'stroke-width': 1.3 }); });   // engine nacelles + struts
+    add('path', { d: 'M' + MOX + ' 70V930', stroke: 'rgba(207,238,255,.5)', 'stroke-width': .6, 'stroke-dasharray': '12 3 2 3' });
+    var gR = M.add('g', { id: 'mapnav' });
+    var GR = function (at) { return add('g', at || {}, svg); };
+    // ── atrium ──
+    var ga = GR({ class: 'rm' }); ga.addEventListener('click', function (ev) { mapClick(svg, ev, 'corridor', lower); });
+    add('polygon', { points: ptsS(LAYOUT.corridor.outerPolygon), fill: 'url(#dh)', stroke: C_LINE, 'stroke-width': 1.6 }, ga);
+    var op = ptsS(LAYOUT.corridor.upperOpening); add('polygon', { points: op, fill: lower ? 'rgba(127,227,255,.10)' : 'rgba(0,0,0,.35)', stroke: lower ? 'rgba(127,227,255,.5)' : C_LINE, 'stroke-width': 1, 'stroke-dasharray': lower ? '3 3' : '' }, ga);
+    var at = P(0, 0); var tA = add('text', { x: at[0], y: at[1], 'text-anchor': 'middle', fill: C_TXT, 'font-size': 8, 'letter-spacing': 3, 'font-family': FONT, transform: 'rotate(-90 ' + at[0] + ' ' + at[1] + ')', opacity: .85 }, ga); tA.textContent = lower ? 'LOWER ATRIUM' : 'UPPER ATRIUM';
+    // ── rooms ──
+    RMS.filter(function (r) { return r.deck === which; }).forEach(function (r) {
+      var R = LAYOUT.rooms[r.k]; if (!R) return; var g = GR({ class: 'rm' }), cx, cz;
+      g.addEventListener('click', function (ev) { mapClick(svg, ev, r.id, lower); });
+      if (R.center) { cx = R.center[0]; cz = R.center[2]; var c = P(cx, cz), rr = R.radius * MS;
+        add('circle', { cx: c[0], cy: c[1], r: rr, fill: 'url(#dh)', stroke: C_LINE, 'stroke-width': 1.8 }, g);
+        if (lower) { add('circle', { cx: c[0], cy: c[1], r: 5.85 * MS, fill: 'rgba(0,0,0,.4)', stroke: 'rgba(127,227,255,.6)', 'stroke-width': 1 }, g); }
+        add('circle', { cx: c[0], cy: c[1], r: 5 * MS, fill: 'rgba(79,191,168,.16)', stroke: C_BIO, 'stroke-width': 1.3, 'stroke-dasharray': lower ? '' : '4 2' }, g);          // the Second Brain's chamber: one structure through both decks
+        add('circle', { cx: c[0], cy: c[1], r: lower ? 1.35 * MS : 2.2 * MS, fill: 'rgba(79,191,168,.38)', stroke: C_BIO, 'stroke-width': 1 }, g); }
+      else { add('polygon', { points: ptsS(R.polygon), fill: 'url(#dh)', stroke: C_LINE, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }, g); cx = 0; cz = 0; R.polygon.forEach(function (q) { cx += q[0]; cz += q[1]; }); cx /= R.polygon.length; cz /= R.polygon.length; }
+      // furniture from the real collision scan, moved into ship coordinates
+      var src = (lower ? D2 : D1) && (lower ? D2 : D1)[r.id], xf = XF[r.id];
+      if (src && src.solids && xf) src.solids.forEach(function (b) { var q = [xf.to(b[0], b[1]), xf.to(b[2], b[1]), xf.to(b[2], b[3]), xf.to(b[0], b[3])]; add('polygon', { points: ptsS(q), fill: eng ? 'rgba(127,227,255,.30)' : 'rgba(127,227,255,.16)', stroke: 'rgba(127,227,255,.5)', 'stroke-width': .5 }, g); });
+      if (r.id === 'firefly') {   // the Firefly on its cradle, nose to the forward launch jaw + the triangular loading ramp (schematic: anchors not measured)
+        add('polygon', { points: ptsS([[0, -47], [3.2, -42], [4.4, -37], [3, -33.5], [-3, -33.5], [-4.4, -37], [-3.2, -42]]), fill: 'rgba(201,138,82,.25)', stroke: C_HULL, 'stroke-width': 1.4 }, g);
+        add('polygon', { points: ptsS([[-4.2, -46.5], [4.2, -46.5], [0, -52]]), fill: 'none', stroke: C_HULL, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }, g);
+        add('path', { d: 'M' + P(-6, -32)[0] + ' ' + P(0, -32)[1] + 'H' + P(6, -32)[0], stroke: C_HULL, 'stroke-width': 1, 'stroke-dasharray': '2 2' }, g); }
+      var lp = P(cx, cz + (r.id === 'library' || r.id === 'core' ? 0 : -1.5)), lt = add('text', { x: lp[0], y: lp[1], 'text-anchor': 'middle', fill: C_TXT, 'font-size': 7.4, 'font-weight': 700, 'letter-spacing': 1.2, 'font-family': FONT, stroke: '#0a1424', 'stroke-width': 2.4, 'paint-order': 'stroke' }, g); lt.textContent = r.name;
+      if (eng) { var a = R.radius ? Math.PI * R.radius * R.radius : (function () { var s = 0, p = R.polygon; for (var i = 0; i < p.length; i++) { var q = p[(i + 1) % p.length]; s += p[i][0] * q[1] - q[0] * p[i][1]; } return Math.abs(s) / 2; })();
+        var at2 = add('text', { x: lp[0], y: lp[1] + 9, 'text-anchor': 'middle', fill: 'rgba(207,238,255,.6)', 'font-size': 6, 'font-family': FONT }, g); at2.textContent = Math.round(a) + ' m²'; }
+      // door: a gap bar on the wall at the door
+      var dr = R.door; if (dr) { var d = P(dr[0], dr[2]), vert = Math.abs(dr[0]) > 2.4; add('path', { d: vert ? 'M' + d[0] + ' ' + (d[1] - 1.05 * MS) + 'V' + (d[1] + 1.05 * MS) : 'M' + (d[0] - 1.05 * MS) + ' ' + d[1] + 'H' + (d[0] + 1.05 * MS), stroke: '#ffd27a', 'stroke-width': 3, 'stroke-linecap': 'butt' }, svg); }
     });
+    if (lower) add('polygon', { points: ptsS(LAYOUT.corridor.outerPolygon), fill: 'none', stroke: C_LINE, 'stroke-width': 1.2, 'pointer-events': 'none' });
+    // twin curved stairs: identical on both decks
+    [-1, 1].forEach(function (sx) { var d = '', a, p; for (a = -0.35; a <= 1.16; a += 0.05) { p = P(sx * 11.35 * Math.cos(a), 36 + 11.35 * Math.sin(a)); d += (d ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+      add('path', { d: d, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.2, opacity: .85, 'stroke-dasharray': '1.5 2.5', 'pointer-events': 'none' }); var m = P(sx * 11.35 * Math.cos(.4), 36 + 11.35 * Math.sin(.4)), t = add('text', { x: m[0] + sx * 9, y: m[1], 'text-anchor': 'middle', fill: '#ffd27a', 'font-size': 6.2, 'font-family': FONT, 'letter-spacing': 1, 'pointer-events': 'none' }); t.textContent = lower ? 'UP' : 'DOWN'; });
+    if (eng) { for (z = -50; z <= 50; z += 10) { var gz = P(0, z), tk = add('text', { x: 66, y: gz[1] + 2, fill: 'rgba(207,238,255,.45)', 'font-size': 6, 'font-family': FONT }); tk.textContent = (z > 0 ? '+' : '') + z + ' m'; add('path', { d: 'M62 ' + gz[1] + 'H68', stroke: 'rgba(207,238,255,.4)', 'stroke-width': .6 }); } }
+    // title block + compass + scale
+    var tb = add('rect', { x: 372, y: 892, width: 164, height: 38, fill: 'rgba(10,20,36,.9)', stroke: 'rgba(127,227,255,.5)', 'stroke-width': .8 });
+    [['SS WAYFARER', 'font-weight:700', 902], [lower ? 'LOWER DECK · y −5.95' : 'UPPER DECK · y 0.00', '', 913], ['1:125 · layout.json ship coords', '', 924]].forEach(function (q) { var t = add('text', { x: 378, y: q[2], fill: C_TXT, 'font-size': 7, 'font-family': FONT, 'letter-spacing': .8 }); t.textContent = q[0]; });
+    add('circle', { cx: 84, cy: 100, r: 16, fill: 'none', stroke: 'rgba(207,238,255,.6)', 'stroke-width': .8 }); add('path', { d: 'M84 86 L89 106 L84 102 L79 106 Z', fill: C_TXT }); var nt = add('text', { x: 84, y: 82, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 7, 'font-family': FONT }); nt.textContent = 'BOW';
+    add('path', { d: 'M62 920H142M62 916V924M102 917V923M142 916V924', stroke: 'rgba(160,220,255,.8)', 'stroke-width': 1, fill: 'none' }); var sc = add('text', { x: 102, y: 934, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 6.5, 'font-family': FONT }); sc.textContent = '10 m';
+    var live = add('g', { 'pointer-events': 'none' });
+    box.appendChild(el('p', 'sub', 'Tap a room or the atrium to go to that exact spot · drag to pan · pinch to zoom'));
+    box.appendChild(svg); wrapRot(svg); mapZoom(svg); var leg = el('p', 'sub', ''); box.appendChild(leg);
+    function drawLive() {
+      while (live.firstChild) live.removeChild(live.firstChild);
+      var sc2 = document.querySelector('a-scene'), eng2 = window.WAYFARER && window.WAYFARER.crew && window.WAYFARER.crew.engine, L = window.WAYFARER && window.WAYFARER.crewLayout, snap = load('wf-crew', null), where = {};
+      if (!lower) {
+        var NAMES = { nav: 'Aster', eng: 'Forge', sci: 'Vesper', com: 'Echo', tac: 'Sentinel', sen: 'Prism', ember: 'Ember', nimbus: 'Nimbus', orbit: 'Orbit', pixel: 'Pixel' };
+        var list = eng2 ? Array.from(eng2.npcs.values()).map(function (n) { return { id: n.id, node: n.node, x: n.pos.x, z: n.pos.z, cat: n.kind === 'cat' }; })
+                        : ((snap && snap.npcs) || []).map(function (n) { return { id: n.id, node: n.node, x: n.pos && n.pos.x, z: n.pos && n.pos.z, cat: /ember|nimbus|orbit|pixel/.test(n.id) }; });
+        list.forEach(function (n) { var nd = L && L.nodes[n.node], room = nd ? nd.room : null, xf = room && XF[room]; if (!xf) return; var off = OFFR[room] || 0, lx = n.x != null ? n.x - off * 100 : nd.lx, lz = n.z != null ? n.z : nd.lz, s = xf.to(lx, lz), p = P(s[0], s[1]), col = n.cat ? '#ffb0e0' : '#7fd8ff';
+          add('circle', { cx: p[0], cy: p[1], r: n.cat ? 3.4 : 4.4, fill: col, stroke: '#0a1424', 'stroke-width': 1 }, live);
+          var t = add('text', { x: p[0] + 6, y: p[1] + 3, fill: col, 'font-size': 6.8, 'font-weight': 700, 'font-family': FONT, stroke: '#0a1424', 'stroke-width': 2, 'paint-order': 'stroke' }, live); t.textContent = NAMES[n.id]; (where[room] = where[room] || []).push(NAMES[n.id]); });
+      }
+      load('wf-faults', []).forEach(function (f) { var xf = XF[f.room]; if (!xf || lower !== (LOWER.indexOf(f.room) >= 0)) return; var s = xf.to(f.x, f.z), p = P(s[0], s[1]), o = (Date.now() / 400 | 0) % 2 ? 1 : .45; add('path', { d: 'M' + p[0] + ' ' + (p[1] - 8) + 'L' + (p[0] + 7) + ' ' + (p[1] + 5) + 'H' + (p[0] - 7) + 'Z', fill: 'none', stroke: '#ff6b5a', 'stroke-width': 1.3, opacity: o }, live); });
+      if (sc2 && sc2.camera && onLower() === lower && PAGE !== 'quarters') {      // YOU
+        var cp = new AFRAME.THREE.Vector3(), cd = new AFRAME.THREE.Vector3(), xf2 = XF[PAGE]; sc2.camera.getWorldPosition(cp); sc2.camera.getWorldDirection(cd);
+        if (xf2) { var s0 = xf2.to(cp.x, cp.z), s1 = xf2.to(cp.x + cd.x, cp.z + cd.z), p0 = P(s0[0], s0[1]), p1 = P(s1[0], s1[1]), ang = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / Math.PI + 90;
+          add('circle', { cx: p0[0], cy: p0[1], r: 9, fill: 'none', stroke: '#ffe14d', 'stroke-width': .9 }, live);
+          add('path', { d: 'M0 -8 L5.5 5.5 L0 2.5 L-5.5 5.5 Z', fill: '#ffe14d', stroke: '#0a1424', 'stroke-width': 1, transform: 'translate(' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ') rotate(' + ang.toFixed(0) + ')' }, live); if (headUp) { mapAng = ang; } }
+      }
+      if (headUp && mapAng != null) applyRot(svg);
+      leg.innerHTML = Object.keys(where).map(function (r) { return r.toUpperCase() + ': ' + where[r].join(', '); }).join(' · ');
+    }
+    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
+  }
+  // tap → exact spot (in that room's own metres), unless the gesture was a pan
+  function mapClick(svg, ev, id, lowerDeck) {
+    if (svg._dragged) return; var g = svg._rot && svg._rot.g; if (!g) return; var pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var q = pt.matrixTransform(g.getScreenCTM().inverse()), s = [(q.x - MOX) / MS, (q.y - MOZ) / MS];
+    var R = RMS.filter(function (r) { return r.id === id; })[0], xf = XF[id], lp = xf ? xf.from(s[0], s[1]) : null, name = R ? R.name.toLowerCase() : 'atrium';
+    var page = id === 'corridor' ? 'corridor' : id, gs = { page: page, x: lp ? +lp[0].toFixed(2) : 0, z: lp ? +lp[1].toFixed(2) : 0, y: id === 'corridor' ? (lowerDeck ? LOWY : 0) : 0, t: Date.now() };
+    close(); if (!lp) { toast('Heading to the ' + name + '…'); setTimeout(function () { location.href = R.page; }, 250); return; }
+    if (PAGE === page) { if (!gotoNow(gs)) toast('Nothing to stand on there'); return; }
+    toast('Heading to that spot in the ' + name + '…'); try { sessionStorage.setItem('wf-goto', JSON.stringify(gs)); } catch (e) {} setTimeout(function () { location.href = id === 'corridor' ? 'index.html' : R.page; }, 250);
+  }
+  // pan (drag) + zoom (wheel / pinch) on the viewBox; a drag > 6 px suppresses the click that follows
+  function mapZoom(svg) {
+    var V0 = svg.getAttribute('viewBox').split(' ').map(Number), V = V0.slice(), pts = {}, last = null, moved = 0;
+    function set() { var k = Math.min(1, V[2] / V0[2]); V[0] = Math.max(V0[0] - 40, Math.min(V0[0] + V0[2] - V[2] + 40, V[0])); V[1] = Math.max(V0[1] - 40, Math.min(V0[1] + V0[3] - V[3] + 40, V[1])); svg.setAttribute('viewBox', V.join(' ')); }
+    function zoom(f, cx, cy) { var nw = Math.max(V0[2] / 5, Math.min(V0[2], V[2] * f)), r = nw / V[2], nh = V[3] * r; V[0] = cx - (cx - V[0]) * r; V[1] = cy - (cy - V[1]) * r; V[2] = nw; V[3] = nh; set(); }
+    function toV(e) { var r = svg.getBoundingClientRect(); return [V[0] + (e.clientX - r.left) / r.width * V[2], V[1] + (e.clientY - r.top) / r.height * V[3]]; }
+    svg.addEventListener('wheel', function (e) { e.preventDefault(); var c = toV(e); zoom(e.deltaY > 0 ? 1.15 : 1 / 1.15, c[0], c[1]); }, { passive: false });
+    svg.addEventListener('pointerdown', function (e) { pts[e.pointerId] = [e.clientX, e.clientY]; moved = 0; svg._dragged = false; last = null; });
+    svg.addEventListener('pointermove', function (e) { if (!pts[e.pointerId]) return; var ids = Object.keys(pts), prev = pts[e.pointerId]; pts[e.pointerId] = [e.clientX, e.clientY];
+      if (ids.length === 2) { var o = pts[ids.filter(function (i) { return +i !== e.pointerId; })[0]], d0 = Math.hypot(prev[0] - o[0], prev[1] - o[1]), d1 = Math.hypot(e.clientX - o[0], e.clientY - o[1]); if (d0 > 0 && d1 > 0) { var c = toV({ clientX: (e.clientX + o[0]) / 2, clientY: (e.clientY + o[1]) / 2 }); zoom(d0 / d1, c[0], c[1]); } svg._dragged = true; return; }
+      var r = svg.getBoundingClientRect(), dx = e.clientX - prev[0], dy = e.clientY - prev[1]; moved += Math.abs(dx) + Math.abs(dy); if (moved > 6 && V[2] < V0[2] - 1) { svg._dragged = true; V[0] -= dx / r.width * V[2]; V[1] -= dy / r.height * V[3]; set(); } });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (n) { svg.addEventListener(n, function (e) { delete pts[e.pointerId]; if (!Object.keys(pts).length) setTimeout(function () { svg._dragged = false; }, 60); }); });
+  }
+  // CUTAWAY: longitudinal section, bow up, both decks stacked in one frame (z along the page, height across it)
+  function drawSection() {
+    var M = mapSvg('56 62 488 876'), svg = M.svg, add = M.add, SY = 16, X0 = 300, ZO = 500, Pz = function (z) { return ZO + z * MS; }, Py = function (y) { return X0 - y * SY; };   // y up → left is up? deck stack: upper at right of lower
+    // horizontal axis = height (right = up); vertical axis = z (bow up)
+    var PR = LAYOUT.deckProfiles;
+    var hull = [[0, -52], [-2.8, -48], [-3.6, -40], [-4.2, -24], [-4.2, 30], [-3.8, 46], [-2, 52]];   // schematic keel line (below upper floor)
+    var top = [[-52, 1.2], [-40, 2.6], [-24, 3.4], [20, 3.4], [26, 3.6], [34, 8.4], [38, 9.4], [46, 7.8], [52, 3]];
+    var d = 'M' + Py(-4.6) + ' ' + Pz(-50); top.forEach(function (q) { d += 'L' + Py(q[1]) + ' ' + Pz(q[0]); }); d += 'L' + Py(-4.6) + ' ' + Pz(52) + 'Z';
+    add('path', { d: d, fill: 'rgba(20,50,80,.35)', stroke: C_HULL, 'stroke-width': 2.2, 'stroke-linejoin': 'round' });
+    function band(y0, y1, z0, z1, id, label, fill, stroke) { var g = add('g', { class: 'rm' }); var r = add('rect', { x: Py(y1), y: Pz(z0), width: (y1 - y0) * SY, height: (z1 - z0) * MS, fill: fill || 'rgba(127,227,255,.10)', stroke: stroke || C_LINE, 'stroke-width': 1.3 }, g);
+      if (id) g.addEventListener('click', function (ev) { var R = RMS.filter(function (q) { return q.id === id; })[0]; if (R && !svg._dragged) { close(); if (PAGE !== id) { toast('Heading to the ' + R.name.toLowerCase() + '…'); setTimeout(function () { location.href = R.page; }, 250); } } });
+      if (label) { var t = add('text', { x: Py((y0 + y1) / 2), y: Pz((z0 + z1) / 2), 'text-anchor': 'middle', fill: C_TXT, 'font-size': 6.6, 'font-weight': 700, 'font-family': FONT, 'letter-spacing': 1, transform: 'rotate(-90 ' + Py((y0 + y1) / 2) + ' ' + Pz((z0 + z1) / 2) + ')', stroke: '#0a1424', 'stroke-width': 2, 'paint-order': 'stroke' }, g); t.textContent = label; } }
+    var UY0 = 0, UY1 = 3.24, LY0 = LOWY, LY1 = -0.23;
+    band(UY0, UY1, -38, -24, 'bridge', 'BRIDGE'); band(UY0, UY1, -24, 25.8, null, 'UPPER ATRIUM', 'rgba(127,227,255,.05)'); band(LY0, LY1, -24, 25.8, null, 'LOWER ATRIUM', 'rgba(127,227,255,.05)');
+    band(LY0, LY1, -49, -24, 'firefly', 'FIREFLY HANGAR'); band(UY0, UY1, 26, 46, 'library', 'LIBRARY'); band(LY0, LY1, 26.6, 45.4, 'core', 'ENGINE ROOM');
+    band(LOWY, 9.4 - 0, 31, 41, null, '', 'rgba(79,191,168,.14)', C_BIO);   // Second Brain: one column from the reactor pit up through the Library
+    var br = add('text', { x: Py(2.7), y: Pz(36), 'text-anchor': 'middle', fill: C_BIO, 'font-size': 6.6, 'font-family': FONT, 'letter-spacing': 1, transform: 'rotate(-90 ' + Py(2.7) + ' ' + Pz(36) + ')' }); br.textContent = 'SECOND BRAIN';
+    add('path', { d: 'M' + Py(0) + ' ' + Pz(30) + 'L' + Py(LOWY) + ' ' + Pz(46), stroke: '#ffd27a', 'stroke-width': 3, 'stroke-dasharray': '1.5 2.5' }); var st = add('text', { x: Py(-2.8) + 14, y: Pz(38), fill: '#ffd27a', 'font-size': 6.4, 'font-family': FONT }); st.textContent = 'STAIRS';
+    add('path', { d: 'M' + Py(0) + ' 70V930', stroke: 'rgba(207,238,255,.35)', 'stroke-width': .6, 'stroke-dasharray': '4 3' });
+    [['UPPER FLOOR y 0.00', 0], ['LOWER FLOOR y −5.95', LOWY]].forEach(function (q) { var t = add('text', { x: Py(q[1]), y: 76, 'text-anchor': 'middle', fill: 'rgba(207,238,255,.6)', 'font-size': 6.4, 'font-family': FONT }); t.textContent = q[0]; });
+    var t2 = add('text', { x: 300, y: 920, 'text-anchor': 'middle', fill: C_TXT, 'font-size': 7, 'font-family': FONT, 'letter-spacing': 1 }); t2.textContent = 'LONGITUDINAL SECTION · BOW ▲ · VERTICAL SCALE ×2';
+    var live = add('g', { 'pointer-events': 'none' });
+    box.appendChild(el('p', 'sub', 'Cutaway: both decks stacked · the Second Brain runs from the reactor pit up through the Library · tap a room'));
+    box.appendChild(svg); mapZoom(svg); svg._rot = { g: svg, w: 0, h: 0 };
+    function drawLive() { while (live.firstChild) live.removeChild(live.firstChild); var sc2 = document.querySelector('a-scene'); if (!sc2 || !sc2.camera || !XF[PAGE]) return; var cp = new AFRAME.THREE.Vector3(); sc2.camera.getWorldPosition(cp); var s = XF[PAGE].to(cp.x, cp.z), py = document.getElementById('player'), y = onLower() ? LOWY : 0; if (PAGE === 'corridor' && py) y = py.object3D.position.y;
+      add('circle', { cx: Py(y + 1.0), cy: Pz(s[1]), r: 5, fill: '#ffe14d', stroke: '#0a1424', 'stroke-width': 1 }, live); }
+    drawLive(); clearInterval(mapTimer); mapTimer = setInterval(function () { if (!box || box.style.display !== 'block' || tab !== 'map' || !svg.isConnected) { clearInterval(mapTimer); return; } drawLive(); }, 400);
   }
 
   // ── the menu-bar button (clipboard) ──
