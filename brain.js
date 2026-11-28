@@ -333,12 +333,15 @@
           else if (kk === 3) { for (jj = 0; jj < 5; jj++) { c.fillStyle = 'rgba(125,255,205,.18)'; c.fillRect(o + 40, 56 + jj * 36, 180, 12); c.fillStyle = '#9dffd6'; c.fillRect(o + 40, 56 + jj * 36, 80 + ((jj * 37) % 90), 12); } }
           else if (kk === 4) { c.strokeStyle = 'rgba(125,255,205,.5)'; for (jj = 1; jj <= 4; jj++) { c.beginPath(); c.arc(o + 128, 142, jj * 24, 0, 7); c.stroke(); } c.beginPath(); c.moveTo(o + 128, 142); c.lineTo(o + 200, 90); c.stroke(); }
           else { c.strokeStyle = 'rgba(125,255,205,.6)'; for (jj = 0; jj < 12; jj++) { c.beginPath(); c.moveTo(o + 40 + (jj * 53) % 180, 60 + (jj * 71) % 150); c.lineTo(o + 40 + ((jj + 3) * 53) % 180, 60 + ((jj + 3) * 71) % 150); c.stroke(); } } }
-        var mt = new THREE.CanvasTexture(mc); mt.wrapS = THREE.RepeatWrapping; mt.repeat.set(NB / 6, 1);
-        [[-2.4, 2.0], [-4.7, 2.0], [-12.4, 2.2]].forEach(function (q) { var pm = new THREE.Mesh(new THREE.CylinderGeometry(7.95, 7.95, q[1], low ? 66 : 132, 1, true), new THREE.MeshBasicMaterial({ map: mt, side: THREE.BackSide, toneMapped: false, fog: false })); pm.position.y = q[0]; grp.add(pm); });
-        var pr = []; for (kk = 0; kk <= 40; kk++) pr.push(new THREE.Vector2(0.2 + 0.05 * Math.sin(kk * 1.6), kk / 40 * 16 - 8));
+        // same layout as core-room.js: Core y -> tank y = coreY - 12.85 (brain at -7.3), 22 bays from θ 0.3, doorway bays 10/11 empty, tiers 1.55-3.35 / 4.0-6.0, 23 pilasters, texture un-mirrored
+        var DY = -12.85, WRc = 8.0, TH0 = 0.3, DT = (Math.PI * 2 - 0.6) / 22, pw = DT * 0.8, TXs = [], q6;
+        for (q6 = 0; q6 < 6; q6++) { var sc2 = document.createElement('canvas'); sc2.width = sc2.height = TW; sc2.getContext('2d').drawImage(mc, q6 * TW, 0, TW, TW, 0, 0, TW, TW); var tx2 = new THREE.CanvasTexture(sc2); tx2.wrapS = THREE.RepeatWrapping; tx2.repeat.x = -1; tx2.offset.x = 1; TXs.push(tx2); }
+        for (kk = 0; kk < 22; kk++) { if (kk === 10 || kk === 11 || (low && kk % 2)) continue;
+          [[1.55, 1.8, kk % 6], [4.0, 2.0, (kk + 3) % 6]].forEach(function (p) { var pm = new THREE.Mesh(new THREE.CylinderGeometry(WRc - 0.06, WRc - 0.06, p[1], 6, 1, true, TH0 + kk * DT + (DT - pw) / 2, pw), new THREE.MeshBasicMaterial({ map: TXs[p[2]], side: THREE.DoubleSide, toneMapped: false, fog: false })); pm.position.y = DY + p[0] + p[1] / 2; grp.add(pm); }); }
+        var pr = []; for (kk = 0; kk <= 40; kk++) pr.push(new THREE.Vector2(0.2 + 0.05 * Math.sin(kk * 1.6), kk / 40 * 9.4 - 4.7));
         var bioM = new THREE.MeshStandardMaterial({ color: 0x3f6650, roughness: 0.42, metalness: 0.05, emissive: 0x10663a, emissiveIntensity: 0.55 });
-        var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bioM, NB), mm = new THREE.Matrix4();
-        for (kk = 0; kk < NB; kk++) { var ta = kk / NB * Math.PI * 2; mm.makeTranslation(Math.sin(ta) * 7.85, -8, Math.cos(ta) * 7.85); pil.setMatrixAt(kk, mm); } grp.add(pil);
+        var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bioM, 23), mm = new THREE.Matrix4();
+        for (kk = 0; kk <= 22; kk++) { var ta = TH0 + kk * DT; mm.makeTranslation(Math.sin(ta) * (WRc - 0.12), DY + 4.7, Math.cos(ta) * (WRc - 0.12)); if (kk === 11) mm.makeScale(0, 0, 0); pil.setMatrixAt(kk, mm); } grp.add(pil);
       })();
 
       var brass = new THREE.MeshStandardMaterial({ color: 0xa8843e, roughness: 0.38, metalness: 0.95, emissive: 0x2a1a06, emissiveIntensity: 0.6 });
