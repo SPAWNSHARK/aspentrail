@@ -75,7 +75,7 @@
     (function () {
       var NB = 22, TH0 = 0.3, SPAN = Math.PI * 2 - 0.6, DT = SPAN / NB, R = WR - 0.06, k, i;
       // ledge round the wall
-      var led = new THREE.Mesh(new THREE.CylinderGeometry(WR - 0.1, WR - 0.1, 0.1, 96, 1, false, 0.118, Math.PI * 2 - 0.236), steel); led.userData.v8Skip = true; led.position.y = 1.05; g.add(led);
+      var led = new THREE.Mesh(new THREE.RingGeometry(WR - 0.7, WR - 0.1, 96, 1, -Math.PI / 2 + 0.118, Math.PI * 2 - 0.236), steel); led.material = steel.clone(); led.material.side = THREE.DoubleSide; led.userData.v8Skip = true; led.rotation.x = -Math.PI / 2; led.position.y = 1.05; g.add(led);   // Nov 28: was a CLOSED cylinder = a full disc over the floor + pit (user: 'no need to cover the bottom layer'); now a 0.6 m ledge ring
       // ribbed pilasters (one InstancedMesh): lathe profile with soft ribs, grown-tissue material (shares the heartbeat pulse)
       var pr = []; for (k = 0; k <= 40; k++) { var yy = k / 40 * WH, rr = 0.2 + 0.05 * Math.sin(k * 1.6) + (k < 3 ? 0.08 * (3 - k) : 0) + (k > 37 ? 0.07 * (k - 37) : 0); pr.push(new THREE.Vector2(rr, yy - WH / 2)); }
       var pil = new THREE.InstancedMesh(new THREE.LatheGeometry(pr, 10), bio, NB + 1), M = new THREE.Matrix4();
