@@ -322,7 +322,7 @@
     (function () {
       var H = -0.23 - LOW, ZW = 48.0, HW = 3.4, sh = new THREE.Shape(), k;
       sh.moveTo(0, 0); sh.lineTo(2 * HW, 0); sh.lineTo(2 * HW, H); sh.lineTo(0, H); sh.lineTo(0, 0);
-      var hp = new THREE.Path(), cx0 = HW, aw = 1.3, ah = 2.5; hp.moveTo(cx0 - aw, 0); hp.lineTo(cx0 + aw, 0); hp.lineTo(cx0 + aw, ah); hp.absarc(cx0, ah, aw, 0, Math.PI, false); hp.lineTo(cx0 - aw, 0); sh.holes.push(hp);   // Nov 28: arch back in (user: how do I get out to the hallway?) — core door -> foyer -> this arch -> aft ring -> lower hall
+      var hp = new THREE.Path(), cx0 = HW, aw = 1.3, ah = 2.5; hp.moveTo(cx0 - aw, 0); hp.lineTo(cx0 + aw, 0); hp.lineTo(cx0 + aw, ah); hp.absarc(cx0, ah, aw, 0, Math.PI, false); hp.lineTo(cx0 - aw, 0); /* Nov 28 (user: remove the left arch): foyer wall is solid again; hole path unused */   // Nov 28: arch back in (user: how do I get out to the hallway?) — core door -> foyer -> this arch -> aft ring -> lower hall
       var wm = mat.clone(); wm.polygonOffset = true; wm.polygonOffsetFactor = 1; wm.polygonOffsetUnits = 1;
       var w = new THREE.Mesh(new THREE.ShapeGeometry(sh), wm); w.position.set(-HW, LOW, ZW); w.name = 'ArchPartition'; w.userData.v8Skip = true; root.add(w);
       // Nov 28 (user: "I should not be able to see any of this"): ceiling over the foyer pocket (x ±3.4, core wall -> z 48) so you can't look up at the stair roofs / shaft; lamp fixtures on it
@@ -424,7 +424,7 @@
     if (z1 > MOUTH - 0.1 && Math.hypot(x1, z1 - 36) > SH_R - 0.35) return true;
     if ((z0 < MOUTH) !== (z1 < MOUTH)) { var t = (MOUTH - z0) / (z1 - z0), xx = x0 + (x1 - x0) * t; if (Math.abs(xx) > 2.45) return true; }
     if (fy < -3 && (z0 < 24.9) !== (z1 < 24.9)) { var t2 = (24.9 - z0) / (z1 - z0), x2 = x0 + (x1 - x0) * t2; if (Math.abs(x2) > 0.95 || !lowDoor || lowDoor.p < 0.55) return true; }
-    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; if (Math.abs(x3) > 1.15) return true; }   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
+    if (fy < -3 && Math.abs(x0) < 3.4 && Math.abs(x1) < 3.4 && (z0 < 48.0) !== (z1 < 48.0)) { var t3 = (48.0 - z0) / (z1 - z0), x3 = x0 + (x1 - x0) * t3; return true; }   // solid wall closing the stair-foot foyer (z 48.0); the way out is the arch into the core
     if (fy > -1.0) { var sgn = x0 >= 0 ? 1 : -1, a0 = Math.atan2(sgn * x0, z0 - 36), a1 = Math.atan2(sgn * x1, z1 - 36), r0 = Math.hypot(x0, z0 - 36), r1 = Math.hypot(x1, z1 - 36);
       var in0 = a0 > 1.5 && a0 < 2.18 && r0 > 10.2 && r0 < 12.4, in1 = a1 > 1.5 && a1 < 2.18 && r1 > 10.2 && r1 < 12.4;
       if (in0 && !in1 && (r1 >= 12.4 || a1 >= 2.18)) return true; if (!in0 && in1 && (r0 >= 12.4 || a0 >= 2.18)) return true; }   // stair-top vestibule: the Library door and the flight are the only ways in or out
