@@ -149,7 +149,7 @@
     var glowM = new THREE.MeshBasicMaterial({ color: 0x8fb8d8, fog: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     var lineM = new THREE.MeshBasicMaterial({ color: 0xcfe8ff, fog: false, side: THREE.DoubleSide });
     var railM = new THREE.MeshStandardMaterial({ color: 0x59626b, metalness: 0.85, roughness: 0.35 });
-    var flrM = M.floor.clone(); flrM.side = THREE.DoubleSide; flrM.polygonOffset = true; flrM.polygonOffsetFactor = -2; flrM.polygonOffsetUnits = -2;
+    var flrM = M.floor.clone(); flrM.map = null; flrM.color.set(0x3a4047); flrM.emissive = new THREE.Color(0x10151a); flrM.roughness = 0.55; flrM.metalness = 0.3; flrM.side = THREE.DoubleSide; flrM.polygonOffset = true; flrM.polygonOffsetFactor = -2; flrM.polygonOffsetUnits = -2;
     function mk(P, I, mat, name, isWalk) {
       var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex(I); g.computeVertexNormals();
       var m = new THREE.Mesh(g, mat); m.name = name; m.userData.v8Skip = true; root.add(m); if (isWalk) walk.push(m); return m;
