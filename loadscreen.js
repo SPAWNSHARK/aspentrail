@@ -5,6 +5,7 @@
    WF_LOADSCREEN.leave(target, instant)      show + remember in sessionStorage so the NEXT page opens already covered, same caption
    WF_LOADSCREEN.ready()                     destination in place: hide once the minimum display time has passed
    WF_LOADSCREEN.label(target)               caption text for a page / room id
+   Also shown on the first page load of a session (app / tab just opened; sessionStorage 'wf-opened').
    Used by: deck-map taps (life.js), every door (door.js leave), Halcyon "take me to…" (ai.js).
    Pages hide it via ready(); a page with no #wf-fade / pending wf-goto gets a fallback (scene loaded + 1.8 s). Hard cap 25 s. */
 (function () {
@@ -66,9 +67,11 @@
   /* arrived from a teleport / door / Halcyon request on another page: cover immediately, before anything else paints */
   var rec = null; try { rec = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
   if (typeof rec === 'number') rec = { t: rec };
-  if (rec && rec.t && Date.now() - rec.t < 60000) {
+  var opened = false; try { opened = !!sessionStorage.getItem('wf-opened'); sessionStorage.setItem('wf-opened', '1'); } catch (e) { opened = true; }
+  var viaTravel = !!(rec && rec.t && Date.now() - rec.t < 60000);
+  if (viaTravel || !opened) {                      // travel arrival, or the app/tab was just opened (first page of the session)
     var hadGoto = false; try { hadGoto = !!sessionStorage.getItem('wf-goto'); } catch (e) {}
-    show(2000, true, rec.l);
+    show(2000, true, viaTravel ? rec.l : null);
     try { sessionStorage.removeItem(KEY); } catch (e) {}
     document.addEventListener('DOMContentLoaded', function () {
       if (hadGoto || document.getElementById('wf-fade')) return;       /* life.js arrive() / atrium ready() call ready() themselves */
