@@ -26,7 +26,7 @@
   <script src="loadscreen.js?v=20261128lo"></script>
   <script src="textures.js?v=20261127zu"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="brain.js?v=20261128w"></script>
+  <script src="brain.js?v=20261128x"></script>
   <script src="mobile.js?v=20261127s"></script>
   <script src="life.js?v=20261128ld"></script>
   <script src="manual.js?v=20261127z9"></script>
@@ -210,19 +210,11 @@
          BRAIN IN ELECTROGEL (below glass floor)
     ====================================================== -->
 
-    <!-- Electrogel tank walls -->
-    <a-cylinder position="0 -8 0" radius="8" height="16" open-ended="true"
-      material="side: double; color: #001a10; opacity: 0.12; transparent: true">
-    </a-cylinder>
-    <!-- Tank floor -->
-    <a-circle position="0 -16 0" rotation="-90 0 0" radius="8"
-      color="#000d08" roughness="1">
-    </a-circle>
-
+    <!-- Nov 28: old closed tank wall + floor removed: gel-tank draws the real Core room below the glass floor -->
     <a-entity id="gel-tank" gel-tank></a-entity>
 
     <!-- THE BRAIN — real 3D folds, built in brain.js -->
-    <a-entity id="brain" position="0 -7.3 0"></a-entity>   <!-- heartbeat, discharges: brain.js -->
+    <a-entity id="brain" position="0 -3.85 0" scale="0.55 0.55 0.55"></a-entity>   <!-- heartbeat, discharges: brain.js -->
 
     <!-- ELECTROGEL GLOW LIGHTS (below the floor — they only light the brain) -->
     <a-light type="point" position="0 -3.0 1.5"  color="#8fe0a8" intensity="0.8" distance="13" decay="2"></a-light>

@@ -308,9 +308,9 @@
     init: function () {
       var low = window.WAYFARER && window.WAYFARER.mobile, grp = new THREE.Group(), i;
       // gel volume (inside of the cylinder wall, so it reads as a lit liquid behind the brain)
-      var vol = new THREE.Mesh(new THREE.CylinderGeometry(7.9, 7.9, 16, low ? 40 : 72, 1, true),
+      var vol = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 4.9, 7.5, low ? 40 : 72, 1, true),
         new THREE.MeshBasicMaterial({ map: gradTex(), side: THREE.BackSide, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending }));
-      vol.position.set(0, -8, 0); grp.add(vol);
+      vol.position.set(0, -4.3, 0); grp.add(vol);   // Nov 28: Library floor = Core ceiling, so tank y = core y - 9.4; gel only inside the glass chamber
       // ── paneled machinery wall with lit teal vents ──
       var wc = document.createElement('canvas'), we = document.createElement('canvas'); wc.width = we.width = 1024; wc.height = we.height = 512;
       var x = wc.getContext('2d'), xe = we.getContext('2d'), px, py, rr = 11;
@@ -318,9 +318,9 @@
       x.fillStyle = '#1e272b'; x.fillRect(0, 0, 1024, 512); for (py = 0; py < 60; py++) { x.fillStyle = 'rgba(255,255,255,' + (0.015 + Math.random() * 0.02) + ')'; x.fillRect(0, Math.random() * 512, 1024, 1); }   // Nov 28: smooth graphite like the Core room (the old tiled machinery panels are gone)
       var wt = new THREE.CanvasTexture(wc), wet = new THREE.CanvasTexture(we);
       wt.wrapS = wt.wrapT = wet.wrapS = wet.wrapT = THREE.RepeatWrapping; wt.repeat.set(2, 1); wet.repeat.set(2, 1);
-      var wallM = new THREE.Mesh(new THREE.CylinderGeometry(8.12, 8.12, 16, low ? 48 : 96, 1, true),
+      var wallM = new THREE.Mesh(new THREE.CylinderGeometry(10.2, 10.2, 9.4, low ? 48 : 96, 1, true),
         new THREE.MeshStandardMaterial({ map: wt, emissiveMap: wet, emissive: 0xffffff, emissiveIntensity: 0.85, roughness: 0.55, metalness: 0.7, side: THREE.BackSide }));
-      wallM.position.y = -8; grp.add(wallM);
+      wallM.position.y = -4.7; grp.add(wallM);
 
       // Nov 28 (user: looking down from the Library I should see the NEW Core room): the Core's monitor wall + ribbed tissue pilasters down here too
       (function () {
@@ -334,7 +334,7 @@
           else if (kk === 4) { c.strokeStyle = 'rgba(125,255,205,.5)'; for (jj = 1; jj <= 4; jj++) { c.beginPath(); c.arc(o + 128, 142, jj * 24, 0, 7); c.stroke(); } c.beginPath(); c.moveTo(o + 128, 142); c.lineTo(o + 200, 90); c.stroke(); }
           else { c.strokeStyle = 'rgba(125,255,205,.6)'; for (jj = 0; jj < 12; jj++) { c.beginPath(); c.moveTo(o + 40 + (jj * 53) % 180, 60 + (jj * 71) % 150); c.lineTo(o + 40 + ((jj + 3) * 53) % 180, 60 + ((jj + 3) * 71) % 150); c.stroke(); } } }
         // same layout as core-room.js: Core y -> tank y = coreY - 12.85 (brain at -7.3), 22 bays from θ 0.3, doorway bays 10/11 empty, tiers 1.55-3.35 / 4.0-6.0, 23 pilasters, texture un-mirrored
-        var DY = -12.85, WRc = 8.0, TH0 = 0.3, DT = (Math.PI * 2 - 0.6) / 22, pw = DT * 0.8, TXs = [], q6;
+        var DY = -9.4, WRc = 10.0, TH0 = 0.3, DT = (Math.PI * 2 - 0.6) / 22, pw = DT * 0.8, TXs = [], q6;
         for (q6 = 0; q6 < 6; q6++) { var sc2 = document.createElement('canvas'); sc2.width = sc2.height = TW; sc2.getContext('2d').drawImage(mc, q6 * TW, 0, TW, TW, 0, 0, TW, TW); var tx2 = new THREE.CanvasTexture(sc2); tx2.wrapS = THREE.RepeatWrapping; tx2.repeat.x = -1; tx2.offset.x = 1; TXs.push(tx2); }
         for (kk = 0; kk < 22; kk++) { if (kk === 10 || kk === 11 || (low && kk % 2)) continue;
           [[1.55, 1.8, kk % 6], [4.0, 2.0, (kk + 3) % 6]].forEach(function (p) { var pm = new THREE.Mesh(new THREE.CylinderGeometry(WRc - 0.06, WRc - 0.06, p[1], 6, 1, true, TH0 + kk * DT + (DT - pw) / 2, pw), new THREE.MeshBasicMaterial({ map: TXs[p[2]], side: THREE.DoubleSide, toneMapped: false, fog: false })); pm.position.y = DY + p[0] + p[1] / 2; grp.add(pm); }); }
@@ -346,69 +346,30 @@
 
       var brass = new THREE.MeshStandardMaterial({ color: 0xa8843e, roughness: 0.38, metalness: 0.95, emissive: 0x2a1a06, emissiveIntensity: 0.6 });
       var tealM = new THREE.MeshBasicMaterial({ color: 0x6fd08c, fog: false });
-      [-3.5, -9.5, -14.5].forEach(function (y) {                          // brass hoops on the wall
-        var r = new THREE.Mesh(new THREE.TorusGeometry(8.0, 0.14, 8, low ? 64 : 128), brass); r.rotation.x = Math.PI / 2; r.position.y = y; grp.add(r);
-      });
-
-      // ── floor: grated plate + concentric ring + brass clamp ring around the brain's base ──
-      var gc = document.createElement('canvas'), gce = document.createElement('canvas'); gc.width = gc.height = gce.width = gce.height = 256;
-      var g2 = gc.getContext('2d'), g2e = gce.getContext('2d'); g2.fillStyle = '#0b1514'; g2.fillRect(0, 0, 256, 256); g2e.fillStyle = '#000'; g2e.fillRect(0, 0, 256, 256);
-      g2.strokeStyle = '#2b4a45'; g2.lineWidth = 3; g2e.strokeStyle = '#3f9f66'; g2e.lineWidth = 2;
-      for (i = 0; i <= 256; i += 32) { g2.beginPath(); g2.moveTo(i, 0); g2.lineTo(i, 256); g2.moveTo(0, i); g2.lineTo(256, i); g2.stroke(); g2e.beginPath(); g2e.moveTo(i, 0); g2e.lineTo(i, 256); g2e.moveTo(0, i); g2e.lineTo(256, i); g2e.stroke(); }
-      var gt = new THREE.CanvasTexture(gc), get = new THREE.CanvasTexture(gce); gt.wrapS = gt.wrapT = get.wrapS = get.wrapT = THREE.RepeatWrapping; gt.repeat.set(8, 8); get.repeat.set(8, 8);
-      var floor = new THREE.Mesh(new THREE.CircleGeometry(8, 64), new THREE.MeshStandardMaterial({ map: gt, emissiveMap: get, emissive: 0xffffff, emissiveIntensity: 1.0, roughness: 0.6, metalness: 0.8 }));
-      floor.rotation.x = -Math.PI / 2; floor.position.y = -15.9; grp.add(floor);
-      var fr = new THREE.Mesh(new THREE.TorusGeometry(7.8, 0.08, 6, 96), tealM); fr.rotation.x = Math.PI / 2; fr.position.y = -15.85; grp.add(fr);
-      var base = new THREE.Mesh(new THREE.TorusGeometry(3.7, 0.3, 10, 64), brass); base.rotation.x = Math.PI / 2; base.position.y = -13.2; grp.add(base);
-      var base2 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 4.2, 1.5, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x1a2a26, roughness: 0.5, metalness: 0.8, side: THREE.DoubleSide, emissive: 0x0a2a18, emissiveIntensity: 0.6 }));
-      base2.position.y = -14.5; grp.add(base2);
-      for (i = 0; i < 6; i++) {                                           // clamp blocks
-        var ca = i / 6 * Math.PI * 2 + 0.3, cb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.9), brass);
-        cb.position.set(Math.cos(ca) * 3.7, -13.1, Math.sin(ca) * 3.7); cb.rotation.y = -ca; grp.add(cb);
-      }
-
-      // ── vessel cables: wall ports → brain ──
-      var vessel = new THREE.MeshStandardMaterial({ color: 0x5a2432, roughness: 0.45, metalness: 0.1, emissive: 0x2a0a14, emissiveIntensity: 0.5 });
-      var strand = new THREE.MeshStandardMaterial({ color: 0xc58a92, roughness: 0.4, metalness: 0.1, emissive: 0x401820, emissiveIntensity: 0.5 });
-      var strand2 = new THREE.MeshStandardMaterial({ color: 0x5e6fb0, roughness: 0.4, metalness: 0.1, emissive: 0x101840, emissiveIntensity: 0.5 });
-      var nC = low ? 6 : 10, FR = new THREE.Vector3();
-      for (i = 0; i < nC; i++) {
-        var ang = i / nC * Math.PI * 2 + 0.15, py0 = -5.6 - (i % 3) * 1.7, dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
-        var P0 = dir.clone().multiplyScalar(7.7).setY(py0), P3 = dir.clone().multiplyScalar(2.3).setY(-7.3 + ((i % 3) - 1) * 0.8 - 0.4);
-        var P1 = dir.clone().multiplyScalar(6.0).setY(py0 - 1.4 - (i % 2) * 0.6), P2 = dir.clone().multiplyScalar(3.9).setY(P3.y - 1.0 - (i % 2) * 0.5);
-        var cv = new THREE.CatmullRomCurve3([P0, P1, P2, P3]);
-        grp.add(new THREE.Mesh(new THREE.TubeGeometry(cv, low ? 24 : 48, 0.27, low ? 8 : 12, false), vessel));
-        if (!low) {
-          var fr2 = cv.computeFrenetFrames(60, false);
-          [[0, strand], [Math.PI, strand2]].forEach(function (hh) {
-            var hp = [], q, pt;
-            for (q = 0; q <= 60; q++) {
-              pt = cv.getPointAt(q / 60); var ang2 = q * 0.45 + hh[0];
-              hp.push(pt.clone().addScaledVector(fr2.normals[q], Math.cos(ang2) * 0.3).addScaledVector(fr2.binormals[q], Math.sin(ang2) * 0.3));
-            }
-            grp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(hp), 120, 0.075, 6, false), hh[1]));
-          });
-        }
-        var flange = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.14, 8, 24), brass), collar = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.5, 20), brass);
-        var inward = dir.clone().multiplyScalar(-1);
-        flange.position.copy(P0).addScaledVector(dir, 0.25); flange.lookAt(flange.position.clone().add(dir));
-        collar.position.copy(P0).addScaledVector(dir, 0.05); collar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), inward);
-        grp.add(flange); grp.add(collar);
-        var lamp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffb04a, fog: false })); lamp.position.copy(P0).addScaledVector(dir, 0.55).setY(py0 + 0.75); grp.add(lamp);
-      }
-
-      // soft light shafts from the floor vents
-      var shaft = new THREE.MeshBasicMaterial({ color: 0x5fa87a, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
-      for (i = 0; i < (low ? 3 : 5); i++) {
-        var sa = i / (low ? 3 : 5) * Math.PI * 2 + 0.7, sm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1.3, 15, 16, 1, true), shaft);
-        sm.position.set(Math.cos(sa) * 5.8, -8.5, Math.sin(sa) * 5.8); grp.add(sm);
-      }
+      
+      // ── Nov 28 (user sketch): the REAL Core room seen through the Library floor — wide polar gallery floor, pit, solid-based glass cylinder ──
+      var G = -9.4, pc = document.createElement('canvas'), pe = document.createElement('canvas'); pc.width = pc.height = pe.width = pe.height = 512;
+      var p2 = pc.getContext('2d'), p2e = pe.getContext('2d'), k, PX = 256 / 10.2;
+      p2.fillStyle = '#10181a'; p2.fillRect(0, 0, 512, 512); p2e.fillStyle = '#000'; p2e.fillRect(0, 0, 512, 512);
+      [p2, p2e].forEach(function (c, ci) { c.strokeStyle = ci ? 'rgba(125,255,205,.55)' : '#33484a'; c.lineWidth = ci ? 2 : 3;
+        for (k = 0; k <= 3; k++) { c.beginPath(); c.arc(256, 256, (5.55 + k * 1.55) * PX, 0, 7); c.stroke(); }
+        for (k = 0; k < 48; k++) { var aa = k / 48 * 6.283; c.beginPath(); c.moveTo(256 + Math.cos(aa) * 5.55 * PX, 256 + Math.sin(aa) * 5.55 * PX); c.lineTo(256 + Math.cos(aa) * 10.2 * PX, 256 + Math.sin(aa) * 10.2 * PX); c.stroke(); } });
+      var gt = new THREE.CanvasTexture(pc), get = new THREE.CanvasTexture(pe);
+      var floor = new THREE.Mesh(new THREE.RingGeometry(5.55, 10.2, low ? 64 : 128, 1), new THREE.MeshStandardMaterial({ map: gt, emissiveMap: get, emissive: 0xffffff, emissiveIntensity: 0.9, roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide }));
+      floor.rotation.x = -Math.PI / 2; floor.position.y = G; grp.add(floor);
+      var fr = new THREE.Mesh(new THREE.TorusGeometry(10.1, 0.04, 6, 128), tealM); fr.rotation.x = Math.PI / 2; fr.position.y = G + 0.05; grp.add(fr);
+      var pitW = new THREE.Mesh(new THREE.CylinderGeometry(5.55, 5.55, 5.55, 64, 1, true), new THREE.MeshStandardMaterial({ color: 0x14261f, roughness: 0.7, metalness: 0.3, emissive: 0x0a3a24, emissiveIntensity: 0.5, side: THREE.BackSide })); pitW.position.y = G - 2.775; grp.add(pitW);
+      var pitF = new THREE.Mesh(new THREE.CircleGeometry(5.55, 64), new THREE.MeshStandardMaterial({ color: 0x0c1a16, roughness: 0.8, emissive: 0x0a3a24, emissiveIntensity: 0.6 })); pitF.rotation.x = -Math.PI / 2; pitF.position.y = G - 5.55; grp.add(pitF);
+      var col = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 8.7, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x5dffb4, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); col.position.y = G - 5.55 + 4.35; grp.add(col);
+      var baseD = new THREE.Mesh(new THREE.CylinderGeometry(5.1, 5.3, 0.3, 64), new THREE.MeshStandardMaterial({ color: 0x2a3438, roughness: 0.4, metalness: 0.8, emissive: 0x0a2a18, emissiveIntensity: 0.4 })); baseD.position.y = G + 1.2; grp.add(baseD);   // solid base of the cylinder
+      var glassC = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 7.5, low ? 48 : 96, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fe8c0, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false, fog: false })); glassC.position.y = -4.3; grp.add(glassC);
+      [-8.05, -0.55].forEach(function (y) { var rg = new THREE.Mesh(new THREE.TorusGeometry(5.0, 0.06, 6, 96), tealM); rg.rotation.x = Math.PI / 2; rg.position.y = y; grp.add(rg); });
 
       // rising bubbles / plankton
       var n = low ? 60 : 120, p = new Float32Array(n * 3);   /* fewer bubbles (user, Nov 26) */ this.sp = new Float32Array(n); this.ph = new Float32Array(n);
       for (i = 0; i < n; i++) {
-        var vent = i % 3 === 0, r = vent ? 5.8 + Math.random() * 0.4 : Math.sqrt(Math.random()) * 7.4, th = vent ? Math.floor(Math.random() * 8) / 8 * 6.283 + Math.random() * 0.08 : Math.random() * 6.283;   // a third rise in streams from vents
-        p[i * 3] = Math.cos(th) * r; p[i * 3 + 1] = -15.5 + Math.random() * 15; p[i * 3 + 2] = Math.sin(th) * r;
+        var r = Math.sqrt(Math.random()) * 4.5, th = Math.random() * 6.283;   // a third rise in streams from vents
+        p[i * 3] = Math.cos(th) * r; p[i * 3 + 1] = -8 + Math.random() * 7.2; p[i * 3 + 2] = Math.sin(th) * r;
         this.sp[i] = 0.9 + Math.random() * 1.6; this.ph[i] = Math.random() * 6.283;
       }
       var bg = new THREE.BufferGeometry(); bg.setAttribute('position', new THREE.BufferAttribute(p, 3));
@@ -419,7 +380,7 @@
       var NE = low ? 3 : 5, SEG = 18, eelM = new THREE.MeshStandardMaterial({ color: 0x0e2a2c, roughness: 0.35, metalness: 0.2, emissive: 0x0a6a60, emissiveIntensity: 0.55 });
       this.eel = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 10, 8), eelM, NE * SEG); this.eel.frustumCulled = false; this.eel.renderOrder = -1; grp.add(this.eel);
       var eyeM = new THREE.MeshBasicMaterial({ color: 0x9fffe8, toneMapped: false }); this.eyes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 6, 4), eyeM, NE * 2); this.eyes.frustumCulled = false; grp.add(this.eyes);
-      this.eels = []; for (i = 0; i < NE; i++) { var hist = []; for (var k = 0; k < 160; k++) { var a0 = i * 1.7 - k * 0.012, r0 = 5.9 + (i % 3) * 0.55; hist.push(new THREE.Vector3(Math.cos(a0) * r0, [-2.6, -12.6, -7.5, -3.4, -11.8][i], Math.sin(a0) * r0)); } this.eels.push({ r: 5.9 + (i % 3) * 0.55, y: [-2.6, -12.6, -7.5, -3.4, -11.8][i], sp: 0.22 + i * 0.05, ph: i * 1.7, dir: i % 2 ? 1 : -1, hist: hist, seg: SEG, size: 0.24 + (i % 3) * 0.05 }); }
+      this.eels = []; for (i = 0; i < NE; i++) { var hist = []; for (var k = 0; k < 160; k++) { var a0 = i * 1.7 - k * 0.012, r0 = 3.7 + (i % 3) * 0.3; hist.push(new THREE.Vector3(Math.cos(a0) * r0, [-1.4, -7.2, -4.2, -2.0, -6.6][i], Math.sin(a0) * r0)); } this.eels.push({ r: 3.7 + (i % 3) * 0.3, y: [-1.4, -7.2, -4.2, -2.0, -6.6][i], sp: 0.22 + i * 0.05, ph: i * 1.7, dir: i % 2 ? 1 : -1, hist: hist, seg: SEG, size: 0.24 + (i % 3) * 0.05 }); }
       this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._v = new THREE.Vector3(); this._sc = new THREE.Vector3(); this._up = new THREE.Vector3(0, 0, 1);
       this.el.setObject3D('tank', grp);
     },
@@ -428,9 +389,9 @@
       for (var e = 0; e < this.eels.length; e++) {
         var E = this.eels[e], a = E.ph + T * E.sp * E.dir, head = new THREE.Vector3(Math.cos(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2), E.y + Math.sin(T * 0.5 + e * 2) * 2.2, Math.sin(a) * (E.r + Math.sin(T * 0.37 + e) * 1.2));
         head.y = E.y + Math.sin(T * 0.5 + e * 2) * 1.2;
-        var ex = head.x / 5.4, ey = (head.y + 7.4) / 4.4, ez = (head.z + 0.4) / 6.4, ed = Math.sqrt(ex * ex + ey * ey + ez * ez);   /* never through the brain */
-        if (ed < 1) { head.x /= ed; head.y = (head.y + 7.4) / ed - 7.4; head.z = (head.z + 0.4) / ed - 0.4; }
-        var hr = Math.hypot(head.x, head.z); if (hr > 7.3) { head.x *= 7.3 / hr; head.z *= 7.3 / hr; }
+        var ex = head.x / 3.1, ey = (head.y + 3.85) / 2.6, ez = (head.z + 0.2) / 3.6, ed = Math.sqrt(ex * ex + ey * ey + ez * ez);   /* never through the brain */
+        if (ed < 1) { head.x /= ed; head.y = (head.y + 3.85) / ed - 3.85; head.z = (head.z + 0.2) / ed - 0.2; }
+        var hr = Math.hypot(head.x, head.z); if (hr > 4.5) { head.x *= 4.5 / hr; head.z *= 4.5 / hr; }
         if (head.distanceTo(E.hist[0]) > 0.03) { E.hist.unshift(head); E.hist.pop(); } else E.hist[0].copy(head);
         // body segments sit at fixed ARC LENGTHS behind the head (so the eel stays joined at any frame rate)
         var gap = E.size * 1.1, hi = 0, acc = 0, PTS = this._pts || (this._pts = []);
@@ -452,7 +413,7 @@
       for (i = 0; i < n; i++) {
         d[i * 3 + 1] += this.sp[i] * s;
         d[i * 3] += Math.sin(t / 250 + this.ph[i]) * 0.006; d[i * 3 + 2] += Math.cos(t / 310 + this.ph[i]) * 0.006;   // wobble as they rise
-        if (d[i * 3 + 1] > -0.6) d[i * 3 + 1] = -15.6;
+        if (d[i * 3 + 1] > -0.8) d[i * 3 + 1] = -8;
       }
       a.needsUpdate = true;
     },
